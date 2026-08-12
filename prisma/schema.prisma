@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CampaignRole {
+  OWNER
+  ADMIN
+  DM
+  PLAYER
+  SPECTATOR
+}
+
+model User {
+  id          String  @id @default(uuid()) @db.Uuid
+  email       String  @unique
+  username    String? @unique
+  displayName String?
+
+  memberships    CampaignMembership[]
+  ownedCampaigns Campaign[]           @relation("CampaignOwner")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Campaign {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+
+  ownerId String @db.Uuid
+  owner   User   @relation("CampaignOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+
+  memberships CampaignMembership[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+}
+
+model CampaignMembership {
+  id String @id @default(uuid()) @db.Uuid
+
+  campaignId String @db.Uuid
+  userId     String @db.Uuid
+
+  role CampaignRole @default(PLAYER)
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([campaignId, userId])
+  @@index([userId])
+}
