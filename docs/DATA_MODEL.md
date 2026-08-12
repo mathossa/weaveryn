@@ -614,10 +614,9 @@ Markers may later support:
 
 ---
 
-# 18. Asset
+## 18. Asset
 
-Uploaded files should be represented separately from the objects that use
-them.
+Uploaded files are represented separately from the objects that use them.
 
 Asset
 - id
@@ -631,17 +630,27 @@ Asset
 - metadata
 - createdAt
 
-Examples:
+The database stores file metadata and a storage key. The actual file is
+stored using the configured StorageProvider.
 
-- Character portraits
-- NPC portraits
-- Maps
-- Handouts
-- Documents
-- Audio
+The default storage provider is LocalStorageProvider.
 
-Objects reference Assets instead of storing files directly in the
-database.
+Example local structure:
+
+data/
+  uploads/
+    campaigns/
+      <campaign-id>/
+        <asset-id>
+
+Application code must not directly depend on local filesystem paths.
+All file operations go through StorageService.
+
+This allows future storage providers, such as S3-compatible object storage,
+without changing campaign, map, character, or asset logic.
+
+Local storage is the primary and default storage method for Weaveryn.
+Cloud storage must not be required to run a normal self-hosted instance.
 
 ---
 
