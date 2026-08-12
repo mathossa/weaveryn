@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: weaveryn-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: weaveryn
+      POSTGRES_USER: weaveryn
+      POSTGRES_PASSWORD: weaveryn_dev
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - weaveryn-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  weaveryn-postgres-data:
