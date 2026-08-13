@@ -49,7 +49,7 @@ A **Campaign** represents a game being played inside that world.
 
 A single world can contain multiple campaigns, and those campaigns do not have to use the same tabletop RPG mechanics. This allows a world to remain persistent while different stories, groups, and game systems exist within it.
 
-Campaigns belong to their world and are not intended to be moved between worlds.
+An active campaign belongs to one world and is not intended to move freely between worlds. Campaign ownership remains independent from world ownership, so user-owned campaigns can survive if their world is removed.
 
 ---
 
@@ -128,11 +128,14 @@ After selecting a campaign, players choose the character through which they want
 From here, a player can:
 
 - Select an existing character
-- Create a new character for the campaign
+- Create a new character for this world/campaign
+- Use an existing compatible character
 - View basic character information
 - Continue into the campaign
 
-Character creation is **campaign-aware**. The selected campaign determines which rulesets, attributes, species, abilities, and other options are available during character creation.
+Character creation is both **world-aware and campaign-aware**.
+
+The World determines setting concepts such as available species, cultures, languages, and origins. The Campaign ruleset determines game mechanics such as attributes, classes, skills, abilities, and progression.
 
 > **Concept artwork — not yet implemented. Final UI may differ.**
 
@@ -188,9 +191,25 @@ For example, one campaign could use a d20-based system while another campaign in
 
 ## Characters
 
-Characters are intended to become one of the primary ways players interact with Weaveryn.
+Characters are persistent user-owned identities that can exist across worlds and campaigns.
 
-Character creation begins by selecting a campaign. The selected campaign determines which campaign rules and character mechanics are available.
+Weaveryn separates a character into three conceptual layers:
+
+```text
+Character
+    ↓
+WorldCharacter
+    ↓
+CampaignCharacter
+```
+
+- **Character** — portable identity, portrait, personality, and core backstory
+- **WorldCharacter** — world-specific identity such as species, culture, hometown, and world history
+- **CampaignCharacter** — campaign-specific game state such as level, class, stats, equipment, and progression
+
+This allows the same character to participate in multiple campaigns without duplicating their core identity.
+
+For example, Bodwick can be level 8 in a D&D 5e campaign and level 4 in a Pathfinder campaign while remaining the same character in the same world.
 
 Planned functionality includes:
 
@@ -207,6 +226,10 @@ Planned functionality includes:
 - Campaign association
 - Ruleset-aware character creation
 - Future modular 2D/2.5D avatar creation
+- Reuse a WorldCharacter across multiple campaigns
+- Independent character progression per campaign
+- Copy characters between worlds
+- Migrate characters between worlds
 
 ### Character Visuals
 
@@ -305,7 +328,11 @@ Users should eventually be able to:
 
 When creating a **World**, users can select, customize, or import world rules.
 
-When creating a **Character**, the user first selects a campaign. The character creator can then automatically use the rulesets associated with that campaign.
+When creating a Character within a campaign, Weaveryn combines the selected World's setting definitions with the Campaign's ruleset.
+
+World-specific identity belongs to the character's World incarnation, while ruleset-specific statistics and progression belong to its Campaign participation.
+
+Different campaigns in the same world may use different rulesets. The same WorldCharacter can therefore have different mechanics and progression in each campaign.
 
 ---
 
@@ -422,7 +449,7 @@ A **World Owner** has administrative control over a world, including its configu
 
 A **Campaign Owner** manages a specific campaign within a world.
 
-Campaign membership is separate from world membership. A user may therefore have access to a world without being a member of every campaign inside it.
+Campaign ownership is independent from World ownership. A World owner controls whether a Campaign may exist within their World, but does not automatically own Campaigns owned by other users.
 
 Campaign members can have different roles, including:
 
@@ -455,6 +482,8 @@ Sensitive information such as hidden NPC statistics, unrevealed lore, secret loc
 Destructive actions such as deletion should be deliberate user-interface actions with appropriate permission checks and confirmation.
 
 They should not be casually exposed through the public API.
+
+Deleting a World must not automatically destroy independently user-owned Characters or Campaigns. These should be preserved and detached, archived, or made unassigned as appropriate.
 
 ---
 
@@ -513,7 +542,8 @@ Weaveryn is being designed around several principles:
 - **Rulesets are data, not hardcoded game logic**
 - **World setting rules and campaign mechanics are separate concepts**
 - **A world can contain multiple campaigns**
-- **A campaign belongs permanently to one world**
+- **An active campaign belongs to one world**
+- **Campaign ownership is independent from world ownership**
 - **Users control their own content**
 - **Desktop, tablet, and mobile should all be usable**
 - **The interface should feel like entering a game, not opening business software**
@@ -569,6 +599,10 @@ Development will broadly progress through the following stages:
 
 ### Phase 2 — Characters
 
+- World- and campaign-aware character creation
+- Character / WorldCharacter / CampaignCharacter model
+- Reuse characters across campaigns
+- Character copy and migration
 - Character creation
 - Campaign-aware character creation
 - Character sheets

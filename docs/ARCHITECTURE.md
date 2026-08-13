@@ -1,226 +1,305 @@
 # Weaveryn Architecture
 
-## 1. Project Vision
+## Overview
 
-Weaveryn is an open-source, system-agnostic tabletop RPG platform.
+Weaveryn is built around persistent Worlds, Campaigns, reusable Characters, flexible Rulesets, granular permissions, optional AI, and first-class self-hosting.
 
-It combines:
+The core domain is:
 
-- Campaign management
-- Interactive world building
-- Character management
-- Custom rulesets
-- Session notes
-- Interactive maps
-- Battle maps / virtual tabletop
-- Dice rolling
-- AI integration
-- Solo play
-- Multiplayer / online play
+```text
+User
+├── Worlds
+├── Campaigns
+└── Characters
 
-The application should work well on desktop, tablet and mobile.
+World
+├── Members
+├── WorldCharacters
+└── Campaigns
 
-## 2. Core Design Principles
+Character
+└── WorldCharacter
+    └── CampaignCharacter
+```
 
-### System agnostic
+Ownership, membership, functional role, character/NPC control, and information visibility are separate concepts.
 
-Weaveryn must not hard-code D&D, Pathfinder, or another RPG system into
-the core application.
+---
 
-Campaigns reference a Ruleset.
+## World
 
-Rulesets define things such as:
+A **World** is a persistent setting containing Campaigns and setting-specific content.
 
-- Character sheet fields
-- Stats
-- Skills
-- Resources
-- Spells
-- Abilities
-- Items
-- Dice mechanics
-- Game-specific rules
+### Ownership and Membership
 
-### Campaign isolation
+`World.ownerId` is the authoritative source of World ownership. Ownership is not duplicated by an `OWNER` membership role.
 
-Every campaign is its own world.
+Users may join Worlds through `WorldMembership`.
 
-A campaign contains:
+Initial World roles:
 
-- Players
-- Characters
-- World entities
-- Maps
-- Sessions
-- Ruleset
-- Campaign files
-- AI context
+```text
+ADMIN
+MEMBER
+VIEWER
+```
 
-Users may participate in multiple campaigns.
+A World owner does not require a membership record to establish ownership.
 
-### Everything can be linked
+Campaign creation is permitted to the World owner and World administrators. Other World membership roles do not grant this permission by default.
 
-World information should form a graph rather than only a wiki.
+### Linked Entities
 
-For example:
+World content forms an interconnected domain rather than only a collection of independent pages.
 
-Character -> Member of -> Faction
-Character -> Lives in -> City
-City -> Located in -> Region
-NPC -> Owns -> Tavern
-Quest -> Involves -> NPC
-Map Marker -> Points to -> City
+World entities may reference other entities through meaningful relationships. Maps and other modules may also reference domain entities.
 
-### Permission aware
+---
 
-Initial roles:
+## Campaign
 
-- Admin
-- Dungeon Master
-- Player
+A **Campaign** is a playable game instance hosted in a World.
 
-Permissions must be enforced by the backend/API, not only hidden in the UI.
+An active Campaign belongs to one World and is not intended to move freely between Worlds.
 
-### API first
+`Campaign.ownerId` is the authoritative source of Campaign ownership. Campaign ownership is independent from World ownership.
 
-Important application functionality should be accessible through an API.
+A World owner controls whether a Campaign may be hosted in their World but does not automatically own Campaigns owned by other users.
 
-This allows:
+### Campaign Membership
 
-- Web UI
-- Mobile/PWA UI
-- AI agents
-- External integrations
-- Future clients
+Campaign roles describe participation rather than ownership:
 
-to use the same application logic.
+```text
+GM
+ASSISTANT_GM
+PLAYER
+SPECTATOR
+```
 
-### AI is a client, not the database
+There is no `OWNER` CampaignRole.
 
-AI agents should interact with Weaveryn through controlled APIs/tools.
-
-Examples:
-
-- search_campaign
-- get_character
-- get_entity
-- get_rules
-- create_note
-- update_entity
-- roll_dice
-
-AI access must respect the permissions of the user invoking it.
-
-## 3. Core Domains
-
-### Users
-
-Authentication and user profile.
-
-### Campaigns
-
-Campaign configuration, membership and permissions.
+The Campaign owner normally receives a `GM` membership when the Campaign is created.
 
 ### Rulesets
 
-Versioned definitions of RPG systems.
+Each Campaign selects its own Ruleset.
 
-Each campaign selects a ruleset.
+Different Campaigns in the same World may use different Rulesets.
 
-Rulesets can be imported, exported and customized.
+Rulesets are extensible domain content rather than hard-coded system enums.
 
-### Characters
+A Ruleset defines Campaign mechanics such as attributes, classes, skills, abilities, combat, progression, and other game-system rules.
 
-Characters belong to campaigns and use the campaign's ruleset to determine
-their character sheet.
+Changing a Campaign's Ruleset must not silently convert existing CampaignCharacter state. Conversion requires an explicit migration process.
 
-### World
+---
 
-Generic interconnected campaign entities.
+## Character Model
 
-Examples:
+Characters use three conceptual layers:
 
-- Person / NPC
-- Location
-- Region
-- Settlement
-- Organization
-- Item
-- Quest
-- Event
-- Creature
-- Note
+```text
+Character
+    ↓
+WorldCharacter
+    ↓
+CampaignCharacter
+```
 
-### Maps
+### Character
 
-Uploaded maps with interactive layers and markers.
+`Character` is the persistent, user-owned, portable identity.
 
-Markers can reference world entities.
+Character-level data contains information that remains meaningful independently of a World or Campaign.
 
-### Sessions
+A Character does not inherently belong to one World.
 
-Session history, notes, events and campaign changes.
+### WorldCharacter
 
-### Play
+`WorldCharacter` represents a Character's incarnation in a particular World.
 
-Live gameplay functionality:
+World-specific identity, history, relationships, and setting concepts belong to this layer.
 
-- Dice
-- Encounters
-- Initiative
-- Battle maps
-- Tokens
-- Fog of war
-- Projector/display mode
+A Character may have WorldCharacters in multiple Worlds.
+
+### CampaignCharacter
+
+`CampaignCharacter` represents a WorldCharacter participating in a specific Campaign.
+
+Campaign- and Ruleset-specific state belongs to this layer, including progression and mechanical character state.
+
+A WorldCharacter may participate in multiple Campaigns in the same World without being duplicated. Each CampaignCharacter has independent Campaign state.
+
+World identity and Ruleset mechanics remain separate. WorldCharacter describes the Character in the setting; CampaignCharacter describes its mechanical representation and progression in a Campaign.
+
+A CampaignCharacter may only connect a WorldCharacter to a Campaign hosted in the same World. This invariant must be enforced in backend/domain logic.
+
+### Copying and Migration
+
+Characters are user-owned and portable.
+
+Copying a Character to another World creates another WorldCharacter while preserving the existing incarnation.
+
+Migrating a WorldCharacter moves or adapts that incarnation to another World rather than creating a second active incarnation.
+
+Migration must not leave invalid Campaign relationships. Historical information should be preserved where practical.
+
+Only the Character owner, or a user explicitly delegated that authority, may copy or migrate the Character.
+
+---
+
+## NPCs
+
+NPCs are normally GM-controlled.
+
+Specific NPCs may be delegated to players without granting broader GM permissions or exposing unrelated GM-only information.
+
+NPCs may be cloned to other Worlds or converted/promoted into player Characters.
+
+Once an entity becomes independently user-owned, that ownership must be respected by deletion and permission workflows.
+
+Detailed NPC lifecycle rules remain a separate domain concern.
+
+---
+
+## Permissions and Visibility
+
+Permissions exist at World, Campaign, Character, NPC, and information levels.
+
+The architecture distinguishes:
+
+- ownership
+- membership
+- functional roles
+- Character ownership
+- delegated NPC control
+- information visibility
+
+Information visibility may include GM-only, player-only, shared, World/member-visible, and future custom scopes.
+
+Authorization must be enforced by backend/application services. UI visibility is not a security boundary.
+
+---
+
+## Deletion and Unassigned Content
+
+Destructive actions must be deliberate.
+
+Deleting or detaching a World must not automatically destroy independently user-owned Characters or Campaigns.
+
+User-owned assets may become unassigned or archived when their containing World is removed.
+
+Deleting a Campaign may remove Campaign-specific memberships and participation records but must not delete the underlying Character identity.
+
+User accounts must never be deleted as a consequence of deleting World or Campaign content.
+
+World deletion is an explicit application workflow rather than an accidental database cascade.
+
+**Core principle:** Container authority controls placement; asset ownership controls the asset.
+
+---
+
+## Target Relationships
+
+```text
+User
+├── ownedWorlds
+├── worldMemberships
+├── ownedCampaigns
+├── campaignMemberships
+└── characters
+
+World
+├── owner
+├── memberships
+├── campaigns
+└── worldCharacters
+
+Campaign
+├── world
+├── owner
+├── memberships
+├── ruleset
+└── campaignCharacters
+
+Character
+├── owner
+└── worldCharacters
+
+WorldCharacter
+├── character
+├── world
+└── campaignCharacters
+
+CampaignCharacter
+├── worldCharacter
+├── campaign
+└── campaign/ruleset-specific state
+
+Ruleset
+└── campaigns
+```
+
+---
+
+## Core Invariants
+
+1. `World.ownerId` and `Campaign.ownerId` are authoritative for ownership.
+2. Membership roles do not duplicate ownership.
+3. Campaign ownership is independent from World ownership.
+4. Character ownership is independent from World and Campaign ownership.
+5. `Character` is the portable user-owned identity.
+6. `WorldCharacter` contains World-specific identity and history.
+7. `CampaignCharacter` contains Campaign-specific mechanics and progression.
+8. A WorldCharacter may participate in multiple Campaigns in its World with independent state.
+9. Different Campaigns in the same World may use different Rulesets.
+10. Cross-World CampaignCharacter relationships are forbidden.
+11. User-owned content is not destroyed merely because its containing World is removed.
+12. Backend authorization is authoritative.
+
+---
+
+## Application Architecture
+
+Core business rules belong in reusable application/domain services rather than UI components.
+
+Application modules build on shared domain services and authorization rules rather than duplicating business logic.
+
+The architecture should support independent modules for World building, Characters, Rulesets, sessions, maps, encounters, virtual tabletop functionality, solo play, and integrations without tightly coupling those modules.
+
+### API-first
+
+Core functionality should be accessible through controlled APIs backed by the same application/domain services.
+
+The Web/PWA, AI agents, and future integrations must use the same authorization and domain rules.
+
+### Self-hosting
+
+Self-hosting is a first-class requirement.
+
+Core Weaveryn functionality should remain usable without depending on Weaveryn-hosted cloud infrastructure.
 
 ### AI
 
-Permission-controlled interface between AI models and campaign data.
+AI is optional and provider-independent.
 
-AI providers should be replaceable.
+AI acts as a client of Weaveryn through controlled APIs/tools. It is never the authoritative source of application state or permissions.
 
-Possible providers include:
+AI actions inherit the permissions of the invoking user.
 
-- Ollama
-- Hosted AI APIs
-- Future providers
+### Content and Extensibility
 
-## 4. High-Level Architecture
+The architecture should support extensible community-created, free/open, creator-paid, and appropriately licensed content and Rulesets without coupling the core application to a single proprietary TTRPG system.
 
-Browser / PWA
-        |
-        v
-     Next.js
-        |
-        v
- Application Services
-        |
-   +----+---------+----------+
-   |              |          |
-   v              v          v
-Database       Storage     Realtime
-   |
-   v
-Weaveryn API
-   ^
-   |
-   +---- AI Agent
-   |
-   +---- External integrations
+---
 
-## 5. Development Philosophy
+## Development Principles
 
-Features should be divided into independent modules wherever practical.
+Prefer small, coherent feature changes and independently maintainable modules.
 
-A developer or coding agent should be able to implement a feature on a
-feature branch without requiring unrelated parts of the application to
-be modified.
+Business rules belong in shared application/domain services rather than UI code.
 
-Large features should be divided into GitHub Issues with clearly defined:
+Features should have clear scope, dependencies, acceptance criteria, and tests.
 
-- Goal
-- Scope
-- API contract
-- Dependencies
-- Acceptance criteria
-- Tests
+Avoid unrelated refactoring within feature branches.

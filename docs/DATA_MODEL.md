@@ -2,89 +2,162 @@
 
 ## 1. Purpose
 
-This document defines the core data concepts and relationships used by
-Weaveryn.
+This document defines the logical data model for Weaveryn.
 
-It describes the logical model rather than a specific database schema.
+It describes core entities, relationships, ownership, scope, and important data constraints. It is not a direct Prisma or database schema.
 
-The goals are:
+The architecture defined in `ARCHITECTURE.md` is authoritative. This document translates that architecture into logical data concepts.
 
-- Keep the core system RPG-system agnostic.
-- Allow campaigns to use different rulesets.
-- Allow rulesets to evolve without destroying existing campaign data.
-- Support highly customizable character sheets.
-- Allow campaign objects to link to each other.
-- Support maps, sessions, live play, and AI.
-- Enforce permissions consistently.
-- Make the API usable by both humans and AI agents.
+Core goals:
+
+- Remain RPG-system agnostic.
+- Separate World setting data from Campaign gameplay data.
+- Support different Rulesets between Campaigns in the same World.
+- Support versioned Rulesets and explicit migrations.
+- Separate portable Character identity, World identity, and Campaign-specific state.
+- Support linked World content.
+- Enforce ownership, permissions, and visibility consistently.
+- Support self-hosting, APIs, AI, maps, sessions, and live play without coupling the core model to them.
 
 ---
 
-# 2. User
+## 2. User
 
-A User represents a Weaveryn account.
+A `User` represents a Weaveryn account.
 
-A user can participate in multiple campaigns and may have different roles
-in each campaign.
-
-Example:
-
+```text
 User
 - id
+- email
 - username
 - displayName
 - avatar
 - createdAt
 - updatedAt
+```
 
-Global administrative permissions should be separate from campaign roles.
+Relations:
+
+- owns zero or more Worlds
+- has zero or more WorldMemberships
+- owns zero or more Campaigns
+- has zero or more CampaignMemberships
+- owns zero or more Characters
+
+Global/platform administration is separate from World and Campaign roles.
 
 ---
 
-# 3. Campaign
+## 3. World
 
-Campaign is the primary isolation boundary in Weaveryn.
+A `World` is the persistent setting scope.
 
-Almost all gameplay data belongs to a campaign.
-
-Example:
-
-Campaign
+```text
+World
 - id
+- ownerId
 - name
 - description
 - image
-- ownerId
-- activeRulesetVersionId
 - settings
 - createdAt
 - updatedAt
+```
 
-A campaign can contain:
+Relations:
 
-- Members
-- Characters
-- World entities
-- Relationships
-- Maps
-- Sessions
-- Files
-- Ruleset configuration
-- Dice history
-- Live play state
-- AI configuration
+- belongs to one owning User
+- has WorldMemberships
+- contains Campaigns
+- contains WorldCharacters
+- contains WorldEntities
+- contains World-level maps/assets as supported
 
-Campaign data must not accidentally become visible to users outside that
-campaign.
+Constraints:
+
+- `ownerId` is authoritative for ownership
+- ownership is not duplicated through membership roles
+- deletion must use an explicit application workflow when independently user-owned content exists
 
 ---
 
-# 4. Campaign Membership
+## 4. World Membership
 
-CampaignMembership connects a User to a Campaign.
+`WorldMembership` connects a User to a World.
 
-Example:
+```text
+WorldMembership
+- id
+- worldId
+- userId
+- role
+- permissions
+- joinedAt
+- updatedAt
+```
 
+Initial roles:
+
+```text
+ADMIN
+MEMBER
+VIEWER
+```
+
+Constraints:
+
+- unique `(worldId, userId)`
+- membership does not represent ownership
+- role permissions are enforced by backend/application services
+
+---
+
+## 5. Campaign
+
+A `Campaign` is a playable game instance hosted in a World.
+
+```text
+Campaign
+- id
+- worldId
+- ownerId
+- name
+- description
+- image
+- activeRulesetVersionId
+- settings
+- status
+- createdAt
+- updatedAt
+```
+
+Relations:
+
+- hosted in one World while active
+- owned by one User
+- has CampaignMemberships
+- has CampaignCharacters
+- references an active RulesetVersion
+- may contain Sessions, Encounters, Campaign-specific Maps, Assets, DiceRolls, and live-play state
+
+Constraints:
+
+- Campaign ownership is independent from World ownership
+- `ownerId` is authoritative for Campaign ownership
+- membership roles do not represent ownership
+- active Campaigns require a World
+- Campaign-specific data must not leak across authorization boundaries
+- changing RulesetVersion requires an explicit migration process
+
+A Campaign may become unassigned or archived when its World is removed if preservation of user-owned content requires it.
+
+---
+
+## 6. Campaign Membership
+
+`CampaignMembership` connects a User to a Campaign.
+
+```text
 CampaignMembership
 - id
 - campaignId
@@ -92,55 +165,33 @@ CampaignMembership
 - role
 - permissions
 - joinedAt
+- updatedAt
+```
 
 Initial roles:
 
-- OWNER
-- ADMIN
-- DM
-- PLAYER
-- SPECTATOR
+```text
+GM
+ASSISTANT_GM
+PLAYER
+SPECTATOR
+```
 
-Roles provide default permissions.
+Constraints:
 
-Individual permissions may eventually override role defaults.
-
-Examples:
-
-- campaign.read
-- campaign.manage
-- character.create
-- character.edit.own
-- character.edit.any
-- entity.read.player
-- entity.read.dm
-- entity.write
-- map.manage
-- session.manage
-- ruleset.manage
-- ai.use
-- ai.write
-
-The backend must always enforce permissions.
+- unique `(campaignId, userId)`
+- no `OWNER` role
+- Campaign ownership comes from `Campaign.ownerId`
+- the Campaign owner normally receives functional `GM` membership
+- backend/application services enforce permissions
 
 ---
 
-# 5. Ruleset
+## 7. Ruleset
 
-A Ruleset describes the game system used by a campaign.
+A `Ruleset` represents an extensible game system definition.
 
-The Weaveryn core must not assume D&D-specific concepts such as:
-
-- Armor Class
-- Spell Slots
-- Classes
-- Saving Throws
-- d20 checks
-
-Those concepts belong to rulesets.
-
-Example:
-
+```text
 Ruleset
 - id
 - name
@@ -150,32 +201,23 @@ Ruleset
 - visibility
 - createdAt
 - updatedAt
+```
 
-Examples could include:
+Relations:
 
-- A user-created fantasy RPG ruleset
-- Pathfinder-compatible user content
-- Homebrew systems
-- Generic narrative RPGs
+- has one or more RulesetVersions
 
-Rulesets should be importable and exportable.
+Rulesets should be importable/exportable and must not require hard-coded game-system concepts in Weaveryn core.
 
-Copyrighted rules/content is not bundled with Weaveryn unless licensing
-explicitly permits it.
-
-Users may provide their own content where legally permitted.
+Rules/content must only be bundled or distributed where licensing permits it.
 
 ---
 
-# 6. Ruleset Version
+## 8. Ruleset Version
 
-Rulesets must be versioned.
+A `RulesetVersion` is an immutable or controlled version of a Ruleset used by Campaigns.
 
-A campaign should reference a specific RulesetVersion rather than an
-ever-changing Ruleset.
-
-Example:
-
+```text
 RulesetVersion
 - id
 - rulesetId
@@ -183,143 +225,140 @@ RulesetVersion
 - schema
 - definitions
 - createdAt
+```
 
-Example:
+Relations:
 
-Ruleset
-  |
-  +-- Version 1.0
-  |
-  +-- Version 1.1
-  |
-  +-- Version 2.0
+- belongs to one Ruleset
+- may define SheetDefinitions
+- may define RuleDefinitions
+- may be referenced by multiple Campaigns
 
-This allows existing campaigns to remain on an older version.
-
-Changing the ruleset of an active campaign must be treated as a migration,
-not simply replacing the ruleset reference.
+A Campaign references a specific RulesetVersion so existing Campaigns are not automatically changed when a Ruleset evolves.
 
 ---
 
-# 7. Ruleset Migration
+## 9. Ruleset Migration
 
-Changing rulesets or ruleset versions may require transforming campaign
-data.
+A `RulesetMigration` describes an explicit transformation between RulesetVersions.
 
-Example:
-
-Old ruleset:
-
-strength: 14
-
-New ruleset:
-
-attributes:
-  physical:
-    strength: 14
-
-A migration can map the old value into the new schema.
-
+```text
 RulesetMigration
 - id
 - fromRulesetVersionId
 - toRulesetVersionId
 - migrationDefinition
 - createdAt
+```
 
-Before migration, Weaveryn should:
+Migration must be deliberate and validated.
 
-1. Validate the target ruleset.
-2. Create a campaign snapshot/backup.
-3. Preview incompatible fields.
-4. Show the DM/admin what will change.
-5. Require confirmation.
-6. Perform the migration.
-7. Validate the result.
-8. Allow rollback if migration fails.
+The application should support validation, preview, backup/snapshot, migration, result validation, and recovery/rollback where practical.
+
+Ruleset changes must never silently reinterpret existing CampaignCharacter state.
 
 ---
 
-# 8. Character
+## 10. Character
 
-A Character exists inside a Campaign.
+A `Character` is a persistent, portable, user-owned identity.
 
-Example:
-
+```text
 Character
 - id
-- campaignId
 - ownerUserId
 - name
 - image
-- type
-- sheetData
-- visibility
+- coreData
+- status
 - createdAt
 - updatedAt
+```
 
-Character types could include:
+Character-level data contains information that remains meaningful independently of a World or Campaign.
 
-- PLAYER_CHARACTER
-- NPC
-- COMPANION
-- CREATURE
+Relations:
 
-The character sheet should NOT be represented by hundreds of fixed
-D&D-specific database columns.
+- belongs to one owning User
+- has zero or more WorldCharacters
 
-Instead:
+Constraints:
 
-Character
-  |
-  +-- sheetData
-
-The structure and validation of sheetData are defined by the campaign's
-RulesetVersion.
-
-Example conceptual data:
-
-{
-  "name": "Bodwick",
-  "attributes": {
-    "strength": 14,
-    "dexterity": 12
-  },
-  "resources": {
-    "health": {
-      "current": 24,
-      "maximum": 30
-    }
-  }
-}
-
-This allows radically different RPG systems to use the same Character
-model.
+- Character ownership is independent from World and Campaign ownership
+- deleting a World or Campaign must not delete the underlying Character
+- Ruleset-specific state does not belong directly on Character
 
 ---
 
-# 9. Character Sheet Definition
+## 11. World Character
 
-A RulesetVersion can define how a character sheet is constructed.
+`WorldCharacter` represents a Character's incarnation in a particular World.
 
-Example components:
+```text
+WorldCharacter
+- id
+- characterId
+- worldId
+- worldData
+- status
+- createdAt
+- updatedAt
+```
 
-- Text
-- Number
-- Checkbox
-- Select
-- Resource bar
-- Attribute
-- Skill
-- Repeating list
-- Inventory
-- Ability list
-- Spell list
-- Tabs
-- Sections
+Relations:
 
-Conceptually:
+- belongs to one Character
+- belongs to one World while assigned
+- has zero or more CampaignCharacters
 
+World-specific identity, history, relationships, and setting concepts belong here.
+
+Constraints:
+
+- a Character may have WorldCharacters in multiple Worlds
+- copying to another World creates another WorldCharacter
+- migration changes/adapts World placement without changing Character ownership
+- World deletion must preserve user-owned Character identity
+- historical information should be preserved where practical
+
+---
+
+## 12. Campaign Character
+
+`CampaignCharacter` represents a WorldCharacter's participation and state in a Campaign.
+
+```text
+CampaignCharacter
+- id
+- worldCharacterId
+- campaignId
+- sheetData
+- status
+- createdAt
+- updatedAt
+```
+
+Relations:
+
+- belongs to one WorldCharacter
+- belongs to one Campaign
+- may reference Ruleset-defined abilities/content
+
+Constraints:
+
+- unique `(worldCharacterId, campaignId)`
+- `WorldCharacter.worldId` must match `Campaign.worldId`
+- Campaign-specific progression and mechanics are independent between Campaigns
+- `sheetData` conforms to the Campaign's active RulesetVersion
+- cross-World participation is forbidden and enforced by backend/domain logic
+
+---
+
+## 13. Character Sheet Definition
+
+A `SheetDefinition` defines the data schema, validation, and presentation structure used for CampaignCharacter sheets.
+
+```text
 SheetDefinition
 - id
 - rulesetVersionId
@@ -327,36 +366,19 @@ SheetDefinition
 - schema
 - layout
 - validationRules
+```
 
-Schema defines the data.
+Schema and layout remain separate so presentation can change without necessarily migrating stored character state.
 
-Layout defines how that data should be presented.
-
-These should remain separate so changing the visual layout does not
-necessarily require migrating character data.
+Character sheets should not require hundreds of fixed game-system-specific database columns.
 
 ---
 
-# 10. Rule Content
+## 14. Rule Definition
 
-Rulesets may contain reusable game definitions.
+RulesetVersions may contain reusable game definitions.
 
-Examples:
-
-- Ability
-- Spell
-- Skill
-- Item
-- Weapon
-- Armor
-- Condition
-- Creature template
-- Class
-- Species
-- Feat
-
-A generic model can initially be used:
-
+```text
 RuleDefinition
 - id
 - rulesetVersionId
@@ -365,67 +387,41 @@ RuleDefinition
 - name
 - description
 - data
+```
 
-Example:
+The RulesetVersion determines valid types and data structures.
 
-RuleDefinition
-  type: "spell"
-  key: "example_fire_spell"
-
-  data:
-    level: 3
-    range: 150
-    duration: "instant"
-    damage:
-      dice: "8d6"
-      type: "fire"
-
-Rulesets determine which fields are valid.
+Rule definitions may represent abilities, skills, items, conditions, classes, mechanical species definitions, or other Ruleset concepts without requiring fixed core tables for every game system.
 
 ---
 
-# 11. Character Rule References
+## 15. Campaign Character Rule Reference
 
-Characters should generally reference rule definitions instead of copying
-the entire rule definition.
+Campaign-specific character mechanics should reference RuleDefinitions rather than attach them to the portable Character.
 
-Example:
-
-CharacterAbility
+```text
+CampaignCharacterRuleReference
 - id
-- characterId
+- campaignCharacterId
 - ruleDefinitionId
 - state
 - overrides
+```
 
-This allows a character to know:
+This supports per-Campaign knowledge, state, charges, preparation, progression, and character-specific overrides.
 
-- which spells they know
-- which abilities they have
-- charges remaining
-- whether something is prepared
-- character-specific modifications
-
-Example:
-
-RuleDefinition
-  Fire Spell
-      ^
-      |
-CharacterRuleReference
-      |
-      v
-    Bodwick
+References must be compatible with the Campaign's active RulesetVersion.
 
 ---
 
-# 12. World Entity
+## 16. World Entity
 
-Campaign world information should use a flexible entity model.
+`WorldEntity` represents flexible setting content belonging to a World.
 
+```text
 WorldEntity
 - id
-- campaignId
+- worldId
 - type
 - name
 - description
@@ -435,122 +431,74 @@ WorldEntity
 - createdBy
 - createdAt
 - updatedAt
+```
 
-Possible types:
+World entities may represent locations, organizations, people, items, quests, events, creatures, deities, notes, or custom entity types.
 
-- PERSON
-- LOCATION
-- SETTLEMENT
-- REGION
-- ORGANIZATION
-- ITEM
-- QUEST
-- EVENT
-- CREATURE
-- DEITY
-- NOTE
-- CUSTOM
+The `data` field stores type-specific structured information.
 
-Custom entity types should eventually be supported.
-
-The `data` field contains type-specific structured information.
+Campaign-specific state or knowledge about a WorldEntity should not require duplicating the underlying WorldEntity.
 
 ---
 
-# 13. Entity Relationships
+## 17. Entity Relationship
 
-World entities can be connected.
+`EntityRelationship` connects World entities into a graph.
 
+```text
 EntityRelationship
 - id
-- campaignId
+- worldId
 - sourceEntityId
 - targetEntityId
 - relationshipType
 - label
 - visibility
 - metadata
+```
 
-Examples:
+Constraints:
 
-Bodwick
-  -- member_of --> Adventurers Guild
-
-Adventurers Guild
-  -- based_in --> Neverwinter
-
-Mayor
-  -- governs --> Neverwinter
-
-Ancient Sword
-  -- owned_by --> Bodwick
-
-Quest
-  -- takes_place_in --> Neverwinter
-
-This turns campaign information into a connected world rather than a
-collection of isolated wiki pages.
+- both entities must belong to the same World unless an explicit cross-World feature is introduced
+- relationship visibility is enforced by backend authorization
+- custom relationship types should be supported
 
 ---
 
-# 14. Visibility
+## 18. Visibility
 
-Objects can have visibility rules.
+Visibility is separate from ownership and membership.
 
-Initial visibility levels:
+The model must support scopes such as:
 
-- PUBLIC
-- CAMPAIGN
-- PLAYER
-- DM
-- PRIVATE
-
-Examples:
-
-A city's public description:
+```text
+PUBLIC
+WORLD
+CAMPAIGN
 PLAYER
-
-The city's hidden cult:
-DM
-
-A player's private character note:
+GM
 PRIVATE
+```
 
-Visibility must be enforced by the API.
+The exact visibility model may evolve and should not prevent future custom scopes or per-user access.
 
-An AI agent must never receive information the requesting user is not
-allowed to access.
+Visibility must be enforced by backend/application services.
 
----
+AI and external clients must never receive information the invoking user is not authorized to access.
 
-# 15. Secret Information
-
-An entity may contain information with different visibility levels.
-
-Therefore it may eventually be useful to store content as blocks rather
-than assigning visibility only to an entire entity.
-
-Example:
-
-City: Greenhaven
-
-Player-visible:
-  Greenhaven is a trading city beside the river.
-
-DM-only:
-  The mayor secretly belongs to the Ashen Circle.
-
-This allows the same object to contain both player and DM information.
+Content may eventually support block/field-level visibility so one entity can contain information with different visibility scopes.
 
 ---
 
-# 16. Map
+## 19. Map
 
-Map represents an uploaded campaign map.
+A `Map` represents an uploaded or generated map.
 
+```text
 Map
 - id
-- campaignId
+- worldId?
+- campaignId?
 - name
 - imageAssetId
 - width
@@ -559,21 +507,23 @@ Map
 - settings
 - createdAt
 - updatedAt
+```
 
-Map types might include:
+A Map may be World-scoped or Campaign-scoped depending on its purpose.
 
-- WORLD
-- REGION
-- CITY
-- DUNGEON
-- BATTLE
+Constraints:
+
+- scope must be explicit
+- a Campaign-scoped Map must belong to the same World as its Campaign
+- application logic must prevent invalid mixed scopes
 
 ---
 
-# 17. Map Marker
+## 20. Map Marker
 
-Maps can contain interactive markers.
+`MapMarker` places a reference or interactive object on a Map.
 
+```text
 MapMarker
 - id
 - mapId
@@ -581,46 +531,26 @@ MapMarker
 - y
 - icon
 - label
-- linkedEntityId
+- linkedEntityId?
 - visibility
 - data
+```
 
-Coordinates should preferably be stored independently of the rendered
-screen resolution.
+Coordinates should be stored independently of rendered screen resolution.
 
-For example normalized coordinates:
-
-x = 0.625
-y = 0.318
-
-Clicking a marker can open the linked entity.
-
-Example:
-
-World Map
-    |
-    +-- Marker
-           |
-           +--> City: Greenhaven
-
-Markers may later support:
-
-- regions/polygons
-- paths
-- measurement
-- drawings
-- portals to another map
-- encounter triggers
+Markers may later support additional geometry, paths, regions, portals, or encounter integrations.
 
 ---
 
-## 18. Asset
+## 21. Asset
 
-Uploaded files are represented separately from the objects that use them.
+`Asset` represents uploaded file metadata separately from the domain object using the file.
 
+```text
 Asset
 - id
-- campaignId
+- worldId?
+- campaignId?
 - uploadedBy
 - type
 - filename
@@ -629,35 +559,23 @@ Asset
 - storageKey
 - metadata
 - createdAt
+```
 
-The database stores file metadata and a storage key. The actual file is
-stored using the configured StorageProvider.
+Assets may be World- or Campaign-scoped.
 
-The default storage provider is LocalStorageProvider.
+Actual file storage is handled through a `StorageProvider`/`StorageService` abstraction.
 
-Example local structure:
+Application code must not depend directly on local filesystem paths.
 
-data/
-  uploads/
-    campaigns/
-      <campaign-id>/
-        <asset-id>
-
-Application code must not directly depend on local filesystem paths.
-All file operations go through StorageService.
-
-This allows future storage providers, such as S3-compatible object storage,
-without changing campaign, map, character, or asset logic.
-
-Local storage is the primary and default storage method for Weaveryn.
-Cloud storage must not be required to run a normal self-hosted instance.
+Local storage is the default for self-hosting. Other providers, including S3-compatible storage, may be supported without changing domain logic.
 
 ---
 
-# 19. Session
+## 22. Session
 
-Session represents a tabletop session.
+A `Session` represents a tabletop play session.
 
+```text
 Session
 - id
 - campaignId
@@ -668,23 +586,17 @@ Session
 - status
 - summary
 - createdAt
+```
 
-A session may contain:
-
-- Notes
-- Events
-- Dice rolls
-- Encounters
-- Character changes
-- Discovered entities
-- AI interactions
+Sessions belong to Campaigns and may reference notes, events, DiceRolls, Encounters, character changes, discoveries, and AI interactions.
 
 ---
 
-# 20. Session Event
+## 23. Session Event
 
-Important events during play can be recorded as structured events.
+`SessionEvent` records structured events during play.
 
+```text
 SessionEvent
 - id
 - sessionId
@@ -693,196 +605,134 @@ SessionEvent
 - targetId
 - data
 - createdAt
+```
 
-Examples:
+Session events may support timelines, history, automation, and audit-friendly gameplay state.
 
-- Dice rolled
-- Combat started
-- Character damaged
-- Item received
-- Quest completed
-- Location discovered
-- Note created
-
-This could later allow Weaveryn to automatically construct a session
-timeline.
+Actor and target references must be modeled so they can safely represent the supported domain object types.
 
 ---
 
-# 21. Dice Roll
+## 24. Dice Roll
 
+`DiceRoll` records a dice operation.
+
+```text
 DiceRoll
 - id
 - campaignId
-- sessionId
+- sessionId?
 - userId
-- characterId
+- campaignCharacterId?
 - expression
 - result
 - details
 - visibility
 - createdAt
+```
 
-Examples:
-
-1d20+5
-2d6+3
-4d8
-
-The dice engine should eventually be configurable by the ruleset.
+Dice behavior may be influenced or validated by the Campaign's Ruleset.
 
 ---
 
-# 22. Encounter
+## 25. Encounter
 
+`Encounter` represents Campaign-specific encounter state.
+
+```text
 Encounter
 - id
 - campaignId
-- sessionId
-- mapId
+- sessionId?
+- mapId?
 - name
 - status
 - state
+```
 
-An encounter can contain:
+Encounter state may include participants, initiative, tokens, conditions, turn order, and effects.
 
-- Participants
-- Initiative
-- Tokens
-- Conditions
-- Turn order
-- Effects
-
-Ruleset-specific combat calculations should not live in the generic
-Encounter model.
+Ruleset-specific calculations do not belong in the generic Encounter model.
 
 ---
 
-# 23. Token
+## 26. Token
 
-Token represents something positioned on a battle map.
+`Token` represents something positioned on a battle map.
 
+```text
 Token
 - id
 - encounterId
-- entityId
-- characterId
+- campaignCharacterId?
+- entityId?
 - x
 - y
 - rotation
 - size
 - state
 - visibility
+```
 
-Tokens may represent:
-
-- Player characters
-- NPCs
-- Monsters
-- Objects
-- Effects
+A Token may reference a CampaignCharacter, NPC/entity, object, or effect as supported by the encounter model.
 
 ---
 
-# 24. Display / Projector Mode
+## 27. Display Session
 
-A campaign can create a display session for a projector, television, or
-table screen.
+`DisplaySession` represents a controlled display for a projector, television, table screen, or other presentation client.
 
+```text
 DisplaySession
 - id
 - campaignId
 - controlledByUserId
-- mapId
+- mapId?
 - displayState
 - createdAt
+```
 
-The DM controls what the display client sees.
+The controlling user determines what the display client may receive.
 
-The display client should not require DM permissions.
-
-Examples:
-
-DM Laptop
-    |
-    +---- control ----> Battle Map
-                         |
-                         +----> Projector / Table Display
-
-Future online players can use the same realtime infrastructure.
+A display client does not inherit unrestricted GM permissions.
 
 ---
 
-# 25. AI Integration
+## 28. AI Integration
 
-AI is an external consumer of Weaveryn's application/API layer.
+AI is an external client of Weaveryn's application/API layer.
 
-An AI model must not receive unrestricted direct database access.
+AI models must not receive unrestricted direct database access.
 
+```text
 AIRequest
 - id
-- campaignId
+- worldId?
+- campaignId?
 - userId
 - provider
 - model
 - purpose
 - createdAt
+```
 
-Possible tools:
+All AI actions execute using the permissions of the invoking user.
 
-- search_campaign
-- get_entity
-- get_character
-- get_rules
-- get_session
-- create_note
-- update_entity
-- roll_dice
+AI access to World, Campaign, Character, and other data passes through the same authorization and visibility rules as other clients.
 
-Every tool invocation runs using the permissions of the requesting user.
-
-Example:
-
-Player asks:
-
-"What is the mayor hiding?"
-
-If the answer exists only in DM-visible content, the AI must not receive
-that content.
-
-DM asking the same question may receive it.
+Provider configuration remains separate from World and Campaign data.
 
 ---
 
-# 26. AI Providers
+## 29. Audit Log
 
-AI functionality should not depend on one provider.
+Sensitive mutations should be auditable.
 
-Conceptually:
-
-AIProvider
-  |
-  +-- Ollama
-  +-- OpenAI-compatible API
-  +-- Other providers
-
-Provider configuration should be separate from campaign data.
-
-This makes it possible to use:
-
-- Local models
-- Hosted models
-- Different models for different tasks
-
----
-
-# 27. Audit Log
-
-Sensitive mutations should eventually be auditable.
-
+```text
 AuditEvent
 - id
-- campaignId
+- worldId?
+- campaignId?
 - userId
 - actorType
 - action
@@ -890,111 +740,91 @@ AuditEvent
 - objectId
 - changes
 - createdAt
+```
 
-actorType may include:
+Actor types may include:
 
-- USER
-- AI
-- SYSTEM
+```text
+USER
+AI
+SYSTEM
+```
 
-This is particularly important for AI writes.
-
-Example:
-
-AI changed NPC description
-
-The DM should be able to determine:
-
-- who requested it
-- which AI performed it
-- what changed
-- when it changed
+Audit data should make it possible to determine who or what performed a sensitive change, what changed, and when.
 
 ---
 
-# 28. Important Relationships
+## 30. High-Level Relationships
 
-High-level model:
-
+```text
 User
-  |
-  +---- CampaignMembership ---- Campaign
-  |                               |
-  |                               +---- RulesetVersion
-  |                               |
-  |                               +---- Character
-  |                               |
-  |                               +---- WorldEntity
-  |                               |        |
-  |                               |        +---- EntityRelationship
-  |                               |
-  |                               +---- Map
-  |                               |     |
-  |                               |     +---- MapMarker
-  |                               |
-  |                               +---- Session
-  |                               |      |
-  |                               |      +---- SessionEvent
-  |                               |      +---- DiceRoll
-  |                               |      +---- Encounter
-  |                               |
-  |                               +---- Asset
-  |                               |
-  |                               +---- DisplaySession
-  |
-  +---- Character ownership
+├── owns ─────────────── World
+│                        ├── WorldMembership
+│                        ├── WorldEntity
+│                        │   └── EntityRelationship
+│                        ├── WorldCharacter
+│                        └── Campaign
+│                            ├── CampaignMembership
+│                            ├── CampaignCharacter
+│                            ├── RulesetVersion
+│                            ├── Session
+│                            ├── Encounter
+│                            └── Campaign-specific data
+│
+├── owns ─────────────── Campaign
+│
+└── owns ─────────────── Character
+                         └── WorldCharacter
+                             └── CampaignCharacter
 
 Ruleset
-  |
-  +---- RulesetVersion
-           |
-           +---- SheetDefinition
-           |
-           +---- RuleDefinition
+└── RulesetVersion
+    ├── SheetDefinition
+    └── RuleDefinition
+```
 
 ---
 
-# 29. Data Ownership Rules
+## 31. Data Ownership and Scope Rules
 
-Every campaign-owned object must ultimately be traceable to a Campaign.
-
-API requests must never trust a campaign ID supplied by the client without
-also checking membership and permissions.
-
-Objects belonging to different campaigns must not be linkable unless a
-future explicit cross-campaign feature allows it.
-
-Deleting a campaign must have a defined strategy for all dependent data.
-
-Important destructive operations should prefer soft deletion or backups
-where practical.
+1. World ownership is represented by `World.ownerId`.
+2. Campaign ownership is represented by `Campaign.ownerId`.
+3. Membership roles do not duplicate ownership.
+4. World-scoped objects must be traceable to a World.
+5. Campaign-scoped objects must be traceable to a Campaign and therefore its World.
+6. Character identity is owned by a User rather than a World or Campaign.
+7. WorldCharacter contains World-specific Character data.
+8. CampaignCharacter contains Campaign- and Ruleset-specific Character state.
+9. Cross-World CampaignCharacter relationships are forbidden.
+10. User-owned content must not be destroyed merely because a containing World is removed.
+11. API requests must validate scope, membership, ownership, permissions, and visibility rather than trusting client-supplied IDs.
+12. Cross-scope links are forbidden unless explicitly supported by the domain.
+13. Destructive operations require defined dependent-data behavior and should use soft deletion, archival, or backups where appropriate.
 
 ---
 
-# 30. Future Considerations
+## 32. Future Compatibility
 
-Not required for the first version, but the architecture should avoid
-preventing:
+The logical model should avoid preventing:
 
-- Multiple characters per user per campaign
-- Co-owned characters
-- Multiple DMs
-- Spectators
-- Campaign templates
-- Ruleset marketplace/repository
-- Custom entity types
-- Custom relationship types
-- Nested maps
-- Hex maps
-- Fog of war
-- Realtime multiplayer
-- Offline/PWA mode
-- Mobile clients
-- Public campaign pages
-- Campaign export/import
-- Ruleset export/import
-- Plugin/module system
-- AI-generated content
-- AI solo campaigns
-- Multiple AI providers
-- Campaign branching/snapshots
+- multiple Characters per User
+- multiple Campaigns per World
+- multiple WorldCharacters per Character
+- one WorldCharacter participating in multiple Campaigns
+- independent progression per Campaign
+- Character copy/migration between Worlds
+- co-owned or delegated Characters
+- multiple GMs
+- spectators
+- Campaign and World templates
+- Ruleset repositories/marketplaces
+- custom entity and relationship types
+- nested/hex maps and fog of war
+- realtime multiplayer
+- offline/PWA and mobile clients
+- public World/Campaign pages
+- import/export
+- Campaign snapshots/branching
+- plugin/module systems
+- multiple AI providers
+- AI-generated and solo-play content
