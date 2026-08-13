@@ -1,36 +1,684 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Weaveryn
 
-## Getting Started
+> **An open-source platform for creating worlds, running campaigns, and playing tabletop role-playing games.**
 
-First, run the development server:
+> [!IMPORTANT]
+> **Weaveryn is currently in early development.**  
+> Features and UI concepts described here represent the intended direction of the project and may not yet be implemented.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Weaveryn aims to bring **worldbuilding, campaign management, characters, rules, maps, lore, notes, gameplay tools, and optional AI assistance** together in one extensible platform.
+
+The goal is not to build another character sheet or campaign wiki.
+
+The goal is to build a place where you can **create a world, define how it works, run multiple campaigns inside it, and enter those campaigns through your characters.**
+
+---
+
+## The Vision
+
+A Weaveryn game is structured around **Worlds**, **Campaigns**, and **Characters**.
+
+```text
+World
+│
+├── World Rules
+│   ├── Species
+│   ├── Languages
+│   ├── Currencies
+│   ├── Cultures
+│   ├── Calendars
+│   └── Setting Concepts
+│
+├── Campaign
+│   ├── Campaign Ruleset
+│   ├── Player Characters
+│   ├── NPCs
+│   ├── Sessions
+│   ├── Locations
+│   └── Campaign Content
+│
+└── Campaign
+    ├── Different Campaign Ruleset
+    ├── Different Characters
+    └── Different Story
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+A **World** defines the setting.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+A **Campaign** represents a game being played inside that world.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+A single world can contain multiple campaigns, and those campaigns do not have to use the same tabletop RPG mechanics. This allows a world to remain persistent while different stories, groups, and game systems exist within it.
 
-## Learn More
+Campaigns belong to their world and are not intended to be moved between worlds.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Designed to Feel Like Entering a World
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Weaveryn should not feel like opening business software.
 
-## Deploy on Vercel
+The interface is intended to take inspiration from games: **atmospheric, visual, and centered around the worlds, campaigns, and characters you are about to play.**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+After signing in, the primary navigation flow is intended to follow the structure of Weaveryn itself:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+Login
+  ↓
+Choose World
+  ↓
+Choose Campaign
+  ↓
+Choose Character
+  ↓
+Enter Campaign
+```
+
+A **World** is the first level of selection because it defines the setting in which campaigns exist.
+
+After selecting a world, the user chooses one of the campaigns available within that world. The selected campaign determines the applicable campaign ruleset, members, characters, and gameplay context.
+
+Finally, the player selects the character they want to use in that campaign.
+
+This creates a game-like entry experience rather than presenting the user with a traditional application dashboard.
+
+### Login Concept
+
+![Weaveryn login concept](docs/images/concepts/login-screen.png)
+
+> **Concept artwork — not yet implemented. Final UI may differ.**
+
+### World Selection Concept
+
+![Weaveryn world selection concept](docs/images/concepts/world-selection.png)
+
+The world-selection screen is the main entry point after authentication.
+
+From here, users can:
+
+- Enter an existing world
+- Create a new world
+- Access worlds shared with them
+- Manage worlds they own
+- Quickly return to recently visited worlds
+
+### Campaign Selection Concept
+
+![Weaveryn campaign selection concept](docs/images/concepts/campaign-selection.png)
+
+After entering a world, the user chooses a campaign within that world.
+
+A campaign determines the active game context, including:
+
+- Campaign ruleset
+- Game Masters
+- Players
+- Player Characters
+- NPCs
+- Sessions
+- Campaign-specific content
+
+Users with the appropriate permissions can also create a new campaign within the selected world.
+
+### Character Selection Concept
+
+![Weaveryn character selection concept](docs/images/concepts/character-selection.png)
+
+After selecting a campaign, players choose the character through which they want to enter the game.
+
+From here, a player can:
+
+- Select an existing character
+- Create a new character for the campaign
+- View basic character information
+- Continue into the campaign
+
+Character creation is **campaign-aware**. The selected campaign determines which rulesets, attributes, species, abilities, and other options are available during character creation.
+
+> **Concept artwork — not yet implemented. Final UI may differ.**
+
+## Worlds
+
+Worlds are persistent settings that can contain multiple campaigns.
+
+A world can define concepts such as:
+
+- Species and peoples
+- Languages
+- Currencies
+- Cultures
+- Calendars
+- Locations
+- Maps
+- Lore and world knowledge
+- Setting-specific concepts
+- World-level rules and definitions
+
+World rules answer the question:
+
+> **What exists in this world, and how does the setting work?**
+
+A world can then contain multiple campaigns using those shared concepts.
+
+---
+
+## Campaigns
+
+A campaign represents a particular game or story taking place inside a world.
+
+Each campaign can have its own tabletop RPG mechanics while continuing to use the setting defined by its world.
+
+Planned campaign functionality includes:
+
+- Campaign-specific rulesets
+- Players and Game Masters
+- Membership and permissions
+- Sessions
+- Campaign notes
+- Journals
+- Maps and locations
+- Player Characters
+- NPCs
+- Campaign-specific content
+
+This means two campaigns inside the same world could potentially use completely different RPG systems.
+
+For example, one campaign could use a d20-based system while another campaign in the same world uses a narrative ruleset.
+
+---
+
+## Characters
+
+Characters are intended to become one of the primary ways players interact with Weaveryn.
+
+Character creation begins by selecting a campaign. The selected campaign determines which campaign rules and character mechanics are available.
+
+Planned functionality includes:
+
+- Character creation
+- Character sheets
+- Attributes and stats
+- Skills
+- Abilities
+- Spells
+- Inventory
+- Custom fields
+- Portrait upload
+- Character selection
+- Campaign association
+- Ruleset-aware character creation
+- Future modular 2D/2.5D avatar creation
+
+### Character Visuals
+
+The initial implementation can use:
+
+- An uploaded character portrait
+- A simple blank paper-doll/full-body representation
+
+This keeps the first implementation practical while leaving room for a more advanced modular avatar system later.
+
+A future avatar system may allow interchangeable visual components such as:
+
+- Hair
+- Face
+- Skin tone
+- Build
+- Clothing
+- Armor
+- Accessories
+
+The intended direction is a more grounded **2D/2.5D visual style**, rather than requiring full 3D characters or animated game sprites.
+
+---
+
+## NPCs
+
+NPCs are intended to be first-class entities rather than simple text notes.
+
+Planned functionality includes:
+
+- NPC profiles
+- GM-only stat blocks by default
+- Optional player visibility
+- Optional player control
+- Reusable NPCs
+- Clone NPCs into other worlds
+- Convert NPCs into Player Characters
+
+When converting an NPC into a Player Character, Weaveryn should support two approaches:
+
+**Promote**
+
+The NPC becomes a Player Character and the original NPC is archived.
+
+**Copy**
+
+A new Player Character is created while the original NPC remains available.
+
+Because Player Characters may use different or more detailed rules than NPCs, conversion may require assigning additional character statistics.
+
+---
+
+## Rulesets
+
+Weaveryn is not intended to be tied to a single tabletop RPG system.
+
+Rulesets should be **modular, importable, customizable, and data-driven** rather than having one game's mechanics hardcoded into the application.
+
+Weaveryn distinguishes between two broad categories of rules.
+
+### World Rules
+
+World rules describe the setting itself.
+
+Examples include:
+
+- Species
+- Languages
+- Currency
+- Cultures
+- Calendars
+- Setting concepts
+
+### Campaign Rules
+
+Campaign rules describe how the tabletop game is played.
+
+Examples include:
+
+- Attributes
+- Skills
+- Dice mechanics
+- Combat mechanics
+- Character progression
+- Abilities
+- Spells
+- Equipment mechanics
+- Other system-specific rules
+
+Users should eventually be able to:
+
+- Select an existing ruleset
+- Import a ruleset
+- Customize a ruleset
+- Create a ruleset from scratch
+
+When creating a **World**, users can select, customize, or import world rules.
+
+When creating a **Character**, the user first selects a campaign. The character creator can then automatically use the rulesets associated with that campaign.
+
+---
+
+## Worldbuilding
+
+Weaveryn should connect world information rather than storing everything as isolated notes.
+
+Planned worldbuilding functionality includes:
+
+- Locations
+- Maps
+- Lore
+- NPCs
+- Organizations
+- Notes
+- Images
+- Linked entities
+- Map checkpoints
+- Relationships between world objects
+
+The goal is for information to become interconnected so that characters, locations, NPCs, campaigns, and lore can reference one another.
+
+---
+
+## Gameplay
+
+Planned gameplay tools include:
+
+- Dice rolling
+- Quick-reference information
+- Interactive maps
+- Locations and checkpoints
+- Character abilities
+- Spells
+- Inventory
+- Session management
+- GM tools
+- Player permissions
+- Battle maps
+- Optional projector/tabletop interface
+
+The tabletop/projector interface is considered a secondary feature rather than a requirement for the initial release.
+
+---
+
+## Solo Play
+
+Weaveryn is also intended to support solo tabletop play.
+
+Future functionality may include:
+
+- A dedicated solo-play interface
+- Journaling
+- Character interaction
+- Campaign context management
+- Optional AI-assisted Game Master functionality
+
+Solo play should use the same underlying worlds, campaigns, characters, rulesets, and content as multiplayer campaigns rather than becoming a separate application.
+
+---
+
+## Optional AI
+
+AI support should be **optional and provider-independent**.
+
+Core Weaveryn functionality should never require an AI provider.
+
+The long-term architecture should allow users to choose between:
+
+- Local AI models
+- Cloud AI providers
+- No AI at all
+
+Potential AI functionality includes:
+
+- Game Master assistance
+- Rules lookup
+- Campaign summarization
+- NPC assistance
+- Worldbuilding assistance
+- Solo-play Game Master functionality
+- Natural-language interaction with campaign data
+
+An API-oriented architecture should allow authorized AI agents to read and write relevant Weaveryn data while respecting user, campaign, and Game Master permissions.
+
+---
+
+## Permissions
+
+Weaveryn uses layered permissions so access can be controlled at the world, campaign, character, and content level.
+
+The permission model is intended to support concepts such as:
+
+- **Users**
+- **World Owners**
+- **World Members**
+- **Campaign Owners**
+- **Campaign Members**
+- **Dungeon Masters / Game Masters**
+- **Players**
+- **Character Ownership**
+- **DM/GM-only Information**
+- **Player-only Information**
+- **Shared Information**
+- **Player-controllable NPCs**
+
+### World Permissions
+
+A **World Owner** has administrative control over a world, including its configuration, members, world-level content, and campaigns.
+
+**World Members** can be given access to the world without necessarily participating in every campaign within it.
+
+### Campaign Permissions
+
+A **Campaign Owner** manages a specific campaign within a world.
+
+Campaign membership is separate from world membership. A user may therefore have access to a world without being a member of every campaign inside it.
+
+Campaign members can have different roles, including:
+
+- Dungeon Master / Game Master
+- Player
+- Other future campaign-specific roles
+
+### Characters and NPCs
+
+Player Characters can be owned or controlled by specific players.
+
+NPCs are normally controlled by the DM/GM, but individual NPCs can optionally be delegated to one or more players.
+
+This allows a player to temporarily or permanently perform actions for an NPC without exposing unrelated DM/GM-only information.
+
+### Information Visibility
+
+Campaign and world content can have different visibility levels, including:
+
+- **DM/GM only** — hidden from players
+- **Player only** — information belonging to or visible only to a specific player
+- **Shared** — visible to the appropriate campaign or world members
+
+Permissions should be applied to the underlying information rather than relying solely on hiding elements in the user interface.
+
+Sensitive information such as hidden NPC statistics, unrevealed lore, secret locations, and GM notes should remain inaccessible unless explicitly shared or delegated.
+
+### Destructive Actions
+
+Destructive actions such as deletion should be deliberate user-interface actions with appropriate permission checks and confirmation.
+
+They should not be casually exposed through the public API.
+
+---
+
+## Open and Self-Hostable
+
+Self-hosting is a first-class goal.
+
+Weaveryn is intended to support:
+
+- Local/self-hosted installations
+- Community deployments
+- A potential hosted service
+
+Users should remain in control of their worlds and campaign data.
+
+The web application should be usable across:
+
+- Desktop
+- Tablet
+- Phone
+
+The application does not need to be mobile-first, but core functionality should remain practical across these devices.
+
+---
+
+## Community Content
+
+Long term, Weaveryn could provide a library of community-created content such as:
+
+- Rulesets
+- Worlds
+- Adventures
+- NPCs
+- Characters
+- Maps
+- Templates
+
+Free and open content should remain an important part of the ecosystem.
+
+Creators may eventually be able to distribute paid **original content** if they choose, while free community content remains fully supported.
+
+Official copyrighted or licensed third-party content would only be distributed where Weaveryn has the appropriate rights or licensing agreements.
+
+User-created content remains the responsibility of its creator and should be handled through clear content and copyright policies.
+
+---
+
+## Design Principles
+
+Weaveryn is being designed around several principles:
+
+- **Open source first**
+- **Self-hosting is a first-class deployment model**
+- **AI is optional**
+- **AI providers should be interchangeable**
+- **Rulesets are data, not hardcoded game logic**
+- **World setting rules and campaign mechanics are separate concepts**
+- **A world can contain multiple campaigns**
+- **A campaign belongs permanently to one world**
+- **Users control their own content**
+- **Desktop, tablet, and mobile should all be usable**
+- **The interface should feel like entering a game, not opening business software**
+- **Third-party copyrighted content is not bundled without appropriate permission**
+- **Core functionality should remain useful without paid services**
+
+---
+
+## Current Status
+
+Weaveryn is currently in **early development**.
+
+Current development is focused on the application foundation, including:
+
+- Next.js
+- TypeScript
+- PostgreSQL
+- Prisma
+- Core data model
+- Campaign services
+- Automated tests
+- API architecture
+- Ownership and permissions
+
+Many features described in this README are part of the **long-term vision and are not implemented yet**.
+
+---
+
+## Roadmap
+
+Development will broadly progress through the following stages:
+
+### Phase 0 — Foundation
+
+- Application architecture
+- Database foundation
+- Authentication
+- Users
+- API architecture
+- Ownership
+- Permissions
+- Testing foundation
+
+### Phase 1 — Worlds & Campaigns
+
+- World creation
+- World editing and deletion
+- Campaign creation
+- Campaign membership
+- World membership
+- World rules
+- Campaign rulesets
+
+### Phase 2 — Characters
+
+- Character creation
+- Campaign-aware character creation
+- Character sheets
+- Portrait upload
+- Character selection screen
+- Basic paper-doll representation
+
+### Phase 3 — Worldbuilding
+
+- NPCs
+- Locations
+- Maps
+- Lore
+- Notes
+- Entity linking
+
+### Phase 4 — Gameplay
+
+- Sessions
+- Dice
+- Abilities
+- Spells
+- Inventory
+- GM tools
+- NPC permissions
+- Battle-map functionality
+
+### Phase 5 — AI & Solo Play
+
+- AI API
+- Local model support
+- Cloud provider support
+- GM assistance
+- Campaign context
+- NPC interaction
+- Solo-play interface
+
+### Phase 6 — Community
+
+- Import and export
+- Shareable content
+- Ruleset library
+- Community packages
+
+### Future
+
+- Rich modular 2D/2.5D avatar system
+- Projector/tabletop interface
+- Creator marketplace
+- Official licensed content
+
+A more detailed roadmap will be maintained in [`ROADMAP.md`](ROADMAP.md).
+
+---
+
+## Documentation
+
+Detailed project documentation will live under `/docs`.
+
+Planned documentation includes:
+
+- `VISION.md` — long-term product vision
+- `FEATURES.md` — detailed feature catalogue
+- `ARCHITECTURE.md` — technical architecture
+- `RULESETS.md` — world and campaign ruleset architecture
+- `DESIGN-PRINCIPLES.md` — principles guiding development
+- `development/SETUP.md` — development environment and installation
+- UI concept documentation and screenshots
+
+---
+
+## Contributing
+
+Weaveryn is currently in an early design and development stage.
+
+Contribution guidelines will be expanded as the architecture stabilizes.
+
+Contributions will eventually be welcome across areas such as:
+
+- Development
+- Testing
+- Documentation
+- UI/UX design
+- Ruleset development
+- Worldbuilding tools
+- Accessibility
+- Self-hosting
+- Translations
+
+---
+
+## Development
+
+Weaveryn currently uses:
+
+- **Next.js**
+- **TypeScript**
+- **PostgreSQL**
+- **Prisma**
+
+Development setup instructions will be maintained in:
+
+[`docs/development/SETUP.md`](docs/development/SETUP.md)
+
+---
+
+## License
+
+Licensing information will be documented here once the project's license has been finalized.
+
+---
+
+*Weaveryn is a work in progress. Features, architecture, terminology, and interface concepts described in this repository may change significantly during development.*
