@@ -49,7 +49,7 @@ A **Campaign** represents a game being played inside that world.
 
 A single world can contain multiple campaigns, and those campaigns do not have to use the same tabletop RPG mechanics. This allows a world to remain persistent while different stories, groups, and game systems exist within it.
 
-An active campaign belongs to one world and is not intended to move freely between worlds. Campaign ownership remains independent from world ownership, so user-owned campaigns can survive if their world is removed.
+An active campaign belongs to one world and is not intended to move freely between worlds. Campaign ownership remains independent from world ownership. An active campaign keeps its World relationship, and the containing World cannot be deleted while active campaigns still depend on it.
 
 ---
 
@@ -441,7 +441,7 @@ The permission model is intended to support concepts such as:
 
 ### World Permissions
 
-A **World Owner** has administrative control over a world, including its configuration, members, world-level content, and campaigns.
+A **World Owner** has administrative control over the World, including its configuration, members, and World-level content. The World owner also controls whether a Campaign may be hosted in the World, but does not automatically control the Campaign's independently owned content, membership, gameplay, or lifecycle.
 
 **World Members** can be given access to the world without necessarily participating in every campaign within it.
 
@@ -449,7 +449,7 @@ A **World Owner** has administrative control over a world, including its configu
 
 A **Campaign Owner** manages a specific campaign within a world.
 
-Campaign ownership is independent from World ownership. A World owner controls whether a Campaign may exist within their World, but does not automatically own Campaigns owned by other users.
+Campaign ownership is independent from World ownership. A World owner controls whether a Campaign may exist within their World, but does not automatically own or gain deletion authority over Campaigns owned by other users.
 
 Campaign members can have different roles, including:
 
@@ -483,7 +483,11 @@ Destructive actions such as deletion should be deliberate user-interface actions
 
 They should not be casually exposed through the public API.
 
-Deleting a World must not automatically destroy independently user-owned Characters or Campaigns. These should be preserved and detached, archived, or made unassigned as appropriate.
+A World cannot be deleted while it contains any active Campaign. Campaign owners must end or delete their own active Campaigns before World deletion can proceed, and a World owner cannot delete another user's Campaign merely because it is hosted in their World.
+
+If a World owner wants to leave while active Campaigns remain, they may transfer or relinquish World ownership. Relinquishment leaves the World available with the same identity and Campaign relationships so active Campaigns can continue, and eligible users may claim the orphaned World according to the ownership lifecycle rules.
+
+Deleting a World after no active Campaigns remain must still preserve independently user-owned Characters and handle any inactive or archived user-owned content through an explicit lifecycle workflow.
 
 ---
 
@@ -543,6 +547,7 @@ Weaveryn is being designed around several principles:
 - **World setting rules and campaign mechanics are separate concepts**
 - **A world can contain multiple campaigns**
 - **An active campaign belongs to one world**
+- **Active campaigns prevent their World from being deleted**
 - **Campaign ownership is independent from world ownership**
 - **Users control their own content**
 - **Desktop, tablet, and mobile should all be usable**
@@ -558,15 +563,13 @@ Weaveryn is currently in **early development**.
 
 Current development is focused on the application foundation, including:
 
-- Next.js
-- TypeScript
-- PostgreSQL
-- Prisma
-- Core data model
-- Campaign services
-- Automated tests
-- API architecture
-- Ownership and permissions
+- Next.js and TypeScript application foundation
+- PostgreSQL and Prisma persistence
+- Core domain and data model
+- World ownership and lifecycle persistence
+- Permissions foundation
+- Automated testing foundation
+- Application/service architecture
 
 Many features described in this README are part of the **long-term vision and are not implemented yet**.
 
@@ -654,22 +657,25 @@ Development will broadly progress through the following stages:
 - Creator marketplace
 - Official licensed content
 
-A more detailed roadmap will be maintained in [`ROADMAP.md`](ROADMAP.md).
+A more detailed roadmap is tracked in [`ROADMAP.md`](ROADMAP.md), which is currently under development.
 
 ---
 
 ## Documentation
 
-Detailed project documentation will live under `/docs`.
+Project documentation lives under `/docs`.
 
-Planned documentation includes:
+Current and planned documentation includes:
 
-- `VISION.md` — long-term product vision
-- `FEATURES.md` — detailed feature catalogue
-- `ARCHITECTURE.md` — technical architecture
-- `RULESETS.md` — world and campaign ruleset architecture
-- `DESIGN-PRINCIPLES.md` — principles guiding development
-- `development/SETUP.md` — development environment and installation
+- [`VISION.md`](docs/VISION.md) — long-term product vision; under development
+- [`FEATURES.md`](docs/FEATURES.md) — detailed feature catalogue; under development
+- [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) — authoritative domain architecture and invariants
+- [`DATA_MODEL.md`](docs/DATA_MODEL.md) — logical entities, relationships, scope, and constraints
+- [`MVP.md`](docs/MVP.md) — current MVP implementation scope
+- [`TECH_STACK.md`](docs/TECH_STACK.md) — technical stack and runtime architecture
+- [`RULESETS.md`](docs/RULESETS.md) — world and Campaign Ruleset architecture; under development
+- [`DESIGN-PRINCIPLES.md`](docs/DESIGN-PRINCIPLES.md) — product and interaction design principles; under development
+- [`development/SETUP.md`](docs/development/SETUP.md) — development environment and installation; under development
 - UI concept documentation and screenshots
 
 ---
@@ -703,7 +709,7 @@ Weaveryn currently uses:
 - **PostgreSQL**
 - **Prisma**
 
-Development setup instructions will be maintained in:
+Development setup instructions are tracked in:
 
 [`docs/development/SETUP.md`](docs/development/SETUP.md)
 
@@ -711,7 +717,7 @@ Development setup instructions will be maintained in:
 
 ## License
 
-Licensing information will be documented here once the project's license has been finalized.
+Weaveryn is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See [`LICENSE`](LICENSE) for the full license text.
 
 ---
 

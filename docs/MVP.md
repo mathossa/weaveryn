@@ -25,8 +25,14 @@ Users can:
 - load accessible Worlds
 - manage basic World information
 - participate in Worlds according to ownership and membership permissions
+- transfer or relinquish World ownership according to the World lifecycle
+- delete Worlds only when no active Campaigns remain
 
 World ownership and lifecycle behavior follow `ARCHITECTURE.md`.
+
+An orphaned World remains available while active Campaigns depend on it.
+Eligible World members or owners of active Campaigns hosted in that World may
+claim ownership according to the lifecycle rules defined in `ARCHITECTURE.md`.
 
 ### Campaigns
 
@@ -36,6 +42,11 @@ Users with permission can:
 - load accessible Campaigns
 - manage basic Campaign information
 - participate according to Campaign ownership and membership permissions
+- end or delete Campaigns they own according to Campaign lifecycle rules
+
+An active Campaign retains its World relationship and prevents that World from
+being deleted. World ownership does not grant deletion authority over a
+Campaign owned by another user.
 
 ### Characters
 
@@ -54,10 +65,16 @@ separate as defined by `ARCHITECTURE.md` and `DATA_MODEL.md`.
 
 Users with permission can:
 
-- create World/Campaign content entities
+- create World content entities
 - load and edit those entities
 - link entities through meaningful relationships
 - navigate between linked entities
+- use the same World entities in Campaign context without duplicating their World identity
+
+Time-dependent World facts and Campaign temporal context follow `ARCHITECTURE.md`
+and `DATA_MODEL.md`. Campaign-specific knowledge and gameplay state remain
+separate from canonical World history. Full timeline-branching functionality is
+not required for the first MVP.
 
 This provides the basic interconnected World model on which later features can
 build.
@@ -71,7 +88,7 @@ The MVP is complete when a user can:
 3. Create and load a Campaign within that World.
 4. Create and load a Character.
 5. Use that Character in a Campaign.
-6. Create and load content entities.
+6. Create and load World content entities.
 7. Link entities together.
 8. Leave the application, return later, and have the persisted state load
    correctly.
