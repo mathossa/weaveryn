@@ -35,11 +35,25 @@ model World {
   owner   User?   @relation("WorldOwner", fields: [ownerId], references: [id], onDelete: SetNull)
 
   memberships WorldMembership[]
+  timelines   WorldTimeline[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([ownerId])
+}
+
+model WorldTimeline {
+  id      String @id @default(uuid()) @db.Uuid
+  worldId String @db.Uuid
+  name    String
+
+  world World @relation(fields: [worldId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([worldId])
 }
 
 model WorldMembership {
