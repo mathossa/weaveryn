@@ -25,6 +25,15 @@ Next.js provides the web application, server-side functionality, API endpoints, 
 
 Core business rules should remain in reusable application/domain services rather than UI components or route handlers.
 
+### API
+
+The first implementation uses versioned REST endpoints under `/api/v1`.
+
+Next.js route handlers provide the HTTP boundary but remain thin. Request parsing,
+validation, authentication, authorization, and domain operations delegate to
+shared application services so the Web/PWA, AI clients, and future integrations
+cannot develop separate business-rule implementations.
+
 ---
 
 ## Database
@@ -137,6 +146,24 @@ Any runtime state that must survive between requests must therefore be:
 - stored in shared persistence
 
 Worker affinity should not be required for application correctness.
+
+### MVP Authentication
+
+The first MVP supports local email-and-password accounts.
+
+- passwords are processed with a dedicated password-hashing implementation and
+  stored only as strong password hashes
+- authentication establishes a server-enforced session
+- session data is cryptographically self-contained or stored in shared
+  persistence so multiple application workers can validate it
+- protected REST endpoints resolve the authenticated User before invoking
+  application services
+- logout invalidates or expires the authenticated session
+
+Google, Apple, other social identity providers, and email-based password
+recovery are deferred. The authentication boundary should still remain modular
+so providers can be added later without changing World, Campaign, or Character
+domain services.
 
 ---
 

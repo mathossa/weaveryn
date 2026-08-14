@@ -132,6 +132,8 @@ An active Campaign belongs to one World and is not intended to move freely betwe
 
 A World owner controls whether a Campaign may be hosted in their World but does not automatically own or control Campaigns owned by other users.
 
+Campaign ownership may be transferred voluntarily by the current Campaign owner. The transfer must be atomic, the new owner must be or become a Campaign member, and the new owner must hold the functional `GM` role after the transfer. World ownership does not grant authority to initiate this transfer.
+
 ### Campaign Lifecycle and World Dependency
 
 An active Campaign requires its World to continue existing.
@@ -147,9 +149,13 @@ World deletion is therefore blocked while any active Campaign exists, regardless
 
 If the World owner no longer wants responsibility for a World that still hosts active Campaigns, they may transfer or relinquish World ownership rather than delete the World or another user's Campaign.
 
+When a World is deleted after all active Campaigns have been resolved, ended or archived Campaigns owned by other users must not be destroyed by database cascade. They are detached from the deleted World through an explicit archival workflow and retain a limited immutable World snapshot needed to understand their historical Campaign context. A detached archived Campaign no longer participates in live World resolution.
+
 ### Temporal Context
 
 A Campaign operates at a position on a World timeline.
+
+The first MVP supports one automatically created main timeline per World. Timeline events use both a sortable numeric position and a human-readable date label. The sortable position is authoritative for ordering and state resolution; the label permits setting-specific notation without treating every World as a Gregorian calendar.
 
 Its temporal context determines how time-dependent World facts are resolved for that Campaign. Two Campaigns in the same World may therefore see different valid states of the same WorldEntity because they take place at different dates.
 
@@ -170,17 +176,17 @@ SPECTATOR
 
 There is no `OWNER` CampaignRole.
 
-The Campaign owner normally receives a `GM` membership when the Campaign is created.
+The Campaign owner receives a `GM` membership when the Campaign is created. A Campaign ownership transfer also ensures that the new owner has a `GM` membership.
 
 ### Rulesets
 
-Each Campaign selects its own Ruleset.
+Campaigns may select their own Ruleset once Ruleset functionality is introduced. The initial application backbone may create Campaigns without an active RulesetVersion.
 
 Different Campaigns in the same World may use different Rulesets.
 
 Rulesets are extensible domain content rather than hard-coded system enums.
 
-A Ruleset defines Campaign mechanics such as attributes, classes, skills, abilities, combat, progression, and other game-system rules.
+A Ruleset defines Campaign mechanics such as attributes, classes, skills, abilities, combat, progression, and other game-system rules. Before Ruleset-specific CampaignCharacter mechanics are stored, the Campaign must reference a specific RulesetVersion.
 
 Changing a Campaign's Ruleset must not silently convert existing CampaignCharacter state. Conversion requires an explicit migration process.
 
@@ -212,7 +218,7 @@ A Character does not inherently belong to one World.
 
 World-specific identity, history, relationships, and setting concepts belong to this layer.
 
-A Character may have WorldCharacters in multiple Worlds.
+A Character may have WorldCharacters in multiple Worlds, but has at most one WorldCharacter in a particular World. A WorldCharacter may override the Character's default display name while otherwise inheriting it.
 
 ### CampaignCharacter
 
@@ -231,6 +237,10 @@ A CampaignCharacter may only connect a WorldCharacter to a Campaign hosted in th
 Characters are user-owned and portable.
 
 Copying a Character to another World creates another WorldCharacter while preserving the existing incarnation.
+
+The new WorldCharacter remains linked to the same portable Character concept. For example, the Character concept `Bodwick` may have one incarnation in World X and another in World XY. The incarnations may share a name while having different species, cultures, hometowns, relationships, and histories.
+
+World-specific references are not copied blindly. A copy workflow must explicitly map, replace, or omit references that do not exist in the target World.
 
 Migrating a WorldCharacter moves or adapts that incarnation to another World rather than creating a second active incarnation.
 
@@ -271,6 +281,45 @@ Information visibility may include GM-only, player-only, shared, World/member-vi
 
 Authorization must be enforced by backend/application services. UI visibility is not a security boundary.
 
+### Initial World Permissions
+
+- The World owner controls World lifecycle, ownership, members, configuration, World content, and Campaign placement.
+- `ADMIN` may manage World members, normal World content, and Campaign creation, but may not transfer or relinquish ownership or delete the World.
+- `MEMBER` may read the World and create or edit normal WorldEntity content, but may not manage ownership, lifecycle, or membership.
+- `VIEWER` has read-only access to World content visible to them.
+
+### Initial Campaign Permissions
+
+- The Campaign owner controls Campaign ownership, lifecycle, and membership and also holds the `GM` role.
+- `GM` may manage Campaign content and gameplay state.
+- `ASSISTANT_GM` may manage Campaign content but may not transfer ownership or perform Campaign lifecycle operations.
+- `PLAYER` may manage their own Characters and access Campaign content visible to them.
+- `SPECTATOR` has read-only access to Campaign content visible to them.
+
+### Accessible Worlds
+
+A World is selectable by a user when the user is its owner, has a WorldMembership, owns a Campaign in it, or has a CampaignMembership in it.
+
+Campaign-only access does not create a WorldMembership and does not grant general World editing rights. Such users receive only the minimum World identity needed for navigation and the World information made visible to their Campaign and role.
+
+### Initial Information Visibility
+
+The first MVP supports these visibility scopes:
+
+```text
+WORLD
+CAMPAIGN
+GM
+PLAYER
+PRIVATE
+```
+
+Campaign- and player-scoped visibility must identify its target Campaign or user. `GM` includes the Campaign owner, `GM`, and `ASSISTANT_GM` for the targeted Campaign. `PRIVATE` content is visible only to its owning/creating user unless an explicit future sharing workflow grants access. `PUBLIC` and arbitrary visibility grants are post-MVP capabilities.
+
+### Authentication
+
+The first MVP uses local email-and-password authentication with server-enforced sessions. Passwords must only be stored as strong password hashes and never as plaintext. Social login, Apple/Google login, and password-recovery email flows are outside the first MVP.
+
 ---
 
 ## Deletion and Unassigned Content
@@ -290,11 +339,19 @@ A World owner does not gain authority to delete another user's Campaign simply b
 
 If active Campaigns remain and the World owner wants to leave, the owner may transfer or relinquish World ownership. Relinquishment leaves the World orphaned while preserving its ID, content, timelines, and Campaign relationships so active Campaigns can continue.
 
-Inactive or archived independently user-owned content must still be handled deliberately during eventual World deletion. User-owned Characters must not be destroyed because their containing World is deleted. Any future detachment or archival behavior for inactive Campaigns must be explicit rather than an accidental database cascade.
+Inactive or archived independently user-owned content must still be handled deliberately during eventual World deletion. User-owned Characters must not be destroyed because their containing World is deleted. Ended or archived Campaigns are preserved through the explicit snapshot-and-detachment workflow rather than an accidental database cascade.
 
 Deleting a Campaign may remove Campaign-specific memberships and participation records but must not delete the underlying Character identity.
 
 User accounts must never be deleted as a consequence of deleting World or Campaign content.
+
+Account deletion is also an explicit workflow. Before a User account can be deleted:
+
+- every active Campaign owned by that User must be transferred, ended, or deleted
+- every remaining ended or archived Campaign owned by that User must be explicitly transferred, exported and deleted, or otherwise resolved by the user rather than by cascade
+- owned Worlds follow the documented transfer, relinquishment, orphaning, or deletion workflow
+- owned Characters are exported, transferred by a future supported workflow, or explicitly deleted with the account owner's confirmation
+- memberships and authentication sessions may then be removed according to their defined lifecycle
 
 World deletion is an explicit application workflow rather than an accidental database cascade.
 
@@ -371,6 +428,12 @@ Ruleset
 18. An orphaned World may be claimed by an eligible `ADMIN`, `MEMBER`, or owner of an active Campaign hosted in that World.
 19. Active Campaigns keep an orphaned World available until ownership is claimed or those Campaigns are no longer active.
 20. User-owned content is not destroyed merely because its containing World is eventually removed.
+21. A Character has at most one WorldCharacter per World.
+22. A Campaign owner always holds the functional `GM` role.
+23. A Campaign ownership transfer is initiated only by the current owner and is atomic.
+24. Campaign-only World access does not imply World membership or World editing rights.
+25. MVP timeline ordering uses an authoritative numeric position plus a human-readable date label.
+26. Ended or archived Campaigns are detached through an explicit snapshot workflow when their World is deleted.
 
 ---
 
@@ -387,6 +450,8 @@ The architecture should support independent modules for World building, Characte
 Core functionality should be accessible through controlled APIs backed by the same application/domain services.
 
 The Web/PWA, AI agents, and future integrations must use the same authorization and domain rules.
+
+The first implementation exposes versioned REST endpoints under `/api/v1`. Route handlers remain thin and delegate validation, authorization, and domain behavior to shared application services.
 
 ### Self-hosting
 

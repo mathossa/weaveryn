@@ -30,6 +30,7 @@ A `User` represents a Weaveryn account.
 User
 - id
 - email
+- passwordHash
 - username
 - displayName
 - avatar
@@ -46,6 +47,10 @@ Relations:
 - owns zero or more Characters
 
 Global/platform administration is separate from World and Campaign roles.
+
+For the first MVP, a User authenticates locally with email and password. `passwordHash` contains only a strong password hash. Social-provider identities and password-recovery tokens are post-MVP concerns.
+
+Account deletion is an application workflow rather than a direct User-row cascade. Active owned Campaigns must first be transferred, ended, or deleted. Remaining owned Campaigns and Characters must be explicitly transferred where supported, exported and deleted, or otherwise resolved by the owner. Owned Worlds follow the World transfer, relinquishment, orphaning, or deletion workflow before the User is removed.
 
 ---
 
@@ -90,6 +95,8 @@ Constraints:
 - if an orphaned World has no active Campaigns and no eligible `ADMIN` or `MEMBER` successor, it may be removed through the defined cleanup/deletion workflow
 - deletion must use an explicit application workflow when independently user-owned content exists
 
+A World is accessible/selectable when the User owns the World, has a WorldMembership, owns a Campaign hosted in it, or has a CampaignMembership in it. Campaign-only access does not create a WorldMembership and exposes only the minimum World identity needed for navigation plus content allowed by Campaign and visibility authorization.
+
 ---
 
 ## 4. World Membership
@@ -131,19 +138,31 @@ A `Campaign` is a playable game instance hosted in a World.
 ```text
 Campaign
 - id
-- worldId
+- worldId?
 - ownerId
-- timelineId
-- currentWorldDate
+- timelineId?
+- currentWorldPosition?
+- currentWorldDateLabel?
 - name
 - description
 - image
-- activeRulesetVersionId
+- activeRulesetVersionId?
+- archivedWorldSnapshot?
 - settings
 - status
 - createdAt
 - updatedAt
 ```
+
+Initial lifecycle states:
+
+```text
+ACTIVE
+ENDED
+ARCHIVED
+```
+
+Only `ACTIVE` Campaigns resolve live World state and block World deletion. `ENDED` Campaigns may be archived through an explicit lifecycle operation. `ARCHIVED` Campaigns are historical and read-only except for lifecycle/export operations.
 
 Relations:
 
@@ -152,25 +171,29 @@ Relations:
 - operates on one WorldTimeline while active
 - has CampaignMemberships
 - has CampaignCharacters
-- references an active RulesetVersion
+- may reference an active RulesetVersion after Ruleset functionality is introduced
 - may contain Sessions, Encounters, Campaign-specific Maps, Assets, DiceRolls, and live-play state
 
 Constraints:
 
 - Campaign ownership is independent from World ownership
 - `ownerId` is authoritative for Campaign ownership
+- `ownerId` remains required; User deletion is restricted until every owned Campaign is explicitly resolved
 - membership roles do not represent ownership
 - active Campaigns require a World
 - an active Campaign retains its `worldId` for the duration of its active lifecycle
 - an active Campaign's WorldTimeline must belong to the same World
-- time-dependent World facts are resolved according to the Campaign's timeline and `currentWorldDate`
+- an active Campaign requires `currentWorldPosition` and `currentWorldDateLabel`; new Campaigns use the World's main timeline by default
+- time-dependent World facts are resolved according to the Campaign's timeline and `currentWorldPosition`
 - any active Campaign blocks deletion of its World
 - World ownership does not grant authority to delete a Campaign owned by another user
 - the Campaign owner controls ending or deleting their Campaign, subject to normal authorization rules
+- only the current Campaign owner may transfer Campaign ownership
+- ownership transfer is atomic, and the new owner must be or become a Campaign member with role `GM`
 - Campaign-specific data must not leak across authorization boundaries
-- changing RulesetVersion requires an explicit migration process
+- when Ruleset functionality is enabled, changing RulesetVersion requires an explicit migration process
 
-Inactive or archived Campaign preservation during eventual World deletion must use an explicit lifecycle workflow. It must not rely on an accidental database cascade, and it must not weaken the rule that active Campaigns always retain a valid World.
+Inactive or archived Campaign preservation during eventual World deletion uses an explicit snapshot-and-detachment workflow. `archivedWorldSnapshot` stores the limited immutable World context required to understand the Campaign history, after which `worldId` and `timelineId` may become `null`. A detached Campaign is archival only and no longer resolves live World state. This must not rely on an accidental database cascade or weaken the rule that active Campaigns always retain a valid World and timeline.
 
 ---
 
@@ -203,7 +226,7 @@ Constraints:
 - unique `(campaignId, userId)`
 - no `OWNER` role
 - Campaign ownership comes from `Campaign.ownerId`
-- the Campaign owner normally receives functional `GM` membership
+- the Campaign owner always has functional `GM` membership
 - backend/application services enforce permissions
 
 ---
@@ -255,7 +278,7 @@ Relations:
 - may define RuleDefinitions
 - may be referenced by multiple Campaigns
 
-A Campaign references a specific RulesetVersion so existing Campaigns are not automatically changed when a Ruleset evolves.
+A Campaign references a specific RulesetVersion once Ruleset-specific mechanics are enabled, so existing Campaigns are not automatically changed when a Ruleset evolves. The initial backbone MVP may leave this relation empty.
 
 ---
 
@@ -320,6 +343,7 @@ WorldCharacter
 - id
 - characterId
 - worldId
+- nameOverride?
 - worldData
 - status
 - createdAt
@@ -337,7 +361,10 @@ World-specific identity, history, relationships, and setting concepts belong her
 Constraints:
 
 - a Character may have WorldCharacters in multiple Worlds
-- copying to another World creates another WorldCharacter
+- unique `(characterId, worldId)`; one Character has at most one incarnation in a particular World
+- `nameOverride`, when present, replaces the portable Character name only for this World incarnation
+- copying to another World creates another WorldCharacter linked to the same portable Character
+- copied World-specific references must be mapped, replaced, or omitted rather than blindly reused across Worlds
 - migration changes/adapts World placement without changing Character ownership
 - World deletion must preserve user-owned Character identity
 - historical information should be preserved where practical
@@ -370,7 +397,7 @@ Constraints:
 - unique `(worldCharacterId, campaignId)`
 - `WorldCharacter.worldId` must match `Campaign.worldId`
 - Campaign-specific progression and mechanics are independent between Campaigns
-- `sheetData` conforms to the Campaign's active RulesetVersion
+- after Ruleset functionality is introduced, `sheetData` conforms to the Campaign's active RulesetVersion
 - cross-World participation is forbidden and enforced by backend/domain logic
 
 ---
@@ -448,7 +475,9 @@ WorldEntity
 - description
 - image
 - data
-- visibility
+- visibilityScope
+- visibilityCampaignId?
+- visibilityUserId?
 - createdBy
 - createdAt
 - updatedAt
@@ -472,7 +501,8 @@ WorldTimeline
 - worldId
 - name
 - parentTimelineId?
-- branchDate?
+- branchPosition?
+- branchDateLabel?
 - createdAt
 - updatedAt
 ```
@@ -486,9 +516,10 @@ Relations:
 
 Constraints:
 
+- creating a World automatically creates one main WorldTimeline for the first MVP
 - a parent timeline, when present, must belong to the same World
 - a Campaign may only use a timeline from its own World
-- support for `parentTimelineId` and `branchDate` preserves future compatibility with divergent Campaign histories; complete timeline-branching behavior is not required by the current MVP
+- support for `parentTimelineId`, `branchPosition`, and `branchDateLabel` preserves future compatibility with divergent Campaign histories; complete timeline-branching behavior is not required by the current MVP
 
 ### 16.2 World Event
 
@@ -498,7 +529,8 @@ A `WorldEvent` represents a time-dependent fact or change in World history.
 WorldEvent
 - id
 - timelineId
-- worldDate
+- worldPosition
+- worldDateLabel
 - type
 - data
 - createdAt
@@ -511,6 +543,8 @@ Relations:
 - may affect one or more WorldEntities through WorldEventEntity associations
 
 WorldEvents may represent facts such as founding or destruction, births and deaths, changes in political control, important discoveries, wars, migrations, or other setting changes for which temporal context matters.
+
+`worldPosition` is the authoritative sortable numeric value for ordering and state resolution. `worldDateLabel` is a human-readable, setting-specific label and is not assumed to use a Gregorian calendar.
 
 The World view may expose the complete history, while a Campaign resolves only the state applicable to its timeline and current World date.
 
@@ -560,18 +594,23 @@ Constraints:
 
 Visibility is separate from ownership and membership.
 
-The model must support scopes such as:
+The first MVP supports:
 
 ```text
-PUBLIC
 WORLD
 CAMPAIGN
-PLAYER
 GM
+PLAYER
 PRIVATE
 ```
 
-The exact visibility model may evolve and should not prevent future custom scopes or per-user access.
+- `WORLD` content is visible to the World owner and World members; Campaign-only access does not grant this scope.
+- `CAMPAIGN` content requires `visibilityCampaignId` and is visible to authorized members of that Campaign.
+- `GM` content requires `visibilityCampaignId` and is visible to the Campaign owner, `GM`, and `ASSISTANT_GM`.
+- `PLAYER` content requires `visibilityUserId` and may optionally be limited to a Campaign.
+- `PRIVATE` content is visible only to its owning/creating User.
+
+`PUBLIC`, arbitrary visibility grants, and block/field-level visibility are post-MVP capabilities. The model should not prevent their later introduction.
 
 Visibility must be enforced by backend/application services.
 
@@ -858,7 +897,7 @@ User
 │                        │       └── WorldEventEntity ──► WorldEntity
 │                        ├── WorldCharacter
 │                        └── Campaign
-│                            ├── WorldTimeline / currentWorldDate
+│                            ├── WorldTimeline / currentWorldPosition
 │                            ├── CampaignMembership
 │                            ├── CampaignCharacter
 │                            ├── RulesetVersion
@@ -895,7 +934,7 @@ Ruleset
 11. Cross-scope links are forbidden unless explicitly supported by the domain.
 12. Destructive operations require defined dependent-data behavior and should use soft deletion, archival, or backups where appropriate.
 13. WorldEntity represents persistent World identity; time-dependent World facts are represented in World history rather than as one universally current entity state.
-14. A Campaign resolves time-dependent World facts using a WorldTimeline from the same World and its current World date.
+14. A Campaign resolves time-dependent World facts using a WorldTimeline from the same World and its current numeric World position.
 15. Campaign-specific knowledge and gameplay state remain separate from canonical World history unless an explicit future workflow defines otherwise.
 16. An active Campaign always requires an existing World and retains its `worldId` while active.
 17. Any active Campaign blocks World deletion, regardless of Campaign ownership.
@@ -903,6 +942,12 @@ Ruleset
 19. A World owner may relinquish ownership without changing the World ID or active Campaign relationships.
 20. An orphaned World may be claimed by an eligible `ADMIN`, `MEMBER`, or owner of an active Campaign hosted in the World.
 21. User-owned content must not be destroyed merely because a containing World is eventually removed.
+22. A Character has at most one WorldCharacter per World.
+23. A Campaign owner always has a `GM` CampaignMembership.
+24. Active Campaigns require both a valid `worldId` and a WorldTimeline from that World.
+25. Detached archived Campaigns use an immutable World snapshot and do not resolve live World state.
+26. Campaign- or player-targeted visibility must identify the target Campaign or User.
+27. Account deletion resolves owned Worlds, Campaigns, and Characters explicitly before removing the User.
 
 ---
 
@@ -912,7 +957,7 @@ The logical model should avoid preventing:
 
 - multiple Characters per User
 - multiple Campaigns per World
-- multiple WorldCharacters per Character
+- multiple WorldCharacters per Character across different Worlds
 - one WorldCharacter participating in multiple Campaigns
 - independent progression per Campaign
 - Campaigns operating at different dates in the same World history
