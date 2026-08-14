@@ -31,8 +31,8 @@ model World {
   name        String
   description String?
 
-  ownerId String @db.Uuid
-  owner   User   @relation("WorldOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  ownerId String? @db.Uuid
+  owner   User?   @relation("WorldOwner", fields: [ownerId], references: [id], onDelete: SetNull)
 
   memberships WorldMembership[]
 
