@@ -441,7 +441,7 @@ The permission model is intended to support concepts such as:
 
 ### World Permissions
 
-A **World Owner** has administrative control over a world, including its configuration, members, world-level content, and campaigns.
+A **World Owner** has administrative control over the World, including its configuration, members, and World-level content. The World owner also controls whether a Campaign may be hosted in the World, but does not automatically control the Campaign's independently owned content, membership, or gameplay.
 
 **World Members** can be given access to the world without necessarily participating in every campaign within it.
 
