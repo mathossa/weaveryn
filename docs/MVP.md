@@ -54,10 +54,16 @@ separate as defined by `ARCHITECTURE.md` and `DATA_MODEL.md`.
 
 Users with permission can:
 
-- create World/Campaign content entities
+- create World content entities
 - load and edit those entities
 - link entities through meaningful relationships
 - navigate between linked entities
+- use the same World entities in Campaign context without duplicating their World identity
+
+Time-dependent World facts and Campaign temporal context follow `ARCHITECTURE.md`
+and `DATA_MODEL.md`. Campaign-specific knowledge and gameplay state remain
+separate from canonical World history. Full timeline-branching functionality is
+not required for the first MVP.
 
 This provides the basic interconnected World model on which later features can
 build.
@@ -71,7 +77,7 @@ The MVP is complete when a user can:
 3. Create and load a Campaign within that World.
 4. Create and load a Character.
 5. Use that Character in a Campaign.
-6. Create and load content entities.
+6. Create and load World content entities.
 7. Link entities together.
 8. Leave the application, return later, and have the persisted state load
    correctly.
