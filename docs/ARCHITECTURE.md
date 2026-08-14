@@ -55,15 +55,48 @@ When ownership is transferred:
 - The new owner ceases to be a World member and receives ownership through `World.ownerId`.
 - The former owner may become an `ADMIN`, `MEMBER`, `VIEWER`, or leave the World.
 - A World owner must not simultaneously have a `WorldMembership` for that World.
+- Normal ownership transfer must not leave the World orphaned.
+
+#### Relinquishing Ownership
+
+The current World owner may voluntarily relinquish ownership instead of transferring it directly to another user.
+
+Relinquishing ownership:
+
+- sets `World.ownerId` to `null`
+- does not delete or recreate the World
+- preserves the World ID, World content, timelines, memberships, and Campaign relationships
+- allows active Campaigns hosted in the World to continue using the same World
+- represents the current owner leaving control of the World rather than deleting other users' Campaigns
+
+Relinquishment is especially important when active Campaigns prevent World deletion and the current owner does not want to continue owning the World.
 
 #### Orphaned Worlds
 
-A World may temporarily become ownerless when its owner's user account is deleted.
+A World is orphaned when `World.ownerId` is `null`.
 
-- If at least one `ADMIN` or `MEMBER` remains, the World becomes orphaned and may be claimed by an eligible member.
-- `VIEWER` cannot claim ownership.
-- If only `VIEWER` memberships or no memberships remain, the World is deleted.
-- Normal ownership transfer must not leave a World orphaned.
+A World may become orphaned when:
+
+- its owning User account is deleted, or
+- its owner voluntarily relinquishes ownership.
+
+An orphaned World may be claimed by:
+
+- an existing World `ADMIN`
+- an existing World `MEMBER`
+- the owner of an active Campaign hosted in that World
+
+A `VIEWER` cannot claim ownership solely through World membership. Campaign participation alone also does not grant a claim unless the user owns an active Campaign in the World.
+
+When an eligible user claims an orphaned World:
+
+- `World.ownerId` is set to that user's ID
+- any `WorldMembership` held by the new owner for that World is removed
+- the World leaves the orphaned state
+
+An orphaned World remains available while active Campaigns depend on it. Active Campaigns retain their existing `worldId` and continue to use the same World.
+
+If an orphaned World has no active Campaigns and no eligible `ADMIN` or `MEMBER` successor, it may be removed through the defined cleanup/deletion workflow.
 
 ### Linked Entities and World History
 
@@ -97,7 +130,22 @@ An active Campaign belongs to one World and is not intended to move freely betwe
 
 `Campaign.ownerId` is the authoritative source of Campaign ownership. Campaign ownership is independent from World ownership.
 
-A World owner controls whether a Campaign may be hosted in their World but does not automatically own Campaigns owned by other users.
+A World owner controls whether a Campaign may be hosted in their World but does not automatically own or control Campaigns owned by other users.
+
+### Campaign Lifecycle and World Dependency
+
+An active Campaign requires its World to continue existing.
+
+While a Campaign is active:
+
+- its `worldId` remains valid and unchanged
+- the World may not be deleted
+- the World owner does not gain authority to delete the Campaign merely because it is hosted in their World
+- the Campaign owner controls whether their Campaign is ended or deleted, subject to normal authorization rules
+
+World deletion is therefore blocked while any active Campaign exists, regardless of who owns that Campaign.
+
+If the World owner no longer wants responsibility for a World that still hosts active Campaigns, they may transfer or relinquish World ownership rather than delete the World or another user's Campaign.
 
 ### Temporal Context
 
@@ -229,9 +277,20 @@ Authorization must be enforced by backend/application services. UI visibility is
 
 Destructive actions must be deliberate.
 
-Deleting or detaching a World must not automatically destroy independently user-owned Characters or Campaigns.
+A World cannot be deleted while it contains any active Campaign.
 
-User-owned assets may become unassigned or archived when their containing World is removed.
+This rule applies regardless of whether an active Campaign is owned by the World owner or by another user. The World owner must not be able to destroy another user's active Campaign by deleting its containing World.
+
+To delete a World:
+
+1. every active Campaign in the World must first be ended or deleted by an authorized Campaign owner or other explicitly authorized Campaign authority
+2. only after no active Campaigns remain may the World deletion workflow proceed
+
+A World owner does not gain authority to delete another user's Campaign simply because the Campaign is hosted in their World.
+
+If active Campaigns remain and the World owner wants to leave, the owner may transfer or relinquish World ownership. Relinquishment leaves the World orphaned while preserving its ID, content, timelines, and Campaign relationships so active Campaigns can continue.
+
+Inactive or archived independently user-owned content must still be handled deliberately during eventual World deletion. User-owned Characters must not be destroyed because their containing World is deleted. Any future detachment or archival behavior for inactive Campaigns must be explicit rather than an accidental database cascade.
 
 Deleting a Campaign may remove Campaign-specific memberships and participation records but must not delete the underlying Character identity.
 
@@ -302,11 +361,16 @@ Ruleset
 8. A WorldCharacter may participate in multiple Campaigns in its World with independent state.
 9. Different Campaigns in the same World may use different Rulesets.
 10. Cross-World CampaignCharacter relationships are forbidden.
-11. User-owned content is not destroyed merely because its containing World is removed.
-12. Backend authorization is authoritative.
-13. `WorldEntity` represents persistent World identity; time-dependent facts are resolved through World history rather than a universally current entity state.
-14. A Campaign resolves time-dependent World content according to its World timeline and temporal position.
-15. The model must allow different Campaigns to operate at different dates or future timeline branches without duplicating shared WorldEntity identity.
+11. Backend authorization is authoritative.
+12. `WorldEntity` represents persistent World identity; time-dependent facts are resolved through World history rather than a universally current entity state.
+13. A Campaign resolves time-dependent World content according to its World timeline and temporal position.
+14. The model must allow different Campaigns to operate at different dates or future timeline branches without duplicating shared WorldEntity identity.
+15. An active Campaign always requires an existing World and retains its `worldId` while active.
+16. A World cannot be deleted while any active Campaign exists.
+17. World ownership does not grant authority to delete an independently owned Campaign.
+18. An orphaned World may be claimed by an eligible `ADMIN`, `MEMBER`, or owner of an active Campaign hosted in that World.
+19. Active Campaigns keep an orphaned World available until ownership is claimed or those Campaigns are no longer active.
+20. User-owned content is not destroyed merely because its containing World is eventually removed.
 
 ---
 
