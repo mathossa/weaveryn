@@ -7,12 +7,10 @@ datasource db {
   provider = "postgresql"
 }
 
-enum CampaignRole {
-  OWNER
+enum WorldRole {
   ADMIN
-  DM
-  PLAYER
-  SPECTATOR
+  MEMBER
+  VIEWER
 }
 
 model User {
@@ -21,22 +19,22 @@ model User {
   username    String? @unique
   displayName String?
 
-  memberships    CampaignMembership[]
-  ownedCampaigns Campaign[]           @relation("CampaignOwner")
+  ownedWorlds      World[]           @relation("WorldOwner")
+  worldMemberships WorldMembership[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Campaign {
+model World {
   id          String  @id @default(uuid()) @db.Uuid
   name        String
   description String?
 
   ownerId String @db.Uuid
-  owner   User   @relation("CampaignOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  owner   User   @relation("WorldOwner", fields: [ownerId], references: [id], onDelete: Restrict)
 
-  memberships CampaignMembership[]
+  memberships WorldMembership[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -44,20 +42,19 @@ model Campaign {
   @@index([ownerId])
 }
 
-model CampaignMembership {
+model WorldMembership {
   id String @id @default(uuid()) @db.Uuid
 
-  campaignId String @db.Uuid
-  userId     String @db.Uuid
+  worldId String    @db.Uuid
+  userId  String    @db.Uuid
+  role    WorldRole @default(MEMBER)
 
-  role CampaignRole @default(PLAYER)
-
-  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  world World @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   joinedAt  DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([campaignId, userId])
+  @@unique([worldId, userId])
   @@index([userId])
 }
