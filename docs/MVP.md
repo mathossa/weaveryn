@@ -25,8 +25,14 @@ Users can:
 - load accessible Worlds
 - manage basic World information
 - participate in Worlds according to ownership and membership permissions
+- transfer or relinquish World ownership according to the World lifecycle
+- delete Worlds only when no active Campaigns remain
 
 World ownership and lifecycle behavior follow `ARCHITECTURE.md`.
+
+An orphaned World remains available while active Campaigns depend on it.
+Eligible World members or owners of active Campaigns hosted in that World may
+claim ownership according to the lifecycle rules defined in `ARCHITECTURE.md`.
 
 ### Campaigns
 
@@ -36,6 +42,11 @@ Users with permission can:
 - load accessible Campaigns
 - manage basic Campaign information
 - participate according to Campaign ownership and membership permissions
+- end or delete Campaigns they own according to Campaign lifecycle rules
+
+An active Campaign retains its World relationship and prevents that World from
+being deleted. World ownership does not grant deletion authority over a
+Campaign owned by another user.
 
 ### Characters
 
