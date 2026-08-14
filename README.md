@@ -563,15 +563,13 @@ Weaveryn is currently in **early development**.
 
 Current development is focused on the application foundation, including:
 
-- Next.js
-- TypeScript
-- PostgreSQL
-- Prisma
-- Core data model
-- Campaign services
-- Automated tests
-- API architecture
-- Ownership and permissions
+- Next.js and TypeScript application foundation
+- PostgreSQL and Prisma persistence
+- Core domain and data model
+- World ownership and lifecycle persistence
+- Permissions foundation
+- Automated testing foundation
+- Application/service architecture
 
 Many features described in this README are part of the **long-term vision and are not implemented yet**.
 
@@ -659,22 +657,25 @@ Development will broadly progress through the following stages:
 - Creator marketplace
 - Official licensed content
 
-A more detailed roadmap will be maintained in [`ROADMAP.md`](ROADMAP.md).
+A more detailed roadmap is tracked in [`ROADMAP.md`](ROADMAP.md), which is currently under development.
 
 ---
 
 ## Documentation
 
-Detailed project documentation will live under `/docs`.
+Project documentation lives under `/docs`.
 
-Planned documentation includes:
+Current and planned documentation includes:
 
-- `VISION.md` — long-term product vision
-- `FEATURES.md` — detailed feature catalogue
-- `ARCHITECTURE.md` — technical architecture
-- `RULESETS.md` — world and campaign ruleset architecture
-- `DESIGN-PRINCIPLES.md` — principles guiding development
-- `development/SETUP.md` — development environment and installation
+- [`VISION.md`](docs/VISION.md) — long-term product vision; under development
+- [`FEATURES.md`](docs/FEATURES.md) — detailed feature catalogue; under development
+- [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) — authoritative domain architecture and invariants
+- [`DATA_MODEL.md`](docs/DATA_MODEL.md) — logical entities, relationships, scope, and constraints
+- [`MVP.md`](docs/MVP.md) — current MVP implementation scope
+- [`TECH_STACK.md`](docs/TECH_STACK.md) — technical stack and runtime architecture
+- [`RULESETS.md`](docs/RULESETS.md) — world and Campaign Ruleset architecture; under development
+- [`DESIGN-PRINCIPLES.md`](docs/DESIGN-PRINCIPLES.md) — product and interaction design principles; under development
+- [`development/SETUP.md`](docs/development/SETUP.md) — development environment and installation; under development
 - UI concept documentation and screenshots
 
 ---
@@ -708,7 +709,7 @@ Weaveryn currently uses:
 - **PostgreSQL**
 - **Prisma**
 
-Development setup instructions will be maintained in:
+Development setup instructions are tracked in:
 
 [`docs/development/SETUP.md`](docs/development/SETUP.md)
 
@@ -716,7 +717,7 @@ Development setup instructions will be maintained in:
 
 ## License
 
-Licensing information will be documented here once the project's license has been finalized.
+Weaveryn is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See [`LICENSE`](LICENSE) for the full license text.
 
 ---
 
