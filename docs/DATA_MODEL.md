@@ -16,6 +16,7 @@ Core goals:
 - Support versioned Rulesets and explicit migrations.
 - Separate portable Character identity, World identity, and Campaign-specific state.
 - Support linked World content.
+- Support World history and Campaign temporal context without duplicating World entities.
 - Enforce ownership, permissions, and visibility consistently.
 - Support self-hosting, APIs, AI, maps, sessions, and live play without coupling the core model to them.
 
@@ -71,6 +72,7 @@ Relations:
 - contains Campaigns
 - contains WorldCharacters
 - contains WorldEntities
+- contains WorldTimelines and WorldEvents
 - contains World-level maps/assets as supported
 
 Constraints:
@@ -126,6 +128,8 @@ Campaign
 - id
 - worldId
 - ownerId
+- timelineId
+- currentWorldDate
 - name
 - description
 - image
@@ -140,6 +144,7 @@ Relations:
 
 - hosted in one World while active
 - owned by one User
+- operates on one WorldTimeline while active
 - has CampaignMemberships
 - has CampaignCharacters
 - references an active RulesetVersion
@@ -151,6 +156,8 @@ Constraints:
 - `ownerId` is authoritative for Campaign ownership
 - membership roles do not represent ownership
 - active Campaigns require a World
+- an active Campaign's WorldTimeline must belong to the same World
+- time-dependent World facts are resolved according to the Campaign's timeline and `currentWorldDate`
 - Campaign-specific data must not leak across authorization boundaries
 - changing RulesetVersion requires an explicit migration process
 
@@ -421,7 +428,7 @@ References must be compatible with the Campaign's active RulesetVersion.
 
 ## 16. World Entity
 
-`WorldEntity` represents flexible setting content belonging to a World.
+`WorldEntity` represents the persistent identity of flexible setting content belonging to a World.
 
 ```text
 WorldEntity
@@ -440,9 +447,79 @@ WorldEntity
 
 World entities may represent locations, organizations, people, items, quests, events, creatures, deities, notes, or custom entity types.
 
-The `data` field stores type-specific structured information.
+The `data` field stores type-specific structured information that is not inherently a time-dependent World fact.
 
-Campaign-specific state or knowledge about a WorldEntity should not require duplicating the underlying WorldEntity.
+Time-dependent facts must not be flattened into one universally current state on the WorldEntity when historical state matters. Changes such as a settlement being destroyed, a ruler dying, or control of a location changing belong to World history and are resolved against a WorldTimeline and date.
+
+Campaign-specific state or knowledge about a WorldEntity should not require duplicating the underlying WorldEntity. Player discovery, quest progress, party reputation, hidden information, and other gameplay state remain Campaign-specific rather than canonical World history.
+
+### 16.1 World Timeline
+
+A `WorldTimeline` represents an ordered history context within a World.
+
+```text
+WorldTimeline
+- id
+- worldId
+- name
+- parentTimelineId?
+- branchDate?
+- createdAt
+- updatedAt
+```
+
+Relations:
+
+- belongs to one World
+- contains WorldEvents
+- may optionally branch from another WorldTimeline
+- may be used by one or more Campaigns
+
+Constraints:
+
+- a parent timeline, when present, must belong to the same World
+- a Campaign may only use a timeline from its own World
+- support for `parentTimelineId` and `branchDate` preserves future compatibility with divergent Campaign histories; complete timeline-branching behavior is not required by the current MVP
+
+### 16.2 World Event
+
+A `WorldEvent` represents a time-dependent fact or change in World history.
+
+```text
+WorldEvent
+- id
+- timelineId
+- worldDate
+- type
+- data
+- createdAt
+- updatedAt
+```
+
+Relations:
+
+- belongs to one WorldTimeline
+- may affect one or more WorldEntities through WorldEventEntity associations
+
+WorldEvents may represent facts such as founding or destruction, births and deaths, changes in political control, important discoveries, wars, migrations, or other setting changes for which temporal context matters.
+
+The World view may expose the complete history, while a Campaign resolves only the state applicable to its timeline and current World date.
+
+### 16.3 World Event Entity
+
+`WorldEventEntity` associates a WorldEvent with an affected WorldEntity.
+
+```text
+WorldEventEntity
+- worldEventId
+- worldEntityId
+- role
+```
+
+Constraints:
+
+- the WorldEvent and WorldEntity must belong to the same World
+- `role` may describe how the entity participates in the event without requiring event-specific relation tables for every event type
 
 ---
 
@@ -767,8 +844,12 @@ User
 │                        ├── WorldMembership
 │                        ├── WorldEntity
 │                        │   └── EntityRelationship
+│                        ├── WorldTimeline
+│                        │   └── WorldEvent
+│                        │       └── WorldEventEntity ──► WorldEntity
 │                        ├── WorldCharacter
 │                        └── Campaign
+│                            ├── WorldTimeline / currentWorldDate
 │                            ├── CampaignMembership
 │                            ├── CampaignCharacter
 │                            ├── RulesetVersion
@@ -805,6 +886,9 @@ Ruleset
 11. API requests must validate scope, membership, ownership, permissions, and visibility rather than trusting client-supplied IDs.
 12. Cross-scope links are forbidden unless explicitly supported by the domain.
 13. Destructive operations require defined dependent-data behavior and should use soft deletion, archival, or backups where appropriate.
+14. WorldEntity represents persistent World identity; time-dependent World facts are represented in World history rather than as one universally current entity state.
+15. A Campaign resolves time-dependent World facts using a WorldTimeline from the same World and its current World date.
+16. Campaign-specific knowledge and gameplay state remain separate from canonical World history unless an explicit future workflow defines otherwise.
 
 ---
 
@@ -817,6 +901,8 @@ The logical model should avoid preventing:
 - multiple WorldCharacters per Character
 - one WorldCharacter participating in multiple Campaigns
 - independent progression per Campaign
+- Campaigns operating at different dates in the same World history
+- World timeline branches and divergent Campaign histories
 - Character copy/migration between Worlds
 - co-owned or delegated Characters
 - multiple GMs

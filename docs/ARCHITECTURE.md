@@ -65,11 +65,27 @@ A World may temporarily become ownerless when its owner's user account is delete
 - If only `VIEWER` memberships or no memberships remain, the World is deleted.
 - Normal ownership transfer must not leave a World orphaned.
 
-### Linked Entities
+### Linked Entities and World History
 
 World content forms an interconnected domain rather than only a collection of independent pages.
 
-World entities may reference other entities through meaningful relationships. Maps and other modules may also reference domain entities.
+A `WorldEntity` represents the persistent identity of something that exists within a World. World entities may reference other entities through meaningful relationships. Maps and other modules may also reference domain entities.
+
+Temporal facts about a WorldEntity must not be modeled as though the entity has one universally current state. Facts that change according to in-world time, such as the destruction of a settlement, the death of a ruler, or a change of ownership, belong to World history.
+
+Campaigns operate within a temporal context of their World and resolve World entities according to their position on the relevant World timeline.
+
+For example, if a settlement is destroyed in the year 1440:
+
+- a Campaign taking place in 1435 resolves the settlement as not yet destroyed
+- a Campaign taking place in 1445 resolves the settlement as destroyed
+- the World view may display the settlement together with its full history
+
+Non-temporal editorial information may still be updated normally.
+
+Campaign-specific knowledge and gameplay state, such as what players have discovered, quest progress, party reputation, or hidden information, remain separate from canonical World history.
+
+The architecture must allow future timeline branching so different Campaigns may diverge from shared history without requiring duplicate World entities. Full timeline-branching functionality is not required merely because the model preserves compatibility with it.
 
 ---
 
@@ -82,6 +98,16 @@ An active Campaign belongs to one World and is not intended to move freely betwe
 `Campaign.ownerId` is the authoritative source of Campaign ownership. Campaign ownership is independent from World ownership.
 
 A World owner controls whether a Campaign may be hosted in their World but does not automatically own Campaigns owned by other users.
+
+### Temporal Context
+
+A Campaign operates at a position on a World timeline.
+
+Its temporal context determines how time-dependent World facts are resolved for that Campaign. Two Campaigns in the same World may therefore see different valid states of the same WorldEntity because they take place at different dates.
+
+The model should also remain compatible with future timeline branches. Different Campaigns may eventually follow different branches after a shared history without duplicating the underlying WorldEntity identities.
+
+Campaign-specific gameplay state and player knowledge are not automatically promoted into canonical World history.
 
 ### Campaign Membership
 
@@ -231,12 +257,16 @@ World
 ├── owner
 ├── memberships
 ├── campaigns
-└── worldCharacters
+├── worldCharacters
+├── worldEntities
+└── timelines
+    └── events
 
 Campaign
 ├── world
 ├── owner
 ├── memberships
+├── timeline / temporal context
 ├── ruleset
 └── campaignCharacters
 
@@ -274,6 +304,9 @@ Ruleset
 10. Cross-World CampaignCharacter relationships are forbidden.
 11. User-owned content is not destroyed merely because its containing World is removed.
 12. Backend authorization is authoritative.
+13. `WorldEntity` represents persistent World identity; time-dependent facts are resolved through World history rather than a universally current entity state.
+14. A Campaign resolves time-dependent World content according to its World timeline and temporal position.
+15. The model must allow different Campaigns to operate at different dates or future timeline branches without duplicating shared WorldEntity identity.
 
 ---
 
