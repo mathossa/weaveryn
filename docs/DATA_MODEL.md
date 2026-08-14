@@ -80,10 +80,14 @@ Constraints:
 - `ownerId` is authoritative for ownership
 - ownership is not duplicated through membership roles
 - the owner does not have a `WorldMembership`
-- a World may become orphaned when its owning User is deleted
-- an orphaned World may be adopted by an `ADMIN` or `MEMBER`
-- a `VIEWER` cannot adopt an orphaned World
-- if no `ADMIN` or `MEMBER` remains when the owner is deleted, the World is deleted
+- a World may become orphaned when its owning User is deleted or when its owner voluntarily relinquishes ownership
+- relinquishing ownership sets `ownerId` to `null` without changing the World ID or Campaign `worldId` references
+- an orphaned World may be adopted by an `ADMIN`, `MEMBER`, or the owner of an active Campaign hosted in that World
+- a `VIEWER` cannot adopt an orphaned World solely through World membership
+- Campaign participation alone does not permit adoption unless the user owns an active Campaign in the World
+- a World with any active Campaign cannot be deleted
+- an orphaned World remains available while active Campaigns depend on it
+- if an orphaned World has no active Campaigns and no eligible `ADMIN` or `MEMBER` successor, it may be removed through the defined cleanup/deletion workflow
 - deletion must use an explicit application workflow when independently user-owned content exists
 
 ---
@@ -116,6 +120,7 @@ Constraints:
 - unique `(worldId, userId)`
 - membership does not represent ownership
 - role permissions are enforced by backend/application services
+- if a member claims World ownership, their membership for that World is removed because ownership and membership remain separate
 
 ---
 
@@ -156,12 +161,16 @@ Constraints:
 - `ownerId` is authoritative for Campaign ownership
 - membership roles do not represent ownership
 - active Campaigns require a World
+- an active Campaign retains its `worldId` for the duration of its active lifecycle
 - an active Campaign's WorldTimeline must belong to the same World
 - time-dependent World facts are resolved according to the Campaign's timeline and `currentWorldDate`
+- any active Campaign blocks deletion of its World
+- World ownership does not grant authority to delete a Campaign owned by another user
+- the Campaign owner controls ending or deleting their Campaign, subject to normal authorization rules
 - Campaign-specific data must not leak across authorization boundaries
 - changing RulesetVersion requires an explicit migration process
 
-A Campaign may become unassigned or archived when its World is removed if preservation of user-owned content requires it.
+Inactive or archived Campaign preservation during eventual World deletion must use an explicit lifecycle workflow. It must not rely on an accidental database cascade, and it must not weaken the rule that active Campaigns always retain a valid World.
 
 ---
 
@@ -882,13 +891,18 @@ Ruleset
 7. WorldCharacter contains World-specific Character data.
 8. CampaignCharacter contains Campaign- and Ruleset-specific Character state.
 9. Cross-World CampaignCharacter relationships are forbidden.
-10. User-owned content must not be destroyed merely because a containing World is removed.
-11. API requests must validate scope, membership, ownership, permissions, and visibility rather than trusting client-supplied IDs.
-12. Cross-scope links are forbidden unless explicitly supported by the domain.
-13. Destructive operations require defined dependent-data behavior and should use soft deletion, archival, or backups where appropriate.
-14. WorldEntity represents persistent World identity; time-dependent World facts are represented in World history rather than as one universally current entity state.
-15. A Campaign resolves time-dependent World facts using a WorldTimeline from the same World and its current World date.
-16. Campaign-specific knowledge and gameplay state remain separate from canonical World history unless an explicit future workflow defines otherwise.
+10. API requests must validate scope, membership, ownership, permissions, and visibility rather than trusting client-supplied IDs.
+11. Cross-scope links are forbidden unless explicitly supported by the domain.
+12. Destructive operations require defined dependent-data behavior and should use soft deletion, archival, or backups where appropriate.
+13. WorldEntity represents persistent World identity; time-dependent World facts are represented in World history rather than as one universally current entity state.
+14. A Campaign resolves time-dependent World facts using a WorldTimeline from the same World and its current World date.
+15. Campaign-specific knowledge and gameplay state remain separate from canonical World history unless an explicit future workflow defines otherwise.
+16. An active Campaign always requires an existing World and retains its `worldId` while active.
+17. Any active Campaign blocks World deletion, regardless of Campaign ownership.
+18. World ownership does not grant authority to delete an independently owned Campaign.
+19. A World owner may relinquish ownership without changing the World ID or active Campaign relationships.
+20. An orphaned World may be claimed by an eligible `ADMIN`, `MEMBER`, or owner of an active Campaign hosted in the World.
+21. User-owned content must not be destroyed merely because a containing World is eventually removed.
 
 ---
 
@@ -903,6 +917,8 @@ The logical model should avoid preventing:
 - independent progression per Campaign
 - Campaigns operating at different dates in the same World history
 - World timeline branches and divergent Campaign histories
+- orphaned Worlds continuing to host active Campaigns until ownership is claimed
+- Campaign owners claiming an orphaned World on which their active Campaign depends
 - Character copy/migration between Worlds
 - co-owned or delegated Characters
 - multiple GMs
