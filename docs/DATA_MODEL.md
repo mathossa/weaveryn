@@ -55,7 +55,7 @@ A `World` is the persistent setting scope.
 ```text
 World
 - id
-- ownerId
+- ownerId?
 - name
 - description
 - image
@@ -66,7 +66,7 @@ World
 
 Relations:
 
-- belongs to one owning User
+- belongs to zero or one owning User
 - has WorldMemberships
 - contains Campaigns
 - contains WorldCharacters
@@ -77,6 +77,11 @@ Constraints:
 
 - `ownerId` is authoritative for ownership
 - ownership is not duplicated through membership roles
+- the owner does not have a `WorldMembership`
+- a World may become orphaned when its owning User is deleted
+- an orphaned World may be adopted by an `ADMIN` or `MEMBER`
+- a `VIEWER` cannot adopt an orphaned World
+- if no `ADMIN` or `MEMBER` remains when the owner is deleted, the World is deleted
 - deletion must use an explicit application workflow when independently user-owned content exists
 
 ---
