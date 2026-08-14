@@ -5,12 +5,18 @@ services:
     restart: unless-stopped
 
     environment:
-      POSTGRES_DB: weaveryn
+      POSTGRES_DB: weaveryn_dev
       POSTGRES_USER: weaveryn
       POSTGRES_PASSWORD: weaveryn_dev
 
     ports:
       - "5432:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U weaveryn -d weaveryn_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
     volumes:
       - weaveryn-postgres-data:/var/lib/postgresql/data

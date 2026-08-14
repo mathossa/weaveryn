@@ -1,0 +1,281 @@
+.page {
+  min-height: 100vh;
+  padding: 42px 20px 64px;
+  background:
+    radial-gradient(circle at 12% 0%, rgb(53 109 98 / 12%), transparent 28%),
+    radial-gradient(circle at 90% 12%, rgb(113 73 145 / 10%), transparent 24%),
+    var(--background);
+  color: var(--foreground);
+}
+
+.shell {
+  width: min(1080px, 100%);
+  margin: 0 auto;
+}
+
+.header {
+  max-width: 760px;
+}
+
+.eyebrow,
+.domainHeading span {
+  color: color-mix(in srgb, var(--foreground) 58%, transparent);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eyebrow > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2c8c72;
+  box-shadow: 0 0 0 5px rgb(44 140 114 / 12%);
+}
+
+.header h1 {
+  margin: 12px 0 10px;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  letter-spacing: -0.045em;
+}
+
+.header p,
+.card p,
+.databaseStatus p,
+.footer {
+  color: color-mix(in srgb, var(--foreground) 66%, transparent);
+  line-height: 1.65;
+}
+
+.databaseStatus {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  margin: 30px 0 36px;
+  border: 1px solid;
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.safe {
+  border-color: rgb(46 133 103 / 30%);
+  background: rgb(46 133 103 / 7%);
+}
+
+.unsafe {
+  border-color: rgb(197 62 75 / 30%);
+  background: rgb(197 62 75 / 7%);
+}
+
+.databaseStatus > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.databaseStatus > div > span {
+  display: grid;
+  flex: 0 0 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--foreground);
+  color: var(--background);
+  font-weight: 900;
+}
+
+.databaseStatus p {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+}
+
+.databaseStatus dl {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+}
+
+.databaseStatus dl div {
+  min-width: 120px;
+  border-radius: 10px;
+  padding: 9px 11px;
+  background: color-mix(in srgb, var(--background) 75%, transparent);
+}
+
+.databaseStatus dt,
+.card dt {
+  color: color-mix(in srgb, var(--foreground) 52%, transparent);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.databaseStatus dd,
+.card dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+  font-size: 0.76rem;
+}
+
+.domain + .domain {
+  margin-top: 34px;
+}
+
+.domainHeading h2 {
+  margin: 4px 0 14px;
+  font-size: 1.3rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.card {
+  display: flex;
+  min-height: 330px;
+  flex-direction: column;
+  border: 1px solid color-mix(in srgb, var(--foreground) 13%, transparent);
+  border-radius: 18px;
+  padding: 22px;
+  background: color-mix(in srgb, var(--background) 95%, var(--foreground) 2%);
+  box-shadow: 0 18px 52px rgb(0 0 0 / 5%);
+}
+
+.cardTopline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+  font-size: 0.68rem;
+}
+
+.available,
+.planned,
+.blocked {
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.available {
+  background: #dff4ea;
+  color: #176443;
+}
+
+.planned {
+  background: #fff1ce;
+  color: #7a5711;
+}
+
+.blocked {
+  background: #fde4e6;
+  color: #a72d39;
+}
+
+.card h3 {
+  margin: 20px 0 7px;
+  font-size: 1.16rem;
+}
+
+.card p {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.card dl {
+  display: grid;
+  gap: 9px;
+  margin: 20px 0;
+}
+
+.card dl div {
+  border-radius: 9px;
+  padding: 10px;
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+
+.cardActions {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.card a,
+.cleanupAction button {
+  width: fit-content;
+  border-radius: 9px;
+  padding: 10px 13px;
+  background: var(--foreground);
+  color: var(--background);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.cleanupAction button {
+  border: 1px solid rgb(197 62 75 / 32%);
+  background: rgb(197 62 75 / 7%);
+  color: #af3340;
+  cursor: pointer;
+}
+
+.cleanupAction button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.cleanupAction {
+  display: grid;
+  gap: 6px;
+}
+
+.cleanupStatus {
+  max-width: 220px;
+  color: color-mix(in srgb, var(--foreground) 64%, transparent);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.footer {
+  margin-top: 30px;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 28px 14px 48px;
+  }
+
+  .databaseStatus,
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .databaseStatus dl {
+    flex-direction: column;
+  }
+
+  .card {
+    min-height: 0;
+  }
+
+  .cardActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

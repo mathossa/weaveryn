@@ -1,23 +1,31 @@
-import { NextResponse } from 'next/server'
 import { Prisma, WorldRole } from '@/generated/prisma/client'
+import { getDevScenarioMetadata } from '@/dev/scenario-catalog'
 import { prisma } from '@/lib/prisma'
 import {
   createWorldOwnershipService,
   transferWorldOwnership,
-  WorldOwnershipServiceDatabase,
+  type WorldOwnershipServiceDatabase,
   WorldOwnershipTransferError,
 } from '@/services/worldOwnershipService'
 import type {
-  AcceptanceCheck,
   FormerOwnerState,
   LabPerson,
-  LabResponse,
   LabUserKey,
   LabWorldState,
 } from '@/app/dev/world-ownership-transfer/types'
+import type {
+  DevAcceptanceCheck,
+  DevScenario,
+} from './contracts'
+import { FixtureOwnershipError } from './fixture-safety'
+import {
+  assertWorldFixtureOwned,
+  cleanupWorldFixture,
+  upsertFixturePeople,
+  type WorldFixtureDefinition,
+} from './world-fixture'
 
-export const runtime = 'nodejs'
-
+const metadata = getDevScenarioMetadata('world-ownership-transfer')!
 const DEV_WORLD_ID = '12000000-0000-4000-8000-000000000001'
 const USER_IDS: Record<LabUserKey, string> = {
   A: '12000000-0000-4000-8000-00000000000a',
@@ -25,25 +33,35 @@ const USER_IDS: Record<LabUserKey, string> = {
   C: '12000000-0000-4000-8000-00000000000c',
 }
 
-const PEOPLE: Record<LabUserKey, LabPerson> = {
+const PEOPLE: Record<LabUserKey, LabPerson & { username: string }> = {
   A: {
     id: USER_IDS.A,
     key: 'A',
     displayName: 'Aria (Owner A)',
     email: 'dev-transfer-a@weaveryn.local',
+    username: 'ownership-lab-a',
   },
   B: {
     id: USER_IDS.B,
     key: 'B',
     displayName: 'Bram (Target B)',
     email: 'dev-transfer-b@weaveryn.local',
+    username: 'ownership-lab-b',
   },
   C: {
     id: USER_IDS.C,
     key: 'C',
     displayName: 'Cora (Non-owner C)',
     email: 'dev-transfer-c@weaveryn.local',
+    username: 'ownership-lab-c',
   },
+}
+
+const fixture: WorldFixtureDefinition = {
+  scenarioId: metadata.id,
+  worldId: DEV_WORLD_ID,
+  worldMarker: metadata.fixtureNamespace,
+  people: Object.values(PEOPLE),
 }
 
 const formerOwnerStates = new Set<FormerOwnerState>([
@@ -53,24 +71,24 @@ const formerOwnerStates = new Set<FormerOwnerState>([
   'LEAVE',
 ])
 
-function isProduction() {
-  return process.env.NODE_ENV === 'production'
-}
-
-function unavailableResponse() {
-  return new NextResponse(null, { status: 404 })
-}
-
 function personForId(id: string): LabPerson {
   const key = (Object.keys(USER_IDS) as LabUserKey[]).find(
     (candidate) => USER_IDS[candidate] === id
   )
 
   if (!key) {
-    throw new Error(`Unexpected user in ownership-transfer lab: ${id}`)
+    throw new FixtureOwnershipError(
+      `Unexpected user in ownership-transfer scenario: ${id}`
+    )
   }
 
-  return PEOPLE[key]
+  const person = PEOPLE[key]
+  return {
+    id: person.id,
+    key: person.key,
+    displayName: person.displayName,
+    email: person.email,
+  }
 }
 
 async function readWorldState(): Promise<LabWorldState | null> {
@@ -92,6 +110,12 @@ async function readWorldState(): Promise<LabWorldState | null> {
     return null
   }
 
+  if (world.description !== fixture.worldMarker) {
+    throw new FixtureOwnershipError(
+      `World ${DEV_WORLD_ID} is not owned by this development scenario.`
+    )
+  }
+
   return {
     id: world.id,
     name: world.name,
@@ -103,40 +127,22 @@ async function readWorldState(): Promise<LabWorldState | null> {
   }
 }
 
-async function safelyReadWorldState() {
-  try {
-    return await readWorldState()
-  } catch {
-    return null
-  }
-}
-
-async function resetScenario() {
+async function resetFixture() {
   await prisma.$transaction(async (transaction) => {
-    await transaction.world.deleteMany({ where: { id: DEV_WORLD_ID } })
-
-    for (const person of Object.values(PEOPLE)) {
-      await transaction.user.upsert({
-        where: { id: person.id },
-        create: {
-          id: person.id,
-          email: person.email,
-          username: `ownership-lab-${person.key.toLowerCase()}`,
-          displayName: person.displayName,
-        },
-        update: {
-          email: person.email,
-          username: `ownership-lab-${person.key.toLowerCase()}`,
-          displayName: person.displayName,
-        },
-      })
-    }
+    await assertWorldFixtureOwned(transaction, fixture)
+    await transaction.world.deleteMany({
+      where: {
+        id: DEV_WORLD_ID,
+        description: fixture.worldMarker,
+      },
+    })
+    await upsertFixturePeople(transaction, fixture.people)
 
     await transaction.world.create({
       data: {
         id: DEV_WORLD_ID,
         name: 'The Amber Expanse',
-        description: 'A deterministic development World for issue #12.',
+        description: fixture.worldMarker,
         ownerId: USER_IDS.A,
         timelines: {
           create: { name: 'Main' },
@@ -150,8 +156,6 @@ async function resetScenario() {
       },
     })
   })
-
-  return readWorldState()
 }
 
 function roleForState(state: FormerOwnerState) {
@@ -188,7 +192,7 @@ function createRollbackDatabase(): WorldOwnershipServiceDatabase {
             client.worldMembership
           ),
           upsert: async () => {
-            throw new Error('Forced lab failure after the ownership update')
+            throw new Error('Forced scenario failure after ownership update')
           },
         },
       } as unknown as Prisma.TransactionClient
@@ -202,9 +206,9 @@ function createRollbackDatabase(): WorldOwnershipServiceDatabase {
 }
 
 async function runAcceptanceChecks() {
-  const checks: AcceptanceCheck[] = []
+  const checks: DevAcceptanceCheck[] = []
 
-  await resetScenario()
+  await resetFixture()
   let nonOwnerCode: string | null = null
 
   try {
@@ -226,18 +230,26 @@ async function runAcceptanceChecks() {
   const nonOwnerPreservedState =
     afterNonOwnerAttempt?.owner?.id === USER_IDS.A &&
     membershipRole(afterNonOwnerAttempt, 'B') === WorldRole.MEMBER
+  const nonOwnerPassed =
+    nonOwnerCode === 'NOT_WORLD_OWNER' && nonOwnerPreservedState
 
   checks.push({
     id: 'non-owner',
     title: 'Non-owners cannot transfer',
-    passed: nonOwnerCode === 'NOT_WORLD_OWNER' && nonOwnerPreservedState,
-    detail:
-      nonOwnerCode === 'NOT_WORLD_OWNER' && nonOwnerPreservedState
-        ? 'C was rejected and the World stayed owned by A.'
-        : `Unexpected result: ${nonOwnerCode ?? 'no domain error'}.`,
+    status: nonOwnerPassed ? 'passed' : 'failed',
+    actor: PEOPLE.C.displayName,
+    target: `World ${DEV_WORLD_ID}`,
+    expected: 'NOT_WORLD_OWNER and unchanged ownership',
+    actual: nonOwnerPassed
+      ? 'C rejected; A remains owner'
+      : `${nonOwnerCode ?? 'no domain error'}; fixture state mismatch`,
+    domainErrorCode: nonOwnerCode,
+    detail: nonOwnerPassed
+      ? 'C was rejected and the World stayed owned by A.'
+      : 'The non-owner rejection did not preserve the expected state.',
   })
 
-  await resetScenario()
+  await resetFixture()
   const beforeRollback = await readWorldState()
   let rollbackFailureObserved = false
 
@@ -254,22 +266,26 @@ async function runAcceptanceChecks() {
   } catch (error) {
     rollbackFailureObserved =
       error instanceof Error &&
-      error.message === 'Forced lab failure after the ownership update'
+      error.message === 'Forced scenario failure after ownership update'
   }
 
   const afterRollback = await readWorldState()
   const rollbackPreservedState =
     JSON.stringify(stableOwnershipState(beforeRollback)) ===
     JSON.stringify(stableOwnershipState(afterRollback))
+  const rollbackPassed = rollbackFailureObserved && rollbackPreservedState
 
   checks.push({
     id: 'rollback',
     title: 'Failure rolls back atomically',
-    passed: rollbackFailureObserved && rollbackPreservedState,
-    detail:
-      rollbackFailureObserved && rollbackPreservedState
-        ? 'A forced failure occurred after the update; A remained owner and B remained a MEMBER.'
-        : 'The forced failure did not preserve the complete ownership state.',
+    status: rollbackPassed ? 'passed' : 'failed',
+    actor: PEOPLE.A.displayName,
+    target: `World ${DEV_WORLD_ID}`,
+    expected: 'Forced write failure leaves complete state unchanged',
+    actual: rollbackPassed ? 'Complete state unchanged' : 'State changed',
+    detail: rollbackPassed
+      ? 'A forced failure occurred after the update; A remained owner and B remained a MEMBER.'
+      : 'The forced failure did not preserve the complete ownership state.',
   })
 
   let everyNewOwnerMembershipRemoved = true
@@ -285,7 +301,7 @@ async function runAcceptanceChecks() {
   ]
 
   for (const stateCase of stateCases) {
-    await resetScenario()
+    await resetFixture()
     await transferWorldOwnership({
       worldId: DEV_WORLD_ID,
       currentOwnerId: USER_IDS.A,
@@ -311,7 +327,11 @@ async function runAcceptanceChecks() {
         stateCase.state === 'LEAVE'
           ? 'Former owner can leave'
           : `Former owner can become ${stateCase.state}`,
-      passed: statePassed,
+      status: statePassed ? 'passed' : 'failed',
+      actor: PEOPLE.A.displayName,
+      target: `World ${DEV_WORLD_ID}`,
+      expected: `B owns the World; A is ${stateCase.state}`,
+      actual: `Owner ${state?.owner?.key ?? 'none'}; A is ${actualFormerOwnerRole ?? 'not a member'}`,
       detail: statePassed
         ? `B owns the same World; A is ${stateCase.state === 'LEAVE' ? 'not a member' : stateCase.state}.`
         : `Expected A to be ${stateCase.state}, received ${actualFormerOwnerRole ?? 'no membership'}.`,
@@ -321,7 +341,13 @@ async function runAcceptanceChecks() {
   checks.push({
     id: 'new-owner-membership',
     title: 'New owner has no membership',
-    passed: everyNewOwnerMembershipRemoved,
+    status: everyNewOwnerMembershipRemoved ? 'passed' : 'failed',
+    actor: PEOPLE.A.displayName,
+    target: PEOPLE.B.displayName,
+    expected: 'No WorldMembership for the new owner',
+    actual: everyNewOwnerMembershipRemoved
+      ? 'No membership in every transfer case'
+      : 'Membership retained in at least one case',
     detail: everyNewOwnerMembershipRemoved
       ? 'B’s previous membership was removed in every transfer case.'
       : 'B retained a WorldMembership in at least one transfer case.',
@@ -330,28 +356,34 @@ async function runAcceptanceChecks() {
   checks.push({
     id: 'never-orphaned',
     title: 'Normal transfer never orphans the World',
-    passed: everyTransferKeptAnOwner,
+    status: everyTransferKeptAnOwner ? 'passed' : 'failed',
+    actor: PEOPLE.A.displayName,
+    target: `World ${DEV_WORLD_ID}`,
+    expected: 'Non-null owner after every successful transfer',
+    actual: everyTransferKeptAnOwner
+      ? 'B owned every final state'
+      : 'At least one final state was orphaned',
     detail: everyTransferKeptAnOwner
       ? 'Every successful transfer ended with B as the non-null owner.'
       : 'At least one successful transfer left ownerId null.',
   })
 
-  return { checks, state: await readWorldState() }
+  return checks
 }
 
-function isTransferRequest(
-  value: unknown
-): value is {
-  action: 'transfer'
-  actor: LabUserKey
-  formerOwnerState: FormerOwnerState
-} {
+function isTransferRequest(value: unknown) {
   if (!value || typeof value !== 'object') {
     return false
   }
 
   const request = value as Record<string, unknown>
+  const keys = Object.keys(request).sort()
+
   return (
+    keys.length === 3 &&
+    keys[0] === 'action' &&
+    keys[1] === 'actor' &&
+    keys[2] === 'formerOwnerState' &&
     request.action === 'transfer' &&
     (request.actor === 'A' || request.actor === 'C') &&
     typeof request.formerOwnerState === 'string' &&
@@ -359,124 +391,125 @@ function isTransferRequest(
   )
 }
 
-function errorResponse(error: unknown, state: LabWorldState | null) {
-  if (error instanceof WorldOwnershipTransferError) {
-    return NextResponse.json<LabResponse>(
-      {
-        ok: false,
-        message: error.message,
-        state,
-        error: { code: error.code },
-      },
-      { status: 409 }
-    )
-  }
-
-  const message = error instanceof Error ? error.message : 'Unknown error'
-  return NextResponse.json<LabResponse>(
-    {
-      ok: false,
-      message,
-      state,
-      error: { code: 'LAB_ERROR' },
-    },
-    { status: 500 }
-  )
-}
-
-export async function GET() {
-  if (isProduction()) {
-    return unavailableResponse()
-  }
-
-  try {
-    const state = await readWorldState()
-    return NextResponse.json<LabResponse>({
+export const worldOwnershipTransferScenario: DevScenario = {
+  metadata,
+  readState: readWorldState,
+  async reset() {
+    await resetFixture()
+    return {
       ok: true,
-      message: state
-        ? 'Loaded the issue #12 development World.'
-        : 'Create the development World to begin.',
-      state,
-    })
-  } catch (error) {
-    return errorResponse(error, null)
-  }
-}
-
-export async function POST(request: Request) {
-  if (isProduction()) {
-    return unavailableResponse()
-  }
-
-  let body: unknown
-
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json<LabResponse>(
-      {
-        ok: false,
-        message: 'Request body must be valid JSON.',
-        state: null,
-        error: { code: 'INVALID_REQUEST' },
+      message: 'Created the World with A as owner and B as MEMBER.',
+      activity: {
+        action: 'reset',
+        actor: 'Development fixture runner',
+        target: `World ${DEV_WORLD_ID}`,
+        expected: 'Known issue #12 starting state',
+        actual: 'A owns the World; B is MEMBER',
+        status: 'passed',
       },
-      { status: 400 }
+    }
+  },
+  async cleanup() {
+    const cleanup = await prisma.$transaction((transaction) =>
+      cleanupWorldFixture(transaction, fixture)
     )
-  }
-
-  try {
-    if (
-      body &&
-      typeof body === 'object' &&
-      (body as Record<string, unknown>).action === 'reset'
-    ) {
-      return NextResponse.json<LabResponse>({
-        ok: true,
-        message: 'Created the World with A as owner and B as MEMBER.',
-        state: await resetScenario(),
-      })
+    return {
+      ok: true,
+      message: cleanup.retained.length
+        ? 'Scenario data was cleaned; referenced fixture users were intentionally retained.'
+        : 'All disposable ownership-transfer scenario data was removed.',
+      cleanup,
+      activity: {
+        action: 'cleanup',
+        actor: 'Developer',
+        target: metadata.fixtureNamespace,
+        expected: 'Delete only scenario-owned disposable records',
+        actual: `${cleanup.deleted.length} deleted; ${cleanup.retained.length} retained`,
+        status: 'passed',
+      },
     }
-
-    if (
-      body &&
-      typeof body === 'object' &&
-      (body as Record<string, unknown>).action === 'run-all'
-    ) {
-      const result = await runAcceptanceChecks()
-      const passed = result.checks.filter((check) => check.passed).length
-      return NextResponse.json<LabResponse>({
-        ok: passed === result.checks.length,
-        message: `${passed}/${result.checks.length} live acceptance checks passed.`,
-        state: result.state,
-        checks: result.checks,
-      })
+  },
+  async runAll() {
+    const checks = await runAcceptanceChecks()
+    const passed = checks.filter((check) => check.status === 'passed').length
+    return {
+      ok: passed === checks.length,
+      message: `${passed}/${checks.length} live acceptance checks passed.`,
+      checks,
+      activity: {
+        action: 'run-all',
+        actor: 'Acceptance runner',
+        target: metadata.title,
+        expected: `${checks.length} passing checks`,
+        actual: `${passed}/${checks.length} passed`,
+        status: passed === checks.length ? 'passed' : 'failed',
+      },
     }
-
-    if (!isTransferRequest(body)) {
-      return NextResponse.json<LabResponse>(
-        {
-          ok: false,
-          message: 'Unsupported ownership-transfer lab request.',
-          state: await readWorldState(),
-          error: { code: 'INVALID_REQUEST' },
-        },
-        { status: 400 }
-      )
+  },
+  isAction: isTransferRequest,
+  async execute(value) {
+    const request = value as {
+      action: 'transfer'
+      actor: 'A' | 'C'
+      formerOwnerState: FormerOwnerState
     }
-
     await transferWorldOwnership({
       worldId: DEV_WORLD_ID,
-      currentOwnerId: USER_IDS[body.actor],
+      currentOwnerId: USER_IDS[request.actor],
       newOwnerId: USER_IDS.B,
-      formerOwnerMembershipRole: roleForState(body.formerOwnerState),
+      formerOwnerMembershipRole: roleForState(request.formerOwnerState),
     })
+    const state = await readWorldState()
 
-    return NextResponse.json<LabResponse>({
+    return {
       ok: true,
-      message: `${body.actor} transferred ownership to B.`,
-      state: await readWorldState(),
-    })
-  } catch (error) {
-    return errorResponse(error, await safelyReadWorldState())
-  }
+      message: `${request.actor} transferred ownership to B.`,
+      activity: {
+        action: request.action,
+        actor: PEOPLE[request.actor].displayName,
+        target: `World ${DEV_WORLD_ID}`,
+        expected: `B becomes owner; A becomes ${request.formerOwnerState}`,
+        actual: `Owner ${state?.owner?.key ?? 'none'}; A is ${membershipRole(state, 'A') ?? 'not a member'}`,
+        status: 'passed',
+      },
+    }
+  },
+  mapError(error, action) {
+    if (error instanceof WorldOwnershipTransferError) {
+      const actor =
+        action && typeof action === 'object'
+          ? (action as Record<string, unknown>).actor
+          : undefined
+      const expectedRejection =
+        actor === 'C' && error.code === 'NOT_WORLD_OWNER'
+
+      return {
+        code: error.code,
+        message: error.message,
+        status: 409,
+        activity: {
+          action: 'transfer',
+          actor:
+            actor === 'A' || actor === 'C'
+              ? PEOPLE[actor].displayName
+              : 'Requested scenario actor',
+          target: `World ${DEV_WORLD_ID}`,
+          expected: 'Domain service determines the outcome',
+          actual: `Rejected with ${error.code}`,
+          domainErrorCode: error.code,
+          status: expectedRejection ? 'passed' : 'failed',
+        },
+      }
+    }
+
+    if (error instanceof FixtureOwnershipError) {
+      return {
+        code: error.code,
+        message: error.message,
+        status: 409,
+      }
+    }
+
+    return null
+  },
 }
