@@ -87,6 +87,8 @@ This creates a game-like entry experience rather than presenting the user with a
 
 > **Concept artwork — not yet implemented. Final UI may differ.**
 
+The first MVP implements email-and-password registration and login. The social-login and password-recovery controls shown in the concept are later capabilities.
+
 ### World Selection Concept
 
 ![Weaveryn world selection concept](docs/images/concepts/world-selection.png)
@@ -210,6 +212,8 @@ CampaignCharacter
 This allows the same character to participate in multiple campaigns without duplicating their core identity.
 
 For example, Bodwick can be level 8 in a D&D 5e campaign and level 4 in a Pathfinder campaign while remaining the same character in the same world.
+
+A Character has at most one WorldCharacter in a particular World. The same portable Character concept can also be used in another World by creating a separate WorldCharacter. Bodwick in World X and Bodwick in World XY therefore remain linked to the same Character concept, while their species, hometown, relationships, and histories may differ. World-specific references are explicitly mapped or replaced when creating the new incarnation.
 
 Planned functionality includes:
 
@@ -445,6 +449,8 @@ A **World Owner** has administrative control over the World, including its confi
 
 **World Members** can be given access to the world without necessarily participating in every campaign within it.
 
+Initial World roles are `ADMIN`, `MEMBER`, and `VIEWER`. Campaign owners and members may also select a World containing their Campaign without automatically becoming World members or receiving general World editing rights.
+
 ### Campaign Permissions
 
 A **Campaign Owner** manages a specific campaign within a world.
@@ -453,9 +459,12 @@ Campaign ownership is independent from World ownership. A World owner controls w
 
 Campaign members can have different roles, including:
 
-- Dungeon Master / Game Master
-- Player
-- Other future campaign-specific roles
+- Game Master (`GM`)
+- Assistant Game Master (`ASSISTANT_GM`)
+- Player (`PLAYER`)
+- Spectator (`SPECTATOR`)
+
+The Campaign owner always has the functional `GM` role. Campaign ownership may be transferred by the current owner without granting that authority to the World owner.
 
 ### Characters and NPCs
 
@@ -469,9 +478,11 @@ This allows a player to temporarily or permanently perform actions for an NPC wi
 
 Campaign and world content can have different visibility levels, including:
 
-- **DM/GM only** — hidden from players
-- **Player only** — information belonging to or visible only to a specific player
-- **Shared** — visible to the appropriate campaign or world members
+- **World** — visible to the World owner and World members
+- **Campaign** — visible to members of a selected Campaign
+- **GM** — visible to the Campaign owner, GM, and Assistant GM
+- **Player** — visible to a selected player
+- **Private** — visible only to the creator/owner
 
 Permissions should be applied to the underlying information rather than relying solely on hiding elements in the user interface.
 
@@ -488,6 +499,8 @@ A World cannot be deleted while it contains any active Campaign. Campaign owners
 If a World owner wants to leave while active Campaigns remain, they may transfer or relinquish World ownership. Relinquishment leaves the World available with the same identity and Campaign relationships so active Campaigns can continue, and eligible users may claim the orphaned World according to the ownership lifecycle rules.
 
 Deleting a World after no active Campaigns remain must still preserve independently user-owned Characters and handle any inactive or archived user-owned content through an explicit lifecycle workflow.
+
+Ended or archived Campaigns are preserved using a limited immutable World snapshot before they are detached from a deleted World. Account deletion likewise requires the user to resolve owned Worlds, Campaigns, and Characters explicitly rather than relying on database cascades.
 
 ---
 
@@ -584,6 +597,7 @@ Development will broadly progress through the following stages:
 - Application architecture
 - Database foundation
 - Authentication
+- Local email-and-password login
 - Users
 - API architecture
 - Ownership
@@ -597,6 +611,7 @@ Development will broadly progress through the following stages:
 - Campaign creation
 - Campaign membership
 - World membership
+- Basic linear World timeline and Campaign timeline position
 - World rules
 - Campaign rulesets
 
