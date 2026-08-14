@@ -32,21 +32,38 @@ A **World** is a persistent setting containing Campaigns and setting-specific co
 
 ### Ownership and Membership
 
-`World.ownerId` is the authoritative source of World ownership. Ownership is not duplicated by an `OWNER` membership role.
+`World.ownerId` is the authoritative source of World ownership. Ownership is separate from membership and is not duplicated by an `OWNER` membership role.
+
+The World owner does not have a `WorldMembership` or `WorldRole`.
 
 Users may join Worlds through `WorldMembership`.
 
 Initial World roles:
 
-```text
-ADMIN
-MEMBER
-VIEWER
-```
-
-A World owner does not require a membership record to establish ownership.
+- `ADMIN`
+- `MEMBER`
+- `VIEWER`
 
 Campaign creation is permitted to the World owner and World administrators. Other World membership roles do not grant this permission by default.
+
+#### Ownership Transfer
+
+Only the current World owner may voluntarily transfer ownership.
+
+When ownership is transferred:
+
+- The new owner ceases to be a World member and receives ownership through `World.ownerId`.
+- The former owner may become an `ADMIN`, `MEMBER`, `VIEWER`, or leave the World.
+- A World owner must not simultaneously have a `WorldMembership` for that World.
+
+#### Orphaned Worlds
+
+A World may temporarily become ownerless when its owner's user account is deleted.
+
+- If at least one `ADMIN` or `MEMBER` remains, the World becomes orphaned and may be claimed by an eligible member.
+- `VIEWER` cannot claim ownership.
+- If only `VIEWER` memberships or no memberships remain, the World is deleted.
+- Normal ownership transfer must not leave a World orphaned.
 
 ### Linked Entities
 
