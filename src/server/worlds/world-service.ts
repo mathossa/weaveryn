@@ -1,4 +1,5 @@
-import { prisma } from '../lib/prisma'
+import { prisma } from '../../lib/prisma'
+import { worldUpdateForbidden } from './world-errors'
 
 export const MAIN_WORLD_TIMELINE_NAME = 'Main'
 
@@ -17,15 +18,6 @@ export type WorldServiceDatabase = Pick<
   typeof prisma,
   '$transaction' | 'world' | 'worldTimeline'
 >
-
-export class WorldUpdateForbiddenError extends Error {
-  readonly code = 'WORLD_UPDATE_FORBIDDEN'
-
-  constructor() {
-    super('World does not exist or the user is not authorized to update it.')
-    this.name = 'WorldUpdateForbiddenError'
-  }
-}
 
 function accessibleWorldFilter(userId: string) {
   // Campaign-derived access joins this filter when Campaign persistence is
@@ -120,7 +112,7 @@ export function createWorldService(database: WorldServiceDatabase = prisma) {
         })
 
         if (result.count !== 1) {
-          throw new WorldUpdateForbiddenError()
+          throw worldUpdateForbidden()
         }
 
         return transaction.world.findUniqueOrThrow({

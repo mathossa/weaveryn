@@ -11,8 +11,8 @@ describe('development scenario environment guard', () => {
   it('extracts encoded database names without exposing connection details', () => {
     expect(
       databaseNameFromUrl(
-        'postgresql://user:secret@localhost:5432/weaveryn%5Fdev?schema=public'
-      )
+        'postgresql://user:secret@localhost:5432/weaveryn%5Fdev?schema=public',
+      ),
     ).toBe('weaveryn_dev')
   })
 
@@ -20,14 +20,14 @@ describe('development scenario environment guard', () => {
     'recognizes clearly isolated database name %s',
     (name) => {
       expect(isClearlyDevelopmentDatabaseName(name)).toBe(true)
-    }
+    },
   )
 
   it.each(['weaveryn', 'production', 'customer_data'])(
     'rejects ambiguous database name %s',
     (name) => {
       expect(isClearlyDevelopmentDatabaseName(name)).toBe(false)
-    }
+    },
   )
 
   it('allows only the explicitly expected development database', () => {
@@ -50,11 +50,11 @@ describe('development scenario environment guard', () => {
         NODE_ENV: 'development',
         DEV_DATABASE_NAME: 'weaveryn_dev',
         DATABASE_URL: 'postgresql://user:secret@localhost:5432/weaveryn',
-      })
+      }),
     ).toThrowError(
       expect.objectContaining<Partial<DevEnvironmentError>>({
         code: 'UNSAFE_DEV_DATABASE',
-      })
+      }),
     )
   })
 

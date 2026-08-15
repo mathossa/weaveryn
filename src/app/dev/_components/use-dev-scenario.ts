@@ -1,21 +1,26 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import type { DevScenarioResponse } from '@/server/dev-scenarios/contracts'
+import type {
+  DevLifecycleRequest,
+  DevScenarioResponse,
+} from '@/dev/scenario-contracts'
+import {
+  performDevScenarioAction,
+  requestDevScenario,
+} from './dev-scenario-client'
 
-export function useDevScenario<TState>(scenarioId: string) {
+export function useDevScenario<
+  TState,
+  TAction extends object = Record<string, unknown>,
+>(scenarioId: string) {
   const [result, setResult] = useState<DevScenarioResponse<TState> | null>(null)
   const [isBusy, setIsBusy] = useState(false)
-  const endpoint = `/api/dev/scenarios/${scenarioId}`
 
   const load = useCallback(
     async (signal?: AbortSignal) => {
       try {
-        const response = await fetch(endpoint, { signal })
-        if (response.status === 404) {
-          throw new Error('This development scenario is unavailable.')
-        }
-        const data = (await response.json()) as DevScenarioResponse<TState>
+        const data = await requestDevScenario<TState>(scenarioId, { signal })
         setResult(data)
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
@@ -34,7 +39,7 @@ export function useDevScenario<TState>(scenarioId: string) {
         })
       }
     },
-    [endpoint, scenarioId]
+    [scenarioId],
   )
 
   useEffect(() => {
@@ -44,26 +49,20 @@ export function useDevScenario<TState>(scenarioId: string) {
   }, [load])
 
   const perform = useCallback(
-    async (action: Record<string, unknown>) => {
+    async (action: DevLifecycleRequest | TAction) => {
       setIsBusy(true)
 
       try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(action),
-        })
-        if (response.status === 404) {
-          throw new Error('This development scenario is unavailable.')
-        }
-        const data = (await response.json()) as DevScenarioResponse<TState>
+        const data = await performDevScenarioAction<TState>(scenarioId, action)
         setResult(data)
       } catch (error) {
         setResult((current) => ({
           ok: false,
           scenarioId,
           message:
-            error instanceof Error ? error.message : 'The scenario request failed.',
+            error instanceof Error
+              ? error.message
+              : 'The scenario request failed.',
           state: current?.state ?? null,
           error: { code: 'NETWORK_ERROR' },
         }))
@@ -71,7 +70,7 @@ export function useDevScenario<TState>(scenarioId: string) {
         setIsBusy(false)
       }
     },
-    [endpoint, scenarioId]
+    [scenarioId],
   )
 
   return { result, isBusy, perform, reload: load }

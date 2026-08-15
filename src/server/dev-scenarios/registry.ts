@@ -1,4 +1,4 @@
-import type { DevScenario } from './contracts'
+import type { DevScenario } from '@/dev/scenario-contracts'
 import { worldOwnershipTransferScenario } from './world-ownership-transfer'
 import { worldUpdateExampleScenario } from './world-update-example'
 

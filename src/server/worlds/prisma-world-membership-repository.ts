@@ -1,7 +1,4 @@
-import {
-  Prisma,
-  type PrismaClient,
-} from '../../generated/prisma/client'
+import { Prisma, type PrismaClient } from '../../generated/prisma/client'
 import {
   WorldMembershipRepositoryConflictError,
   type CreateWorldMembershipInput,
@@ -11,9 +8,7 @@ import {
   type WorldRole,
 } from './world-membership-repository'
 
-export class PrismaWorldMembershipRepository
-  implements WorldMembershipRepository
-{
+export class PrismaWorldMembershipRepository implements WorldMembershipRepository {
   constructor(private readonly client: PrismaClient) {}
 
   findWorldById(worldId: string): Promise<WorldReference | null> {

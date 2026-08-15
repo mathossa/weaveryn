@@ -1,22 +1,22 @@
-import { Prisma, WorldRole } from '@/generated/prisma/client'
-import { getDevScenarioMetadata } from '@/dev/scenario-catalog'
-import { prisma } from '@/lib/prisma'
-import {
-  createWorldOwnershipService,
-  transferWorldOwnership,
-  type WorldOwnershipServiceDatabase,
-  WorldOwnershipTransferError,
-} from '@/services/worldOwnershipService'
+import type { Prisma } from '@/generated/prisma/client'
+import { requireDevScenarioMetadata } from '@/dev/scenario-catalog'
+import type { DevAcceptanceCheck, DevScenario } from '@/dev/scenario-contracts'
 import type {
   FormerOwnerState,
   LabPerson,
   LabUserKey,
   LabWorldState,
-} from '@/app/dev/world-ownership-transfer/types'
-import type {
-  DevAcceptanceCheck,
-  DevScenario,
-} from './contracts'
+  WorldOwnershipTransferAction,
+} from '@/dev/scenarios/world-ownership-transfer'
+import { prisma } from '@/lib/prisma'
+import {
+  createWorldOwnershipService,
+  transferWorldOwnership,
+  type WorldOwnershipServiceDatabase,
+  WORLD_ROLES,
+  WorldDomainError,
+  type WorldRole,
+} from '@/server/worlds'
 import { FixtureOwnershipError } from './fixture-safety'
 import {
   assertWorldFixtureOwned,
@@ -25,31 +25,26 @@ import {
   type WorldFixtureDefinition,
 } from './world-fixture'
 
-const metadata = getDevScenarioMetadata('world-ownership-transfer')!
+const metadata = requireDevScenarioMetadata('world-ownership-transfer')
 const DEV_WORLD_ID = '12000000-0000-4000-8000-000000000001'
-const USER_IDS: Record<LabUserKey, string> = {
-  A: '12000000-0000-4000-8000-00000000000a',
-  B: '12000000-0000-4000-8000-00000000000b',
-  C: '12000000-0000-4000-8000-00000000000c',
-}
 
 const PEOPLE: Record<LabUserKey, LabPerson & { username: string }> = {
   A: {
-    id: USER_IDS.A,
+    id: '12000000-0000-4000-8000-00000000000a',
     key: 'A',
     displayName: 'Aria (Owner A)',
     email: 'dev-transfer-a@weaveryn.local',
     username: 'ownership-lab-a',
   },
   B: {
-    id: USER_IDS.B,
+    id: '12000000-0000-4000-8000-00000000000b',
     key: 'B',
     displayName: 'Bram (Target B)',
     email: 'dev-transfer-b@weaveryn.local',
     username: 'ownership-lab-b',
   },
   C: {
-    id: USER_IDS.C,
+    id: '12000000-0000-4000-8000-00000000000c',
     key: 'C',
     displayName: 'Cora (Non-owner C)',
     email: 'dev-transfer-c@weaveryn.local',
@@ -58,31 +53,22 @@ const PEOPLE: Record<LabUserKey, LabPerson & { username: string }> = {
 }
 
 const fixture: WorldFixtureDefinition = {
-  scenarioId: metadata.id,
   worldId: DEV_WORLD_ID,
   worldMarker: metadata.fixtureNamespace,
   people: Object.values(PEOPLE),
 }
 
-const formerOwnerStates = new Set<FormerOwnerState>([
-  'ADMIN',
-  'MEMBER',
-  'VIEWER',
-  'LEAVE',
-])
+const formerOwnerStates = new Set<FormerOwnerState>([...WORLD_ROLES, 'LEAVE'])
 
 function personForId(id: string): LabPerson {
-  const key = (Object.keys(USER_IDS) as LabUserKey[]).find(
-    (candidate) => USER_IDS[candidate] === id
-  )
+  const person = Object.values(PEOPLE).find((candidate) => candidate.id === id)
 
-  if (!key) {
+  if (!person) {
     throw new FixtureOwnershipError(
-      `Unexpected user in ownership-transfer scenario: ${id}`
+      `Unexpected user in ownership-transfer scenario: ${id}`,
     )
   }
 
-  const person = PEOPLE[key]
   return {
     id: person.id,
     key: person.key,
@@ -112,7 +98,7 @@ async function readWorldState(): Promise<LabWorldState | null> {
 
   if (world.description !== fixture.worldMarker) {
     throw new FixtureOwnershipError(
-      `World ${DEV_WORLD_ID} is not owned by this development scenario.`
+      `World ${DEV_WORLD_ID} is not owned by this development scenario.`,
     )
   }
 
@@ -143,14 +129,14 @@ async function resetFixture() {
         id: DEV_WORLD_ID,
         name: 'The Amber Expanse',
         description: fixture.worldMarker,
-        ownerId: USER_IDS.A,
+        ownerId: PEOPLE.A.id,
         timelines: {
           create: { name: 'Main' },
         },
         memberships: {
           create: {
-            userId: USER_IDS.B,
-            role: WorldRole.MEMBER,
+            userId: PEOPLE.B.id,
+            role: 'MEMBER',
           },
         },
       },
@@ -159,12 +145,12 @@ async function resetFixture() {
 }
 
 function roleForState(state: FormerOwnerState) {
-  return state === 'LEAVE' ? null : WorldRole[state]
+  return state === 'LEAVE' ? null : state
 }
 
 function membershipRole(state: LabWorldState | null, userKey: LabUserKey) {
   return state?.memberships.find(
-    (membership) => membership.user.id === USER_IDS[userKey]
+    (membership) => membership.user.id === PEOPLE[userKey].id,
   )?.role
 }
 
@@ -181,7 +167,7 @@ function stableOwnershipState(state: LabWorldState | null) {
 
 function createRollbackDatabase(): WorldOwnershipServiceDatabase {
   const transaction = async <T>(
-    operation: (client: Prisma.TransactionClient) => Promise<T>
+    operation: (client: Prisma.TransactionClient) => Promise<T>,
   ) =>
     prisma.$transaction(async (client) => {
       const failingClient = {
@@ -189,7 +175,7 @@ function createRollbackDatabase(): WorldOwnershipServiceDatabase {
         user: client.user,
         worldMembership: {
           deleteMany: client.worldMembership.deleteMany.bind(
-            client.worldMembership
+            client.worldMembership,
           ),
           upsert: async () => {
             throw new Error('Forced scenario failure after ownership update')
@@ -214,12 +200,12 @@ async function runAcceptanceChecks() {
   try {
     await transferWorldOwnership({
       worldId: DEV_WORLD_ID,
-      currentOwnerId: USER_IDS.C,
-      newOwnerId: USER_IDS.B,
-      formerOwnerMembershipRole: WorldRole.ADMIN,
+      currentOwnerId: PEOPLE.C.id,
+      newOwnerId: PEOPLE.B.id,
+      formerOwnerMembershipRole: 'ADMIN',
     })
   } catch (error) {
-    if (error instanceof WorldOwnershipTransferError) {
+    if (error instanceof WorldDomainError) {
       nonOwnerCode = error.code
     } else {
       throw error
@@ -228,8 +214,8 @@ async function runAcceptanceChecks() {
 
   const afterNonOwnerAttempt = await readWorldState()
   const nonOwnerPreservedState =
-    afterNonOwnerAttempt?.owner?.id === USER_IDS.A &&
-    membershipRole(afterNonOwnerAttempt, 'B') === WorldRole.MEMBER
+    afterNonOwnerAttempt?.owner?.id === PEOPLE.A.id &&
+    membershipRole(afterNonOwnerAttempt, 'B') === 'MEMBER'
   const nonOwnerPassed =
     nonOwnerCode === 'NOT_WORLD_OWNER' && nonOwnerPreservedState
 
@@ -255,13 +241,13 @@ async function runAcceptanceChecks() {
 
   try {
     const rollbackService = createWorldOwnershipService(
-      createRollbackDatabase()
+      createRollbackDatabase(),
     )
     await rollbackService.transferWorldOwnership({
       worldId: DEV_WORLD_ID,
-      currentOwnerId: USER_IDS.A,
-      newOwnerId: USER_IDS.B,
-      formerOwnerMembershipRole: WorldRole.ADMIN,
+      currentOwnerId: PEOPLE.A.id,
+      newOwnerId: PEOPLE.B.id,
+      formerOwnerMembershipRole: 'ADMIN',
     })
   } catch (error) {
     rollbackFailureObserved =
@@ -294,32 +280,30 @@ async function runAcceptanceChecks() {
     state: FormerOwnerState
     expectedRole: WorldRole | undefined
   }> = [
-    { state: 'ADMIN', expectedRole: WorldRole.ADMIN },
-    { state: 'VIEWER', expectedRole: WorldRole.VIEWER },
+    { state: 'ADMIN', expectedRole: 'ADMIN' },
+    { state: 'VIEWER', expectedRole: 'VIEWER' },
     { state: 'LEAVE', expectedRole: undefined },
-    { state: 'MEMBER', expectedRole: WorldRole.MEMBER },
+    { state: 'MEMBER', expectedRole: 'MEMBER' },
   ]
 
   for (const stateCase of stateCases) {
     await resetFixture()
     await transferWorldOwnership({
       worldId: DEV_WORLD_ID,
-      currentOwnerId: USER_IDS.A,
-      newOwnerId: USER_IDS.B,
+      currentOwnerId: PEOPLE.A.id,
+      newOwnerId: PEOPLE.B.id,
       formerOwnerMembershipRole: roleForState(stateCase.state),
     })
 
     const state = await readWorldState()
     const actualFormerOwnerRole = membershipRole(state, 'A')
     const statePassed =
-      state?.owner?.id === USER_IDS.B &&
+      state?.owner?.id === PEOPLE.B.id &&
       actualFormerOwnerRole === stateCase.expectedRole
 
     everyNewOwnerMembershipRemoved =
-      everyNewOwnerMembershipRemoved &&
-      membershipRole(state, 'B') === undefined
-    everyTransferKeptAnOwner =
-      everyTransferKeptAnOwner && state?.owner !== null
+      everyNewOwnerMembershipRemoved && membershipRole(state, 'B') === undefined
+    everyTransferKeptAnOwner = everyTransferKeptAnOwner && state?.owner !== null
 
     checks.push({
       id: `former-owner-${stateCase.state.toLowerCase()}`,
@@ -371,7 +355,9 @@ async function runAcceptanceChecks() {
   return checks
 }
 
-function isTransferRequest(value: unknown) {
+function isTransferRequest(
+  value: unknown,
+): value is WorldOwnershipTransferAction {
   if (!value || typeof value !== 'object') {
     return false
   }
@@ -391,7 +377,10 @@ function isTransferRequest(value: unknown) {
   )
 }
 
-export const worldOwnershipTransferScenario: DevScenario = {
+export const worldOwnershipTransferScenario: DevScenario<
+  LabWorldState,
+  WorldOwnershipTransferAction
+> = {
   metadata,
   readState: readWorldState,
   async reset() {
@@ -411,7 +400,7 @@ export const worldOwnershipTransferScenario: DevScenario = {
   },
   async cleanup() {
     const cleanup = await prisma.$transaction((transaction) =>
-      cleanupWorldFixture(transaction, fixture)
+      cleanupWorldFixture(transaction, fixture),
     )
     return {
       ok: true,
@@ -447,16 +436,11 @@ export const worldOwnershipTransferScenario: DevScenario = {
     }
   },
   isAction: isTransferRequest,
-  async execute(value) {
-    const request = value as {
-      action: 'transfer'
-      actor: 'A' | 'C'
-      formerOwnerState: FormerOwnerState
-    }
+  async execute(request) {
     await transferWorldOwnership({
       worldId: DEV_WORLD_ID,
-      currentOwnerId: USER_IDS[request.actor],
-      newOwnerId: USER_IDS.B,
+      currentOwnerId: PEOPLE[request.actor].id,
+      newOwnerId: PEOPLE.B.id,
       formerOwnerMembershipRole: roleForState(request.formerOwnerState),
     })
     const state = await readWorldState()
@@ -475,7 +459,7 @@ export const worldOwnershipTransferScenario: DevScenario = {
     }
   },
   mapError(error, action) {
-    if (error instanceof WorldOwnershipTransferError) {
+    if (error instanceof WorldDomainError) {
       const actor =
         action && typeof action === 'object'
           ? (action as Record<string, unknown>).actor

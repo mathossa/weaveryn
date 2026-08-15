@@ -1,7 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { getDevScenarioMetadata } from '@/dev/scenario-catalog'
+import { requireDevScenarioMetadata } from '@/dev/scenario-catalog'
+import type {
+  WorldUpdateAction,
+  WorldUpdateState,
+} from '@/dev/scenarios/world-update-example'
 import {
   ScenarioLifecycleControls,
   ScenarioNavigation,
@@ -10,24 +14,20 @@ import {
 import { useDevScenario } from '../_components/use-dev-scenario'
 import styles from './world-update-example.module.css'
 
-interface WorldUpdateState {
-  id: string
-  name: string
-  ownerId: string | null
-}
-
-const metadata = getDevScenarioMetadata('world-update-example')!
+const metadata = requireDevScenarioMetadata('world-update-example')
 
 export function WorldUpdateExampleLab() {
   const [actor, setActor] = useState<'OWNER' | 'OUTSIDER'>('OWNER')
-  const { result, isBusy, perform } =
-    useDevScenario<WorldUpdateState>(metadata.id)
+  const { result, isBusy, perform } = useDevScenario<
+    WorldUpdateState,
+    WorldUpdateAction
+  >(metadata.id)
   const world = result?.state ?? null
 
   return (
     <main className={styles.page}>
       <div className={styles.shell}>
-        <ScenarioNavigation issueNumbers={[...metadata.issueNumbers]} />
+        <ScenarioNavigation issueNumbers={metadata.issueNumbers} />
 
         <header className={styles.header}>
           <span>Development only · Shared contract example</span>
@@ -46,7 +46,10 @@ export function WorldUpdateExampleLab() {
         />
 
         <div className={styles.workspace}>
-          <section className={styles.stateCard} aria-labelledby="world-update-state">
+          <section
+            className={styles.stateCard}
+            aria-labelledby="world-update-state"
+          >
             <span>Persisted state</span>
             <h2 id="world-update-state">
               {world?.name ?? 'No example World yet'}
@@ -63,11 +66,16 @@ export function WorldUpdateExampleLab() {
                 </div>
               </dl>
             ) : (
-              <p>Create the deterministic fixture to enable the manual action.</p>
+              <p>
+                Create the deterministic fixture to enable the manual action.
+              </p>
             )}
           </section>
 
-          <section className={styles.actionCard} aria-labelledby="world-update-action">
+          <section
+            className={styles.actionCard}
+            aria-labelledby="world-update-action"
+          >
             <span>Real service action</span>
             <h2 id="world-update-action">Rename the World</h2>
             <p>

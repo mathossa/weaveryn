@@ -691,6 +691,7 @@ Current and planned documentation includes:
 - [`RULESETS.md`](docs/RULESETS.md) — world and Campaign Ruleset architecture; under development
 - [`DESIGN-PRINCIPLES.md`](docs/DESIGN-PRINCIPLES.md) — product and interaction design principles; under development
 - [`development/SETUP.md`](docs/development/SETUP.md) — development environment and installation; under development
+- [`development/CODE_CONVENTIONS.md`](docs/development/CODE_CONVENTIONS.md) — source organization, boundaries, validation, and testing conventions
 - [`development/VISUAL_TESTING.md`](docs/development/VISUAL_TESTING.md) — reusable development-only visual acceptance scenarios
 - UI concept documentation and screenshots
 
@@ -737,4 +738,4 @@ Weaveryn is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.
 
 ---
 
-*Weaveryn is a work in progress. Features, architecture, terminology, and interface concepts described in this repository may change significantly during development.*
+_Weaveryn is a work in progress. Features, architecture, terminology, and interface concepts described in this repository may change significantly during development._

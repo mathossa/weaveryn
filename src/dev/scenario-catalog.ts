@@ -6,8 +6,8 @@ export interface DevScenarioMetadata {
   domain: string
   purpose: string
   href: string
-  issueNumbers: number[]
-  prerequisites: string[]
+  issueNumbers: readonly number[]
+  prerequisites: readonly string[]
   availability: DevScenarioAvailability
   fixtureNamespace: string
 }
@@ -21,7 +21,10 @@ export const devScenarioCatalog = [
       'Exercise ownership transfer, authorization, membership outcomes, and transaction rollback through the real World ownership service.',
     href: '/dev/world-ownership-transfer',
     issueNumbers: [12, 34],
-    prerequisites: ['Dedicated development database', 'Applied Prisma migrations'],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+    ],
     availability: 'available',
     fixtureNamespace: 'dev:world-ownership-transfer:v1',
   },
@@ -33,7 +36,10 @@ export const devScenarioCatalog = [
       'Demonstrate how another scenario reuses the shared guards, lifecycle, response envelope, acceptance reporting, and cleanup plumbing.',
     href: '/dev/world-update-example',
     issueNumbers: [34],
-    prerequisites: ['Dedicated development database', 'Applied Prisma migrations'],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+    ],
     availability: 'available',
     fixtureNamespace: 'dev:world-update-example:v1',
   },
@@ -43,4 +49,14 @@ export type DevScenarioId = (typeof devScenarioCatalog)[number]['id']
 
 export function getDevScenarioMetadata(id: string) {
   return devScenarioCatalog.find((scenario) => scenario.id === id)
+}
+
+export function requireDevScenarioMetadata(id: DevScenarioId) {
+  const metadata = getDevScenarioMetadata(id)
+
+  if (!metadata) {
+    throw new Error(`Development scenario metadata is missing for ${id}.`)
+  }
+
+  return metadata
 }

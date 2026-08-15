@@ -1,8 +1,14 @@
-import type { DevScenarioResponse } from '@/server/dev-scenarios/contracts'
+import type { WorldRole } from '@/server/worlds/world-role'
 
 export type LabUserKey = 'A' | 'B' | 'C'
 
-export type FormerOwnerState = 'ADMIN' | 'MEMBER' | 'VIEWER' | 'LEAVE'
+export type FormerOwnerState = WorldRole | 'LEAVE'
+
+export interface WorldOwnershipTransferAction {
+  action: 'transfer'
+  actor: 'A' | 'C'
+  formerOwnerState: FormerOwnerState
+}
 
 export interface LabPerson {
   id: string
@@ -12,7 +18,7 @@ export interface LabPerson {
 }
 
 export interface LabMembership {
-  role: Exclude<FormerOwnerState, 'LEAVE'>
+  role: WorldRole
   user: LabPerson
 }
 
@@ -22,5 +28,3 @@ export interface LabWorldState {
   owner: LabPerson | null
   memberships: LabMembership[]
 }
-
-export type LabResponse = DevScenarioResponse<LabWorldState>

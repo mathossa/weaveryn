@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { WorldRole } from '../../generated/prisma/client'
+import type { WorldRole } from './world-role'
 
 const prismaMock = vi.hoisted(() => ({
   $transaction: vi.fn(),
@@ -9,10 +9,8 @@ vi.mock('../../lib/prisma', () => ({
   prisma: prismaMock,
 }))
 
-import {
-  transferWorldOwnership,
-  WorldOwnershipTransferError,
-} from '../worldOwnershipService'
+import { transferWorldOwnership } from './world-ownership-service'
+import { WorldDomainError } from './world-errors'
 
 const worldId = '10000000-0000-4000-8000-000000000001'
 const currentOwnerId = '10000000-0000-4000-8000-000000000002'
@@ -66,11 +64,11 @@ describe('transferWorldOwnership', () => {
     })
 
     prismaMock.$transaction.mockImplementation(
-      async (callback: TransactionCallback) => callback(tx)
+      async (callback: TransactionCallback) => callback(tx),
     )
   })
 
-  it.each([WorldRole.ADMIN, WorldRole.MEMBER, WorldRole.VIEWER])(
+  it.each<WorldRole>(['ADMIN', 'MEMBER', 'VIEWER'])(
     'transfers ownership and makes the former owner a %s',
     async (role) => {
       const world = await transfer(role)
@@ -94,7 +92,7 @@ describe('transferWorldOwnership', () => {
         },
         update: { role },
       })
-    }
+    },
   )
 
   it('removes both memberships when the former owner leaves', async () => {
@@ -114,7 +112,7 @@ describe('transferWorldOwnership', () => {
       ownerId: '10000000-0000-4000-8000-000000000004',
     })
 
-    await expect(transfer(WorldRole.ADMIN)).rejects.toMatchObject({
+    await expect(transfer('ADMIN')).rejects.toMatchObject({
       code: 'NOT_WORLD_OWNER',
     })
     expect(tx.user.findUnique).not.toHaveBeenCalled()
@@ -125,7 +123,7 @@ describe('transferWorldOwnership', () => {
   it('rejects a transfer when the World does not exist', async () => {
     tx.world.findUnique.mockResolvedValue(null)
 
-    await expect(transfer(WorldRole.ADMIN)).rejects.toMatchObject({
+    await expect(transfer('ADMIN')).rejects.toMatchObject({
       code: 'WORLD_NOT_FOUND',
     })
     expect(tx.world.updateMany).not.toHaveBeenCalled()
@@ -138,7 +136,7 @@ describe('transferWorldOwnership', () => {
         currentOwnerId,
         newOwnerId: currentOwnerId,
         formerOwnerMembershipRole: null,
-      })
+      }),
     ).rejects.toMatchObject({ code: 'SAME_OWNER' })
     expect(tx.worldMembership.deleteMany).not.toHaveBeenCalled()
     expect(tx.world.updateMany).not.toHaveBeenCalled()
@@ -147,7 +145,7 @@ describe('transferWorldOwnership', () => {
   it('rejects a missing new owner without changing ownership', async () => {
     tx.user.findUnique.mockResolvedValue(null)
 
-    await expect(transfer(WorldRole.MEMBER)).rejects.toMatchObject({
+    await expect(transfer('MEMBER')).rejects.toMatchObject({
       code: 'NEW_OWNER_NOT_FOUND',
     })
     expect(tx.worldMembership.deleteMany).not.toHaveBeenCalled()
@@ -161,15 +159,15 @@ describe('transferWorldOwnership', () => {
         currentOwnerId,
         newOwnerId,
         formerOwnerMembershipRole: 'OWNER' as WorldRole,
-      })
-    ).rejects.toBeInstanceOf(WorldOwnershipTransferError)
+      }),
+    ).rejects.toBeInstanceOf(WorldDomainError)
     expect(prismaMock.$transaction).not.toHaveBeenCalled()
   })
 
   it('rejects a concurrent ownership change', async () => {
     tx.world.updateMany.mockResolvedValue({ count: 0 })
 
-    await expect(transfer(WorldRole.VIEWER)).rejects.toMatchObject({
+    await expect(transfer('VIEWER')).rejects.toMatchObject({
       code: 'NOT_WORLD_OWNER',
     })
     expect(tx.worldMembership.upsert).not.toHaveBeenCalled()
@@ -197,14 +195,14 @@ describe('transferWorldOwnership', () => {
           async ({ where }: { where: { userId: string } }) => {
             workingState.memberIds.delete(where.userId)
             return { count: 1 }
-          }
+          },
         )
         rollbackTx.world.updateMany.mockImplementation(async () => {
           workingState.ownerId = newOwnerId
           return { count: 1 }
         })
         rollbackTx.worldMembership.upsert.mockRejectedValue(
-          new Error('forced former owner membership failure')
+          new Error('forced former owner membership failure'),
         )
 
         const result = await callback(rollbackTx)
@@ -212,11 +210,11 @@ describe('transferWorldOwnership', () => {
         committedState.ownerId = workingState.ownerId
         committedState.memberIds = workingState.memberIds
         return result
-      }
+      },
     )
 
-    await expect(transfer(WorldRole.ADMIN)).rejects.toThrow(
-      'forced former owner membership failure'
+    await expect(transfer('ADMIN')).rejects.toThrow(
+      'forced former owner membership failure',
     )
     expect(committedState.ownerId).toBe(currentOwnerId)
     expect(committedState.memberIds).toEqual(new Set([newOwnerId]))

@@ -16,9 +16,7 @@ const MEMBER_ID = 'member-1'
 const VIEWER_ID = 'viewer-1'
 const TARGET_ID = 'target-1'
 
-class InMemoryWorldMembershipRepository
-  implements WorldMembershipRepository
-{
+class InMemoryWorldMembershipRepository implements WorldMembershipRepository {
   private readonly worlds = new Map<string, WorldReference>()
   private readonly users = new Set<string>()
   private readonly memberships = new Map<string, WorldMembershipRecord>()
@@ -32,11 +30,7 @@ class InMemoryWorldMembershipRepository
     this.users.add(userId)
   }
 
-  addExistingMembership(
-    worldId: string,
-    userId: string,
-    role: WorldRole,
-  ) {
+  addExistingMembership(worldId: string, userId: string, role: WorldRole) {
     return this.createMembership({ worldId, userId, role })
   }
 
@@ -49,7 +43,9 @@ class InMemoryWorldMembershipRepository
   }
 
   findMembership(worldId: string, userId: string) {
-    return Promise.resolve(this.memberships.get(this.key(worldId, userId)) ?? null)
+    return Promise.resolve(
+      this.memberships.get(this.key(worldId, userId)) ?? null,
+    )
   }
 
   createMembership(input: CreateWorldMembershipInput) {

@@ -1,11 +1,6 @@
-import {
-  worldNotFound,
-  worldPermissionDenied,
-} from './world-errors'
-import type {
-  WorldMembershipRepository,
-  WorldRole,
-} from './world-membership-repository'
+import { worldNotFound, worldPermissionDenied } from './world-errors'
+import type { WorldMembershipRepository } from './world-membership-repository'
+import type { WorldRole } from './world-role'
 
 export const WORLD_PERMISSIONS = {
   VIEW_WORLD: 'VIEW_WORLD',

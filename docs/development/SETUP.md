@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Node.js and npm compatible with `package-lock.json`
+- Node.js `^20.19`, `^22.12`, or `^24` and its bundled npm
 - Docker with Docker Compose
 - PostgreSQL client tools only when you want to inspect the database manually
 
@@ -61,13 +61,17 @@ The hub displays whether `DATABASE_URL` targets the database named by
 ## Validation
 
 ```bash
-npm test
-npm run lint
-npx tsc --noEmit
-npx prisma format
-npx prisma validate
-npm run build
+npm run validate
 ```
+
+The validation script checks formatting, linting, Prisma validity and client
+generation, Next.js route-type generation, TypeScript, unit tests, and a
+production build in the required order. Run `npm run format` to apply formatting.
+
+Run `npx prisma format` after intentionally changing `prisma/schema.prisma`, then
+verify the resulting schema diff before committing it.
 
 See [Visual Acceptance Testing](VISUAL_TESTING.md) for scenario lifecycle,
 cleanup rules, the feature-issue checklist, and how to add another scenario.
+See [Code Conventions](CODE_CONVENTIONS.md) for source organization, boundaries,
+errors, validation, and test placement.

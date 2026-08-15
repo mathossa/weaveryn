@@ -1,6 +1,6 @@
-export const WORLD_ROLES = ['ADMIN', 'MEMBER', 'VIEWER'] as const
+import type { WorldRole } from './world-role'
 
-export type WorldRole = (typeof WORLD_ROLES)[number]
+export type { WorldRole } from './world-role'
 
 export interface WorldReference {
   id: string

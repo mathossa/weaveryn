@@ -14,4 +14,3 @@ export default function WorldOwnershipTransferLabPage() {
 
   return <OwnershipTransferLab />
 }
-

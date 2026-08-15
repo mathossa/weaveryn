@@ -1,16 +1,24 @@
 'use client'
 
 import Link from 'next/link'
-import type { DevScenarioResponse } from '@/server/dev-scenarios/contracts'
+import type {
+  DevLifecycleAction,
+  DevScenarioResponse,
+} from '@/dev/scenario-contracts'
 import styles from './scenario-ui.module.css'
 
-export function ScenarioNavigation({ issueNumbers }: { issueNumbers: number[] }) {
+export function ScenarioNavigation({
+  issueNumbers,
+}: {
+  issueNumbers: readonly number[]
+}) {
   return (
-    <nav className={styles.navigation} aria-label="Development scenario navigation">
+    <nav
+      className={styles.navigation}
+      aria-label="Development scenario navigation"
+    >
       <Link href="/dev">← Development hub</Link>
-      <span>
-        {issueNumbers.map((number) => `#${number}`).join(' · ')}
-      </span>
+      <span>{issueNumbers.map((number) => `#${number}`).join(' · ')}</span>
     </nav>
   )
 }
@@ -22,13 +30,13 @@ export function ScenarioLifecycleControls({
 }: {
   isBusy: boolean
   hasFixture: boolean
-  onAction: (action: 'reset' | 'run-all' | 'cleanup') => void
+  onAction: (action: DevLifecycleAction) => void
 }) {
-  function performLifecycleAction(action: 'reset' | 'run-all' | 'cleanup') {
+  function performLifecycleAction(action: DevLifecycleAction) {
     if (
       action === 'cleanup' &&
       !window.confirm(
-        'Remove this scenario’s namespaced fixture data? Unrelated development data will be left untouched.'
+        'Remove this scenario’s namespaced fixture data? Unrelated development data will be left untouched.',
       )
     ) {
       return
@@ -41,7 +49,9 @@ export function ScenarioLifecycleControls({
     <section className={styles.lifecycle} aria-label="Scenario lifecycle">
       <div>
         <strong>Scenario lifecycle</strong>
-        <span>Reset is deterministic. Cleanup only removes owned fixtures.</span>
+        <span>
+          Reset is deterministic. Cleanup only removes owned fixtures.
+        </span>
       </div>
       <div className={styles.lifecycleButtons}>
         <button
@@ -132,7 +142,10 @@ export function ScenarioResultPanels<TState>({
       )}
 
       {result?.cleanup && (
-        <section className={styles.cleanupReport} aria-labelledby="cleanup-report">
+        <section
+          className={styles.cleanupReport}
+          aria-labelledby="cleanup-report"
+        >
           <div className={styles.sectionHeading}>
             <div>
               <span>Owned-record cleanup</span>
@@ -168,7 +181,10 @@ export function ScenarioResultPanels<TState>({
         </section>
       )}
 
-      <section className={styles.acceptance} aria-labelledby="acceptance-report">
+      <section
+        className={styles.acceptance}
+        aria-labelledby="acceptance-report"
+      >
         <div className={styles.sectionHeading}>
           <div>
             <span>Executable acceptance criteria</span>
@@ -217,7 +233,9 @@ export function ScenarioResultPanels<TState>({
             ))}
           </div>
         ) : (
-          <p className={styles.empty}>Run all checks to populate this report.</p>
+          <p className={styles.empty}>
+            Run all checks to populate this report.
+          </p>
         )}
       </section>
 

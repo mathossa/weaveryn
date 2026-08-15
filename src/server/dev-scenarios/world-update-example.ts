@@ -1,13 +1,11 @@
-import { getDevScenarioMetadata } from '@/dev/scenario-catalog'
-import { prisma } from '@/lib/prisma'
-import {
-  worldService,
-  WorldUpdateForbiddenError,
-} from '@/services/worldService'
+import { requireDevScenarioMetadata } from '@/dev/scenario-catalog'
+import type { DevAcceptanceCheck, DevScenario } from '@/dev/scenario-contracts'
 import type {
-  DevAcceptanceCheck,
-  DevScenario,
-} from './contracts'
+  WorldUpdateAction,
+  WorldUpdateState,
+} from '@/dev/scenarios/world-update-example'
+import { prisma } from '@/lib/prisma'
+import { worldService, WorldDomainError } from '@/server/worlds'
 import { FixtureOwnershipError } from './fixture-safety'
 import {
   assertWorldFixtureOwned,
@@ -16,7 +14,7 @@ import {
   type WorldFixtureDefinition,
 } from './world-fixture'
 
-const metadata = getDevScenarioMetadata('world-update-example')!
+const metadata = requireDevScenarioMetadata('world-update-example')
 const WORLD_ID = '34000000-0000-4000-8000-000000000001'
 const OWNER_ID = '34000000-0000-4000-8000-00000000000a'
 const OUTSIDER_ID = '34000000-0000-4000-8000-00000000000b'
@@ -24,7 +22,6 @@ const INITIAL_NAME = 'The Reusable Archive'
 const UPDATED_NAME = 'The Moonlit Archive'
 
 const fixture: WorldFixtureDefinition = {
-  scenarioId: metadata.id,
   worldId: WORLD_ID,
   worldMarker: metadata.fixtureNamespace,
   people: [
@@ -43,7 +40,7 @@ const fixture: WorldFixtureDefinition = {
   ],
 }
 
-async function readState() {
+async function readState(): Promise<WorldUpdateState | null> {
   const world = await prisma.world.findUnique({
     where: { id: WORLD_ID },
     select: {
@@ -60,7 +57,7 @@ async function readState() {
 
   if (world.description !== fixture.worldMarker) {
     throw new FixtureOwnershipError(
-      `World ${WORLD_ID} is not owned by this development scenario.`
+      `World ${WORLD_ID} is not owned by this development scenario.`,
     )
   }
 
@@ -90,7 +87,7 @@ async function resetFixture() {
   })
 }
 
-function isRenameAction(value: unknown) {
+function isRenameAction(value: unknown): value is WorldUpdateAction {
   if (!value || typeof value !== 'object') {
     return false
   }
@@ -135,7 +132,10 @@ async function runAcceptanceChecks() {
       name: UPDATED_NAME,
     })
   } catch (error) {
-    if (error instanceof WorldUpdateForbiddenError) {
+    if (
+      error instanceof WorldDomainError &&
+      error.code === 'WORLD_UPDATE_FORBIDDEN'
+    ) {
       outsiderCode = error.code
     } else {
       throw error
@@ -164,7 +164,10 @@ async function runAcceptanceChecks() {
   return checks
 }
 
-export const worldUpdateExampleScenario: DevScenario = {
+export const worldUpdateExampleScenario: DevScenario<
+  WorldUpdateState,
+  WorldUpdateAction
+> = {
   metadata,
   readState,
   async reset() {
@@ -184,7 +187,7 @@ export const worldUpdateExampleScenario: DevScenario = {
   },
   async cleanup() {
     const cleanup = await prisma.$transaction((transaction) =>
-      cleanupWorldFixture(transaction, fixture)
+      cleanupWorldFixture(transaction, fixture),
     )
     return {
       ok: true,
@@ -220,8 +223,7 @@ export const worldUpdateExampleScenario: DevScenario = {
     }
   },
   isAction: isRenameAction,
-  async execute(value) {
-    const request = value as { action: 'rename'; actor: 'OWNER' | 'OUTSIDER' }
+  async execute(request) {
     const actorId = request.actor === 'OWNER' ? OWNER_ID : OUTSIDER_ID
     await worldService.updateWorld(WORLD_ID, actorId, { name: UPDATED_NAME })
     const state = await readState()
@@ -231,7 +233,8 @@ export const worldUpdateExampleScenario: DevScenario = {
       message: `${request.actor} updated the World through the production service.`,
       activity: {
         action: request.action,
-        actor: request.actor === 'OWNER' ? 'Uma (World owner)' : 'Oren (Outsider)',
+        actor:
+          request.actor === 'OWNER' ? 'Uma (World owner)' : 'Oren (Outsider)',
         target: `World ${WORLD_ID}`,
         expected: UPDATED_NAME,
         actual: state?.name ?? 'World missing',
@@ -240,7 +243,10 @@ export const worldUpdateExampleScenario: DevScenario = {
     }
   },
   mapError(error, action) {
-    if (error instanceof WorldUpdateForbiddenError) {
+    if (
+      error instanceof WorldDomainError &&
+      error.code === 'WORLD_UPDATE_FORBIDDEN'
+    ) {
       const actor =
         action && typeof action === 'object'
           ? (action as Record<string, unknown>).actor

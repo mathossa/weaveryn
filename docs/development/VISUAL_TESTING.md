@@ -68,10 +68,12 @@ unless database-level isolation is itself the subject of the test.
 
 ## Adding a scenario
 
-1. Add metadata to `src/dev/scenario-catalog.ts`. IDs, routes, and fixture
-   namespaces must be unique.
-2. Implement the shared `DevScenario` contract under
-   `src/server/dev-scenarios/`. Register it in the server registry.
+1. Add metadata to `src/dev/scenario-catalog.ts`. Add shared state and action
+   types under `src/dev/scenarios/`. IDs, routes, and fixture namespaces must be
+   unique.
+2. Implement the shared `DevScenario` contract from
+   `src/dev/scenario-contracts.ts` under `src/server/dev-scenarios/`. Register it
+   in the server registry; the registry test enforces catalog parity.
 3. Use deterministic UUIDs and marker values. Before reset or cleanup, verify all
    matching IDs and unique user fields still belong to the scenario.
 4. Validate every custom action exactly. Do not accept arbitrary record IDs,

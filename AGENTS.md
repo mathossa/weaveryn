@@ -5,6 +5,7 @@
 Before making domain or architectural changes, read the relevant project documentation.
 
 Authority order:
+
 1. `docs/ARCHITECTURE.md`
    - Authoritative source for domain architecture, ownership, permissions,
      lifecycle rules, and system invariants.
@@ -35,6 +36,23 @@ Report the ambiguity before implementing it.
   visual scenario under `/dev`, or explicitly state why it is not applicable.
   Follow `docs/development/VISUAL_TESTING.md` for fixture and cleanup rules.
 
+## Code Organization and Conventions
+
+- Keep domain/application code under `src/server/<domain>` and colocate related
+  `*.test.ts` files with the implementation.
+- Keep ownership, membership, authorization, persistence, and presentation as
+  separate concerns even when they share domain primitives.
+- Prefer application/domain types in services. Keep Prisma-generated types at
+  persistence and transaction boundaries where practical.
+- Use domain-specific typed error codes. Translate domain errors to transport
+  responses at the HTTP boundary rather than returning HTTP concepts from
+  services.
+- Validate untrusted runtime input at shared boundaries. Security-sensitive
+  authorization must remain fail-closed even when TypeScript types narrow input.
+- Refactors must preserve observable behavior and must not change domain rules
+  unless that behavior change is explicitly approved.
+- Follow `docs/development/CODE_CONVENTIONS.md` for the complete conventions.
+
 ## Database and Prisma
 
 - Treat destructive database operations carefully.
@@ -54,13 +72,18 @@ After changes, run the relevant available checks:
 - TypeScript/build checks
 - relevant tests
 
+Run `npm run validate` for the standard complete repository check.
+
 Fix errors caused by the change before considering the task complete.
 
 Report unresolved architectural decisions instead of silently choosing behavior.
 
+<!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -1,11 +1,13 @@
-import type { DevScenarioMetadata } from '@/dev/scenario-catalog'
+import type { DevScenarioMetadata } from './scenario-catalog'
+
+export type DevLifecycleAction = 'reset' | 'run-all' | 'cleanup'
+
+export interface DevLifecycleRequest {
+  action: DevLifecycleAction
+}
 
 export type DevAcceptanceStatus =
-  | 'passed'
-  | 'failed'
-  | 'pending'
-  | 'manual'
-  | 'infrastructure-error'
+  'passed' | 'failed' | 'pending' | 'manual' | 'infrastructure-error'
 
 export interface DevAcceptanceCheck {
   id: string
@@ -63,13 +65,13 @@ export interface DevScenarioMappedError {
   activity?: DevScenarioActivity
 }
 
-export interface DevScenario {
+export interface DevScenario<TState = unknown, TAction = unknown> {
   metadata: DevScenarioMetadata
-  readState(): Promise<unknown | null>
+  readState(): Promise<TState | null>
   reset(): Promise<DevScenarioActionResult>
   cleanup(): Promise<DevScenarioActionResult>
   runAll(): Promise<DevScenarioActionResult>
-  isAction(value: unknown): boolean
-  execute(value: unknown): Promise<DevScenarioActionResult>
+  isAction(value: unknown): value is TAction
+  execute(value: TAction): Promise<DevScenarioActionResult>
   mapError?(error: unknown, action?: unknown): DevScenarioMappedError | null
 }
