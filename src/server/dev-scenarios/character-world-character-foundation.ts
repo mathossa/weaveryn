@@ -28,14 +28,8 @@ const WORLD_TWO_ID = '17000000-0000-4000-8000-0000000000b2'
 const CHARACTER_ID = '17000000-0000-4000-8000-0000000000c1'
 const WORLD_CHARACTER_ONE_ID = '17000000-0000-4000-8000-0000000000d1'
 const WORLD_CHARACTER_TWO_ID = '17000000-0000-4000-8000-0000000000d2'
-const ids = [CHARACTER_ID, WORLD_CHARACTER_ONE_ID, WORLD_CHARACTER_TWO_ID]
-const service = () => {
-  let index = 0
-  return new CharacterService(
-    new PrismaCharacterRepository(prisma),
-    () => ids[index++] ?? randomUUID(),
-  )
-}
+const service = (id = randomUUID()) =>
+  new CharacterService(new PrismaCharacterRepository(prisma), () => id)
 
 async function assertOwned() {
   const worlds = await prisma.world.findMany({
@@ -153,7 +147,7 @@ function activity(
   }
 }
 async function createCharacter() {
-  return service().createCharacter({
+  return service(CHARACTER_ID).createCharacter({
     ownerUserId: OWNER_ID,
     name: 'Bodwick',
     coreData: { marker: metadata.fixtureNamespace, concept: 'portable bard' },
@@ -179,7 +173,13 @@ async function execute(
       )
     }
     if (action.action === 'create-second-incarnation') {
-      await service().createWorldCharacter({
+      if (current!.worldCharacters.some((wc) => wc.worldId === WORLD_TWO_ID))
+        return activity(
+          action.action,
+          'The Veyra incarnation already exists. Reset to create it again.',
+          'failed',
+        )
+      await service(WORLD_CHARACTER_TWO_ID).createWorldCharacter({
         actorUserId: OWNER_ID,
         characterId: CHARACTER_ID,
         worldId: WORLD_TWO_ID,
@@ -204,7 +204,7 @@ async function execute(
     if (action.action === 'update-world-character') {
       const wc = current!.worldCharacters[0]
       if (!wc) {
-        await service().createWorldCharacter({
+        await service(WORLD_CHARACTER_ONE_ID).createWorldCharacter({
           actorUserId: OWNER_ID,
           characterId: CHARACTER_ID,
           worldId: WORLD_ONE_ID,
@@ -236,7 +236,7 @@ async function execute(
       })
       return activity(action.action, 'Unexpectedly authorized.', 'failed')
     }
-    await service().createWorldCharacter({
+    await service(randomUUID()).createWorldCharacter({
       actorUserId: OWNER_ID,
       characterId: CHARACTER_ID,
       worldId: WORLD_ONE_ID,
@@ -263,14 +263,14 @@ async function runAll(): Promise<DevScenarioActionResult> {
   const checks: DevAcceptanceCheck[] = []
   await resetFixture()
   await createCharacter()
-  const created = await service().createWorldCharacter({
+  const created = await service(WORLD_CHARACTER_ONE_ID).createWorldCharacter({
     actorUserId: OWNER_ID,
     characterId: CHARACTER_ID,
     worldId: WORLD_ONE_ID,
     nameOverride: 'Bodwick of Aldorath',
     worldData: { culture: 'Aldoran' },
   })
-  const second = await service().createWorldCharacter({
+  const second = await service(WORLD_CHARACTER_TWO_ID).createWorldCharacter({
     actorUserId: OWNER_ID,
     characterId: CHARACTER_ID,
     worldId: WORLD_TWO_ID,
