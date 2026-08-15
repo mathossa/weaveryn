@@ -26,6 +26,7 @@ function createTransactionMock() {
     worldMembership: {
       findUnique: vi.fn(),
       findFirst: vi.fn(),
+      count: vi.fn(),
       deleteMany: vi.fn(),
     },
     campaign: { findFirst: vi.fn(), count: vi.fn() },
@@ -50,6 +51,7 @@ describe('World orphan lifecycle service', () => {
     transaction.world.deleteMany.mockResolvedValue({ count: 1 })
     transaction.worldMembership.findUnique.mockResolvedValue(null)
     transaction.worldMembership.findFirst.mockResolvedValue(null)
+    transaction.worldMembership.count.mockResolvedValue(0)
     transaction.worldMembership.deleteMany.mockResolvedValue({ count: 0 })
     transaction.campaign.findFirst.mockResolvedValue(null)
     transaction.campaign.count.mockResolvedValue(0)
@@ -99,26 +101,48 @@ describe('World orphan lifecycle service', () => {
     expect(transaction.world.updateMany).not.toHaveBeenCalled()
   })
 
-  it.each(['ADMIN', 'MEMBER'] as const)(
-    'allows an orphan claim by a %s World member and removes that membership',
-    async (role) => {
-      transaction.worldMembership.findUnique.mockResolvedValue({ role })
+  it('allows an ADMIN to claim while an ADMIN successor exists', async () => {
+    transaction.worldMembership.findUnique.mockResolvedValue({ role: 'ADMIN' })
+    transaction.worldMembership.count.mockResolvedValue(1)
 
-      await expect(
-        claimOrphanedWorld({ worldId: WORLD_ID, claimantId: CLAIMANT_ID }),
-      ).resolves.toMatchObject({ ownerId: CLAIMANT_ID })
+    await expect(
+      claimOrphanedWorld({ worldId: WORLD_ID, claimantId: CLAIMANT_ID }),
+    ).resolves.toMatchObject({ ownerId: CLAIMANT_ID })
 
-      expect(transaction.world.updateMany).toHaveBeenCalledWith({
-        where: { id: WORLD_ID, ownerId: null },
-        data: { ownerId: CLAIMANT_ID },
-      })
-      expect(transaction.worldMembership.deleteMany).toHaveBeenCalledWith({
-        where: { worldId: WORLD_ID, userId: CLAIMANT_ID },
-      })
-    },
-  )
+    expect(transaction.worldMembership.deleteMany).toHaveBeenCalledWith({
+      where: { worldId: WORLD_ID, userId: CLAIMANT_ID },
+    })
+  })
 
-  it('allows an active Campaign owner to claim without a World membership', async () => {
+  it('rejects a MEMBER while any ADMIN successor remains', async () => {
+    transaction.worldMembership.findUnique.mockResolvedValue({ role: 'MEMBER' })
+    transaction.worldMembership.count.mockResolvedValue(1)
+
+    await expect(
+      claimOrphanedWorld({ worldId: WORLD_ID, claimantId: CLAIMANT_ID }),
+    ).rejects.toMatchObject({ code: 'WORLD_OWNERSHIP_CLAIM_FORBIDDEN' })
+    expect(transaction.world.updateMany).not.toHaveBeenCalled()
+  })
+
+  it('rejects an active Campaign owner while any ADMIN successor remains', async () => {
+    transaction.worldMembership.count.mockResolvedValue(1)
+    transaction.campaign.findFirst.mockResolvedValue({ id: 'active-campaign' })
+
+    await expect(
+      claimOrphanedWorld({ worldId: WORLD_ID, claimantId: CLAIMANT_ID }),
+    ).rejects.toMatchObject({ code: 'WORLD_OWNERSHIP_CLAIM_FORBIDDEN' })
+    expect(transaction.world.updateMany).not.toHaveBeenCalled()
+  })
+
+  it('allows a MEMBER to claim when no ADMIN remains', async () => {
+    transaction.worldMembership.findUnique.mockResolvedValue({ role: 'MEMBER' })
+
+    await expect(
+      claimOrphanedWorld({ worldId: WORLD_ID, claimantId: CLAIMANT_ID }),
+    ).resolves.toMatchObject({ ownerId: CLAIMANT_ID })
+  })
+
+  it('allows an active Campaign owner to claim when no ADMIN remains, even while a MEMBER exists', async () => {
     transaction.campaign.findFirst.mockResolvedValue({ id: 'active-campaign' })
 
     await expect(
@@ -126,7 +150,7 @@ describe('World orphan lifecycle service', () => {
     ).resolves.toMatchObject({ ownerId: CLAIMANT_ID })
   })
 
-  it('rejects a VIEWER unless they also own an active Campaign', async () => {
+  it('rejects a VIEWER unless they independently own an active Campaign and no ADMIN remains', async () => {
     transaction.worldMembership.findUnique.mockResolvedValue({ role: 'VIEWER' })
 
     await expect(
@@ -161,6 +185,7 @@ describe('World orphan lifecycle service', () => {
 
   it('uses the guarded ownership update to reject a competing claim atomically', async () => {
     transaction.worldMembership.findUnique.mockResolvedValue({ role: 'ADMIN' })
+    transaction.worldMembership.count.mockResolvedValue(1)
     transaction.world.updateMany.mockResolvedValue({ count: 0 })
 
     await expect(

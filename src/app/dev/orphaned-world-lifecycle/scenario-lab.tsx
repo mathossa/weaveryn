@@ -81,8 +81,9 @@ export function OrphanedWorldLifecycleLab() {
             <span>2 · Successor action</span>
             <h2>Claim the orphan</h2>
             <p>
-              ADMIN and MEMBER qualify. VIEWER and Campaign member do not; the
-              active Campaign owner does.
+              While any World ADMIN exists, only an ADMIN may claim. With no
+              ADMIN, a MEMBER or active Campaign owner may claim. VIEWER and
+              ordinary Campaign membership never qualify by themselves.
             </p>
             <label htmlFor="claimant">Fixed fixture claimant</label>
             <select

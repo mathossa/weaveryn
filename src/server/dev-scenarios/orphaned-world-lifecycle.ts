@@ -133,8 +133,13 @@ async function readState(): Promise<OrphanedWorldLifecycleScenarioState | null> 
 
 async function resetFixture({
   includeCampaign = true,
-  includeSuccessor = true,
-}: { includeCampaign?: boolean; includeSuccessor?: boolean } = {}) {
+  includeAdmin = true,
+  includeMember = true,
+}: {
+  includeCampaign?: boolean
+  includeAdmin?: boolean
+  includeMember?: boolean
+} = {}) {
   await prisma.$transaction(async (transaction) => {
     await assertFixtureOwned()
     await transaction.campaign.deleteMany({
@@ -153,11 +158,11 @@ async function resetFixture({
         timelines: { create: { id: TIMELINE_ID, name: 'Main' } },
         memberships: {
           create: [
-            ...(includeSuccessor
-              ? [
-                  { userId: PEOPLE.ADMIN, role: 'ADMIN' as const },
-                  { userId: PEOPLE.MEMBER, role: 'MEMBER' as const },
-                ]
+            ...(includeAdmin
+              ? [{ userId: PEOPLE.ADMIN, role: 'ADMIN' as const }]
+              : []),
+            ...(includeMember
+              ? [{ userId: PEOPLE.MEMBER, role: 'MEMBER' as const }]
               : []),
             { userId: PEOPLE.VIEWER, role: 'VIEWER' },
           ],
@@ -197,11 +202,15 @@ async function expectCode(operation: () => Promise<unknown>) {
   }
 }
 
+async function orphanFixture(options?: Parameters<typeof resetFixture>[0]) {
+  await resetFixture(options)
+  await relinquishWorldOwnership({ worldId: WORLD_ID, ownerId: PEOPLE.OWNER })
+}
+
 async function runAll() {
   const checks: DevAcceptanceCheck[] = []
 
-  await resetFixture()
-  await relinquishWorldOwnership({ worldId: WORLD_ID, ownerId: PEOPLE.OWNER })
+  await orphanFixture()
   let state = await readState()
   const relinquished =
     state?.world?.ownerId === null &&
@@ -222,30 +231,92 @@ async function runAll() {
     detail: 'Relinquishment changes only the authoritative owner relation.',
   })
 
-  for (const actor of ['ADMIN', 'MEMBER'] as const) {
-    await resetFixture()
-    await relinquishWorldOwnership({ worldId: WORLD_ID, ownerId: PEOPLE.OWNER })
-    await claimOrphanedWorld({ worldId: WORLD_ID, claimantId: PEOPLE[actor] })
-    state = await readState()
-    const passed =
-      state?.world?.ownerId === PEOPLE[actor] &&
-      !state.worldMemberships.some(
-        (membership) => membership.userId === PEOPLE[actor],
-      )
-    checks.push({
-      id: `claim-${actor.toLowerCase()}`,
-      title: `${actor} can claim`,
-      status: passed ? 'passed' : 'failed',
-      actor,
-      target: `World ${WORLD_ID}`,
-      expected: 'Claim succeeds and claimant membership is removed',
-      actual: passed ? 'Claimed; membership removed' : 'Unexpected claim state',
-      detail: 'ADMIN and MEMBER are eligible World successors.',
-    })
-  }
+  await orphanFixture()
+  await claimOrphanedWorld({ worldId: WORLD_ID, claimantId: PEOPLE.ADMIN })
+  state = await readState()
+  const adminClaimed =
+    state?.world?.ownerId === PEOPLE.ADMIN &&
+    !state.worldMemberships.some(
+      (membership) => membership.userId === PEOPLE.ADMIN,
+    )
+  checks.push({
+    id: 'admin-priority-claim',
+    title: 'ADMIN can claim while an ADMIN successor exists',
+    status: adminClaimed ? 'passed' : 'failed',
+    actor: 'ADMIN',
+    target: `World ${WORLD_ID}`,
+    expected: 'Claim succeeds and ADMIN membership is removed',
+    actual: adminClaimed ? 'Claimed; membership removed' : 'Unexpected state',
+    detail: 'ADMIN is the exclusive claim tier while any ADMIN remains.',
+  })
 
-  await resetFixture()
-  await relinquishWorldOwnership({ worldId: WORLD_ID, ownerId: PEOPLE.OWNER })
+  await orphanFixture()
+  const memberBlockedByAdmin = await expectCode(() =>
+    claimOrphanedWorld({ worldId: WORLD_ID, claimantId: PEOPLE.MEMBER }),
+  )
+  const campaignOwnerBlockedByAdmin = await expectCode(() =>
+    claimOrphanedWorld({
+      worldId: WORLD_ID,
+      claimantId: PEOPLE.CAMPAIGN_OWNER,
+    }),
+  )
+  checks.push({
+    id: 'admin-blocks-lower-tier-claims',
+    title: 'ADMIN presence blocks MEMBER and Campaign-owner claims',
+    status:
+      memberBlockedByAdmin === 'WORLD_OWNERSHIP_CLAIM_FORBIDDEN' &&
+      campaignOwnerBlockedByAdmin === 'WORLD_OWNERSHIP_CLAIM_FORBIDDEN'
+        ? 'passed'
+        : 'failed',
+    actor: 'MEMBER / CAMPAIGN_OWNER',
+    target: `World ${WORLD_ID}`,
+    expected: 'Both rejected while an ADMIN remains',
+    actual: `${memberBlockedByAdmin ?? 'no error'} / ${campaignOwnerBlockedByAdmin ?? 'no error'}`,
+    domainErrorCode: memberBlockedByAdmin,
+    detail:
+      'World ADMIN successors have first priority over both MEMBERs and active Campaign owners.',
+  })
+
+  await orphanFixture({ includeAdmin: false })
+  await claimOrphanedWorld({ worldId: WORLD_ID, claimantId: PEOPLE.MEMBER })
+  state = await readState()
+  const memberClaimedWithoutAdmin = state?.world?.ownerId === PEOPLE.MEMBER
+  checks.push({
+    id: 'member-claim-without-admin',
+    title: 'MEMBER can claim when no ADMIN remains',
+    status: memberClaimedWithoutAdmin ? 'passed' : 'failed',
+    actor: 'MEMBER',
+    target: `World ${WORLD_ID}`,
+    expected: 'Claim succeeds with no ADMIN successor',
+    actual: memberClaimedWithoutAdmin ? 'Claimed' : 'Unexpected state',
+    detail: 'MEMBER enters the eligible claim tier only after ADMINs are gone.',
+  })
+
+  await orphanFixture({ includeAdmin: false })
+  await claimOrphanedWorld({
+    worldId: WORLD_ID,
+    claimantId: PEOPLE.CAMPAIGN_OWNER,
+  })
+  state = await readState()
+  const campaignOwnerClaimed =
+    state?.world?.ownerId === PEOPLE.CAMPAIGN_OWNER &&
+    state.campaigns[0]?.worldId === WORLD_ID
+  checks.push({
+    id: 'campaign-owner-claim-without-admin',
+    title: 'Active Campaign owner can claim when no ADMIN remains',
+    status: campaignOwnerClaimed ? 'passed' : 'failed',
+    actor: 'CAMPAIGN_OWNER',
+    target: `World ${WORLD_ID}`,
+    expected:
+      'Claim succeeds even while a MEMBER also exists; Campaign.worldId remains unchanged',
+    actual: campaignOwnerClaimed
+      ? 'Claimed; Campaign remains linked'
+      : 'Unexpected state',
+    detail:
+      'With no ADMIN, MEMBERs and active Campaign owners share the eligible claim tier.',
+  })
+
+  await orphanFixture({ includeAdmin: false })
   const viewerCode = await expectCode(() =>
     claimOrphanedWorld({ worldId: WORLD_ID, claimantId: PEOPLE.VIEWER }),
   )
@@ -257,7 +328,7 @@ async function runAll() {
   )
   checks.push({
     id: 'viewer-and-campaign-member-rejected',
-    title: 'VIEWER and Campaign member cannot claim',
+    title: 'VIEWER and ordinary Campaign member cannot claim',
     status:
       viewerCode === 'WORLD_OWNERSHIP_CLAIM_FORBIDDEN' &&
       campaignMemberCode === 'WORLD_OWNERSHIP_CLAIM_FORBIDDEN'
@@ -265,34 +336,14 @@ async function runAll() {
         : 'failed',
     actor: 'VIEWER / CAMPAIGN_MEMBER',
     target: `World ${WORLD_ID}`,
-    expected: 'Both rejected',
+    expected: 'Both rejected even when no ADMIN remains',
     actual: `${viewerCode ?? 'no error'} / ${campaignMemberCode ?? 'no error'}`,
     domainErrorCode: viewerCode,
-    detail: 'Campaign participation does not grant ownership eligibility.',
-  })
-  await claimOrphanedWorld({
-    worldId: WORLD_ID,
-    claimantId: PEOPLE.CAMPAIGN_OWNER,
-  })
-  state = await readState()
-  const campaignOwnerClaimed =
-    state?.world?.ownerId === PEOPLE.CAMPAIGN_OWNER &&
-    state.campaigns[0]?.worldId === WORLD_ID
-  checks.push({
-    id: 'active-campaign-owner-claim',
-    title: 'Active Campaign owner can claim',
-    status: campaignOwnerClaimed ? 'passed' : 'failed',
-    actor: 'CAMPAIGN_OWNER',
-    target: `World ${WORLD_ID}`,
-    expected: 'Claim succeeds without changing active Campaign.worldId',
-    actual: campaignOwnerClaimed
-      ? 'Claimed; Campaign remains linked'
-      : 'Unexpected state',
-    detail: 'An active Campaign owner is an eligible successor.',
+    detail:
+      'Campaign participation alone never grants World ownership eligibility.',
   })
 
-  await resetFixture()
-  await relinquishWorldOwnership({ worldId: WORLD_ID, ownerId: PEOPLE.OWNER })
+  await orphanFixture()
   const activeCleanupCode = await expectCode(() =>
     cleanupOrphanedWorld(WORLD_ID),
   )
@@ -311,8 +362,7 @@ async function runAll() {
     detail: 'Active Campaigns continue to reference their World.',
   })
 
-  await resetFixture({ includeCampaign: false })
-  await relinquishWorldOwnership({ worldId: WORLD_ID, ownerId: PEOPLE.OWNER })
+  await orphanFixture({ includeCampaign: false })
   const successorCleanupCode = await expectCode(() =>
     cleanupOrphanedWorld(WORLD_ID),
   )
@@ -331,8 +381,11 @@ async function runAll() {
     detail: 'An eligible successor must be allowed to claim first.',
   })
 
-  await resetFixture({ includeCampaign: false, includeSuccessor: false })
-  await relinquishWorldOwnership({ worldId: WORLD_ID, ownerId: PEOPLE.OWNER })
+  await orphanFixture({
+    includeCampaign: false,
+    includeAdmin: false,
+    includeMember: false,
+  })
   await cleanupOrphanedWorld(WORLD_ID)
   const removed = (await readState()) === null
   checks.push({
@@ -361,7 +414,7 @@ export const orphanedWorldLifecycleScenario: DevScenario<
     return {
       ok: true,
       message:
-        'Created the owner, successors, active Campaign, and Campaign member fixture.',
+        'Created the owner, ADMIN, MEMBER, active Campaign owner, and Campaign member fixture.',
     }
   },
   async cleanup() {

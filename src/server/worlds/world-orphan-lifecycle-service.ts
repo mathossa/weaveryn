@@ -67,7 +67,7 @@ export function createWorldOrphanLifecycleService(
         if (!world) throw worldNotFound(worldId, 'World not found')
         if (world.ownerId !== null) throw worldNotOrphaned(worldId)
 
-        const [membership, ownedActiveCampaign] = await Promise.all([
+        const [membership, ownedActiveCampaign, adminCount] = await Promise.all([
           transaction.worldMembership.findUnique({
             where: { worldId_userId: { worldId, userId: claimantId } },
             select: { role: true },
@@ -76,11 +76,19 @@ export function createWorldOrphanLifecycleService(
             where: { worldId, ownerId: claimantId, status: 'ACTIVE' },
             select: { id: true },
           }),
+          transaction.worldMembership.count({
+            where: { worldId, role: 'ADMIN' },
+          }),
         ])
-        const eligibleByWorldMembership =
-          membership?.role === 'ADMIN' || membership?.role === 'MEMBER'
 
-        if (!eligibleByWorldMembership && !ownedActiveCampaign) {
+        const claimantIsAdmin = membership?.role === 'ADMIN'
+        const claimantIsMember = membership?.role === 'MEMBER'
+
+        if (adminCount > 0 && !claimantIsAdmin) {
+          throw worldOwnershipClaimForbidden(worldId, claimantId)
+        }
+
+        if (!claimantIsAdmin && !claimantIsMember && !ownedActiveCampaign) {
           throw worldOwnershipClaimForbidden(worldId, claimantId)
         }
 
