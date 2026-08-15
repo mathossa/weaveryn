@@ -14,6 +14,21 @@ export interface DevScenarioMetadata {
 
 export const devScenarioCatalog = [
   {
+    id: 'character-world-character-foundation',
+    title: 'Character and WorldCharacter foundation',
+    domain: 'Characters',
+    purpose:
+      'Exercise portable Character ownership and World-specific incarnations through the real Character service.',
+    href: '/dev/character-world-character-foundation',
+    issueNumbers: [17],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+    ],
+    availability: 'available',
+    fixtureNamespace: 'dev:character-world-character-foundation:v1',
+  },
+  {
     id: 'campaign-foundation',
     title: 'Campaign foundation',
     domain: 'Campaigns',
