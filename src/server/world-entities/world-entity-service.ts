@@ -1,9 +1,216 @@
 import { randomUUID } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
-import { WORLD_PERMISSIONS, WorldAuthorizationService, type WorldAuthorizationRepository } from '@/server/worlds'
-export type StructuredData = Record<string, unknown>
-export class WorldEntityDomainError extends Error { constructor(public readonly code: 'WORLD_ENTITY_NOT_FOUND' | 'ENTITY_RELATIONSHIP_NOT_FOUND' | 'ENTITY_RELATIONSHIP_CROSS_WORLD', message: string) { super(message) } }
-type Repository = WorldAuthorizationRepository & { runInTransaction<T>(op: (repo: Repository) => Promise<T>): Promise<T>; findEntity(worldId: string, id: string): Promise<{id:string;worldId:string}|null>; findEntityById(id:string):Promise<{id:string;worldId:string}|null>; createEntity(data: {id:string;worldId:string;type:string;name:string;description?:string|null;image?:string|null;data:StructuredData;createdById:string}):Promise<unknown>; updateEntity(worldId:string,id:string,data:Record<string,unknown>):Promise<unknown|null>; deleteEntity(worldId:string,id:string):Promise<boolean>; listEntities(worldId:string):Promise<unknown[]>; createRelationship(data: {id:string;worldId:string;sourceEntityId:string;targetEntityId:string;relationshipType:string;label?:string|null;metadata:StructuredData}):Promise<unknown>; listRelationships(worldId:string):Promise<unknown[]>; deleteRelationship(worldId:string,id:string):Promise<boolean> }
-class PrismaRepo implements Repository { constructor(private root=prisma, private client:any=root) {} runInTransaction<T>(op:(r:Repository)=>Promise<T>):Promise<T>{return this.root.$transaction((tx:any)=>op(new PrismaRepo(this.root,tx)))} findWorldById(id:string){return this.client.world.findUnique({where:{id},select:{id:true,ownerId:true}})} findMembership(worldId:string,userId:string){return this.client.worldMembership.findUnique({where:{worldId_userId:{worldId,userId}})} } findEntity(worldId:string,id:string){return this.client.worldEntity.findFirst({where:{id,worldId}})} findEntityById(id:string){return this.client.worldEntity.findUnique({where:{id}})} createEntity(data:any){return this.client.worldEntity.create({data})} updateEntity(worldId:string,id:string,data:any){return this.client.worldEntity.updateMany({where:{id,worldId},data}).then(async(r:any)=>r.count?this.client.worldEntity.findUnique({where:{id}}):null)} deleteEntity(worldId:string,id:string){return this.client.worldEntity.deleteMany({where:{id,worldId}}).then((r:any)=>r.count===1)} listEntities(worldId:string){return this.client.worldEntity.findMany({where:{worldId},orderBy:[{updatedAt:'desc'},{id:'asc'}]})} createRelationship(data:any){return this.client.entityRelationship.create({data})} listRelationships(worldId:string){return this.client.entityRelationship.findMany({where:{worldId},orderBy:[{createdAt:'asc'},{id:'asc'}]})} deleteRelationship(worldId:string,id:string){return this.client.entityRelationship.deleteMany({where:{id,worldId}}).then((r:any)=>r.count===1)} }
-export class WorldEntityService { constructor(private repo:Repository=new PrismaRepo(),private id=()=>randomUUID()){} private auth(repo:Repository,userId:string,worldId:string,permission:any){return new WorldAuthorizationService(repo).assertPermission(userId,worldId,permission)} createEntity(input:{actorUserId:string;worldId:string;type:string;name:string;description?:string|null;image?:string|null;data?:StructuredData}){return this.repo.runInTransaction(async r=>{await this.auth(r,input.actorUserId,input.worldId,WORLD_PERMISSIONS.EDIT_CONTENT);const {actorUserId,data,...entity}=input;return r.createEntity({...entity,id:this.id(),createdById:actorUserId,data:data??{}})})} async listEntities(worldId:string,userId:string){await this.auth(this.repo,userId,worldId,WORLD_PERMISSIONS.VIEW_WORLD);return this.repo.listEntities(worldId)} updateEntity(worldId:string,userId:string,id:string,data:StructuredData){return this.repo.runInTransaction(async r=>{await this.auth(r,userId,worldId,WORLD_PERMISSIONS.EDIT_CONTENT);const v=await r.updateEntity(worldId,id,data);if(!v)throw new WorldEntityDomainError('WORLD_ENTITY_NOT_FOUND','World Entity was not found.');return v})} deleteEntity(worldId:string,userId:string,id:string){return this.repo.runInTransaction(async r=>{await this.auth(r,userId,worldId,WORLD_PERMISSIONS.EDIT_CONTENT);if(!await r.deleteEntity(worldId,id))throw new WorldEntityDomainError('WORLD_ENTITY_NOT_FOUND','World Entity was not found.')})} createRelationship(input:{actorUserId:string;worldId:string;sourceEntityId:string;targetEntityId:string;relationshipType:string;label?:string|null;metadata?:StructuredData}){return this.repo.runInTransaction(async r=>{await this.auth(r,input.actorUserId,input.worldId,WORLD_PERMISSIONS.EDIT_CONTENT);const [source,target]=await Promise.all([r.findEntity(input.worldId,input.sourceEntityId),r.findEntityById(input.targetEntityId)]);if(!source||!target||target.worldId!==input.worldId)throw new WorldEntityDomainError('ENTITY_RELATIONSHIP_CROSS_WORLD','Both relationship entities must belong to the same World.');const {actorUserId,metadata,...relationship}=input;return r.createRelationship({...relationship,id:this.id(),metadata:metadata??{}})})} async listRelationships(worldId:string,userId:string){await this.auth(this.repo,userId,worldId,WORLD_PERMISSIONS.VIEW_WORLD);return this.repo.listRelationships(worldId)} deleteRelationship(worldId:string,userId:string,id:string){return this.repo.runInTransaction(async r=>{await this.auth(r,userId,worldId,WORLD_PERMISSIONS.EDIT_CONTENT);if(!await r.deleteRelationship(worldId,id))throw new WorldEntityDomainError('ENTITY_RELATIONSHIP_NOT_FOUND','Entity relationship was not found.')})} }
-export const worldEntityService = new WorldEntityService()
+import {
+  WORLD_PERMISSIONS,
+  WorldAuthorizationService,
+} from '../worlds/world-permissions'
+import {
+  entityRelationshipCrossWorld,
+  entityRelationshipNotFound,
+  worldEntityNotFound,
+} from './world-entity-errors'
+import type {
+  CreateEntityRelationshipRecordInput,
+  StructuredData,
+  UpdateWorldEntityRecordInput,
+  WorldEntityRecord,
+  WorldEntityRepository,
+} from './world-entity-repository'
+import { PrismaWorldEntityRepository } from './prisma-world-entity-repository'
+
+export interface CreateWorldEntityInput {
+  actorUserId: string
+  worldId: string
+  type: string
+  name: string
+  description?: string | null
+  image?: string | null
+  data?: StructuredData
+}
+
+export interface CreateEntityRelationshipInput {
+  actorUserId: string
+  worldId: string
+  sourceEntityId: string
+  targetEntityId: string
+  relationshipType: string
+  label?: string | null
+  metadata?: StructuredData
+}
+
+export type WorldEntityIdFactory = () => string
+
+function pickEntityUpdates(
+  input: UpdateWorldEntityRecordInput,
+): UpdateWorldEntityRecordInput {
+  return {
+    ...(input.type !== undefined ? { type: input.type } : {}),
+    ...(input.name !== undefined ? { name: input.name } : {}),
+    ...(input.description !== undefined
+      ? { description: input.description }
+      : {}),
+    ...(input.image !== undefined ? { image: input.image } : {}),
+    ...(input.data !== undefined ? { data: input.data } : {}),
+  }
+}
+
+export class WorldEntityService {
+  constructor(
+    private readonly repository: WorldEntityRepository,
+    private readonly createId: WorldEntityIdFactory = randomUUID,
+  ) {}
+
+  createEntity(input: CreateWorldEntityInput): Promise<WorldEntityRecord> {
+    return this.repository.runInTransaction(async (repository) => {
+      const authorization = new WorldAuthorizationService(repository)
+      await authorization.assertPermission(
+        input.actorUserId,
+        input.worldId,
+        WORLD_PERMISSIONS.EDIT_CONTENT,
+      )
+
+      return repository.createEntity({
+        id: this.createId(),
+        worldId: input.worldId,
+        type: input.type,
+        name: input.name,
+        description: input.description,
+        image: input.image,
+        data: input.data ?? {},
+        createdById: input.actorUserId,
+      })
+    })
+  }
+
+  async loadEntity(
+    worldId: string,
+    userId: string,
+    entityId: string,
+  ): Promise<WorldEntityRecord | null> {
+    const authorization = new WorldAuthorizationService(this.repository)
+    await authorization.assertPermission(
+      userId,
+      worldId,
+      WORLD_PERMISSIONS.VIEW_WORLD,
+    )
+    return this.repository.findEntity(worldId, entityId)
+  }
+
+  async listEntities(worldId: string, userId: string) {
+    const authorization = new WorldAuthorizationService(this.repository)
+    await authorization.assertPermission(
+      userId,
+      worldId,
+      WORLD_PERMISSIONS.VIEW_WORLD,
+    )
+    return this.repository.listEntities(worldId)
+  }
+
+  updateEntity(
+    worldId: string,
+    userId: string,
+    entityId: string,
+    input: UpdateWorldEntityRecordInput,
+  ) {
+    return this.repository.runInTransaction(async (repository) => {
+      const authorization = new WorldAuthorizationService(repository)
+      await authorization.assertPermission(
+        userId,
+        worldId,
+        WORLD_PERMISSIONS.EDIT_CONTENT,
+      )
+
+      const updated = await repository.updateEntity(
+        worldId,
+        entityId,
+        pickEntityUpdates(input),
+      )
+      if (!updated) throw worldEntityNotFound(entityId)
+      return updated
+    })
+  }
+
+  deleteEntity(worldId: string, userId: string, entityId: string) {
+    return this.repository.runInTransaction(async (repository) => {
+      const authorization = new WorldAuthorizationService(repository)
+      await authorization.assertPermission(
+        userId,
+        worldId,
+        WORLD_PERMISSIONS.EDIT_CONTENT,
+      )
+
+      if (!(await repository.deleteEntity(worldId, entityId))) {
+        throw worldEntityNotFound(entityId)
+      }
+    })
+  }
+
+  createRelationship(input: CreateEntityRelationshipInput) {
+    return this.repository.runInTransaction(async (repository) => {
+      const authorization = new WorldAuthorizationService(repository)
+      await authorization.assertPermission(
+        input.actorUserId,
+        input.worldId,
+        WORLD_PERMISSIONS.EDIT_CONTENT,
+      )
+
+      const [source, target] = await Promise.all([
+        repository.findEntityById(input.sourceEntityId),
+        repository.findEntityById(input.targetEntityId),
+      ])
+
+      if (!source) throw worldEntityNotFound(input.sourceEntityId)
+      if (!target) throw worldEntityNotFound(input.targetEntityId)
+      if (
+        source.worldId !== input.worldId ||
+        target.worldId !== input.worldId
+      ) {
+        throw entityRelationshipCrossWorld()
+      }
+
+      const relationship: CreateEntityRelationshipRecordInput = {
+        id: this.createId(),
+        worldId: input.worldId,
+        sourceEntityId: input.sourceEntityId,
+        targetEntityId: input.targetEntityId,
+        relationshipType: input.relationshipType,
+        label: input.label,
+        metadata: input.metadata ?? {},
+      }
+      return repository.createRelationship(relationship)
+    })
+  }
+
+  async listRelationships(worldId: string, userId: string) {
+    const authorization = new WorldAuthorizationService(this.repository)
+    await authorization.assertPermission(
+      userId,
+      worldId,
+      WORLD_PERMISSIONS.VIEW_WORLD,
+    )
+    return this.repository.listRelationships(worldId)
+  }
+
+  deleteRelationship(
+    worldId: string,
+    userId: string,
+    relationshipId: string,
+  ) {
+    return this.repository.runInTransaction(async (repository) => {
+      const authorization = new WorldAuthorizationService(repository)
+      await authorization.assertPermission(
+        userId,
+        worldId,
+        WORLD_PERMISSIONS.EDIT_CONTENT,
+      )
+
+      if (!(await repository.deleteRelationship(worldId, relationshipId))) {
+        throw entityRelationshipNotFound(relationshipId)
+      }
+    })
+  }
+}
+
+export const worldEntityService = new WorldEntityService(
+  new PrismaWorldEntityRepository(prisma),
+)

@@ -14,6 +14,51 @@ export interface DevScenarioMetadata {
 
 export const devScenarioCatalog = [
   {
+    id: 'character-world-character-foundation',
+    title: 'Character and WorldCharacter foundation',
+    domain: 'Characters',
+    purpose:
+      'Exercise portable Character ownership and World-specific incarnations through the real Character service.',
+    href: '/dev/character-world-character-foundation',
+    issueNumbers: [17],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+    ],
+    availability: 'available',
+    fixtureNamespace: 'dev:character-world-character-foundation:v1',
+  },
+  {
+    id: 'world-entities',
+    title: 'World entities and relationships',
+    domain: 'Worlds',
+    purpose:
+      'Exercise generic World entities, structured data, explicit relationships, same-World validation, and backend authorization through the real World entity service.',
+    href: '/dev/world-entities',
+    issueNumbers: [20],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+    ],
+    availability: 'available',
+    fixtureNamespace: 'dev:world-entities:v1',
+  },
+  {
+    id: 'campaign-memberships',
+    title: 'Campaign memberships and roles',
+    domain: 'Campaigns',
+    purpose:
+      'Exercise owner-managed Campaign roles, owner GM protection, duplicate rejection, member access, and authorization through the real membership service.',
+    href: '/dev/campaign-memberships',
+    issueNumbers: [16],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+    ],
+    availability: 'available',
+    fixtureNamespace: 'dev:campaign-memberships:v1',
+  },
+  {
     id: 'campaign-foundation',
     title: 'Campaign foundation',
     domain: 'Campaigns',

@@ -19,15 +19,24 @@ enum CampaignStatus {
   ARCHIVED
 }
 
+enum CampaignRole {
+  GM
+  ASSISTANT_GM
+  PLAYER
+  SPECTATOR
+}
+
 model User {
   id          String  @id @default(uuid()) @db.Uuid
   email       String  @unique
   username    String? @unique
   displayName String?
 
-  ownedWorlds      World[]           @relation("WorldOwner")
-  ownedCampaigns   Campaign[]        @relation("CampaignOwner")
-  worldMemberships WorldMembership[]
+  ownedWorlds          World[]       @relation("WorldOwner")
+  ownedCampaigns       Campaign[]    @relation("CampaignOwner")
+  ownedCharacters      Character[]   @relation("CharacterOwner")
+  worldMemberships     WorldMembership[]
+  campaignMemberships  CampaignMembership[]
   createdWorldEntities WorldEntity[] @relation("WorldEntityCreator")
 
   createdAt DateTime @default(now())
@@ -42,10 +51,11 @@ model World {
   ownerId String? @db.Uuid
   owner   User?   @relation("WorldOwner", fields: [ownerId], references: [id], onDelete: SetNull)
 
-  memberships WorldMembership[]
-  timelines   WorldTimeline[]
-  campaigns   Campaign[]
-  entities    WorldEntity[]
+  memberships         WorldMembership[]
+  timelines           WorldTimeline[]
+  campaigns           Campaign[]
+  characters          WorldCharacter[]
+  entities            WorldEntity[]
   entityRelationships EntityRelationship[]
 
   createdAt DateTime @default(now())
@@ -55,40 +65,83 @@ model World {
 }
 
 model WorldEntity {
-  id String @id @default(uuid()) @db.Uuid
-  worldId String @db.Uuid
-  type String
-  name String
+  id          String  @id @default(uuid()) @db.Uuid
+  worldId     String  @db.Uuid
+  type        String
+  name        String
   description String?
-  image String?
-  data Json @default("{}")
-  createdById String @db.Uuid
-  world World @relation(fields: [worldId], references: [id], onDelete: Cascade)
-  createdBy User @relation("WorldEntityCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  image       String?
+  data        Json    @default("{}")
+
+  createdById String? @db.Uuid
+
+  world     World @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  createdBy User? @relation("WorldEntityCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
   sourceRelationships EntityRelationship[] @relation("EntityRelationshipSource")
   targetRelationships EntityRelationship[] @relation("EntityRelationshipTarget")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   @@index([worldId])
   @@index([createdById])
 }
 
 model EntityRelationship {
-  id String @id @default(uuid()) @db.Uuid
-  worldId String @db.Uuid
-  sourceEntityId String @db.Uuid
-  targetEntityId String @db.Uuid
+  id               String @id @default(uuid()) @db.Uuid
+  worldId          String @db.Uuid
+  sourceEntityId   String @db.Uuid
+  targetEntityId   String @db.Uuid
   relationshipType String
-  label String?
-  metadata Json @default("{}")
-  world World @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  label            String?
+  metadata         Json   @default("{}")
+
+  world        World       @relation(fields: [worldId], references: [id], onDelete: Cascade)
   sourceEntity WorldEntity @relation("EntityRelationshipSource", fields: [sourceEntityId], references: [id], onDelete: Cascade)
   targetEntity WorldEntity @relation("EntityRelationshipTarget", fields: [targetEntityId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   @@index([worldId])
   @@index([sourceEntityId])
   @@index([targetEntityId])
+}
+
+model Character {
+  id          String  @id @default(uuid()) @db.Uuid
+  ownerUserId String  @db.Uuid
+  name        String
+  image       String?
+  coreData    Json?
+  status      String  @default("ACTIVE")
+
+  owner           User             @relation("CharacterOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
+  worldCharacters WorldCharacter[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerUserId])
+}
+
+model WorldCharacter {
+  id           String  @id @default(uuid()) @db.Uuid
+  characterId  String  @db.Uuid
+  worldId      String  @db.Uuid
+  nameOverride String?
+  worldData    Json?
+  status       String  @default("ACTIVE")
+
+  character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  world     World     @relation(fields: [worldId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([characterId, worldId])
+  @@index([worldId])
 }
 
 model WorldTimeline {
@@ -141,6 +194,8 @@ model Campaign {
   currentWorldDateLabel String?
   status                CampaignStatus @default(ACTIVE)
 
+  memberships CampaignMembership[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -148,4 +203,21 @@ model Campaign {
   @@index([ownerId])
   @@index([timelineId])
   @@index([worldId, status])
+}
+
+model CampaignMembership {
+  id String @id @default(uuid()) @db.Uuid
+
+  campaignId String       @db.Uuid
+  userId     String       @db.Uuid
+  role       CampaignRole
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([campaignId, userId])
+  @@index([userId])
 }

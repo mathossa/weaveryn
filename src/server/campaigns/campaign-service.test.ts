@@ -8,6 +8,10 @@ import type {
   CreateCampaignRecordInput,
   UpdateCampaignRecordInput,
 } from './campaign-repository'
+import type {
+  CampaignMembershipRecord,
+  CreateCampaignMembershipInput,
+} from './campaign-membership-repository'
 import { CampaignService } from './campaign-service'
 
 const worldId = '00000000-0000-4000-8000-000000000001'
@@ -16,6 +20,7 @@ const ownerId = '00000000-0000-4000-8000-00000000000a'
 const adminId = '00000000-0000-4000-8000-00000000000b'
 const memberId = '00000000-0000-4000-8000-00000000000c'
 const outsiderId = '00000000-0000-4000-8000-00000000000d'
+const campaignMemberId = '00000000-0000-4000-8000-00000000000e'
 const campaignId = '00000000-0000-4000-8000-000000000010'
 const now = new Date('2026-08-15T00:00:00.000Z')
 
@@ -30,6 +35,7 @@ class InMemoryCampaignRepository implements CampaignRepository {
     worldId,
   }
   campaigns: CampaignRecord[] = []
+  campaignMemberships: CampaignMembershipRecord[] = []
 
   runInTransaction<T>(
     operation: (repository: CampaignRepository) => Promise<T>,
@@ -75,17 +81,42 @@ class InMemoryCampaignRepository implements CampaignRepository {
     return campaign
   }
 
+  async createCampaignMembership(input: CreateCampaignMembershipInput) {
+    const membership: CampaignMembershipRecord = {
+      id: `${input.campaignId}:${input.userId}`,
+      ...input,
+      joinedAt: now,
+      updatedAt: now,
+    }
+    this.campaignMemberships.push(membership)
+    return membership
+  }
+
   async findCampaignForUser(requestedCampaignId: string, userId: string) {
     return (
       this.campaigns.find(
         (campaign) =>
-          campaign.id === requestedCampaignId && campaign.ownerId === userId,
+          campaign.id === requestedCampaignId &&
+          (campaign.ownerId === userId ||
+            this.campaignMemberships.some(
+              (membership) =>
+                membership.campaignId === requestedCampaignId &&
+                membership.userId === userId,
+            )),
       ) ?? null
     )
   }
 
   async listCampaignsForUser(userId: string) {
-    return this.campaigns.filter((campaign) => campaign.ownerId === userId)
+    return this.campaigns.filter(
+      (campaign) =>
+        campaign.ownerId === userId ||
+        this.campaignMemberships.some(
+          (membership) =>
+            membership.campaignId === campaign.id &&
+            membership.userId === userId,
+        ),
+    )
   }
 
   async updateOwnedCampaign(
@@ -125,7 +156,7 @@ function createInput(creatorId: string) {
 }
 
 describe('CampaignService', () => {
-  it('creates an active Campaign for a World owner on the main timeline', async () => {
+  it('creates an active Campaign with a GM membership for its owner', async () => {
     const { repository, service } = createHarness()
 
     const campaign = await service.createCampaign(createInput(ownerId))
@@ -140,6 +171,9 @@ describe('CampaignService', () => {
       status: 'ACTIVE',
     })
     expect(repository.campaigns).toHaveLength(1)
+    expect(repository.campaignMemberships).toEqual([
+      expect.objectContaining({ campaignId, userId: ownerId, role: 'GM' }),
+    ])
   })
 
   it('allows a World ADMIN to create and independently own a Campaign', async () => {
@@ -178,7 +212,7 @@ describe('CampaignService', () => {
     expect(repository.campaigns).toHaveLength(0)
   })
 
-  it('loads and lists Campaigns only for their owner before memberships exist', async () => {
+  it('loads and lists Campaigns for their owner', async () => {
     const { service } = createHarness()
     const campaign = await service.createCampaign(createInput(adminId))
 
@@ -188,6 +222,24 @@ describe('CampaignService', () => {
     await expect(service.listCampaigns(adminId)).resolves.toEqual([campaign])
     await expect(service.loadCampaign(campaign.id, ownerId)).resolves.toBeNull()
     await expect(service.listCampaigns(ownerId)).resolves.toEqual([])
+  })
+
+  it('loads and lists Campaigns for a Campaign member without making them an owner', async () => {
+    const { repository, service } = createHarness()
+    const campaign = await service.createCampaign(createInput(adminId))
+    await repository.createCampaignMembership({
+      campaignId: campaign.id,
+      userId: campaignMemberId,
+      role: 'SPECTATOR',
+    })
+
+    await expect(
+      service.loadCampaign(campaign.id, campaignMemberId),
+    ).resolves.toBe(campaign)
+    await expect(service.listCampaigns(campaignMemberId)).resolves.toEqual([
+      campaign,
+    ])
+    expect(campaign.ownerId).toBe(adminId)
   })
 
   it('allows the Campaign owner to update only basic and temporal fields', async () => {
