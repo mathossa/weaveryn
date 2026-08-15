@@ -14,6 +14,21 @@ export interface DevScenarioMetadata {
 
 export const devScenarioCatalog = [
   {
+    id: 'campaign-foundation',
+    title: 'Campaign foundation',
+    domain: 'Campaigns',
+    purpose:
+      'Exercise Campaign creation, loading, updating, World authorization, main-timeline context, and independent ownership through the real Campaign service.',
+    href: '/dev/campaign-foundation',
+    issueNumbers: [15],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+    ],
+    availability: 'available',
+    fixtureNamespace: 'dev:campaign-foundation:v1',
+  },
+  {
     id: 'world-ownership-transfer',
     title: 'World ownership transfer',
     domain: 'Worlds',

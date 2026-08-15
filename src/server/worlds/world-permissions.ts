@@ -41,6 +41,11 @@ export interface WorldAccess {
   role: WorldRole | null
 }
 
+export type WorldAuthorizationRepository = Pick<
+  WorldMembershipRepository,
+  'findWorldById' | 'findMembership'
+>
+
 export function hasWorldPermission(
   access: WorldAccess,
   permission: WorldPermission,
@@ -53,7 +58,7 @@ export function hasWorldPermission(
 }
 
 export class WorldAuthorizationService {
-  constructor(private readonly repository: WorldMembershipRepository) {}
+  constructor(private readonly repository: WorldAuthorizationRepository) {}
 
   async getAccess(userId: string, worldId: string): Promise<WorldAccess> {
     const world = await this.repository.findWorldById(worldId)

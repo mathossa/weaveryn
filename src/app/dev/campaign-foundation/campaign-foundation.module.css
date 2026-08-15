@@ -1,0 +1,212 @@
+.page {
+  min-height: 100vh;
+  padding: 36px 20px 64px;
+  background:
+    radial-gradient(circle at 12% 0%, rgb(123 82 168 / 12%), transparent 30%),
+    radial-gradient(circle at 88% 22%, rgb(183 115 77 / 9%), transparent 24%),
+    var(--background);
+  color: var(--foreground);
+}
+
+.shell {
+  width: min(1080px, 100%);
+  margin: 0 auto;
+}
+
+.header > span,
+.context span,
+.actionCard > span,
+.sectionHeading span,
+.campaignGrid article > div > span {
+  color: color-mix(in srgb, var(--foreground) 58%, transparent);
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  margin: 9px 0 8px;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  letter-spacing: -0.04em;
+}
+
+.header p,
+.context p,
+.actionCard p,
+.empty {
+  color: color-mix(in srgb, var(--foreground) 66%, transparent);
+  line-height: 1.6;
+}
+
+.context,
+.actionCard,
+.campaigns {
+  border: 1px solid color-mix(in srgb, var(--foreground) 13%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--background) 94%, var(--foreground) 3%);
+}
+
+.context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 14px;
+  padding: 22px;
+}
+
+.context h2,
+.actionCard h2,
+.campaigns h2 {
+  margin: 6px 0 8px;
+  font-size: 1.2rem;
+}
+
+.context p {
+  margin: 0;
+}
+
+.context dl {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0;
+}
+
+.context dl div {
+  min-width: 150px;
+  border-radius: 9px;
+  padding: 9px 11px;
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+
+.context dt,
+.campaignGrid dt {
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.context dd,
+.campaignGrid dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.context dd {
+  font-size: 0.78rem;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.actionCard {
+  padding: 22px;
+}
+
+.actionCard code {
+  font-size: 0.78em;
+}
+
+.actionCard label {
+  display: block;
+  margin: 18px 0 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.actionCard select,
+.actionCard button {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent);
+  border-radius: 9px;
+  padding: 0 12px;
+  background: var(--background);
+  color: var(--foreground);
+  font: inherit;
+}
+
+.actionCard button {
+  margin-top: 10px;
+  border: 0;
+  background: var(--foreground);
+  color: var(--background);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.actionCard button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.campaigns {
+  margin-top: 14px;
+  padding: 22px;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.campaignGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.campaignGrid article {
+  border-radius: 12px;
+  padding: 16px;
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+
+.campaignGrid h3 {
+  margin: 5px 0 12px;
+  font-size: 1rem;
+}
+
+.campaignGrid dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.campaignGrid dd {
+  font-size: 0.72rem;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 28px 14px 48px;
+  }
+
+  .context {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .context dl {
+    justify-content: stretch;
+  }
+
+  .context dl div {
+    flex: 1;
+  }
+
+  .workspace,
+  .campaignGrid {
+    grid-template-columns: 1fr;
+  }
+}

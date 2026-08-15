@@ -92,6 +92,7 @@ export async function cleanupWorldFixture(
         email: person.email,
         username: person.username,
         ownedWorlds: { none: {} },
+        ownedCampaigns: { none: {} },
         worldMemberships: { none: {} },
       },
     })

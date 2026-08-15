@@ -59,6 +59,12 @@ describe('scenario cleanup', () => {
       },
     })
     expect(transaction.user.deleteMany).toHaveBeenCalledTimes(2)
+    expect(transaction.user.deleteMany).toHaveBeenNthCalledWith(1, {
+      where: expect.objectContaining({
+        id: fixture.people[0].id,
+        ownedCampaigns: { none: {} },
+      }),
+    })
     expect(report.deleted).toContain(
       `World ${fixture.worldId} and its scenario-owned dependants`,
     )
