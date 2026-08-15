@@ -32,11 +32,12 @@ model User {
   username    String? @unique
   displayName String?
 
-  ownedWorlds         World[]              @relation("WorldOwner")
-  ownedCampaigns      Campaign[]           @relation("CampaignOwner")
-  ownedCharacters     Character[]          @relation("CharacterOwner")
-  worldMemberships    WorldMembership[]
-  campaignMemberships CampaignMembership[]
+  ownedWorlds          World[]       @relation("WorldOwner")
+  ownedCampaigns       Campaign[]    @relation("CampaignOwner")
+  ownedCharacters      Character[]   @relation("CharacterOwner")
+  worldMemberships     WorldMembership[]
+  campaignMemberships  CampaignMembership[]
+  createdWorldEntities WorldEntity[] @relation("WorldEntityCreator")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -50,15 +51,62 @@ model World {
   ownerId String? @db.Uuid
   owner   User?   @relation("WorldOwner", fields: [ownerId], references: [id], onDelete: SetNull)
 
-  memberships WorldMembership[]
-  timelines   WorldTimeline[]
-  campaigns   Campaign[]
-  characters  WorldCharacter[]
+  memberships         WorldMembership[]
+  timelines           WorldTimeline[]
+  campaigns           Campaign[]
+  characters          WorldCharacter[]
+  entities            WorldEntity[]
+  entityRelationships EntityRelationship[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([ownerId])
+}
+
+model WorldEntity {
+  id          String  @id @default(uuid()) @db.Uuid
+  worldId     String  @db.Uuid
+  type        String
+  name        String
+  description String?
+  image       String?
+  data        Json    @default("{}")
+
+  createdById String? @db.Uuid
+
+  world     World @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  createdBy User? @relation("WorldEntityCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  sourceRelationships EntityRelationship[] @relation("EntityRelationshipSource")
+  targetRelationships EntityRelationship[] @relation("EntityRelationshipTarget")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([worldId])
+  @@index([createdById])
+}
+
+model EntityRelationship {
+  id               String @id @default(uuid()) @db.Uuid
+  worldId          String @db.Uuid
+  sourceEntityId   String @db.Uuid
+  targetEntityId   String @db.Uuid
+  relationshipType String
+  label            String?
+  metadata         Json   @default("{}")
+
+  world        World       @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  sourceEntity WorldEntity @relation("EntityRelationshipSource", fields: [sourceEntityId], references: [id], onDelete: Cascade)
+  targetEntity WorldEntity @relation("EntityRelationshipTarget", fields: [targetEntityId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([worldId])
+  @@index([sourceEntityId])
+  @@index([targetEntityId])
 }
 
 model Character {

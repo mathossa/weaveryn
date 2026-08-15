@@ -29,6 +29,21 @@ export const devScenarioCatalog = [
     fixtureNamespace: 'dev:character-world-character-foundation:v1',
   },
   {
+    id: 'world-entities',
+    title: 'World entities and relationships',
+    domain: 'Worlds',
+    purpose:
+      'Exercise generic World entities, structured data, explicit relationships, same-World validation, and backend authorization through the real World entity service.',
+    href: '/dev/world-entities',
+    issueNumbers: [20],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+    ],
+    availability: 'available',
+    fixtureNamespace: 'dev:world-entities:v1',
+  },
+  {
     id: 'campaign-memberships',
     title: 'Campaign memberships and roles',
     domain: 'Campaigns',
