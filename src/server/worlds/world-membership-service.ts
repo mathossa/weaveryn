@@ -1,5 +1,4 @@
 import {
-  invalidWorldRole,
   userNotFound,
   worldMembershipAlreadyExists,
   worldMembershipNotFound,
@@ -7,16 +6,15 @@ import {
   worldOwnerCannotLeaveMembership,
 } from './world-errors'
 import {
-  WORLD_ROLES,
   WorldMembershipRepositoryConflictError,
   type WorldMembershipRecord,
   type WorldMembershipRepository,
-  type WorldRole,
 } from './world-membership-repository'
 import {
   WORLD_PERMISSIONS,
   WorldAuthorizationService,
 } from './world-permissions'
+import { assertWorldRole, type WorldRole } from './world-role'
 
 export interface AddWorldMemberInput {
   actorUserId: string
@@ -38,12 +36,6 @@ export interface LeaveWorldInput {
   worldId: string
 }
 
-function assertWorldRole(role: WorldRole) {
-  if (!WORLD_ROLES.includes(role)) {
-    throw invalidWorldRole(role)
-  }
-}
-
 export class WorldMembershipService {
   private readonly authorization: WorldAuthorizationService
 
@@ -55,9 +47,7 @@ export class WorldMembershipService {
       authorization ?? new WorldAuthorizationService(repository)
   }
 
-  async addMember(
-    input: AddWorldMemberInput,
-  ): Promise<WorldMembershipRecord> {
+  async addMember(input: AddWorldMemberInput): Promise<WorldMembershipRecord> {
     assertWorldRole(input.role)
 
     const actorAccess = await this.authorization.assertPermission(
@@ -74,9 +64,7 @@ export class WorldMembershipService {
       throw userNotFound(input.userId)
     }
 
-    if (
-      await this.repository.findMembership(input.worldId, input.userId)
-    ) {
+    if (await this.repository.findMembership(input.worldId, input.userId)) {
       throw worldMembershipAlreadyExists(input.worldId, input.userId)
     }
 

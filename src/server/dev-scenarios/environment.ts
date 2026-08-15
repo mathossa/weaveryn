@@ -17,7 +17,7 @@ export interface DevEnvironmentStatus {
 export class DevEnvironmentError extends Error {
   constructor(
     readonly code: DevEnvironmentFailureCode,
-    message: string
+    message: string,
   ) {
     super(message)
     this.name = 'DevEnvironmentError'
@@ -39,7 +39,7 @@ export function isClearlyDevelopmentDatabaseName(name: string) {
 }
 
 export function getDevEnvironmentStatus(
-  environment: NodeJS.ProcessEnv = process.env
+  environment: NodeJS.ProcessEnv = process.env,
 ): DevEnvironmentStatus {
   const expectedDatabaseName =
     environment.DEV_DATABASE_NAME ?? DEFAULT_DEV_DATABASE_NAME
@@ -71,7 +71,8 @@ export function getDevEnvironmentStatus(
       expectedDatabaseName,
       actualDatabaseName: null,
       code: 'DATABASE_URL_MISSING',
-      message: 'DATABASE_URL is required before a development scenario can run.',
+      message:
+        'DATABASE_URL is required before a development scenario can run.',
     }
   }
 
@@ -96,14 +97,14 @@ export function getDevEnvironmentStatus(
 }
 
 export function assertSafeDevEnvironment(
-  environment: NodeJS.ProcessEnv = process.env
+  environment: NodeJS.ProcessEnv = process.env,
 ) {
   const status = getDevEnvironmentStatus(environment)
 
   if (!status.safe) {
     throw new DevEnvironmentError(
       status.code ?? 'UNSAFE_DEV_DATABASE',
-      status.message
+      status.message,
     )
   }
 

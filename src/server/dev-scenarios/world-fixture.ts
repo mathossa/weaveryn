@@ -1,5 +1,5 @@
 import type { Prisma } from '@/generated/prisma/client'
-import type { DevCleanupSummary } from './contracts'
+import type { DevCleanupSummary } from '@/dev/scenario-contracts'
 import {
   assertFixtureUsersOwned,
   assertFixtureWorldOwned,
@@ -11,7 +11,6 @@ export interface WorldFixturePerson extends FixtureUserIdentity {
 }
 
 export interface WorldFixtureDefinition {
-  scenarioId: string
   worldId: string
   worldMarker: string
   people: readonly WorldFixturePerson[]
@@ -19,7 +18,7 @@ export interface WorldFixtureDefinition {
 
 export async function assertWorldFixtureOwned(
   transaction: Prisma.TransactionClient,
-  fixture: WorldFixtureDefinition
+  fixture: WorldFixtureDefinition,
 ) {
   const [world, users] = await Promise.all([
     transaction.world.findUnique({
@@ -47,7 +46,7 @@ export async function assertWorldFixtureOwned(
 
 export async function upsertFixturePeople(
   transaction: Prisma.TransactionClient,
-  people: readonly WorldFixturePerson[]
+  people: readonly WorldFixturePerson[],
 ) {
   for (const person of people) {
     await transaction.user.upsert({
@@ -69,7 +68,7 @@ export async function upsertFixturePeople(
 
 export async function cleanupWorldFixture(
   transaction: Prisma.TransactionClient,
-  fixture: WorldFixtureDefinition
+  fixture: WorldFixtureDefinition,
 ): Promise<DevCleanupSummary> {
   await assertWorldFixtureOwned(transaction, fixture)
 
@@ -109,7 +108,7 @@ export async function cleanupWorldFixture(
 
     if (stillExists) {
       retained.push(
-        `User ${person.id} is referenced outside this scenario and was retained`
+        `User ${person.id} is referenced outside this scenario and was retained`,
       )
     }
   }

@@ -7,6 +7,11 @@ export type WorldDomainErrorCode =
   | 'WORLD_OWNER_CANNOT_LEAVE_MEMBERSHIP'
   | 'WORLD_PERMISSION_DENIED'
   | 'INVALID_WORLD_ROLE'
+  | 'WORLD_UPDATE_FORBIDDEN'
+  | 'INVALID_FORMER_OWNER_ROLE'
+  | 'NEW_OWNER_NOT_FOUND'
+  | 'NOT_WORLD_OWNER'
+  | 'SAME_OWNER'
 
 export class WorldDomainError extends Error {
   constructor(
@@ -18,18 +23,15 @@ export class WorldDomainError extends Error {
   }
 }
 
-export function worldNotFound(worldId: string) {
-  return new WorldDomainError(
-    'WORLD_NOT_FOUND',
-    `World ${worldId} was not found.`,
-  )
+export function worldNotFound(
+  worldId: string,
+  message = `World ${worldId} was not found.`,
+) {
+  return new WorldDomainError('WORLD_NOT_FOUND', message)
 }
 
 export function userNotFound(userId: string) {
-  return new WorldDomainError(
-    'USER_NOT_FOUND',
-    `User ${userId} was not found.`,
-  )
+  return new WorldDomainError('USER_NOT_FOUND', `User ${userId} was not found.`)
 }
 
 export function worldMembershipNotFound(worldId: string, userId: string) {
@@ -53,7 +55,10 @@ export function worldOwnerCannotBeMember(worldId: string, userId: string) {
   )
 }
 
-export function worldOwnerCannotLeaveMembership(worldId: string, userId: string) {
+export function worldOwnerCannotLeaveMembership(
+  worldId: string,
+  userId: string,
+) {
   return new WorldDomainError(
     'WORLD_OWNER_CANNOT_LEAVE_MEMBERSHIP',
     `World owner ${userId} must transfer or relinquish ownership of World ${worldId} instead of leaving a membership.`,
@@ -71,5 +76,37 @@ export function invalidWorldRole(role: unknown) {
   return new WorldDomainError(
     'INVALID_WORLD_ROLE',
     `${String(role)} is not a valid World role.`,
+  )
+}
+
+export function worldUpdateForbidden() {
+  return new WorldDomainError(
+    'WORLD_UPDATE_FORBIDDEN',
+    'World does not exist or the user is not authorized to update it.',
+  )
+}
+
+export function invalidFormerOwnerRole() {
+  return new WorldDomainError(
+    'INVALID_FORMER_OWNER_ROLE',
+    'Former owner membership role must be ADMIN, MEMBER, VIEWER, or null',
+  )
+}
+
+export function newWorldOwnerNotFound() {
+  return new WorldDomainError(
+    'NEW_OWNER_NOT_FOUND',
+    'New World owner not found',
+  )
+}
+
+export function notWorldOwner(message: string) {
+  return new WorldDomainError('NOT_WORLD_OWNER', message)
+}
+
+export function sameWorldOwner() {
+  return new WorldDomainError(
+    'SAME_OWNER',
+    'World ownership cannot be transferred to the current owner',
   )
 }

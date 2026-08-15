@@ -1,21 +1,22 @@
 'use client'
 
 import { useState } from 'react'
-import { getDevScenarioMetadata } from '@/dev/scenario-catalog'
+import { requireDevScenarioMetadata } from '@/dev/scenario-catalog'
+import type {
+  FormerOwnerState,
+  LabUserKey,
+  LabWorldState,
+  WorldOwnershipTransferAction,
+} from '@/dev/scenarios/world-ownership-transfer'
 import {
   ScenarioLifecycleControls,
   ScenarioNavigation,
   ScenarioResultPanels,
 } from '../_components/scenario-ui'
 import { useDevScenario } from '../_components/use-dev-scenario'
-import type {
-  FormerOwnerState,
-  LabUserKey,
-  LabWorldState,
-} from './types'
 import styles from './ownership-transfer-lab.module.css'
 
-const metadata = getDevScenarioMetadata('world-ownership-transfer')!
+const metadata = requireDevScenarioMetadata('world-ownership-transfer')
 
 const people: Array<{
   key: LabUserKey
@@ -52,13 +53,16 @@ export function OwnershipTransferLab() {
   const [actor, setActor] = useState<'A' | 'C'>('A')
   const [formerOwnerState, setFormerOwnerState] =
     useState<FormerOwnerState>('MEMBER')
-  const { result, isBusy, perform } = useDevScenario<LabWorldState>(metadata.id)
+  const { result, isBusy, perform } = useDevScenario<
+    LabWorldState,
+    WorldOwnershipTransferAction
+  >(metadata.id)
   const world = result?.state ?? null
 
   return (
     <main className={styles.page}>
       <div className={styles.shell}>
-        <ScenarioNavigation issueNumbers={[...metadata.issueNumbers]} />
+        <ScenarioNavigation issueNumbers={metadata.issueNumbers} />
 
         <header className={styles.header}>
           <div>
@@ -166,9 +170,7 @@ export function OwnershipTransferLab() {
                 id="actor"
                 value={actor}
                 disabled={isBusy}
-                onChange={(event) =>
-                  setActor(event.target.value as 'A' | 'C')
-                }
+                onChange={(event) => setActor(event.target.value as 'A' | 'C')}
               >
                 <option value="A">A · Current owner</option>
                 <option value="C">C · Non-owner (should fail)</option>

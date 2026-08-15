@@ -1,22 +1,12 @@
-import { WorldRole } from '../generated/prisma/client'
-import { prisma } from '../lib/prisma'
-
-export type WorldOwnershipTransferErrorCode =
-  | 'INVALID_FORMER_OWNER_ROLE'
-  | 'NEW_OWNER_NOT_FOUND'
-  | 'NOT_WORLD_OWNER'
-  | 'SAME_OWNER'
-  | 'WORLD_NOT_FOUND'
-
-export class WorldOwnershipTransferError extends Error {
-  constructor(
-    readonly code: WorldOwnershipTransferErrorCode,
-    message: string
-  ) {
-    super(message)
-    this.name = 'WorldOwnershipTransferError'
-  }
-}
+import { prisma } from '../../lib/prisma'
+import {
+  invalidFormerOwnerRole,
+  newWorldOwnerNotFound,
+  notWorldOwner,
+  sameWorldOwner,
+  worldNotFound,
+} from './world-errors'
+import { isWorldRole, type WorldRole } from './world-role'
 
 export interface TransferWorldOwnershipInput {
   worldId: string
@@ -27,14 +17,12 @@ export interface TransferWorldOwnershipInput {
 
 export type WorldOwnershipServiceDatabase = Pick<typeof prisma, '$transaction'>
 
-const worldMembershipRoles = new Set<WorldRole>(Object.values(WorldRole))
-
 /**
  * Transfers a World to a new owner. A null formerOwnerMembershipRole means
  * that the former owner leaves the World after the transfer.
  */
 export function createWorldOwnershipService(
-  database: WorldOwnershipServiceDatabase = prisma
+  database: WorldOwnershipServiceDatabase = prisma,
 ) {
   return {
     async transferWorldOwnership({
@@ -45,12 +33,9 @@ export function createWorldOwnershipService(
     }: TransferWorldOwnershipInput) {
       if (
         formerOwnerMembershipRole !== null &&
-        !worldMembershipRoles.has(formerOwnerMembershipRole)
+        !isWorldRole(formerOwnerMembershipRole)
       ) {
-        throw new WorldOwnershipTransferError(
-          'INVALID_FORMER_OWNER_ROLE',
-          'Former owner membership role must be ADMIN, MEMBER, VIEWER, or null'
-        )
+        throw invalidFormerOwnerRole()
       }
 
       return database.$transaction(async (tx) => {
@@ -60,24 +45,17 @@ export function createWorldOwnershipService(
         })
 
         if (!world) {
-          throw new WorldOwnershipTransferError(
-            'WORLD_NOT_FOUND',
-            'World not found'
-          )
+          throw worldNotFound(worldId, 'World not found')
         }
 
         if (world.ownerId !== currentOwnerId) {
-          throw new WorldOwnershipTransferError(
-            'NOT_WORLD_OWNER',
-            'Only the current World owner may transfer ownership'
+          throw notWorldOwner(
+            'Only the current World owner may transfer ownership',
           )
         }
 
         if (newOwnerId === currentOwnerId) {
-          throw new WorldOwnershipTransferError(
-            'SAME_OWNER',
-            'World ownership cannot be transferred to the current owner'
-          )
+          throw sameWorldOwner()
         }
 
         const newOwner = await tx.user.findUnique({
@@ -86,10 +64,7 @@ export function createWorldOwnershipService(
         })
 
         if (!newOwner) {
-          throw new WorldOwnershipTransferError(
-            'NEW_OWNER_NOT_FOUND',
-            'New World owner not found'
-          )
+          throw newWorldOwnerNotFound()
         }
 
         await tx.worldMembership.deleteMany({
@@ -108,9 +83,8 @@ export function createWorldOwnershipService(
         })
 
         if (ownershipUpdate.count !== 1) {
-          throw new WorldOwnershipTransferError(
-            'NOT_WORLD_OWNER',
-            'World ownership changed before the transfer could complete'
+          throw notWorldOwner(
+            'World ownership changed before the transfer could complete',
           )
         }
 

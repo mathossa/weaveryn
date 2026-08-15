@@ -17,7 +17,9 @@ export default function DevelopmentHubPage() {
   }
 
   const environment = getDevEnvironmentStatus()
-  const domains = [...new Set(devScenarioCatalog.map((scenario) => scenario.domain))]
+  const domains = [
+    ...new Set(devScenarioCatalog.map((scenario) => scenario.domain)),
+  ]
 
   return (
     <main className={styles.page}>

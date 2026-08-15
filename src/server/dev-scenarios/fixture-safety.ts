@@ -21,25 +21,28 @@ export class FixtureOwnershipError extends Error {
 
 export function assertFixtureWorldOwned(
   stored: { id: string; description: string | null } | null,
-  expected: { id: string; marker: string }
+  expected: { id: string; marker: string },
 ) {
-  if (stored && (stored.id !== expected.id || stored.description !== expected.marker)) {
+  if (
+    stored &&
+    (stored.id !== expected.id || stored.description !== expected.marker)
+  ) {
     throw new FixtureOwnershipError(
-      `Scenario fixture World ${expected.id} exists without the expected ownership marker.`
+      `Scenario fixture World ${expected.id} exists without the expected ownership marker.`,
     )
   }
 }
 
 export function assertFixtureUsersOwned(
   storedUsers: StoredFixtureUserIdentity[],
-  expectedUsers: FixtureUserIdentity[]
+  expectedUsers: FixtureUserIdentity[],
 ) {
   for (const stored of storedUsers) {
     const expected = expectedUsers.find(
       (candidate) =>
         candidate.id === stored.id ||
         candidate.email === stored.email ||
-        candidate.username === stored.username
+        candidate.username === stored.username,
     )
 
     if (
@@ -49,7 +52,7 @@ export function assertFixtureUsersOwned(
       expected.username !== stored.username
     ) {
       throw new FixtureOwnershipError(
-        `Scenario fixture user identity ${stored.id} conflicts with existing development data.`
+        `Scenario fixture user identity ${stored.id} conflicts with existing development data.`,
       )
     }
   }

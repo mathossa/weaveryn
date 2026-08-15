@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { DevScenario } from './contracts'
+import type { DevScenario } from '@/dev/scenario-contracts'
 
 const scenario = vi.hoisted(() => ({
   metadata: {
@@ -24,7 +24,9 @@ const scenario = vi.hoisted(() => ({
 
 vi.mock('./registry', () => ({
   getDevScenario: (id: string) =>
-    id === scenario.metadata.id ? (scenario as unknown as DevScenario) : undefined,
+    id === scenario.metadata.id
+      ? (scenario as unknown as DevScenario)
+      : undefined,
 }))
 
 import {
@@ -50,7 +52,9 @@ describe('shared development scenario handler', () => {
     expect(parseLifecycleAction({ action: 'reset' })).toBe('reset')
     expect(parseLifecycleAction({ action: 'cleanup' })).toBe('cleanup')
     expect(parseLifecycleAction({ action: 'run-all' })).toBe('run-all')
-    expect(parseLifecycleAction({ action: 'reset', recordId: 'arbitrary' })).toBeNull()
+    expect(
+      parseLifecycleAction({ action: 'reset', recordId: 'arbitrary' }),
+    ).toBeNull()
     expect(parseLifecycleAction({ action: 'truncate' })).toBeNull()
   })
 
@@ -66,22 +70,25 @@ describe('shared development scenario handler', () => {
   it('returns 404 for an unregistered scenario', async () => {
     const response = await handleDevScenarioGet(
       'not-registered',
-      safeEnvironment
+      safeEnvironment,
     )
 
     expect(response.status).toBe(404)
   })
 
   it('rejects unknown actions and arbitrary record IDs server-side', async () => {
-    const request = new Request('http://localhost/api/dev/scenarios/registered-scenario', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'reset', recordId: 'arbitrary' }),
-    })
+    const request = new Request(
+      'http://localhost/api/dev/scenarios/registered-scenario',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset', recordId: 'arbitrary' }),
+      },
+    )
     const response = await handleDevScenarioPost(
       request,
       'registered-scenario',
-      safeEnvironment
+      safeEnvironment,
     )
     const body = await response.json()
 

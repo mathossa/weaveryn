@@ -6,7 +6,6 @@ import {
 } from './world-fixture'
 
 const fixture: WorldFixtureDefinition = {
-  scenarioId: 'cleanup-test',
   worldId: '34000000-0000-4000-8000-000000000001',
   worldMarker: 'dev:cleanup-test:v1',
   people: [
@@ -41,7 +40,7 @@ describe('scenario cleanup', () => {
             id,
             email,
             username,
-          }))
+          })),
         ),
         deleteMany: vi
           .fn()
@@ -60,7 +59,9 @@ describe('scenario cleanup', () => {
       },
     })
     expect(transaction.user.deleteMany).toHaveBeenCalledTimes(2)
-    expect(report.deleted).toContain(`World ${fixture.worldId} and its scenario-owned dependants`)
+    expect(report.deleted).toContain(
+      `World ${fixture.worldId} and its scenario-owned dependants`,
+    )
     expect(report.deleted).toContain(`User ${fixture.people[0].id}`)
     expect(report.retained).toEqual([
       `User ${fixture.people[1].id} is referenced outside this scenario and was retained`,

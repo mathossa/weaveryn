@@ -1,24 +1,22 @@
 import { NextResponse } from 'next/server'
 import type {
+  DevLifecycleAction,
   DevScenario,
   DevScenarioActionResult,
   DevScenarioResponse,
-} from './contracts'
-import {
-  assertSafeDevEnvironment,
-  DevEnvironmentError,
-} from './environment'
+} from '@/dev/scenario-contracts'
+import { assertSafeDevEnvironment, DevEnvironmentError } from './environment'
 import { getDevScenario } from './registry'
 
-type LifecycleAction = 'reset' | 'run-all' | 'cleanup'
-
 export function isProductionEnvironment(
-  environment: NodeJS.ProcessEnv = process.env
+  environment: NodeJS.ProcessEnv = process.env,
 ) {
   return environment.NODE_ENV === 'production'
 }
 
-export function parseLifecycleAction(value: unknown): LifecycleAction | null {
+export function parseLifecycleAction(
+  value: unknown,
+): DevLifecycleAction | null {
   if (!value || typeof value !== 'object') {
     return null
   }
@@ -46,11 +44,11 @@ function unavailableResponse() {
 function response<TState>(
   scenarioId: string,
   body: Omit<DevScenarioResponse<TState>, 'scenarioId'>,
-  status = 200
+  status = 200,
 ) {
   return NextResponse.json<DevScenarioResponse<TState>>(
     { scenarioId, ...body },
-    { status }
+    { status },
   )
 }
 
@@ -64,7 +62,7 @@ async function safelyReadState(scenario: DevScenario) {
 
 function environmentErrorResponse(
   scenarioId: string,
-  error: DevEnvironmentError
+  error: DevEnvironmentError,
 ) {
   return response(
     scenarioId,
@@ -74,7 +72,7 @@ function environmentErrorResponse(
       state: null,
       error: { code: error.code },
     },
-    503
+    503,
   )
 }
 
@@ -82,7 +80,7 @@ function resultResponse(
   scenarioId: string,
   result: DevScenarioActionResult,
   before: unknown,
-  state: unknown
+  state: unknown,
 ) {
   return response(scenarioId, {
     ok: result.ok,
@@ -97,7 +95,7 @@ function resultResponse(
 
 async function executeLifecycleAction(
   scenario: DevScenario,
-  action: LifecycleAction
+  action: DevLifecycleAction,
 ) {
   if (action === 'reset') {
     return scenario.reset()
@@ -112,7 +110,7 @@ async function executeLifecycleAction(
 
 export async function handleDevScenarioGet(
   scenarioId: string,
-  environment: NodeJS.ProcessEnv = process.env
+  environment: NodeJS.ProcessEnv = process.env,
 ) {
   if (isProductionEnvironment(environment)) {
     return unavailableResponse()
@@ -149,7 +147,7 @@ export async function handleDevScenarioGet(
           activity: mapped.activity,
           error: { code: mapped.code },
         },
-        mapped.status
+        mapped.status,
       )
     }
 
@@ -164,7 +162,7 @@ export async function handleDevScenarioGet(
         state: null,
         error: { code: 'SCENARIO_INFRASTRUCTURE_ERROR' },
       },
-      500
+      500,
     )
   }
 }
@@ -172,7 +170,7 @@ export async function handleDevScenarioGet(
 export async function handleDevScenarioPost(
   request: Request,
   scenarioId: string,
-  environment: NodeJS.ProcessEnv = process.env
+  environment: NodeJS.ProcessEnv = process.env,
 ) {
   if (isProductionEnvironment(environment)) {
     return unavailableResponse()
@@ -204,7 +202,7 @@ export async function handleDevScenarioPost(
         state: await safelyReadState(scenario),
         error: { code: 'INVALID_SCENARIO_REQUEST' },
       },
-      400
+      400,
     )
   }
 
@@ -218,7 +216,7 @@ export async function handleDevScenarioPost(
         state: await safelyReadState(scenario),
         error: { code: 'INVALID_SCENARIO_ACTION' },
       },
-      400
+      400,
     )
   }
 
@@ -245,7 +243,7 @@ export async function handleDevScenarioPost(
           activity: mapped.activity,
           error: { code: mapped.code },
         },
-        mapped.status
+        mapped.status,
       )
     }
 
@@ -272,7 +270,7 @@ export async function handleDevScenarioPost(
         },
         error: { code: 'SCENARIO_INFRASTRUCTURE_ERROR' },
       },
-      500
+      500,
     )
   }
 }

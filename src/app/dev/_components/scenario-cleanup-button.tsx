@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { DevScenarioResponse } from '@/server/dev-scenarios/contracts'
+import { performDevScenarioAction } from './dev-scenario-client'
 import styles from '../dev-hub.module.css'
 
 export function ScenarioCleanupButton({
@@ -17,7 +17,7 @@ export function ScenarioCleanupButton({
   async function cleanup() {
     if (
       !window.confirm(
-        `Clean the namespaced fixture data for “${scenarioTitle}”? Unrelated development data will be left untouched.`
+        `Clean the namespaced fixture data for “${scenarioTitle}”? Unrelated development data will be left untouched.`,
       )
     ) {
       return
@@ -27,16 +27,13 @@ export function ScenarioCleanupButton({
     setStatus(null)
 
     try {
-      const response = await fetch(`/api/dev/scenarios/${scenarioId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'cleanup' }),
+      const result = await performDevScenarioAction(scenarioId, {
+        action: 'cleanup',
       })
-      const result = (await response.json()) as DevScenarioResponse
       setStatus(result.message)
     } catch (error) {
       setStatus(
-        error instanceof Error ? error.message : 'Scenario cleanup failed.'
+        error instanceof Error ? error.message : 'Scenario cleanup failed.',
       )
     } finally {
       setIsBusy(false)

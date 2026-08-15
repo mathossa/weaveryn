@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   MAIN_WORLD_TIMELINE_NAME,
-  WorldUpdateForbiddenError,
   createWorldService,
   type UpdateWorldInput,
   type WorldServiceDatabase,
-} from './worldService'
+} from './world-service'
+import { WorldDomainError } from './world-errors'
 
 const ownerId = '00000000-0000-0000-0000-000000000001'
 const memberId = '00000000-0000-0000-0000-000000000002'
@@ -185,7 +185,9 @@ describe('worldService', () => {
 
     await expect(
       service.updateWorld(worldId, memberId, { name: 'Forbidden update' }),
-    ).rejects.toBeInstanceOf(WorldUpdateForbiddenError)
+    ).rejects.toMatchObject({
+      code: 'WORLD_UPDATE_FORBIDDEN',
+    } satisfies Partial<WorldDomainError>)
     expect(transaction.world.findUniqueOrThrow).not.toHaveBeenCalled()
   })
 })

@@ -24,8 +24,8 @@ describe('development fixture isolation', () => {
             username: expectedUsers[0].username,
           },
         ],
-        expectedUsers
-      )
+        expectedUsers,
+      ),
     ).not.toThrow()
   })
 
@@ -39,8 +39,8 @@ describe('development fixture isolation', () => {
             username: 'real-development-user',
           },
         ],
-        expectedUsers
-      )
+        expectedUsers,
+      ),
     ).toThrow(FixtureOwnershipError)
   })
 
@@ -54,8 +54,8 @@ describe('development fixture isolation', () => {
         {
           id: '34000000-0000-4000-8000-000000000001',
           marker: 'dev:scenario:v1',
-        }
-      )
+        },
+      ),
     ).toThrow(FixtureOwnershipError)
   })
 })
