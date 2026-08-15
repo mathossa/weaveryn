@@ -124,7 +124,8 @@ async function assertFixtureOwned() {
 
   if (
     timeline &&
-    (timeline.worldId !== WORLD_ID || timeline.name !== MAIN_WORLD_TIMELINE_NAME)
+    (timeline.worldId !== WORLD_ID ||
+      timeline.name !== MAIN_WORLD_TIMELINE_NAME)
   ) {
     throw new FixtureOwnershipError(
       `Timeline ${TIMELINE_ID} is not owned by this development scenario.`,
