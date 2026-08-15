@@ -1,7 +1,8 @@
 import { prisma } from '../../lib/prisma'
 import { worldUpdateForbidden } from './world-errors'
+import { MAIN_WORLD_TIMELINE_NAME } from './world-timelines'
 
-export const MAIN_WORLD_TIMELINE_NAME = 'Main'
+export { MAIN_WORLD_TIMELINE_NAME } from './world-timelines'
 
 export interface CreateWorldInput {
   creatorId: string
@@ -20,14 +21,17 @@ export type WorldServiceDatabase = Pick<
 >
 
 function accessibleWorldFilter(userId: string) {
-  // Campaign-derived access joins this filter when Campaign persistence is
-  // introduced in issue #15; issue #10 explicitly excludes Campaign models.
   return {
     OR: [
       { ownerId: userId },
       {
         memberships: {
           some: { userId },
+        },
+      },
+      {
+        campaigns: {
+          some: { ownerId: userId },
         },
       },
     ],

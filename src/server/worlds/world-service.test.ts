@@ -91,7 +91,7 @@ describe('worldService', () => {
     expect(result).toBe(world)
   })
 
-  it('loads a World only through ownership or World membership', async () => {
+  it('loads a World through ownership, World membership, or Campaign ownership', async () => {
     const { database } = createDatabaseMock()
     vi.mocked(database.world.findFirst).mockResolvedValue(world)
 
@@ -104,13 +104,14 @@ describe('worldService', () => {
         OR: [
           { ownerId: memberId },
           { memberships: { some: { userId: memberId } } },
+          { campaigns: { some: { ownerId: memberId } } },
         ],
       },
     })
     expect(result).toBe(world)
   })
 
-  it('lists Worlds accessible through ownership or World membership', async () => {
+  it('lists Worlds accessible through ownership, World membership, or Campaign ownership', async () => {
     const { database } = createDatabaseMock()
     vi.mocked(database.world.findMany).mockResolvedValue([world])
 
@@ -122,6 +123,7 @@ describe('worldService', () => {
         OR: [
           { ownerId: memberId },
           { memberships: { some: { userId: memberId } } },
+          { campaigns: { some: { ownerId: memberId } } },
         ],
       },
       orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],

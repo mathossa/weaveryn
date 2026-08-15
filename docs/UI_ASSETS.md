@@ -6,13 +6,13 @@ artwork.
 
 ## Asset groups
 
-| Group | Location | Intended use |
-| --- | --- | --- |
-| Brand | `public/images/brand` | Header, authentication, and navigation branding |
-| Backgrounds | `public/images/backgrounds` | App shell, authentication, entity screens, and banners |
-| World fallback | `public/images/worlds/default.webp` | World cards, headers, and empty image state |
-| Campaign fallback | `public/images/campaigns/default.webp` | Campaign cards, headers, and empty image state |
-| Character fallback | `public/images/characters/default.webp` | Character cards, avatars, and empty image state |
+| Group              | Location                                | Intended use                                           |
+| ------------------ | --------------------------------------- | ------------------------------------------------------ |
+| Brand              | `public/images/brand`                   | Header, authentication, and navigation branding        |
+| Backgrounds        | `public/images/backgrounds`             | App shell, authentication, entity screens, and banners |
+| World fallback     | `public/images/worlds/default.webp`     | World cards, headers, and empty image state            |
+| Campaign fallback  | `public/images/campaigns/default.webp`  | Campaign cards, headers, and empty image state         |
+| Character fallback | `public/images/characters/default.webp` | Character cards, avatars, and empty image state        |
 
 There is exactly one fallback per entity type. `default.webp` is the stable path
 used by the application; the current artwork is the Thalorin world scene, The

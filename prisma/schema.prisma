@@ -13,6 +13,12 @@ enum WorldRole {
   VIEWER
 }
 
+enum CampaignStatus {
+  ACTIVE
+  ENDED
+  ARCHIVED
+}
+
 model User {
   id          String  @id @default(uuid()) @db.Uuid
   email       String  @unique
@@ -20,6 +26,7 @@ model User {
   displayName String?
 
   ownedWorlds      World[]           @relation("WorldOwner")
+  ownedCampaigns   Campaign[]        @relation("CampaignOwner")
   worldMemberships WorldMembership[]
 
   createdAt DateTime @default(now())
@@ -36,6 +43,7 @@ model World {
 
   memberships WorldMembership[]
   timelines   WorldTimeline[]
+  campaigns   Campaign[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -49,6 +57,8 @@ model WorldTimeline {
   name    String
 
   world World @relation(fields: [worldId], references: [id], onDelete: Cascade)
+
+  campaigns Campaign[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -71,4 +81,31 @@ model WorldMembership {
 
   @@unique([worldId, userId])
   @@index([userId])
+}
+
+model Campaign {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+
+  worldId String? @db.Uuid
+  world   World?  @relation(fields: [worldId], references: [id], onDelete: Restrict)
+
+  ownerId String @db.Uuid
+  owner   User   @relation("CampaignOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+
+  timelineId String?        @db.Uuid
+  timeline   WorldTimeline? @relation(fields: [timelineId], references: [id], onDelete: Restrict)
+
+  currentWorldPosition  Decimal?       @db.Decimal(65, 30)
+  currentWorldDateLabel String?
+  status                CampaignStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([worldId])
+  @@index([ownerId])
+  @@index([timelineId])
+  @@index([worldId, status])
 }
