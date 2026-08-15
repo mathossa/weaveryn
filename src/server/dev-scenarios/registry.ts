@@ -4,9 +4,11 @@ import { campaignMembershipsScenario } from './campaign-memberships'
 import { characterWorldCharacterFoundationScenario } from './character-world-character-foundation'
 import { worldEntitiesScenario } from './world-entities'
 import { worldOwnershipTransferScenario } from './world-ownership-transfer'
+import { orphanedWorldLifecycleScenario } from './orphaned-world-lifecycle'
 import { worldUpdateExampleScenario } from './world-update-example'
 
 const scenarios = new Map<string, DevScenario>([
+  [orphanedWorldLifecycleScenario.metadata.id, orphanedWorldLifecycleScenario],
   [
     characterWorldCharacterFoundationScenario.metadata.id,
     characterWorldCharacterFoundationScenario,

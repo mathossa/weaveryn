@@ -14,6 +14,21 @@ export interface DevScenarioMetadata {
 
 export const devScenarioCatalog = [
   {
+    id: 'orphaned-world-lifecycle',
+    title: 'Orphaned World lifecycle',
+    domain: 'Worlds',
+    purpose:
+      'Exercise World relinquishment, eligible orphan claims, Campaign-owner eligibility, and guarded cleanup through the real lifecycle service.',
+    href: '/dev/orphaned-world-lifecycle',
+    issueNumbers: [13],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+    ],
+    availability: 'available',
+    fixtureNamespace: 'dev:orphaned-world-lifecycle:v1',
+  },
+  {
     id: 'character-world-character-foundation',
     title: 'Character and WorldCharacter foundation',
     domain: 'Characters',

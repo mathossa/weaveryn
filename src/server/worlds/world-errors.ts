@@ -12,6 +12,12 @@ export type WorldDomainErrorCode =
   | 'NEW_OWNER_NOT_FOUND'
   | 'NOT_WORLD_OWNER'
   | 'SAME_OWNER'
+  | 'WORLD_NOT_ORPHANED'
+  | 'WORLD_OWNERSHIP_CLAIM_FORBIDDEN'
+  | 'ORPHANED_WORLD_CHANGED'
+  | 'ORPHANED_WORLD_CLEANUP_BLOCKED_BY_ACTIVE_CAMPAIGNS'
+  | 'ORPHANED_WORLD_CLEANUP_BLOCKED_BY_SUCCESSOR'
+  | 'ORPHANED_WORLD_CLEANUP_REQUIRES_CAMPAIGN_RESOLUTION'
 
 export class WorldDomainError extends Error {
   constructor(
@@ -108,5 +114,49 @@ export function sameWorldOwner() {
   return new WorldDomainError(
     'SAME_OWNER',
     'World ownership cannot be transferred to the current owner',
+  )
+}
+
+export function worldNotOrphaned(worldId: string) {
+  return new WorldDomainError(
+    'WORLD_NOT_ORPHANED',
+    `World ${worldId} is not orphaned.`,
+  )
+}
+
+export function worldOwnershipClaimForbidden(worldId: string, userId: string) {
+  return new WorldDomainError(
+    'WORLD_OWNERSHIP_CLAIM_FORBIDDEN',
+    `User ${userId} is not eligible to claim orphaned World ${worldId}.`,
+  )
+}
+
+export function orphanedWorldChanged(worldId: string) {
+  return new WorldDomainError(
+    'ORPHANED_WORLD_CHANGED',
+    `Orphaned World ${worldId} changed before the operation could complete.`,
+  )
+}
+
+export function orphanedWorldCleanupBlockedByActiveCampaigns(worldId: string) {
+  return new WorldDomainError(
+    'ORPHANED_WORLD_CLEANUP_BLOCKED_BY_ACTIVE_CAMPAIGNS',
+    `Orphaned World ${worldId} cannot be removed while it has active Campaigns.`,
+  )
+}
+
+export function orphanedWorldCleanupBlockedBySuccessor(worldId: string) {
+  return new WorldDomainError(
+    'ORPHANED_WORLD_CLEANUP_BLOCKED_BY_SUCCESSOR',
+    `Orphaned World ${worldId} cannot be removed while an eligible successor exists.`,
+  )
+}
+
+export function orphanedWorldCleanupRequiresCampaignResolution(
+  worldId: string,
+) {
+  return new WorldDomainError(
+    'ORPHANED_WORLD_CLEANUP_REQUIRES_CAMPAIGN_RESOLUTION',
+    `Orphaned World ${worldId} still has ended or archived Campaign references that must be detached through the Campaign archival workflow.`,
   )
 }
