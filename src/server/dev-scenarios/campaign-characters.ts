@@ -99,7 +99,9 @@ async function assertOwned() {
       }),
       prisma.campaign.findMany({
         where: {
-          id: { in: [FIRST_CAMPAIGN_ID, SECOND_CAMPAIGN_ID, OTHER_CAMPAIGN_ID] },
+          id: {
+            in: [FIRST_CAMPAIGN_ID, SECOND_CAMPAIGN_ID, OTHER_CAMPAIGN_ID],
+          },
         },
         select: {
           id: true,
