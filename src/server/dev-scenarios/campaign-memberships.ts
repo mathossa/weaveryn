@@ -12,11 +12,14 @@ import {
   CampaignMembershipService,
   PrismaCampaignRepository,
 } from '@/server/campaigns'
+import { MAIN_WORLD_TIMELINE_NAME } from '@/server/worlds'
 import { FixtureOwnershipError } from './fixture-safety'
 import { upsertFixturePeople } from './world-fixture'
 
 const metadata = requireDevScenarioMetadata('campaign-memberships')
 const CAMPAIGN_ID = '16000000-0000-4000-8000-000000000001'
+const WORLD_ID = '16000000-0000-4000-8000-000000000002'
+const TIMELINE_ID = '16000000-0000-4000-8000-000000000003'
 const OWNER_ID = '16000000-0000-4000-8000-00000000000a'
 const GM_ID = '16000000-0000-4000-8000-00000000000b'
 const ASSISTANT_ID = '16000000-0000-4000-8000-00000000000c'
@@ -76,17 +79,55 @@ function service() {
 }
 
 async function assertFixtureOwned() {
-  const campaign = await prisma.campaign.findUnique({
-    where: { id: CAMPAIGN_ID },
-    select: { id: true, ownerId: true, description: true },
-  })
+  const [campaign, world, timeline] = await Promise.all([
+    prisma.campaign.findUnique({
+      where: { id: CAMPAIGN_ID },
+      select: {
+        id: true,
+        ownerId: true,
+        description: true,
+        worldId: true,
+        timelineId: true,
+      },
+    }),
+    prisma.world.findUnique({
+      where: { id: WORLD_ID },
+      select: { id: true, ownerId: true, description: true },
+    }),
+    prisma.worldTimeline.findUnique({
+      where: { id: TIMELINE_ID },
+      select: { id: true, worldId: true, name: true },
+    }),
+  ])
+
   if (
     campaign &&
     (campaign.ownerId !== OWNER_ID ||
-      campaign.description !== metadata.fixtureNamespace)
+      campaign.description !== metadata.fixtureNamespace ||
+      campaign.worldId !== WORLD_ID ||
+      campaign.timelineId !== TIMELINE_ID)
   ) {
     throw new FixtureOwnershipError(
       `Campaign ${CAMPAIGN_ID} is not owned by this development scenario.`,
+    )
+  }
+
+  if (
+    world &&
+    (world.ownerId !== OWNER_ID ||
+      world.description !== metadata.fixtureNamespace)
+  ) {
+    throw new FixtureOwnershipError(
+      `World ${WORLD_ID} is not owned by this development scenario.`,
+    )
+  }
+
+  if (
+    timeline &&
+    (timeline.worldId !== WORLD_ID || timeline.name !== MAIN_WORLD_TIMELINE_NAME)
+  ) {
+    throw new FixtureOwnershipError(
+      `Timeline ${TIMELINE_ID} is not owned by this development scenario.`,
     )
   }
 }
@@ -137,13 +178,38 @@ async function resetFixture() {
         description: metadata.fixtureNamespace,
       },
     })
+    await transaction.world.deleteMany({
+      where: {
+        id: WORLD_ID,
+        ownerId: OWNER_ID,
+        description: metadata.fixtureNamespace,
+      },
+    })
     await upsertFixturePeople(transaction, [...people])
+    await transaction.world.create({
+      data: {
+        id: WORLD_ID,
+        name: 'Lanternfall Membership Laboratory',
+        description: metadata.fixtureNamespace,
+        ownerId: OWNER_ID,
+        timelines: {
+          create: {
+            id: TIMELINE_ID,
+            name: MAIN_WORLD_TIMELINE_NAME,
+          },
+        },
+      },
+    })
     await transaction.campaign.create({
       data: {
         id: CAMPAIGN_ID,
         name: 'The Lanternfall Expedition',
         description: metadata.fixtureNamespace,
         ownerId: OWNER_ID,
+        worldId: WORLD_ID,
+        timelineId: TIMELINE_ID,
+        currentWorldPosition: '0',
+        currentWorldDateLabel: '1 Lanternfall, 1000',
         memberships: {
           create: [
             { userId: OWNER_ID, role: 'GM' },
@@ -290,12 +356,22 @@ export const campaignMembershipsScenario: DevScenario<
           description: metadata.fixtureNamespace,
         },
       })
+      await transaction.world.deleteMany({
+        where: {
+          id: WORLD_ID,
+          ownerId: OWNER_ID,
+          description: metadata.fixtureNamespace,
+        },
+      })
     })
     return {
       ok: true,
       message: 'Removed only the Campaign membership fixture.',
       cleanup: {
-        deleted: ['Campaign membership fixture and its cascading memberships'],
+        deleted: [
+          'Campaign membership fixture and its cascading memberships',
+          'Campaign membership scenario World and main timeline',
+        ],
         retained: ['Six referenced fixture users'],
       },
     }
