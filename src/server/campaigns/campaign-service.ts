@@ -71,7 +71,7 @@ export class CampaignService {
         throw campaignMainTimelineNotFound(input.worldId)
       }
 
-      return repository.createCampaign({
+      const campaign = await repository.createCampaign({
         id: this.createId(),
         name: input.name,
         description: input.description,
@@ -81,6 +81,14 @@ export class CampaignService {
         currentWorldPosition: input.currentWorldPosition,
         currentWorldDateLabel: input.currentWorldDateLabel,
       })
+
+      await repository.createCampaignMembership({
+        campaignId: campaign.id,
+        userId: input.creatorId,
+        role: 'GM',
+      })
+
+      return campaign
     })
   }
 

@@ -1,6 +1,11 @@
-import type { Prisma, PrismaClient } from '../../generated/prisma/client'
+import { Prisma, type PrismaClient } from '../../generated/prisma/client'
 import { MAIN_WORLD_TIMELINE_NAME } from '../worlds/world-timelines'
 import type { WorldMembershipRecord } from '../worlds/world-membership-repository'
+import {
+  CampaignMembershipRepositoryConflictError,
+  type CampaignMembershipRecord,
+  type CreateCampaignMembershipInput,
+} from './campaign-membership-repository'
 import type {
   CampaignRecord,
   CampaignRepository,
@@ -83,12 +88,31 @@ export class PrismaCampaignRepository implements CampaignRepository {
     return toCampaignRecord(campaign)
   }
 
+  async createCampaignMembership(
+    input: CreateCampaignMembershipInput,
+  ): Promise<CampaignMembershipRecord> {
+    try {
+      return await this.client.campaignMembership.create({ data: input })
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new CampaignMembershipRepositoryConflictError()
+      }
+      throw error
+    }
+  }
+
   async findCampaignForUser(
     campaignId: string,
     userId: string,
   ): Promise<CampaignRecord | null> {
     const campaign = await this.client.campaign.findFirst({
-      where: { id: campaignId, ownerId: userId },
+      where: {
+        id: campaignId,
+        OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+      },
     })
 
     return campaign ? toCampaignRecord(campaign) : null
@@ -96,7 +120,9 @@ export class PrismaCampaignRepository implements CampaignRepository {
 
   async listCampaignsForUser(userId: string): Promise<CampaignRecord[]> {
     const campaigns = await this.client.campaign.findMany({
-      where: { ownerId: userId },
+      where: {
+        OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+      },
       orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
     })
 
@@ -126,5 +152,53 @@ export class PrismaCampaignRepository implements CampaignRepository {
     })
 
     return toCampaignRecord(campaign)
+  }
+
+  findCampaignById(campaignId: string) {
+    return this.client.campaign.findUnique({
+      where: { id: campaignId },
+      select: { id: true, ownerId: true },
+    })
+  }
+
+  async userExists(userId: string): Promise<boolean> {
+    const user = await this.client.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    })
+    return user !== null
+  }
+
+  findCampaignMembership(campaignId: string, userId: string) {
+    return this.client.campaignMembership.findUnique({
+      where: { campaignId_userId: { campaignId, userId } },
+    })
+  }
+
+  async updateCampaignMembershipRole(
+    campaignId: string,
+    userId: string,
+    role: CampaignMembershipRecord['role'],
+  ) {
+    try {
+      return await this.client.campaignMembership.update({
+        where: { campaignId_userId: { campaignId, userId } },
+        data: { role },
+      })
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      )
+        return null
+      throw error
+    }
+  }
+
+  async deleteCampaignMembership(campaignId: string, userId: string) {
+    const result = await this.client.campaignMembership.deleteMany({
+      where: { campaignId, userId },
+    })
+    return result.count === 1
   }
 }

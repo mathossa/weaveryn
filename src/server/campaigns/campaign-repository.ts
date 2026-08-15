@@ -1,4 +1,8 @@
 import type { WorldAuthorizationRepository } from '../worlds/world-permissions'
+import type {
+  CampaignMembershipRecord,
+  CreateCampaignMembershipInput,
+} from './campaign-membership-repository'
 
 export const CAMPAIGN_STATUSES = ['ACTIVE', 'ENDED', 'ARCHIVED'] as const
 
@@ -49,6 +53,9 @@ export interface CampaignRepository extends WorldAuthorizationRepository {
     worldId: string,
   ): Promise<CampaignTimelineReference | null>
   createCampaign(input: CreateCampaignRecordInput): Promise<CampaignRecord>
+  createCampaignMembership(
+    input: CreateCampaignMembershipInput,
+  ): Promise<CampaignMembershipRecord>
   findCampaignForUser(
     campaignId: string,
     userId: string,
