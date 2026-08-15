@@ -97,9 +97,8 @@ export function WorldEntitiesLab() {
             <ul>
               {state.relationships.map((relationship) => (
                 <li key={relationship.id}>
-                  {relationship.sourceEntityId} →{' '}
-                  {relationship.targetEntityId} ·{' '}
-                  <strong>{relationship.relationshipType}</strong>
+                  {relationship.sourceEntityId} → {relationship.targetEntityId}{' '}
+                  · <strong>{relationship.relationshipType}</strong>
                   {relationship.label ? ` · ${relationship.label}` : ''}
                 </li>
               ))}

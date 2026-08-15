@@ -191,11 +191,7 @@ export class WorldEntityService {
     return this.repository.listRelationships(worldId)
   }
 
-  deleteRelationship(
-    worldId: string,
-    userId: string,
-    relationshipId: string,
-  ) {
+  deleteRelationship(worldId: string, userId: string, relationshipId: string) {
     return this.repository.runInTransaction(async (repository) => {
       const authorization = new WorldAuthorizationService(repository)
       await authorization.assertPermission(

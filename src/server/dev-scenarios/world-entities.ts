@@ -12,10 +12,7 @@ import {
   WorldEntityDomainError,
   WorldEntityService,
 } from '@/server/world-entities'
-import {
-  MAIN_WORLD_TIMELINE_NAME,
-  WorldDomainError,
-} from '@/server/worlds'
+import { MAIN_WORLD_TIMELINE_NAME, WorldDomainError } from '@/server/worlds'
 import { FixtureOwnershipError } from './fixture-safety'
 import {
   assertWorldFixtureOwned,
@@ -352,8 +349,7 @@ async function runAll() {
   try {
     await tryCrossWorldRelationship()
   } catch (error) {
-    crossWorldCode =
-      error instanceof WorldEntityDomainError ? error.code : null
+    crossWorldCode = error instanceof WorldEntityDomainError ? error.code : null
   }
   checks.push({
     id: 'cross-world',
@@ -408,10 +404,7 @@ export const worldEntitiesScenario: DevScenario<
   },
   async cleanup() {
     const cleanup = await prisma.$transaction(async (transaction) => {
-      const secondary = await cleanupWorldFixture(
-        transaction,
-        secondaryFixture,
-      )
+      const secondary = await cleanupWorldFixture(transaction, secondaryFixture)
       const primary = await cleanupWorldFixture(transaction, primaryFixture)
       return {
         deleted: [...secondary.deleted, ...primary.deleted],
