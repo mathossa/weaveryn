@@ -19,16 +19,24 @@ enum CampaignStatus {
   ARCHIVED
 }
 
+enum CampaignRole {
+  GM
+  ASSISTANT_GM
+  PLAYER
+  SPECTATOR
+}
+
 model User {
   id          String  @id @default(uuid()) @db.Uuid
   email       String  @unique
   username    String? @unique
   displayName String?
 
-  ownedWorlds      World[]           @relation("WorldOwner")
-  ownedCampaigns   Campaign[]        @relation("CampaignOwner")
-  ownedCharacters  Character[]       @relation("CharacterOwner")
-  worldMemberships WorldMembership[]
+  ownedWorlds         World[]              @relation("WorldOwner")
+  ownedCampaigns      Campaign[]           @relation("CampaignOwner")
+  ownedCharacters     Character[]          @relation("CharacterOwner")
+  worldMemberships    WorldMembership[]
+  campaignMemberships CampaignMembership[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -138,6 +146,8 @@ model Campaign {
   currentWorldDateLabel String?
   status                CampaignStatus @default(ACTIVE)
 
+  memberships CampaignMembership[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -145,4 +155,21 @@ model Campaign {
   @@index([ownerId])
   @@index([timelineId])
   @@index([worldId, status])
+}
+
+model CampaignMembership {
+  id String @id @default(uuid()) @db.Uuid
+
+  campaignId String       @db.Uuid
+  userId     String       @db.Uuid
+  role       CampaignRole
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([campaignId, userId])
+  @@index([userId])
 }

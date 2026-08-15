@@ -1,4 +1,7 @@
 export * from './campaign-errors'
+export * from './campaign-membership-repository'
+export * from './campaign-membership-service'
+export * from './campaign-role'
 export * from './campaign-repository'
 export * from './campaign-service'
 export * from './prisma-campaign-repository'

@@ -29,6 +29,21 @@ export const devScenarioCatalog = [
     fixtureNamespace: 'dev:character-world-character-foundation:v1',
   },
   {
+    id: 'campaign-memberships',
+    title: 'Campaign memberships and roles',
+    domain: 'Campaigns',
+    purpose:
+      'Exercise owner-managed Campaign roles, owner GM protection, duplicate rejection, member access, and authorization through the real membership service.',
+    href: '/dev/campaign-memberships',
+    issueNumbers: [16],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+    ],
+    availability: 'available',
+    fixtureNamespace: 'dev:campaign-memberships:v1',
+  },
+  {
     id: 'campaign-foundation',
     title: 'Campaign foundation',
     domain: 'Campaigns',
