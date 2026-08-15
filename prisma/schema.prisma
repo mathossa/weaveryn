@@ -27,6 +27,7 @@ model User {
 
   ownedWorlds      World[]           @relation("WorldOwner")
   ownedCampaigns   Campaign[]        @relation("CampaignOwner")
+  ownedCharacters  Character[]       @relation("CharacterOwner")
   worldMemberships WorldMembership[]
 
   createdAt DateTime @default(now())
@@ -44,11 +45,47 @@ model World {
   memberships WorldMembership[]
   timelines   WorldTimeline[]
   campaigns   Campaign[]
+  characters  WorldCharacter[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([ownerId])
+}
+
+model Character {
+  id          String  @id @default(uuid()) @db.Uuid
+  ownerUserId String  @db.Uuid
+  name        String
+  image       String?
+  coreData    Json?
+  status      String  @default("ACTIVE")
+
+  owner           User             @relation("CharacterOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
+  worldCharacters WorldCharacter[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerUserId])
+}
+
+model WorldCharacter {
+  id           String  @id @default(uuid()) @db.Uuid
+  characterId  String  @db.Uuid
+  worldId      String  @db.Uuid
+  nameOverride String?
+  worldData    Json?
+  status       String  @default("ACTIVE")
+
+  character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  world     World     @relation(fields: [worldId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([characterId, worldId])
+  @@index([worldId])
 }
 
 model WorldTimeline {
