@@ -31,6 +31,9 @@ Report the ambiguity before implementing it.
 - Keep ownership, membership, permissions, and visibility as distinct concepts.
 - Enforce important domain invariants in backend/application services.
 - Do not rely on client-side validation for authorization or domain integrity.
+- Feature issues with user-testable or domain behavior must register or extend a
+  visual scenario under `/dev`, or explicitly state why it is not applicable.
+  Follow `docs/development/VISUAL_TESTING.md` for fixture and cleanup rules.
 
 ## Database and Prisma
 

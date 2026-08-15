@@ -1,3 +1,5 @@
+import type { DevScenarioResponse } from '@/server/dev-scenarios/contracts'
+
 export type LabUserKey = 'A' | 'B' | 'C'
 
 export type FormerOwnerState = 'ADMIN' | 'MEMBER' | 'VIEWER' | 'LEAVE'
@@ -21,20 +23,4 @@ export interface LabWorldState {
   memberships: LabMembership[]
 }
 
-export interface AcceptanceCheck {
-  id: string
-  title: string
-  passed: boolean
-  detail: string
-}
-
-export interface LabResponse {
-  ok: boolean
-  message: string
-  state: LabWorldState | null
-  checks?: AcceptanceCheck[]
-  error?: {
-    code: string
-  }
-}
-
+export type LabResponse = DevScenarioResponse<LabWorldState>

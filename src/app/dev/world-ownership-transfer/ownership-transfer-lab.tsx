@@ -1,22 +1,21 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { getDevScenarioMetadata } from '@/dev/scenario-catalog'
+import {
+  ScenarioLifecycleControls,
+  ScenarioNavigation,
+  ScenarioResultPanels,
+} from '../_components/scenario-ui'
+import { useDevScenario } from '../_components/use-dev-scenario'
 import type {
   FormerOwnerState,
-  LabResponse,
   LabUserKey,
   LabWorldState,
 } from './types'
 import styles from './ownership-transfer-lab.module.css'
 
-type LabAction =
-  | { action: 'reset' }
-  | { action: 'run-all' }
-  | {
-      action: 'transfer'
-      actor: 'A' | 'C'
-      formerOwnerState: FormerOwnerState
-    }
+const metadata = getDevScenarioMetadata('world-ownership-transfer')!
 
 const people: Array<{
   key: LabUserKey
@@ -50,74 +49,17 @@ function relationshipFor(state: LabWorldState | null, userKey: LabUserKey) {
 }
 
 export function OwnershipTransferLab() {
-  const [result, setResult] = useState<LabResponse | null>(null)
   const [actor, setActor] = useState<'A' | 'C'>('A')
   const [formerOwnerState, setFormerOwnerState] =
     useState<FormerOwnerState>('MEMBER')
-  const [isBusy, setIsBusy] = useState(false)
-
-  useEffect(() => {
-    const controller = new AbortController()
-
-    async function loadState() {
-      try {
-        const response = await fetch('/api/dev/world-ownership-transfer', {
-          signal: controller.signal,
-        })
-        const data = (await response.json()) as LabResponse
-        setResult(data)
-      } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          return
-        }
-
-        setResult({
-          ok: false,
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Could not load the development World.',
-          state: null,
-          error: { code: 'NETWORK_ERROR' },
-        })
-      }
-    }
-
-    void loadState()
-    return () => controller.abort()
-  }, [])
-
-  async function perform(action: LabAction) {
-    setIsBusy(true)
-
-    try {
-      const response = await fetch('/api/dev/world-ownership-transfer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(action),
-      })
-      const data = (await response.json()) as LabResponse
-      setResult(data)
-    } catch (error) {
-      setResult((current) => ({
-        ok: false,
-        message:
-          error instanceof Error ? error.message : 'The lab request failed.',
-        state: current?.state ?? null,
-        error: { code: 'NETWORK_ERROR' },
-      }))
-    } finally {
-      setIsBusy(false)
-    }
-  }
-
+  const { result, isBusy, perform } = useDevScenario<LabWorldState>(metadata.id)
   const world = result?.state ?? null
-  const checks = result?.checks ?? []
-  const passedChecks = checks.filter((check) => check.passed).length
 
   return (
     <main className={styles.page}>
       <div className={styles.shell}>
+        <ScenarioNavigation issueNumbers={[...metadata.issueNumbers]} />
+
         <header className={styles.header}>
           <div>
             <div className={styles.eyebrow}>
@@ -131,15 +73,13 @@ export function OwnershipTransferLab() {
               change.
             </p>
           </div>
-          <button
-            className={styles.secondaryButton}
-            type="button"
-            disabled={isBusy}
-            onClick={() => void perform({ action: 'run-all' })}
-          >
-            {isBusy ? 'Working…' : 'Run all acceptance checks'}
-          </button>
         </header>
+
+        <ScenarioLifecycleControls
+          isBusy={isBusy}
+          hasFixture={Boolean(world)}
+          onAction={(action) => void perform({ action })}
+        />
 
         <section className={styles.flow} aria-label="Test flow">
           <div className={styles.flowStep}>
@@ -206,20 +146,10 @@ export function OwnershipTransferLab() {
               </div>
             ) : (
               <div className={styles.emptyState}>
-                Start by creating the deterministic test scenario. B begins as
-                a MEMBER so you can see that membership disappear when B becomes
-                owner.
+                Create the deterministic scenario fixture. B begins as a MEMBER
+                so the transfer visibly removes B&apos;s membership.
               </div>
             )}
-
-            <button
-              className={styles.primaryButton}
-              type="button"
-              disabled={isBusy}
-              onClick={() => void perform({ action: 'reset' })}
-            >
-              {world ? 'Reset: A owns the World' : 'Create World owned by A'}
-            </button>
           </section>
 
           <section className={styles.transferPanel} aria-labelledby="transfer">
@@ -288,76 +218,14 @@ export function OwnershipTransferLab() {
           </section>
         </div>
 
-        <section
-          className={`${styles.notice} ${result?.ok === false ? styles.noticeError : ''}`}
-          aria-live="polite"
-        >
-          <div className={styles.noticeIcon}>
-            {result?.ok === false ? '!' : 'i'}
-          </div>
-          <div>
-            <strong>{result?.error?.code ?? 'Lab status'}</strong>
-            <p>{result?.message ?? 'Loading the development World…'}</p>
-          </div>
-        </section>
-
-        <section className={styles.acceptance} aria-labelledby="acceptance">
-          <div className={styles.acceptanceHeading}>
-            <div>
-              <span className={styles.sectionLabel}>Issue acceptance criteria</span>
-              <h2 id="acceptance">Live acceptance report</h2>
-            </div>
-            {checks.length > 0 && (
-              <span className={styles.score}>
-                {passedChecks}/{checks.length} passed
-              </span>
-            )}
-          </div>
-
-          {checks.length > 0 ? (
-            <div className={styles.checkGrid}>
-              {checks.map((check) => (
-                <article className={styles.checkCard} key={check.id}>
-                  <span
-                    className={
-                      check.passed ? styles.checkPassed : styles.checkFailed
-                    }
-                  >
-                    {check.passed ? '✓' : '×'}
-                  </span>
-                  <div>
-                    <strong>{check.title}</strong>
-                    <p>{check.detail}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className={styles.acceptanceEmpty}>
-              Run all acceptance checks to execute non-owner rejection, every
-              former-owner state, new-owner membership removal, non-orphaning,
-              and a forced rollback against your development database.
-            </div>
-          )}
-
-          <div className={styles.terminalCheck}>
-            <div>
-              <strong>Complete the automated test criterion</strong>
-              <p>
-                The live report exercises the database. Confirm the full unit,
-                lint, and production build suites in a second terminal.
-              </p>
-            </div>
-            <code>npm test &amp;&amp; npm run lint &amp;&amp; npm run build</code>
-          </div>
-        </section>
+        <ScenarioResultPanels result={result} />
 
         <footer className={styles.footer}>
-          Reset only replaces the fixed issue #12 lab World. Other Worlds are
-          untouched; the three lab users are retained for repeatable testing.
+          Reset only replaces the namespaced issue #12 fixture. Cleanup removes
+          its disposable World and users unless external references require a
+          fixture user to be retained and reported.
         </footer>
       </div>
     </main>
   )
 }
-
