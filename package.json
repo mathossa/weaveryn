@@ -14,7 +14,7 @@
     "test": "vitest run",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "typecheck": "next typegen && tsc --noEmit",
+    "typecheck": "node scripts/clean-next-dev-types.mjs && next typegen && tsc --noEmit",
     "prisma:validate": "prisma validate",
     "prisma:generate": "prisma generate",
     "validate": "npm run format:check && npm run lint && npm run prisma:validate && npm run prisma:generate && npm run typecheck && npm test && npm run build"

@@ -66,7 +66,9 @@ npm run validate
 
 The validation script checks formatting, linting, Prisma validity and client
 generation, Next.js route-type generation, TypeScript, unit tests, and a
-production build in the required order. Run `npm run format` to apply formatting.
+production build in the required order. Before generating route types, it removes
+stale development-only route types that Next.js can leave behind when switching
+branches. Run `npm run format` to apply formatting.
 
 Run `npx prisma format` after intentionally changing `prisma/schema.prisma`, then
 verify the resulting schema diff before committing it.
