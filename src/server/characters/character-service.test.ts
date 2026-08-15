@@ -17,6 +17,7 @@ const outsiderId = '17000000-0000-4000-8000-000000000002'
 const memberId = '17000000-0000-4000-8000-000000000003'
 const worldOneId = '17000000-0000-4000-8000-000000000010'
 const worldTwoId = '17000000-0000-4000-8000-000000000011'
+const worldThreeId = '17000000-0000-4000-8000-000000000012'
 const characterId = '17000000-0000-4000-8000-000000000020'
 const worldCharacterOneId = '17000000-0000-4000-8000-000000000021'
 const worldCharacterTwoId = '17000000-0000-4000-8000-000000000022'
@@ -26,12 +27,14 @@ class Repository implements CharacterRepository {
   worlds = new Map([
     [worldOneId, { id: worldOneId, ownerId }],
     [worldTwoId, { id: worldTwoId, ownerId }],
+    [worldThreeId, { id: worldThreeId, ownerId: outsiderId }],
   ])
   memberships = new Map<string, WorldRole>([
     [`${worldOneId}:${memberId}`, 'MEMBER'],
   ])
   characters: CharacterRecord[] = []
   incarnations: WorldCharacterRecord[] = []
+  participations = new Set<string>()
   runInTransaction<T>(
     operation: (repository: CharacterRepository) => Promise<T>,
   ): Promise<T> {
@@ -125,6 +128,31 @@ class Repository implements CharacterRepository {
   ) {
     const wc = await this.findWorldCharacterForOwner(id, userId)
     return wc ? Object.assign(wc, input, { updatedAt: now }) : null
+  }
+  async hasCampaignCharacterParticipation(worldCharacterId: string) {
+    return this.participations.has(worldCharacterId)
+  }
+  async moveWorldCharacterForOwner(
+    id: string,
+    userId: string,
+    targetWorldId: string,
+    input: UpdateWorldCharacterRecordInput,
+  ) {
+    const worldCharacter = await this.findWorldCharacterForOwner(id, userId)
+    if (!worldCharacter) return null
+    if (
+      this.incarnations.some(
+        (candidate) =>
+          candidate.id !== id &&
+          candidate.characterId === worldCharacter.characterId &&
+          candidate.worldId === targetWorldId,
+      )
+    )
+      throw new CharacterRepositoryConflictError()
+    return Object.assign(worldCharacter, input, {
+      worldId: targetWorldId,
+      updatedAt: now,
+    })
   }
 }
 
@@ -253,5 +281,147 @@ describe('CharacterService', () => {
         worldId: worldOneId,
       }),
     ).rejects.toMatchObject({ code: 'WORLD_CHARACTER_ALREADY_EXISTS' })
+  })
+
+  it('copies an incarnation without duplicating portable identity, World data, or Campaign participation', async () => {
+    const { repository, service } = harness()
+    const character = await service.createCharacter({
+      ownerUserId: ownerId,
+      name: 'Bodwick',
+    })
+    const source = await service.createWorldCharacter({
+      actorUserId: ownerId,
+      characterId: character.id,
+      worldId: worldOneId,
+      nameOverride: 'Bodwick of Aldorath',
+      worldData: { culture: 'Aldoran' },
+    })
+    repository.participations.add(source.id)
+
+    const copy = await service.copyWorldCharacter({
+      actorUserId: ownerId,
+      sourceWorldCharacterId: source.id,
+      targetWorldId: worldTwoId,
+      nameOverride: 'Bodwick of Veyra',
+      worldData: { culture: 'Veyran' },
+    })
+
+    expect(copy).toMatchObject({
+      characterId: character.id,
+      worldId: worldTwoId,
+      nameOverride: 'Bodwick of Veyra',
+      worldData: { culture: 'Veyran' },
+    })
+    expect(copy.id).not.toBe(source.id)
+    expect(source).toMatchObject({
+      worldId: worldOneId,
+      nameOverride: 'Bodwick of Aldorath',
+      worldData: { culture: 'Aldoran' },
+    })
+    expect(repository.characters).toHaveLength(1)
+    expect(repository.characters[0]?.ownerUserId).toBe(ownerId)
+    expect(repository.participations.has(copy.id)).toBe(false)
+  })
+
+  it('rejects duplicate and unauthorized copy targets', async () => {
+    const { service } = harness()
+    const character = await service.createCharacter({
+      ownerUserId: ownerId,
+      name: 'Bodwick',
+    })
+    const source = await service.createWorldCharacter({
+      actorUserId: ownerId,
+      characterId: character.id,
+      worldId: worldOneId,
+    })
+    await service.copyWorldCharacter({
+      actorUserId: ownerId,
+      sourceWorldCharacterId: source.id,
+      targetWorldId: worldTwoId,
+    })
+    await expect(
+      service.copyWorldCharacter({
+        actorUserId: ownerId,
+        sourceWorldCharacterId: source.id,
+        targetWorldId: worldTwoId,
+      }),
+    ).rejects.toMatchObject({ code: 'WORLD_CHARACTER_ALREADY_EXISTS' })
+    await expect(
+      service.copyWorldCharacter({
+        actorUserId: ownerId,
+        sourceWorldCharacterId: source.id,
+        targetWorldId: worldThreeId,
+      }),
+    ).rejects.toMatchObject({ code: 'WORLD_PERMISSION_DENIED' })
+  })
+
+  it('migrates the same incarnation only after Campaign participation is resolved', async () => {
+    const { repository, service } = harness()
+    const character = await service.createCharacter({
+      ownerUserId: ownerId,
+      name: 'Bodwick',
+    })
+    const source = await service.createWorldCharacter({
+      actorUserId: ownerId,
+      characterId: character.id,
+      worldId: worldOneId,
+      worldData: { culture: 'Aldoran' },
+    })
+    repository.participations.add(source.id)
+    await expect(
+      service.migrateWorldCharacter({
+        actorUserId: ownerId,
+        worldCharacterId: source.id,
+        targetWorldId: worldTwoId,
+      }),
+    ).rejects.toMatchObject({
+      code: 'WORLD_CHARACTER_HAS_CAMPAIGN_PARTICIPATION',
+    })
+    expect(source.worldId).toBe(worldOneId)
+    expect(repository.characters[0]?.ownerUserId).toBe(ownerId)
+
+    repository.participations.delete(source.id)
+    const migrated = await service.migrateWorldCharacter({
+      actorUserId: ownerId,
+      worldCharacterId: source.id,
+      targetWorldId: worldTwoId,
+      worldData: { culture: 'Veyran' },
+    })
+    expect(migrated).toMatchObject({
+      id: source.id,
+      characterId: character.id,
+      worldId: worldTwoId,
+      worldData: { culture: 'Veyran' },
+    })
+    expect(repository.characters[0]?.ownerUserId).toBe(ownerId)
+  })
+
+  it('enforces both source and target World authorization for migration', async () => {
+    const { repository, service } = harness()
+    const character = await service.createCharacter({
+      ownerUserId: ownerId,
+      name: 'Bodwick',
+    })
+    const source = await service.createWorldCharacter({
+      actorUserId: ownerId,
+      characterId: character.id,
+      worldId: worldOneId,
+    })
+    await expect(
+      service.migrateWorldCharacter({
+        actorUserId: ownerId,
+        worldCharacterId: source.id,
+        targetWorldId: worldThreeId,
+      }),
+    ).rejects.toMatchObject({ code: 'WORLD_PERMISSION_DENIED' })
+    repository.worlds.set(worldOneId, { id: worldOneId, ownerId: outsiderId })
+    await expect(
+      service.migrateWorldCharacter({
+        actorUserId: ownerId,
+        worldCharacterId: source.id,
+        targetWorldId: worldTwoId,
+      }),
+    ).rejects.toMatchObject({ code: 'WORLD_PERMISSION_DENIED' })
+    expect(source.worldId).toBe(worldOneId)
   })
 })

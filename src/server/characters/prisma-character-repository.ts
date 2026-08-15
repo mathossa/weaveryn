@@ -135,4 +135,39 @@ export class PrismaCharacterRepository implements CharacterRepository {
         )
       : null
   }
+  async hasCampaignCharacterParticipation(worldCharacterId: string) {
+    return (
+      (await this.db.campaignCharacter.count({ where: { worldCharacterId } })) >
+      0
+    )
+  }
+  async moveWorldCharacterForOwner(
+    id: string,
+    ownerUserId: string,
+    targetWorldId: string,
+    input: UpdateWorldCharacterRecordInput,
+  ) {
+    try {
+      const result = await this.db.worldCharacter.updateMany({
+        where: { id, character: { ownerUserId } },
+        data: {
+          worldId: targetWorldId,
+          ...input,
+          worldData: input.worldData as Prisma.InputJsonValue | undefined,
+        },
+      })
+      return result.count
+        ? toWorldCharacter(
+            await this.db.worldCharacter.findUniqueOrThrow({ where: { id } }),
+          )
+        : null
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      )
+        throw new CharacterRepositoryConflictError()
+      throw error
+    }
+  }
 }

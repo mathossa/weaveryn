@@ -3,6 +3,7 @@ export type CharacterDomainErrorCode =
   | 'CHARACTER_PERMISSION_DENIED'
   | 'WORLD_CHARACTER_NOT_FOUND'
   | 'WORLD_CHARACTER_ALREADY_EXISTS'
+  | 'WORLD_CHARACTER_HAS_CAMPAIGN_PARTICIPATION'
 
 export class CharacterDomainError extends Error {
   constructor(
@@ -39,4 +40,11 @@ export const worldCharacterAlreadyExists = (
   new CharacterDomainError(
     'WORLD_CHARACTER_ALREADY_EXISTS',
     `Character ${characterId} already has an incarnation in World ${worldId}.`,
+  )
+export const worldCharacterHasCampaignParticipation = (
+  worldCharacterId: string,
+) =>
+  new CharacterDomainError(
+    'WORLD_CHARACTER_HAS_CAMPAIGN_PARTICIPATION',
+    `WorldCharacter ${worldCharacterId} cannot move while it participates in a Campaign.`,
   )
