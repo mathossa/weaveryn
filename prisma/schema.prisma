@@ -134,8 +134,9 @@ model WorldCharacter {
   worldData    Json?
   status       String  @default("ACTIVE")
 
-  character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
-  world     World     @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  character          Character           @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  world              World               @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  campaignCharacters CampaignCharacter[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -194,7 +195,8 @@ model Campaign {
   currentWorldDateLabel String?
   status                CampaignStatus @default(ACTIVE)
 
-  memberships CampaignMembership[]
+  memberships        CampaignMembership[]
+  campaignCharacters CampaignCharacter[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -220,4 +222,22 @@ model CampaignMembership {
 
   @@unique([campaignId, userId])
   @@index([userId])
+}
+
+model CampaignCharacter {
+  id String @id @default(uuid()) @db.Uuid
+
+  worldCharacterId String @db.Uuid
+  campaignId       String @db.Uuid
+  sheetData        Json   @default("{}")
+  status           String @default("ACTIVE")
+
+  worldCharacter WorldCharacter @relation(fields: [worldCharacterId], references: [id], onDelete: Cascade)
+  campaign       Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([worldCharacterId, campaignId])
+  @@index([campaignId])
 }

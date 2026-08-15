@@ -1,4 +1,5 @@
 import type { DevScenario } from '@/dev/scenario-contracts'
+import { campaignCharactersScenario } from './campaign-characters'
 import { campaignFoundationScenario } from './campaign-foundation'
 import { campaignMembershipsScenario } from './campaign-memberships'
 import { characterWorldCharacterFoundationScenario } from './character-world-character-foundation'
@@ -8,6 +9,7 @@ import { orphanedWorldLifecycleScenario } from './orphaned-world-lifecycle'
 import { worldUpdateExampleScenario } from './world-update-example'
 
 const scenarios = new Map<string, DevScenario>([
+  [campaignCharactersScenario.metadata.id, campaignCharactersScenario],
   [orphanedWorldLifecycleScenario.metadata.id, orphanedWorldLifecycleScenario],
   [
     characterWorldCharacterFoundationScenario.metadata.id,

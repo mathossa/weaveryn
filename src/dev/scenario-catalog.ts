@@ -14,6 +14,21 @@ export interface DevScenarioMetadata {
 
 export const devScenarioCatalog = [
   {
+    id: 'campaign-characters',
+    title: 'CampaignCharacter participation and state',
+    domain: 'Campaigns',
+    purpose:
+      'Exercise same-World Character participation, independent Campaign state, authorization, and participation-only removal through the real CampaignCharacter service.',
+    href: '/dev/campaign-characters',
+    issueNumbers: [18],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+    ],
+    availability: 'available',
+    fixtureNamespace: 'dev:campaign-characters:v1',
+  },
+  {
     id: 'orphaned-world-lifecycle',
     title: 'Orphaned World lifecycle',
     domain: 'Worlds',
