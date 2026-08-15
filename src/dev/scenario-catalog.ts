@@ -14,6 +14,21 @@ export interface DevScenarioMetadata {
 
 export const devScenarioCatalog = [
   {
+    id: 'character-copy-migration',
+    title: 'WorldCharacter copy and migration',
+    domain: 'Characters',
+    purpose:
+      'Exercise explicit target data, duplicate protection, Campaign participation blocking, and safe migration through the real Character service.',
+    href: '/dev/character-copy-migration',
+    issueNumbers: [19],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+    ],
+    availability: 'available',
+    fixtureNamespace: 'dev:character-copy-migration:v1',
+  },
+  {
     id: 'campaign-characters',
     title: 'CampaignCharacter participation and state',
     domain: 'Campaigns',

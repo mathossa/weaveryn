@@ -3,12 +3,14 @@ import { campaignCharactersScenario } from './campaign-characters'
 import { campaignFoundationScenario } from './campaign-foundation'
 import { campaignMembershipsScenario } from './campaign-memberships'
 import { characterWorldCharacterFoundationScenario } from './character-world-character-foundation'
+import { characterCopyMigrationScenario } from './character-copy-migration'
 import { worldEntitiesScenario } from './world-entities'
 import { worldOwnershipTransferScenario } from './world-ownership-transfer'
 import { orphanedWorldLifecycleScenario } from './orphaned-world-lifecycle'
 import { worldUpdateExampleScenario } from './world-update-example'
 
 const scenarios = new Map<string, DevScenario>([
+  [characterCopyMigrationScenario.metadata.id, characterCopyMigrationScenario],
   [campaignCharactersScenario.metadata.id, campaignCharactersScenario],
   [orphanedWorldLifecycleScenario.metadata.id, orphanedWorldLifecycleScenario],
   [

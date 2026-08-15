@@ -7,6 +7,7 @@ import {
 import {
   characterNotFound,
   worldCharacterAlreadyExists,
+  worldCharacterHasCampaignParticipation,
   worldCharacterNotFound,
 } from './character-errors'
 import {
@@ -31,6 +32,22 @@ export interface CreateWorldCharacterInput {
   worldId: string
   nameOverride?: string | null
   worldData?: unknown
+}
+export interface CopyWorldCharacterInput {
+  actorUserId: string
+  sourceWorldCharacterId: string
+  targetWorldId: string
+  nameOverride?: string | null
+  worldData?: unknown
+  status?: string
+}
+export interface MigrateWorldCharacterInput {
+  actorUserId: string
+  worldCharacterId: string
+  targetWorldId: string
+  nameOverride?: string | null
+  worldData?: unknown
+  status?: string
 }
 export type CharacterIdFactory = () => string
 const pickCharacterUpdates = (input: UpdateCharacterRecordInput) => ({
@@ -135,6 +152,90 @@ export class CharacterService {
       )
       if (!updated) throw worldCharacterNotFound(worldCharacterId)
       return updated
+    })
+  }
+  async copyWorldCharacter(
+    input: CopyWorldCharacterInput,
+  ): Promise<WorldCharacterRecord> {
+    return this.repository.runInTransaction(async (repository) => {
+      const source = await repository.findWorldCharacterForOwner(
+        input.sourceWorldCharacterId,
+        input.actorUserId,
+      )
+      if (!source) throw worldCharacterNotFound(input.sourceWorldCharacterId)
+      const authorization = new WorldAuthorizationService(repository)
+      await authorization.assertPermission(
+        input.actorUserId,
+        input.targetWorldId,
+        WORLD_PERMISSIONS.EDIT_CONTENT,
+      )
+      try {
+        return await repository.createWorldCharacter({
+          id: this.createId(),
+          characterId: source.characterId,
+          worldId: input.targetWorldId,
+          // Deliberately do not inherit source World data or references.
+          nameOverride: input.nameOverride,
+          worldData: input.worldData,
+          status: input.status,
+        })
+      } catch (error) {
+        if (error instanceof CharacterRepositoryConflictError)
+          throw worldCharacterAlreadyExists(
+            source.characterId,
+            input.targetWorldId,
+          )
+        throw error
+      }
+    })
+  }
+  async migrateWorldCharacter(
+    input: MigrateWorldCharacterInput,
+  ): Promise<WorldCharacterRecord> {
+    return this.repository.runInTransaction(async (repository) => {
+      const source = await repository.findWorldCharacterForOwner(
+        input.worldCharacterId,
+        input.actorUserId,
+      )
+      if (!source) throw worldCharacterNotFound(input.worldCharacterId)
+      const authorization = new WorldAuthorizationService(repository)
+      await authorization.assertPermission(
+        input.actorUserId,
+        source.worldId,
+        WORLD_PERMISSIONS.EDIT_CONTENT,
+      )
+      await authorization.assertPermission(
+        input.actorUserId,
+        input.targetWorldId,
+        WORLD_PERMISSIONS.EDIT_CONTENT,
+      )
+      if (await repository.hasCampaignCharacterParticipation(source.id))
+        throw worldCharacterHasCampaignParticipation(source.id)
+      try {
+        const migrated = await repository.moveWorldCharacterForOwner(
+          source.id,
+          input.actorUserId,
+          input.targetWorldId,
+          {
+            ...(input.nameOverride !== undefined
+              ? { nameOverride: input.nameOverride }
+              : {}),
+            ...(input.worldData !== undefined
+              ? { worldData: input.worldData }
+              : {}),
+            ...(input.status !== undefined ? { status: input.status } : {}),
+          },
+        )
+        if (!migrated) throw worldCharacterNotFound(source.id)
+        return migrated
+      } catch (error) {
+        if (error instanceof CharacterRepositoryConflictError)
+          throw worldCharacterAlreadyExists(
+            source.characterId,
+            input.targetWorldId,
+          )
+        throw error
+      }
     })
   }
 }
