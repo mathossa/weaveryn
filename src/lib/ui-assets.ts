@@ -1,1 +1,44 @@
-ZXhwb3J0IHR5cGUgVWlBcnR3b3JrID0gUmVhZG9ubHk8ewogIHNsdWc6IHN0cmluZzsKICBuYW1lOiBzdHJpbmc7CiAgc3JjOiBzdHJpbmc7CiAgYWx0OiBzdHJpbmc7CiAgd2lkdGg6IG51bWJlcjsKICBoZWlnaHQ6IG51bWJlcjsKfT47CgpleHBvcnQgY29uc3QgdWlBc3NldHMgPSB7CiAgYnJhbmQ6IHsKICAgIGxvZ286IHsKICAgICAgc3JjOiAiL2ltYWdlcy9icmFuZC93ZWF2ZXJ5bi1sb2dvLnBuZyIsCiAgICAgIGFsdDogIldlYXZlcnluIGNlbGVzdGlhbCBnbG9iZSBsb2dvIiwKICAgICAgd2lkdGg6IDEyNjksCiAgICAgIGhlaWdodDogMTI0MCwKICAgIH0sCiAgfSwKICBiYWNrZ3JvdW5kczogewogICAgYXBwU2hlbGw6IHsKICAgICAgc3JjOiAiL2ltYWdlcy9iYWNrZ3JvdW5kcy9hcHAtc2hlbGwud2VicCIsCiAgICAgIGFsdDogIk1vdW50YWluIHJlYWxtIHdpdGggaWxsdW1pbmF0ZWQgZmFudGFzeSBjaXRpZXMgYXQgdHdpbGlnaHQiLAogICAgICB3aWR0aDogMTY3MiwKICAgICAgaGVpZ2h0OiA5NDEsCiAgICB9LAogICAgYXV0aFNoZWxsOiB7CiAgICAgIHNyYzogIi9pbWFnZXMvYmFja2dyb3VuZHMvYXV0aC1zaGVsbC53ZWJwIiwKICAgICAgYWx0OiAiRmFudGFzeSBvYnNlcnZhdG9yeSBvdmVybG9va2luZyBhIG1vdW50YWluIHJlYWxtIGJlbmVhdGggYSBzdGFycnkgc2t5IiwKICAgICAgd2lkdGg6IDE2NzIsCiAgICAgIGhlaWdodDogOTQxLAogICAgfSwKICAgIGVudGl0eUJhbm5lcjogewogICAgICBzcmM6ICIvaW1hZ2VzL2JhY2tncm91bmRzL2VudGl0eS1iYW5uZXIud2VicCIsCiAgICAgIGFsdDogIkNhbmRsZWxpdCBmYW50YXN5IG1hcCByb29tIHdpdGggYW4gb3BlbiBzdG9uZSBtYXAgdGFibGUiLAogICAgICB3aWR0aDogMjE3MiwKICAgICAgaGVpZ2h0OiA3MjQsCiAgICB9LAogIH0sCiAgZmFsbGJhY2tzOiB7CiAgICB3b3JsZDogIi9pbWFnZXMvd29ybGRzL2RlZmF1bHQud2VicCIsCiAgICBjYW1wYWlnbjogIi9pbWFnZXMvY2FtcGFpZ25zL2RlZmF1bHQud2VicCIsCiAgICBjaGFyYWN0ZXI6ICIvaW1hZ2VzL2NoYXJhY3RlcnMvZGVmYXVsdC53ZWJwIiwKICB9LAp9IGFzIGNvbnN0Owo=
+export type UiArtwork = Readonly<{
+  slug: string;
+  name: string;
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+}>;
+
+export const uiAssets = {
+  brand: {
+    logo: {
+      src: "/images/brand/weaveryn-logo.png",
+      alt: "Weaveryn celestial globe logo",
+      width: 1269,
+      height: 1240,
+    },
+  },
+  backgrounds: {
+    appShell: {
+      src: "/images/backgrounds/app-shell.webp",
+      alt: "Mountain realm with illuminated fantasy cities at twilight",
+      width: 1672,
+      height: 941,
+    },
+    authShell: {
+      src: "/images/backgrounds/auth-shell.webp",
+      alt: "Fantasy observatory overlooking a mountain realm beneath a starry sky",
+      width: 1672,
+      height: 941,
+    },
+    entityBanner: {
+      src: "/images/backgrounds/entity-banner.webp",
+      alt: "Candlelit fantasy map room with an open stone map table",
+      width: 2172,
+      height: 724,
+    },
+  },
+  fallbacks: {
+    world: "/images/worlds/default.webp",
+    campaign: "/images/campaigns/default.webp",
+    character: "/images/characters/default.webp",
+  },
+} as const;
