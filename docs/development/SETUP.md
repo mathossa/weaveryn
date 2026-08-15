@@ -16,12 +16,13 @@ npm ci
 
 ```bash
 docker compose up -d postgres
-cp .env.example .env.local
+cp .env.example .env
 ```
 
 Docker Compose initializes `weaveryn_dev`. The application and visual acceptance
 hub use the same dedicated development database by default; they must not point
-at a production or normally named application database.
+at a production or normally named application database. The Prisma configuration
+loads `.env`, so keep the development database values in that file.
 
 `POSTGRES_DB` is used only when PostgreSQL initializes a new Docker volume. If
 your existing `weaveryn-postgres-data` volume predates issue #34, create the new
@@ -33,12 +34,15 @@ docker exec weaveryn-postgres createdb -U weaveryn weaveryn_dev
 
 If PostgreSQL reports that `weaveryn_dev` already exists, no action is required.
 
-Apply migrations and generate the Prisma client:
+Apply the committed migrations and generate the Prisma client:
 
 ```bash
-npx prisma migrate dev
+npx prisma migrate deploy
 npx prisma generate
 ```
+
+Use `npx prisma migrate dev` instead when intentionally authoring a new schema
+migration.
 
 ## Start Weaveryn
 
