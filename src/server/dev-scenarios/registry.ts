@@ -3,11 +3,12 @@ import { authAccountLifecycleScenario } from './auth-account-lifecycle'
 import { campaignCharactersScenario } from './campaign-characters'
 import { campaignFoundationScenario } from './campaign-foundation'
 import { campaignMembershipsScenario } from './campaign-memberships'
-import { characterWorldCharacterFoundationScenario } from './character-world-character-foundation'
 import { characterCopyMigrationScenario } from './character-copy-migration'
+import { characterEntryFlowScenario } from './character-entry-flow'
+import { characterWorldCharacterFoundationScenario } from './character-world-character-foundation'
+import { orphanedWorldLifecycleScenario } from './orphaned-world-lifecycle'
 import { worldEntitiesScenario } from './world-entities'
 import { worldOwnershipTransferScenario } from './world-ownership-transfer'
-import { orphanedWorldLifecycleScenario } from './orphaned-world-lifecycle'
 import { worldUpdateExampleScenario } from './world-update-example'
 
 const scenarios = new Map<string, DevScenario>([
@@ -19,6 +20,7 @@ const scenarios = new Map<string, DevScenario>([
     characterWorldCharacterFoundationScenario.metadata.id,
     characterWorldCharacterFoundationScenario,
   ],
+  [characterEntryFlowScenario.metadata.id, characterEntryFlowScenario],
   [campaignFoundationScenario.metadata.id, campaignFoundationScenario],
   [campaignMembershipsScenario.metadata.id, campaignMembershipsScenario],
   [worldEntitiesScenario.metadata.id, worldEntitiesScenario],
