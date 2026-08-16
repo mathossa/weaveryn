@@ -112,7 +112,9 @@ END $$;
 
 async function resetPassword(email) {
   const configuredPassword = process.env.WEAVERYN_ADMIN_RESET_PASSWORD
-  const generatedPassword = configuredPassword ? null : randomBytes(24).toString('base64url')
+  const generatedPassword = configuredPassword
+    ? null
+    : randomBytes(24).toString('base64url')
   const newPassword = configuredPassword ?? generatedPassword
 
   if (newPassword.length < 8) {
@@ -171,7 +173,9 @@ END $$;
   console.log(`Reset the password for ${email} and revoked existing sessions.`)
   if (generatedPassword) {
     console.log(`Temporary password: ${generatedPassword}`)
-    console.log('Provide it securely and have the user change it after signing in.')
+    console.log(
+      'Provide it securely and have the user change it after signing in.',
+    )
   }
 }
 
@@ -185,7 +189,9 @@ async function main() {
   }
 
   if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL must be set before running admin CLI commands.')
+    throw new Error(
+      'DATABASE_URL must be set before running admin CLI commands.',
+    )
   }
 
   const email = normalizeEmail(identifier)
@@ -207,6 +213,8 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(`Admin command failed: ${error instanceof Error ? error.message : String(error)}`)
+  console.error(
+    `Admin command failed: ${error instanceof Error ? error.message : String(error)}`,
+  )
   process.exitCode = 1
 })
