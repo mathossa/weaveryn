@@ -27,6 +27,12 @@ export interface CampaignTimelineReference {
   worldId: string
 }
 
+export interface CampaignManagementAccess {
+  ownerId: string
+  status: CampaignStatus
+  role: CampaignMembershipRecord['role'] | null
+}
+
 export interface CreateCampaignRecordInput {
   id: string
   name: string
@@ -64,6 +70,14 @@ export interface CampaignRepository extends WorldAuthorizationRepository {
   updateOwnedCampaign(
     campaignId: string,
     ownerId: string,
+    input: UpdateCampaignRecordInput,
+  ): Promise<CampaignRecord | null>
+  findCampaignManagementAccess(
+    campaignId: string,
+    userId: string,
+  ): Promise<CampaignManagementAccess | null>
+  updateManagedCampaign(
+    campaignId: string,
     input: UpdateCampaignRecordInput,
   ): Promise<CampaignRecord | null>
 }
