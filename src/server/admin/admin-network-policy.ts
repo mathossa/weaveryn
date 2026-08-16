@@ -37,7 +37,10 @@ function ipv4ToBigInt(ip: string) {
   return ip
     .split('.')
     .map(Number)
-    .reduce((value, octet) => (value << 8n) | BigInt(octet), 0n)
+    .reduce(
+      (value, octet) => (value << BigInt(8)) | BigInt(octet),
+      BigInt(0),
+    )
 }
 
 function ipv6ToBigInt(ip: string) {
@@ -47,8 +50,8 @@ function ipv6ToBigInt(ip: string) {
   const possibleIpv4 = lastColon >= 0 ? working.slice(lastColon + 1) : working
   if (isIP(possibleIpv4) === 4) {
     const ipv4 = ipv4ToBigInt(possibleIpv4)
-    const high = ((ipv4 >> 16n) & 0xffffn).toString(16)
-    const low = (ipv4 & 0xffffn).toString(16)
+    const high = ((ipv4 >> BigInt(16)) & BigInt(0xffff)).toString(16)
+    const low = (ipv4 & BigInt(0xffff)).toString(16)
     working = `${working.slice(0, lastColon)}:${high}:${low}`
   }
 
@@ -68,9 +71,9 @@ function ipv6ToBigInt(ip: string) {
   if (groups.length !== 8) return null
 
   return groups.reduce((value, group) => {
-    if (!/^[0-9a-f]{1,4}$/.test(group)) return -1n
-    return (value << 16n) | BigInt(`0x${group}`)
-  }, 0n)
+    if (!/^[0-9a-f]{1,4}$/.test(group)) return -BigInt(1)
+    return (value << BigInt(16)) | BigInt(`0x${group}`)
+  }, BigInt(0))
 }
 
 function ipToBigInt(ip: string) {
@@ -81,7 +84,7 @@ function ipToBigInt(ip: string) {
   }
   if (family === 6) {
     const value = ipv6ToBigInt(normalized)
-    if (value === null || value < 0n) return null
+    if (value === null || value < BigInt(0)) return null
     return { family, bits: 128, value }
   }
   return null
