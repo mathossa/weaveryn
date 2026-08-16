@@ -148,6 +148,7 @@ export class CampaignService {
 
       const campaign = await repository.updateManagedCampaign(
         campaignId,
+        userId,
         updates,
       )
 
