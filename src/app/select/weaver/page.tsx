@@ -22,6 +22,6 @@ export default async function WeaverEntryPage({
 
   if (state.kind === 'not-found') notFound()
   if (state.kind === 'create-world') redirect('/world/create')
-  if (state.kind === 'world-choice') redirect('/world')
+  if (state.kind === 'world-choice') redirect('/world?mode=weaver')
   redirect(`/world/${state.world.id}`)
 }
