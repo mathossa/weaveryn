@@ -1,0 +1,287 @@
+.stack {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.section {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.sectionHeader h2,
+.sectionHeader p {
+  margin: 0;
+}
+
+.sectionHeader h2 {
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+}
+
+.sectionHeader p,
+.muted {
+  color: var(--ui-text-muted);
+}
+
+.characterGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.characterCard,
+.weaverCard,
+.choiceLink,
+.actionLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.characterCard {
+  position: relative;
+  min-height: 17rem;
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-panel-strong);
+  box-shadow: var(--ui-shadow-panel);
+  isolation: isolate;
+}
+
+.characterCard:focus-visible,
+.weaverCard:focus-visible,
+.choiceLink:focus-visible,
+.actionLink:focus-visible,
+.backLink:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+.characterImage {
+  object-fit: cover;
+  z-index: -2;
+}
+
+.characterShade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(4, 7, 13, 0.06), rgba(4, 7, 13, 0.93) 78%);
+}
+
+.characterCopy {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  gap: 0.2rem;
+  padding: 1.1rem;
+}
+
+.characterCopy strong {
+  font-size: 1.3rem;
+}
+
+.characterCopy span {
+  color: var(--ui-text-muted);
+}
+
+.characterMeta {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.weaverCard {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-panel-strong);
+}
+
+.weaverGlyph {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border: 1px solid var(--ui-border);
+  border-radius: 50%;
+  color: var(--ui-accent);
+  font-size: 1.35rem;
+}
+
+.weaverCopy {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.weaverCopy strong {
+  font-size: 1rem;
+}
+
+.weaverCopy span {
+  color: var(--ui-text-muted);
+}
+
+.weaverArrow {
+  color: var(--ui-accent);
+  font-size: 1.25rem;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.actionLink,
+.choiceLink,
+.backLink {
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+
+.actionLink {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem 1rem;
+}
+
+.actionLink strong,
+.actionLink span {
+  display: block;
+}
+
+.actionLink span {
+  color: var(--ui-text-muted);
+  font-size: 0.86rem;
+}
+
+.moreRow {
+  display: flex;
+  justify-content: center;
+}
+
+.choiceList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.choiceLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1rem;
+}
+
+.choiceLink span {
+  color: var(--ui-text-muted);
+}
+
+.primaryLink,
+.secondaryLink,
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
+  border-radius: var(--ui-radius-control);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.primaryLink {
+  background: var(--ui-accent);
+  color: var(--ui-accent-ink);
+}
+
+.secondaryLink,
+.backLink {
+  border: 1px solid var(--ui-control-border);
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+}
+
+.handoff {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-panel-strong);
+}
+
+.handoff h2,
+.handoff p {
+  margin: 0;
+}
+
+.handoffContext {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--ui-text-muted);
+}
+
+.handoffContext strong {
+  color: var(--ui-text);
+}
+
+.mobileOnly {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .characterGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .characterGrid > :nth-child(n + 2) {
+    display: none;
+  }
+
+  .desktopOnly {
+    display: none;
+  }
+
+  .mobileOnly {
+    display: flex;
+  }
+
+  .actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .weaverCard {
+    grid-template-columns: auto 1fr auto;
+    min-height: 3.35rem;
+    padding-block: 0.65rem;
+  }
+
+  .weaverGlyph {
+    width: 2.2rem;
+    height: 2.2rem;
+    font-size: 1rem;
+  }
+
+  .weaverCopy span {
+    display: none;
+  }
+
+  .sectionHeader {
+    align-items: start;
+    flex-direction: column;
+  }
+}
