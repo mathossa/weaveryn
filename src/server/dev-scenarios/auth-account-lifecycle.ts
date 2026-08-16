@@ -11,6 +11,7 @@ import { FixtureOwnershipError } from './fixture-safety'
 
 const metadata = requireDevScenarioMetadata('auth-account-lifecycle')
 export const AUTH_SCENARIO_EMAIL = 'dev-auth-account-lifecycle@weaveryn.local'
+export const AUTH_SCENARIO_USERNAME = 'auth-lifecycle-tester'
 const WORLD_ID = '14000000-0000-4000-8000-000000000010'
 const CHARACTER_ID = '14000000-0000-4000-8000-000000000020'
 const DISPLAY_NAME = 'Auth Lifecycle Tester'
@@ -18,7 +19,7 @@ const DISPLAY_NAME = 'Auth Lifecycle Tester'
 async function fixtureUser() {
   return prisma.user.findUnique({
     where: { email: AUTH_SCENARIO_EMAIL },
-    select: { id: true, email: true, displayName: true },
+    select: { id: true, email: true, username: true, displayName: true },
   })
 }
 
@@ -54,7 +55,10 @@ async function readState(): Promise<AuthAccountLifecycleState> {
       `Character ${CHARACTER_ID} is not owned by this development scenario.`,
     )
   }
-  if (user && user.displayName !== DISPLAY_NAME) {
+  if (
+    user &&
+    (user.displayName !== DISPLAY_NAME || user.username !== AUTH_SCENARIO_USERNAME)
+  ) {
     throw new FixtureOwnershipError(
       `User ${user.id} is not owned by this development scenario.`,
     )
@@ -99,7 +103,10 @@ async function cleanupFixture() {
     })
 
     if (user) {
-      if (user.displayName !== DISPLAY_NAME) {
+      if (
+        user.displayName !== DISPLAY_NAME ||
+        user.username !== AUTH_SCENARIO_USERNAME
+      ) {
         throw new FixtureOwnershipError(
           `User ${user.id} is not owned by this development scenario.`,
         )
@@ -175,6 +182,19 @@ async function runAcceptanceChecks() {
   const initialState = await readState()
   const user = initialState.user
 
+  const usernamePersisted = user?.username === AUTH_SCENARIO_USERNAME
+  checks.push({
+    id: 'public-username-persisted',
+    title: 'Required public username is persisted',
+    status: usernamePersisted ? 'passed' : 'failed',
+    actor: 'Registered account',
+    target: AUTH_SCENARIO_EMAIL,
+    expected: `@${AUTH_SCENARIO_USERNAME}`,
+    actual: user ? `@${user.username}` : 'No registered scenario User',
+    detail:
+      'Registration must persist the normalized public username separately from the private account email.',
+  })
+
   const credentialPersisted =
     Boolean(user) && initialState.auth.credentialAccountCount === 1
   checks.push({
@@ -206,7 +226,7 @@ async function runAcceptanceChecks() {
       'Sign in through the browser before running all checks so the real Better Auth session is present.',
   })
 
-  if (!user || !credentialPersisted || !sessionPersisted) {
+  if (!user || !usernamePersisted || !credentialPersisted || !sessionPersisted) {
     checks.push(
       {
         id: 'character-blocks-account-deletion',
@@ -299,7 +319,7 @@ export const authAccountLifecycleScenario: DevScenario<
     return {
       ok: true,
       message:
-        'Fixture cleaned. Register the deterministic email through the real Better Auth endpoint to begin.',
+        'Fixture cleaned. Register the deterministic email and username through the real Better Auth endpoint to begin.',
     }
   },
   async cleanup() {
