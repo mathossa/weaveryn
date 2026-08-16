@@ -51,16 +51,39 @@ export class CampaignCharacterService {
 
   async createCampaignCharacter(input: CreateCampaignCharacterInput) {
     return this.repository.runInTransaction(async (repository) => {
-      const campaign = await this.assertManager(
-        repository,
-        input.actorUserId,
-        input.campaignId,
-      )
+      const campaign = await repository.findCampaignById(input.campaignId)
+      if (!campaign) throw campaignCharacterCampaignNotFound(input.campaignId)
+
       const worldCharacter = await repository.findWorldCharacterById(
         input.worldCharacterId,
       )
       if (!worldCharacter)
         throw campaignCharacterWorldCharacterNotFound(input.worldCharacterId)
+
+      const isManager = await this.isManager(
+        repository,
+        input.actorUserId,
+        input.campaignId,
+        campaign.ownerId,
+      )
+
+      if (!isManager) {
+        const membership = await repository.findCampaignMembership(
+          input.campaignId,
+          input.actorUserId,
+        )
+        const canAttachOwnCharacter =
+          membership?.role === 'PLAYER' &&
+          worldCharacter.ownerUserId === input.actorUserId
+
+        if (!canAttachOwnCharacter) {
+          throw campaignCharacterPermissionDenied(
+            input.campaignId,
+            input.actorUserId,
+          )
+        }
+      }
+
       if (campaign.worldId !== worldCharacter.worldId) {
         throw campaignCharacterCrossWorld(
           input.worldCharacterId,
