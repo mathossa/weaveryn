@@ -35,6 +35,7 @@ export const auth = betterAuth({
     autoSignIn: false,
     requireEmailVerification: false,
     minPasswordLength: AUTH_PASSWORD_MIN_LENGTH,
+    revokeSessionsOnPasswordReset: true,
   },
   user: {
     modelName: 'User',
