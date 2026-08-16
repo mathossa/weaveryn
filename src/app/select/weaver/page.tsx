@@ -38,10 +38,10 @@ export default async function WeaverEntryPage({
         >
           <StatusPanel
             tone="empty"
-            title="Create World is coming next"
+            title="Create your first World"
             action={
-              <Link className={styles.secondaryLink} href="/select">
-                Return to Choose Entity
+              <Link className={styles.primaryLink} href="/select/create-world">
+                Create World
               </Link>
             }
           >
@@ -106,7 +106,9 @@ export default async function WeaverEntryPage({
             <span>
               World: <strong>{state.world.name}</strong>
             </span>
-            <span>Role: <strong>Weaver</strong></span>
+            <span>
+              Role: <strong>Weaver</strong>
+            </span>
           </div>
           <p className={styles.muted}>
             The next Campaign UI step will let you choose or create a Campaign in
