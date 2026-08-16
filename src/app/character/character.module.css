@@ -40,6 +40,18 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1rem;
 }
+.portrait {
+  position: relative;
+  width: min(18rem, 100%);
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-control-surface);
+}
+.portrait img {
+  object-fit: cover;
+}
 .form {
   display: grid;
   gap: 0.85rem;
