@@ -148,7 +148,9 @@ function DesktopContextEntry({
             <span className={styles.contextName}>{item.label}</span>
           </>
         ) : (
-          <span className={desktopStyles.placeholder}>{contextLabels[kind]}</span>
+          <span className={desktopStyles.placeholder}>
+            {contextLabels[kind]}
+          </span>
         )}
       </span>
       <span className={desktopStyles.chevron} aria-hidden="true">
@@ -238,7 +240,11 @@ export function AppShell({ children, user, context }: AppShellProps) {
       </div>
 
       <header className={styles.header}>
-        <Link className={styles.brand} href="/select" aria-label="Weaveryn home">
+        <Link
+          className={styles.brand}
+          href="/select"
+          aria-label="Weaveryn home"
+        >
           <BrandLogo className={styles.brandLogo} />
           <span className={styles.brandName}>Weaveryn</span>
         </Link>
