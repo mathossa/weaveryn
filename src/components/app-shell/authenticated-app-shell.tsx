@@ -20,7 +20,8 @@ export async function AuthenticatedAppShell({
   return (
     <AppShell
       user={{
-        displayName: user.displayName ?? user.username,
+        displayName: user.displayName,
+        username: user.username,
         email: user.email,
       }}
       context={context}
