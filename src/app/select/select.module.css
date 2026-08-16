@@ -248,7 +248,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .characterGrid > :nth-child(n + 2) {
+  .recentCharacterGrid > :nth-child(n + 2) {
     display: none;
   }
 
