@@ -21,22 +21,31 @@ export default async function CampaignOverviewPage({
   ])
   const campaign = await getCampaignOverview(worldId, campaignId, user.id)
   if (!campaign) notFound()
+  const ownerLabel = campaign.owner.displayName ?? `@${campaign.owner.username}`
 
   return (
     <AuthenticatedAppShell
       user={user}
       context={{
         world: { label: campaign.world.name, href: `/world/${worldId}` },
-        campaign: { label: campaign.name, href: `/world/${worldId}/campaign/${campaign.id}` },
+        campaign: {
+          label: campaign.name,
+          href: `/world/${worldId}/campaign/${campaign.id}`,
+        },
       }}
     >
       <AppPage
         eyebrow={campaign.isOwner ? 'Campaign owner · GM' : campaign.role}
         title={campaign.name}
-        description={campaign.description || 'No Campaign description has been added yet.'}
+        description={
+          campaign.description || 'No Campaign description has been added yet.'
+        }
         wide
         actions={
-          <Link className={styles.secondary} href={`/world/${worldId}/campaign`}>
+          <Link
+            className={styles.secondary}
+            href={`/world/${worldId}/campaign`}
+          >
             Change Campaign
           </Link>
         }
@@ -45,17 +54,34 @@ export default async function CampaignOverviewPage({
           <div className={styles.infoGrid}>
             <section className={styles.panel}>
               <h2>Campaign context</h2>
-              <p><strong>World:</strong> {campaign.world.name}</p>
-              <p><strong>Ownership:</strong> {campaign.isOwner ? 'You own this Campaign' : 'Owned by another user'}</p>
-              <p><strong>Your role:</strong> {campaign.role}</p>
-              <p><strong>Status:</strong> {campaign.status}</p>
+              <p>
+                <strong>World:</strong> {campaign.world.name}
+              </p>
+              <p>
+                <strong>Owner:</strong> {ownerLabel}
+                {campaign.isOwner ? ' (you)' : ''}
+              </p>
+              <p>
+                <strong>Your role:</strong> {campaign.role}
+              </p>
+              <p>
+                <strong>Status:</strong> {campaign.status}
+              </p>
             </section>
 
             <section className={styles.panel}>
               <h2>World time</h2>
-              <p><strong>Label:</strong> {campaign.currentWorldDateLabel ?? 'Not set'}</p>
-              <p><strong>Position:</strong> {campaign.currentWorldPosition ?? 'Not set'}</p>
-              <p className={styles.meta}>World calendar wizard tracked in #69.</p>
+              <p>
+                <strong>Label:</strong>{' '}
+                {campaign.currentWorldDateLabel ?? 'Not set'}
+              </p>
+              <p>
+                <strong>Position:</strong>{' '}
+                {campaign.currentWorldPosition ?? 'Not set'}
+              </p>
+              <p className={styles.meta}>
+                World calendar wizard tracked in #69.
+              </p>
             </section>
           </div>
 
@@ -72,7 +98,9 @@ export default async function CampaignOverviewPage({
                 ))}
               </div>
             )}
-            <p className={styles.meta}>Character entry and management connects fully in #54.</p>
+            <p className={styles.meta}>
+              Character entry and management connects fully in #54.
+            </p>
           </section>
 
           {campaign.canEditSharedInfo ? (
@@ -80,7 +108,9 @@ export default async function CampaignOverviewPage({
               <h2>Manage Campaign</h2>
               {!campaign.canEditName ? (
                 <div className={styles.notice}>
-                  As {campaign.role}, you can update the Campaign description and World time. Renaming and ownership/lifecycle management remain owner-only.
+                  As {campaign.role}, you can update the Campaign description
+                  and World time. Renaming and ownership/lifecycle management
+                  remain owner-only.
                 </div>
               ) : null}
               <CampaignForm
@@ -93,6 +123,17 @@ export default async function CampaignOverviewPage({
                 initialWorldPosition={campaign.currentWorldPosition}
                 initialWorldDateLabel={campaign.currentWorldDateLabel}
               />
+            </section>
+          ) : null}
+
+          {campaign.canManageMembers ? (
+            <section className={styles.panel}>
+              <h2>Campaign membership</h2>
+              <p>
+                You own this Campaign and control its membership. The production
+                invite/member-management flow will connect here when that UI is
+                implemented.
+              </p>
             </section>
           ) : null}
         </div>
