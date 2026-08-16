@@ -135,7 +135,5 @@ export function isAdminNetworkAllowed(
   const clientIp = resolveAdminClientIp(headers, config)
   if (!clientIp) return false
 
-  return config.allowedCidrs.some((cidr) =>
-    ipMatchesCidr(clientIp, cidr),
-  )
+  return config.allowedCidrs.some((cidr) => ipMatchesCidr(clientIp, cidr))
 }
