@@ -5,6 +5,7 @@ import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-
 import { getWorldCharacterOverview } from '@/server/characters'
 import { AttachCampaignButton } from '../_components/attach-campaign-button'
 import { CharacterForm } from '../_components/character-form'
+import { CharacterPortrait } from '../_components/character-portrait'
 import { WorldCharacterForm } from '../_components/world-character-form'
 import { loadCharacterPageUser } from '../_lib/load-character-user'
 import styles from '../character.module.css'
@@ -99,7 +100,8 @@ export default async function WorldCharacterPage({
               ) : targetCampaign ? (
                 <>
                   <p>
-                    You are a {targetCampaign.role} member of this Campaign. Attach this WorldCharacter to participate.
+                    You are a {targetCampaign.role} member of this Campaign.
+                    Attach this WorldCharacter to participate.
                   </p>
                   <AttachCampaignButton
                     worldCharacterId={character.id}
@@ -119,8 +121,13 @@ export default async function WorldCharacterPage({
           <div className={styles.identityGrid}>
             <section className={styles.panel}>
               <h2>Portable Character</h2>
+              <CharacterPortrait
+                image={character.character.image}
+                name={character.character.name}
+              />
               <p className={styles.meta}>
-                This name follows the Character between Worlds.
+                This name and portrait belong to the portable Character and can
+                follow it between Worlds.
               </p>
               <CharacterForm
                 mode="edit"
@@ -135,7 +142,8 @@ export default async function WorldCharacterPage({
                 <strong>World:</strong> {character.world.name}
               </p>
               <p className={styles.meta}>
-                A World-specific name overrides the portable name only in this World.
+                A World-specific name overrides the portable name only in this
+                World.
               </p>
               {character.canEditWorldIdentity ? (
                 <WorldCharacterForm
@@ -151,7 +159,10 @@ export default async function WorldCharacterPage({
           <section className={styles.panel}>
             <h2>Campaign participation</h2>
             {character.participations.length === 0 ? (
-              <p>This WorldCharacter does not participate in an accessible Campaign yet.</p>
+              <p>
+                This WorldCharacter does not participate in an accessible
+                Campaign yet.
+              </p>
             ) : (
               <div className={styles.list}>
                 {character.participations.map((participation) => (
@@ -177,7 +188,9 @@ export default async function WorldCharacterPage({
             <section className={styles.panel}>
               <h2>Join another Campaign</h2>
               <p className={styles.meta}>
-                Campaign membership comes first. Players can then attach their own WorldCharacter; GM and Assistant GM management permissions remain unchanged.
+                Campaign membership comes first. Players can then attach their
+                own WorldCharacter; GM and Assistant GM management permissions
+                remain unchanged.
               </p>
               <div className={styles.list}>
                 {character.availableCampaigns.map((campaign) => (
