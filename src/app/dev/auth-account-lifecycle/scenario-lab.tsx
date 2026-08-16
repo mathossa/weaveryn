@@ -12,6 +12,7 @@ import {
   ScenarioResultPanels,
 } from '../_components/scenario-ui'
 import { useDevScenario } from '../_components/use-dev-scenario'
+import styles from './scenario-lab.module.css'
 
 const metadata = requireDevScenarioMetadata('auth-account-lifecycle')
 const email = 'dev-auth-account-lifecycle@weaveryn.local'
@@ -173,7 +174,7 @@ export function AuthAccountLifecycleLab() {
         <p>
           Account email: <code>{email}</code>
         </p>
-        <label>
+        <label className={styles.credentialField}>
           Temporary password
           <input
             type="password"
@@ -182,8 +183,9 @@ export function AuthAccountLifecycleLab() {
             onChange={(event) => setPassword(event.target.value)}
           />
         </label>
-        <div>
+        <div className={styles.buttonGroup}>
           <button
+            className={styles.button}
             type="button"
             disabled={busy}
             onClick={() =>
@@ -197,6 +199,7 @@ export function AuthAccountLifecycleLab() {
             Register account
           </button>
           <button
+            className={styles.button}
             type="button"
             disabled={busy}
             onClick={() =>
@@ -210,6 +213,7 @@ export function AuthAccountLifecycleLab() {
             Sign in
           </button>
           <button
+            className={`${styles.button} ${styles.secondaryButton}`}
             type="button"
             disabled={busy}
             onClick={() => void checkSession()}
@@ -217,6 +221,7 @@ export function AuthAccountLifecycleLab() {
             Check session
           </button>
           <button
+            className={`${styles.button} ${styles.secondaryButton}`}
             type="button"
             disabled={busy}
             onClick={async () => {
@@ -263,42 +268,51 @@ export function AuthAccountLifecycleLab() {
           Seed an owned World to verify orphaning. Seed a Character to verify
           deletion is blocked until owned content is explicitly resolved.
         </p>
-        <button
-          type="button"
-          disabled={busy || !result?.state?.user}
-          onClick={() => void perform({ action: 'seed-world' })}
-        >
-          Seed owned World
-        </button>
-        <button
-          type="button"
-          disabled={busy || !result?.state?.user}
-          onClick={() => void perform({ action: 'seed-character' })}
-        >
-          Seed Character blocker
-        </button>
-        <button
-          type="button"
-          disabled={busy || !result?.state?.ownedCharacter}
-          onClick={() => void perform({ action: 'resolve-character' })}
-        >
-          Resolve Character blocker
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void inspectPreflight()}
-        >
-          Inspect deletion preflight
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void deleteAccount()}
-        >
-          Delete authenticated account
-        </button>
-        {preflight ? <pre>{JSON.stringify(preflight, null, 2)}</pre> : null}
+        <div className={styles.buttonGroup}>
+          <button
+            className={styles.button}
+            type="button"
+            disabled={busy || !result?.state?.user}
+            onClick={() => void perform({ action: 'seed-world' })}
+          >
+            Seed owned World
+          </button>
+          <button
+            className={styles.button}
+            type="button"
+            disabled={busy || !result?.state?.user}
+            onClick={() => void perform({ action: 'seed-character' })}
+          >
+            Seed Character blocker
+          </button>
+          <button
+            className={`${styles.button} ${styles.secondaryButton}`}
+            type="button"
+            disabled={busy || !result?.state?.ownedCharacter}
+            onClick={() => void perform({ action: 'resolve-character' })}
+          >
+            Resolve Character blocker
+          </button>
+          <button
+            className={`${styles.button} ${styles.secondaryButton}`}
+            type="button"
+            disabled={busy}
+            onClick={() => void inspectPreflight()}
+          >
+            Inspect deletion preflight
+          </button>
+          <button
+            className={`${styles.button} ${styles.dangerButton}`}
+            type="button"
+            disabled={busy}
+            onClick={() => void deleteAccount()}
+          >
+            Delete authenticated account
+          </button>
+        </div>
+        {preflight ? (
+          <pre className={styles.preflight}>{JSON.stringify(preflight, null, 2)}</pre>
+        ) : null}
       </section>
 
       <ScenarioResultPanels result={result} />
