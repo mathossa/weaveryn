@@ -1,8 +1,6 @@
 import { prisma } from '@/lib/prisma'
 
-export type AccountDeletionBlocker =
-  | 'OWNED_CAMPAIGNS'
-  | 'OWNED_CHARACTERS'
+export type AccountDeletionBlocker = 'OWNED_CAMPAIGNS' | 'OWNED_CHARACTERS'
 
 export class AccountDeletionBlockedError extends Error {
   readonly code = 'ACCOUNT_DELETION_BLOCKED'
