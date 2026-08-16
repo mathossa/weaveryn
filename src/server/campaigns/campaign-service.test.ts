@@ -157,6 +157,7 @@ class InMemoryCampaignRepository implements CampaignRepository {
 
   async updateManagedCampaign(
     requestedCampaignId: string,
+    userId: string,
     input: UpdateCampaignRecordInput,
   ) {
     const campaign = this.campaigns.find(
@@ -164,6 +165,18 @@ class InMemoryCampaignRepository implements CampaignRepository {
         candidate.id === requestedCampaignId && candidate.status !== 'ARCHIVED',
     )
     if (!campaign) return null
+
+    const membership = this.campaignMemberships.find(
+      (candidate) =>
+        candidate.campaignId === requestedCampaignId &&
+        candidate.userId === userId,
+    )
+    const authorized =
+      campaign.ownerId === userId ||
+      membership?.role === 'GM' ||
+      membership?.role === 'ASSISTANT_GM'
+    if (!authorized) return null
+
     Object.assign(campaign, input, { updatedAt: now })
     return campaign
   }
