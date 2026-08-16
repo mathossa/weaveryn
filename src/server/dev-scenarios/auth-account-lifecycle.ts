@@ -57,7 +57,8 @@ async function readState(): Promise<AuthAccountLifecycleState> {
   }
   if (
     user &&
-    (user.displayName !== DISPLAY_NAME || user.username !== AUTH_SCENARIO_USERNAME)
+    (user.displayName !== DISPLAY_NAME ||
+      user.username !== AUTH_SCENARIO_USERNAME)
   ) {
     throw new FixtureOwnershipError(
       `User ${user.id} is not owned by this development scenario.`,
@@ -226,7 +227,12 @@ async function runAcceptanceChecks() {
       'Sign in through the browser before running all checks so the real Better Auth session is present.',
   })
 
-  if (!user || !usernamePersisted || !credentialPersisted || !sessionPersisted) {
+  if (
+    !user ||
+    !usernamePersisted ||
+    !credentialPersisted ||
+    !sessionPersisted
+  ) {
     checks.push(
       {
         id: 'character-blocks-account-deletion',
