@@ -1,22 +1,22 @@
-import { headers } from 'next/headers'
-import { redirect } from 'next/navigation'
-import { getAuthenticatedUser } from '@/server/auth'
-import styles from './select-placeholder.module.css'
+import { AppPage } from '@/components/app-shell/app-page'
+import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
+import { StatusPanel } from '@/components/ui/status-panel'
 
-export default async function SelectPage() {
-  const user = await getAuthenticatedUser(new Headers(await headers()))
-  if (!user) redirect('/login')
-
+export default function SelectPage() {
   return (
-    <main className={styles.page}>
-      <section className={styles.card}>
-        <p className={styles.eyebrow}>Signed in</p>
-        <h1>Choose Entity</h1>
-        <p>
-          Welcome {user.displayName ?? user.email}. The full selection screen is
-          the next UI task under Issue #21.
-        </p>
-      </section>
-    </main>
+    <AuthenticatedAppShell>
+      <AppPage
+        eyebrow="Signed in"
+        title="Choose Entity"
+        description="Choose how you want to enter Weaveryn. Your available Worlds, Campaigns, and Characters will appear here."
+      >
+        <StatusPanel tone="empty" title="Selection is the next step">
+          <p>
+            The authenticated shell is ready. The full Choose Entity experience
+            will replace this placeholder in the next UI issue.
+          </p>
+        </StatusPanel>
+      </AppPage>
+    </AuthenticatedAppShell>
   )
 }

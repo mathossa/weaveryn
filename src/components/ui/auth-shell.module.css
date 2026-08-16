@@ -4,7 +4,8 @@
   display: grid;
   min-height: 100svh;
   place-items: center;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: clamp(1rem, 4vw, 3rem);
   background: var(--ui-canvas);
   color: var(--ui-text);
@@ -38,8 +39,9 @@
 
 @media (max-width: 520px) {
   .shell {
-    align-items: end;
-    padding: 0.9rem;
+    place-items: center;
+    padding: max(1rem, env(safe-area-inset-top)) 0.9rem
+      max(1rem, env(safe-area-inset-bottom));
   }
 
   .background {

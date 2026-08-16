@@ -115,7 +115,7 @@ export function LoginForm() {
   return (
     <section className={styles.card} aria-labelledby="auth-title">
       <div className={styles.brand}>
-        <BrandLogo className={styles.logo} priority />
+        <BrandLogo className={styles.logo} />
         <span className={styles.wordmark}>Weaveryn</span>
       </div>
 

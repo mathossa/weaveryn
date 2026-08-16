@@ -1,0 +1,67 @@
+.button {
+  display: inline-flex;
+  min-width: 9.5rem;
+  max-width: 13.5rem;
+  min-height: 50px;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  padding: 0.45rem 0.7rem;
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  text-decoration: none;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+
+.button:hover {
+  border-color: var(--ui-border);
+  background: color-mix(in srgb, var(--ui-control-surface) 88%, white 5%);
+  transform: translateY(-1px);
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+.placeholder {
+  overflow: hidden;
+  color: var(--ui-text);
+  font-size: 0.86rem;
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  margin-left: auto;
+  color: var(--ui-text-muted);
+  font-size: 0.88rem;
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .button {
+    min-width: 0;
+    max-width: 9.5rem;
+    min-height: 44px;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .placeholder {
+    font-size: 0.78rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+
+  .button:hover {
+    transform: none;
+  }
+}

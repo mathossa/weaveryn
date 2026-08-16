@@ -38,6 +38,27 @@ than from persisted user preferences.
   shared asset configuration and tokens. Future screens should follow the same
   pattern when a presentation choice is expected to be reused.
 
+### Authenticated app shell
+
+Production screens after login should use the shared components under
+`src/components/app-shell` rather than creating page-specific navigation chrome.
+
+- `AuthenticatedAppShell` resolves the authenticated User on the server and
+  redirects unauthenticated requests to `/login`.
+- `AppShell` renders the shared application background, branding, responsive
+  context navigation, account menu, and logout action.
+- Desktop uses a single top bar. World, Campaign, and Character context can be
+  presented as a compact hierarchy in that bar.
+- Phone and narrow layouts keep the top bar to three controls: logo, one compact
+  current-context button, and profile. The context button displays the deepest
+  active context and opens a sheet with the full hierarchy.
+- `AppPage` provides the standard production content width and page heading area.
+- `StatusPanel` provides shared empty, loading, and error presentation.
+
+The shell accepts context as presentation data only. Domain authorization and the
+set of contexts a User may access remain backend-owned; the shell must not infer
+those rules from route names or client-side state.
+
 This is a developer-controlled presentation layer. A user-facing theme editor,
 runtime theme selection, and persisted theme preferences are not implied by this
 structure.

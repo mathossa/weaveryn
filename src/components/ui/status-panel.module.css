@@ -1,0 +1,88 @@
+.panel {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.9rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  padding: 1.1rem;
+  background: var(--ui-panel);
+  box-shadow: var(--ui-shadow-panel);
+}
+
+.marker {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  place-items: center;
+  border: 1px solid var(--ui-border);
+  border-radius: 999px;
+  color: var(--ui-accent-hover);
+  background: var(--ui-control-surface);
+  font-weight: 850;
+}
+
+.copy {
+  min-width: 0;
+}
+
+.toneLabel {
+  margin: 0 0 0.22rem;
+  color: var(--ui-accent);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.copy h2 {
+  margin: 0;
+  color: var(--ui-text);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.1rem;
+  line-height: 1.25;
+}
+
+.description {
+  margin-top: 0.4rem;
+  color: var(--ui-text-muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.description p {
+  margin: 0;
+}
+
+.action {
+  margin-top: 0.8rem;
+}
+
+.error {
+  border-color: color-mix(in srgb, var(--ui-danger) 42%, var(--ui-border));
+}
+
+.error .marker,
+.error .toneLabel {
+  color: var(--ui-danger);
+}
+
+.loading .marker {
+  animation: statusPulse 1.25s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading .marker {
+    animation: none;
+  }
+}
