@@ -1,13 +1,12 @@
 import Link from 'next/link'
-import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { StatusPanel } from '@/components/ui/status-panel'
-import { requireAuthenticatedUser } from '@/server/auth'
 import { getWorldOverview } from '@/server/worlds'
 import { ClaimWorldButton } from '../_components/claim-world-button'
 import { WorldForm } from '../_components/world-form'
+import { loadWorldPageUser } from '../_lib/load-world-user'
 import styles from '../world.module.css'
 
 const accessLabels = {
@@ -23,10 +22,7 @@ interface WorldOverviewPageProps {
 }
 
 export default async function WorldOverviewPage({ params }: WorldOverviewPageProps) {
-  const [{ worldId }, user] = await Promise.all([
-    params,
-    requireAuthenticatedUser(new Headers(await headers())),
-  ])
+  const [{ worldId }, user] = await Promise.all([params, loadWorldPageUser()])
   const world = await getWorldOverview(worldId, user.id)
   if (!world) notFound()
 
@@ -61,10 +57,16 @@ export default async function WorldOverviewPage({ params }: WorldOverviewPagePro
             <StatusPanel
               tone="empty"
               title="This World currently has no owner"
-              action={world.canClaimOwnership ? <ClaimWorldButton worldId={world.id} /> : undefined}
+              action={
+                world.canClaimOwnership ? (
+                  <ClaimWorldButton worldId={world.id} />
+                ) : undefined
+              }
             >
               <p>
-                Existing Campaigns and World relationships remain intact. Ownership can only be claimed when the backend lifecycle rules allow it.
+                Existing Campaigns and World relationships remain intact.
+                Ownership can only be claimed when the backend lifecycle rules
+                allow it.
               </p>
             </StatusPanel>
           ) : null}
@@ -73,7 +75,9 @@ export default async function WorldOverviewPage({ params }: WorldOverviewPagePro
             <section className={styles.panel}>
               <h2>Campaigns you can access</h2>
               {world.campaigns.length === 0 ? (
-                <p className={styles.meta}>No accessible Campaigns in this World yet.</p>
+                <p className={styles.meta}>
+                  No accessible Campaigns in this World yet.
+                </p>
               ) : (
                 <div className={styles.campaignList}>
                   {world.campaigns.map((campaign) => (
@@ -93,7 +97,8 @@ export default async function WorldOverviewPage({ params }: WorldOverviewPagePro
               <h2>World context</h2>
               <p className={styles.meta}>Entities and timeline</p>
               <p>
-                World entities and timeline-aware content will connect here when their dedicated UI is implemented.
+                World entities and timeline-aware content will connect here when
+                their dedicated UI is implemented.
               </p>
             </section>
           </div>
