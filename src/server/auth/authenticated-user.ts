@@ -7,6 +7,7 @@ export interface AuthenticatedUser {
   email: string
   username: string
   displayName: string | null
+  isInstanceAdmin: boolean
 }
 
 export interface AuthenticatedUserDependencies {
@@ -26,6 +27,7 @@ const defaultDependencies: AuthenticatedUserDependencies = {
         email: true,
         username: true,
         displayName: true,
+        isInstanceAdmin: true,
       },
     })
   },
