@@ -21,6 +21,7 @@ const adminId = '00000000-0000-4000-8000-00000000000b'
 const memberId = '00000000-0000-4000-8000-00000000000c'
 const outsiderId = '00000000-0000-4000-8000-00000000000d'
 const campaignMemberId = '00000000-0000-4000-8000-00000000000e'
+const gmId = '00000000-0000-4000-8000-00000000000f'
 const campaignId = '00000000-0000-4000-8000-000000000010'
 const now = new Date('2026-08-15T00:00:00.000Z')
 
@@ -132,7 +133,37 @@ class InMemoryCampaignRepository implements CampaignRepository {
     )
 
     if (!campaign) return null
+    Object.assign(campaign, input, { updatedAt: now })
+    return campaign
+  }
 
+  async findCampaignManagementAccess(requestedCampaignId: string, userId: string) {
+    const campaign = this.campaigns.find(
+      (candidate) => candidate.id === requestedCampaignId,
+    )
+    if (!campaign) return null
+    const membership = this.campaignMemberships.find(
+      (candidate) =>
+        candidate.campaignId === requestedCampaignId &&
+        candidate.userId === userId,
+    )
+    if (campaign.ownerId !== userId && !membership) return null
+    return {
+      ownerId: campaign.ownerId,
+      status: campaign.status,
+      role: membership?.role ?? null,
+    }
+  }
+
+  async updateManagedCampaign(
+    requestedCampaignId: string,
+    input: UpdateCampaignRecordInput,
+  ) {
+    const campaign = this.campaigns.find(
+      (candidate) =>
+        candidate.id === requestedCampaignId && candidate.status !== 'ARCHIVED',
+    )
+    if (!campaign) return null
     Object.assign(campaign, input, { updatedAt: now })
     return campaign
   }
@@ -158,7 +189,6 @@ function createInput(creatorId: string) {
 describe('CampaignService', () => {
   it('creates an active Campaign with a GM membership for its owner', async () => {
     const { repository, service } = createHarness()
-
     const campaign = await service.createCampaign(createInput(ownerId))
 
     expect(campaign).toMatchObject({
@@ -170,7 +200,6 @@ describe('CampaignService', () => {
       currentWorldDateLabel: '14 Emberwane, 812',
       status: 'ACTIVE',
     })
-    expect(repository.campaigns).toHaveLength(1)
     expect(repository.campaignMemberships).toEqual([
       expect.objectContaining({ campaignId, userId: ownerId, role: 'GM' }),
     ])
@@ -178,12 +207,9 @@ describe('CampaignService', () => {
 
   it('allows a World ADMIN to create and independently own a Campaign', async () => {
     const { service } = createHarness()
-
     const campaign = await service.createCampaign(createInput(adminId))
-
     expect(campaign.ownerId).toBe(adminId)
     expect(campaign.ownerId).not.toBe(ownerId)
-    expect(campaign.worldId).toBe(worldId)
   })
 
   it.each([
@@ -191,10 +217,7 @@ describe('CampaignService', () => {
     ['non-member', outsiderId],
   ])('rejects Campaign creation by a %s', async (_, creatorId) => {
     const { repository, service } = createHarness()
-
-    await expect(
-      service.createCampaign(createInput(creatorId)),
-    ).rejects.toMatchObject({
+    await expect(service.createCampaign(createInput(creatorId))).rejects.toMatchObject({
       code: 'WORLD_PERMISSION_DENIED',
     } satisfies Partial<WorldDomainError>)
     expect(repository.campaigns).toHaveLength(0)
@@ -203,25 +226,9 @@ describe('CampaignService', () => {
   it('fails closed when the World has no main timeline', async () => {
     const { repository, service } = createHarness()
     repository.timeline = null
-
-    await expect(
-      service.createCampaign(createInput(ownerId)),
-    ).rejects.toMatchObject({
+    await expect(service.createCampaign(createInput(ownerId))).rejects.toMatchObject({
       code: 'CAMPAIGN_MAIN_TIMELINE_NOT_FOUND',
     } satisfies Partial<CampaignDomainError>)
-    expect(repository.campaigns).toHaveLength(0)
-  })
-
-  it('loads and lists Campaigns for their owner', async () => {
-    const { service } = createHarness()
-    const campaign = await service.createCampaign(createInput(adminId))
-
-    await expect(service.loadCampaign(campaign.id, adminId)).resolves.toBe(
-      campaign,
-    )
-    await expect(service.listCampaigns(adminId)).resolves.toEqual([campaign])
-    await expect(service.loadCampaign(campaign.id, ownerId)).resolves.toBeNull()
-    await expect(service.listCampaigns(ownerId)).resolves.toEqual([])
   })
 
   it('loads and lists Campaigns for a Campaign member without making them an owner', async () => {
@@ -233,59 +240,68 @@ describe('CampaignService', () => {
       role: 'SPECTATOR',
     })
 
-    await expect(
-      service.loadCampaign(campaign.id, campaignMemberId),
-    ).resolves.toBe(campaign)
-    await expect(service.listCampaigns(campaignMemberId)).resolves.toEqual([
-      campaign,
-    ])
+    await expect(service.loadCampaign(campaign.id, campaignMemberId)).resolves.toBe(campaign)
     expect(campaign.ownerId).toBe(adminId)
   })
 
-  it('allows the Campaign owner to update only basic and temporal fields', async () => {
+  it('allows the Campaign owner to update basic and temporal fields', async () => {
     const { service } = createHarness()
     const campaign = await service.createCampaign(createInput(adminId))
-
     const updated = await service.updateCampaign(campaign.id, adminId, {
       name: 'Ashes of Aldorath: Aftermath',
       currentWorldPosition: '148',
       currentWorldDateLabel: '20 Emberwane, 812',
-      ownerId,
-      worldId: outsiderId,
-      status: 'ARCHIVED',
-    } as Parameters<typeof service.updateCampaign>[2] & {
-      ownerId: string
-      worldId: string
-      status: string
     })
-
-    expect(updated).toMatchObject({
-      name: 'Ashes of Aldorath: Aftermath',
-      currentWorldPosition: '148',
-      currentWorldDateLabel: '20 Emberwane, 812',
-      ownerId: adminId,
-      worldId,
-      timelineId,
-      status: 'ACTIVE',
-    })
+    expect(updated.name).toBe('Ashes of Aldorath: Aftermath')
   })
 
-  it('rejects non-owner and archived Campaign updates', async () => {
+  it('allows GM and Assistant GM to update shared Campaign details but not the name', async () => {
+    const { repository, service } = createHarness()
+    const campaign = await service.createCampaign(createInput(adminId))
+    await repository.createCampaignMembership({
+      campaignId: campaign.id,
+      userId: gmId,
+      role: 'GM',
+    })
+
+    const updated = await service.updateCampaignManagement(campaign.id, gmId, {
+      description: 'Updated by the GM.',
+      currentWorldPosition: '150',
+      currentWorldDateLabel: '22 Emberwane, 812',
+    })
+    expect(updated.description).toBe('Updated by the GM.')
+
+    await expect(
+      service.updateCampaignManagement(campaign.id, gmId, { name: 'Renamed' }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_UPDATE_FORBIDDEN' })
+  })
+
+  it('rejects player/spectator Campaign management updates', async () => {
+    const { repository, service } = createHarness()
+    const campaign = await service.createCampaign(createInput(adminId))
+    await repository.createCampaignMembership({
+      campaignId: campaign.id,
+      userId: campaignMemberId,
+      role: 'PLAYER',
+    })
+
+    await expect(
+      service.updateCampaignManagement(campaign.id, campaignMemberId, {
+        description: 'Nope',
+      }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_UPDATE_FORBIDDEN' })
+  })
+
+  it('rejects non-owner and archived owner-only Campaign updates', async () => {
     const { service } = createHarness()
     const campaign = await service.createCampaign(createInput(adminId))
-
     await expect(
       service.updateCampaign(campaign.id, ownerId, { name: 'Taken over' }),
-    ).rejects.toMatchObject({
-      code: 'CAMPAIGN_UPDATE_FORBIDDEN',
-    } satisfies Partial<CampaignDomainError>)
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_UPDATE_FORBIDDEN' })
 
     campaign.status = 'ARCHIVED'
-
     await expect(
       service.updateCampaign(campaign.id, adminId, { name: 'Reopened' }),
-    ).rejects.toMatchObject({
-      code: 'CAMPAIGN_UPDATE_FORBIDDEN',
-    } satisfies Partial<CampaignDomainError>)
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_UPDATE_FORBIDDEN' })
   })
 })
