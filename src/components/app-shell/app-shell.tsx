@@ -25,6 +25,7 @@ export interface AppShellContext {
 
 export interface AppShellUser {
   displayName: string | null
+  username: string
   email: string
 }
 
@@ -60,7 +61,8 @@ function getContextItems(context?: AppShellContext): ContextItem[] {
 }
 
 function getInitials(user: AppShellUser) {
-  const source = user.displayName?.trim() || user.email.split('@')[0] || 'W'
+  const source =
+    user.displayName?.trim() || user.username || user.email.split('@')[0] || 'W'
   const words = source.split(/\s+/).filter(Boolean)
 
   if (words.length > 1) {
@@ -169,7 +171,7 @@ export function AppShell({ children, user, context }: AppShellProps) {
 
   const contextItems = getContextItems(context)
   const activeContext = contextItems.at(-1)
-  const displayName = user.displayName?.trim() || user.email
+  const displayName = user.displayName?.trim() || `@${user.username}`
   const background = uiAssets.backgrounds.appShell
 
   useEffect(() => {
@@ -319,6 +321,7 @@ export function AppShell({ children, user, context }: AppShellProps) {
                   </span>
                   <div>
                     <strong>{displayName}</strong>
+                    <span>@{user.username}</span>
                     <span>{user.email}</span>
                   </div>
                 </div>

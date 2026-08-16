@@ -8,7 +8,7 @@ import {
 const user = {
   id: '14000000-0000-4000-8000-000000000001',
   email: 'player@example.test',
-  username: null,
+  username: 'player',
   displayName: 'Player',
 }
 

@@ -18,9 +18,9 @@ export const devScenarioCatalog = [
     title: 'Authentication and account lifecycle',
     domain: 'Users',
     purpose:
-      'Exercise real Better Auth registration, database sessions, logout, authenticated User resolution, deletion blockers, and World orphaning.',
+      'Exercise real Better Auth registration with required public username, database sessions, logout, authenticated User resolution, deletion blockers, and World orphaning.',
     href: '/dev/auth-account-lifecycle',
-    issueNumbers: [14],
+    issueNumbers: [14, 57],
     prerequisites: [
       'Dedicated development database',
       'Applied Prisma migrations',

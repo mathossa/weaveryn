@@ -5,7 +5,7 @@ import { authenticatedUserNotFound, unauthenticated } from './auth-errors'
 export interface AuthenticatedUser {
   id: string
   email: string
-  username: string | null
+  username: string
   displayName: string | null
 }
 

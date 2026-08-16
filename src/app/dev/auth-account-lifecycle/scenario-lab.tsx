@@ -16,6 +16,7 @@ import styles from './scenario-lab.module.css'
 
 const metadata = requireDevScenarioMetadata('auth-account-lifecycle')
 const email = 'dev-auth-account-lifecycle@weaveryn.local'
+const username = 'auth-lifecycle-tester'
 const displayName = 'Auth Lifecycle Tester'
 
 interface SafeAuthStatus {
@@ -153,7 +154,7 @@ export function AuthAccountLifecycleLab() {
     <main className="dev-page">
       <ScenarioNavigation issueNumbers={metadata.issueNumbers} />
       <header>
-        <span>Development only · Issue #14</span>
+        <span>Development only · Issues #14 / #57</span>
         <h1>Better Auth account lifecycle</h1>
         <p>
           This browser flow uses the real Better Auth endpoints and real cookie
@@ -172,7 +173,9 @@ export function AuthAccountLifecycleLab() {
       <section>
         <h2>Temporary development credential</h2>
         <p>
-          Account email: <code>{email}</code>
+          Public username: <code>@{username}</code>
+          <br />
+          Private account email: <code>{email}</code>
         </p>
         <label className={styles.credentialField}>
           Temporary password
@@ -191,8 +194,8 @@ export function AuthAccountLifecycleLab() {
             onClick={() =>
               void authRequest(
                 '/api/auth/sign-up/email',
-                { name: displayName, email, password },
-                'Account created through Better Auth. Sign in next.',
+                { name: displayName, username, email, password },
+                'Account created through Better Auth with the required public username. Sign in next.',
               )
             }
           >

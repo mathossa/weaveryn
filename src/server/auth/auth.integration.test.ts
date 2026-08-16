@@ -3,6 +3,7 @@ import 'dotenv/config'
 import { randomUUID } from 'node:crypto'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { auth } from '@/lib/auth'
+import { normalizeUsername } from '@/lib/auth-policy'
 import { prisma } from '@/lib/prisma'
 import { assertSafeDevEnvironment } from '@/server/dev-scenarios/environment'
 import { requireAuthenticatedUser } from './authenticated-user'
@@ -31,28 +32,36 @@ function requestHeadersFromSetCookie(responseHeaders: Headers) {
   return new Headers({ cookie: cookies.join('; ') })
 }
 
+function uniqueUsername(prefix = 'auth') {
+  return `${prefix}_${randomUUID().replaceAll('-', '').slice(0, 12)}`
+}
+
 describe('Better Auth integration', () => {
-  let createdEmail: string | null = null
+  const createdEmails: string[] = []
 
   beforeAll(() => {
     assertSafeDevEnvironment()
   })
 
   afterEach(async () => {
-    if (!createdEmail) return
+    if (createdEmails.length === 0) return
 
-    await prisma.user.deleteMany({ where: { email: createdEmail } })
-    createdEmail = null
+    await prisma.user.deleteMany({ where: { email: { in: createdEmails } } })
+    createdEmails.length = 0
   })
 
-  it('registers, hashes credentials, signs in, resolves the User, and signs out', async () => {
-    createdEmail = `auth-integration-${randomUUID()}@weaveryn.local`
+  it('registers with a normalized username, hashes credentials, signs in, resolves the User, and signs out', async () => {
+    const createdEmail = `auth-integration-${randomUUID()}@weaveryn.local`
+    const submittedUsername = uniqueUsername('Auth')
+    const username = normalizeUsername(submittedUsername)
+    createdEmails.push(createdEmail)
 
     await auth.api.signUpEmail({
       body: {
         email: createdEmail,
         password: PASSWORD,
         name: DISPLAY_NAME,
+        username: submittedUsername,
       },
     })
 
@@ -61,10 +70,12 @@ describe('Better Auth integration', () => {
       select: {
         id: true,
         email: true,
+        username: true,
         displayName: true,
       },
     })
     expect(user.email).toBe(createdEmail)
+    expect(user.username).toBe(username)
     expect(user.displayName).toBe(DISPLAY_NAME)
 
     const credential = await prisma.authAccount.findFirstOrThrow({
@@ -106,7 +117,7 @@ describe('Better Auth integration', () => {
     expect(resolvedUser).toEqual({
       id: user.id,
       email: user.email,
-      username: null,
+      username,
       displayName: DISPLAY_NAME,
     })
 
@@ -118,5 +129,70 @@ describe('Better Auth integration', () => {
     expect(await prisma.authSession.count({ where: { userId: user.id } })).toBe(
       0,
     )
+  })
+
+  it('rejects registration when username is missing or invalid', async () => {
+    const missingEmail = `auth-missing-${randomUUID()}@weaveryn.local`
+    const invalidEmail = `auth-invalid-${randomUUID()}@weaveryn.local`
+    createdEmails.push(missingEmail, invalidEmail)
+
+    const missingUsername = {} as { username: string }
+    await expect(
+      auth.api.signUpEmail({
+        body: {
+          email: missingEmail,
+          password: PASSWORD,
+          name: DISPLAY_NAME,
+          ...missingUsername,
+        },
+      }),
+    ).rejects.toBeDefined()
+
+    await expect(
+      auth.api.signUpEmail({
+        body: {
+          email: invalidEmail,
+          password: PASSWORD,
+          name: DISPLAY_NAME,
+          username: 'Admin',
+        },
+      }),
+    ).rejects.toBeDefined()
+
+    expect(
+      await prisma.user.count({
+        where: { email: { in: [missingEmail, invalidEmail] } },
+      }),
+    ).toBe(0)
+  })
+
+  it('rejects a case-insensitive duplicate username', async () => {
+    const firstEmail = `auth-duplicate-a-${randomUUID()}@weaveryn.local`
+    const secondEmail = `auth-duplicate-b-${randomUUID()}@weaveryn.local`
+    const username = uniqueUsername('case')
+    createdEmails.push(firstEmail, secondEmail)
+
+    await auth.api.signUpEmail({
+      body: {
+        email: firstEmail,
+        password: PASSWORD,
+        name: DISPLAY_NAME,
+        username,
+      },
+    })
+
+    await expect(
+      auth.api.signUpEmail({
+        body: {
+          email: secondEmail,
+          password: PASSWORD,
+          name: DISPLAY_NAME,
+          username: username.toUpperCase(),
+        },
+      }),
+    ).rejects.toBeDefined()
+
+    expect(await prisma.user.count({ where: { username } })).toBe(1)
+    expect(await prisma.user.count({ where: { email: secondEmail } })).toBe(0)
   })
 })
