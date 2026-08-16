@@ -230,7 +230,7 @@ export function AppShell({ children, user, context }: AppShellProps) {
           src={background.src}
           alt=""
           fill
-          preload
+          loading="eager"
           sizes="100vw"
           className={styles.backgroundImage}
         />
@@ -239,7 +239,7 @@ export function AppShell({ children, user, context }: AppShellProps) {
 
       <header className={styles.header}>
         <Link className={styles.brand} href="/select" aria-label="Weaveryn home">
-          <BrandLogo className={styles.brandLogo} preload />
+          <BrandLogo className={styles.brandLogo} />
           <span className={styles.brandName}>Weaveryn</span>
         </Link>
 
