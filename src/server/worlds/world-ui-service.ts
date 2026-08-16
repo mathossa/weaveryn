@@ -1,11 +1,7 @@
 import { prisma } from '../../lib/prisma'
 
 export type WorldAccessKind =
-  | 'OWNER'
-  | 'ADMIN'
-  | 'MEMBER'
-  | 'VIEWER'
-  | 'CAMPAIGN_ONLY'
+  'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER' | 'CAMPAIGN_ONLY'
 
 export interface WorldNavigationChoice {
   id: string
@@ -63,10 +59,7 @@ export async function listWorldNavigationChoices(
         {
           campaigns: {
             some: {
-              OR: [
-                { ownerId: userId },
-                { memberships: { some: { userId } } },
-              ],
+              OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
             },
           },
         },
@@ -135,10 +128,7 @@ export async function getWorldOverview(
         {
           campaigns: {
             some: {
-              OR: [
-                { ownerId: userId },
-                { memberships: { some: { userId } } },
-              ],
+              OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
             },
           },
         },
@@ -156,10 +146,7 @@ export async function getWorldOverview(
       },
       campaigns: {
         where: {
-          OR: [
-            { ownerId: userId },
-            { memberships: { some: { userId } } },
-          ],
+          OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
         },
         select: {
           id: true,

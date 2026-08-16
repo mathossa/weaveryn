@@ -22,7 +22,9 @@ export function parseWorldFormInput(value: unknown): WorldFormInput {
 
   const name = record.name.trim()
   if (name.length < 1 || name.length > 120) {
-    throw new WorldInputError('World name must be between 1 and 120 characters.')
+    throw new WorldInputError(
+      'World name must be between 1 and 120 characters.',
+    )
   }
 
   let description: string | null | undefined
@@ -34,7 +36,9 @@ export function parseWorldFormInput(value: unknown): WorldFormInput {
     }
     description = record.description.trim()
     if (description.length > 4000) {
-      throw new WorldInputError('World description must be 4000 characters or less.')
+      throw new WorldInputError(
+        'World description must be 4000 characters or less.',
+      )
     }
   }
 

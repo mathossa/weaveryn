@@ -25,7 +25,9 @@ export default async function WorldSelectionPage({
   const [user, query] = await Promise.all([loadWorldPageUser(), searchParams])
   const allWorlds = await listWorldNavigationChoices(user.id)
   const weaverMode = query.mode === 'weaver'
-  const worlds = weaverMode ? allWorlds.filter((world) => world.canWeave) : allWorlds
+  const worlds = weaverMode
+    ? allWorlds.filter((world) => world.canWeave)
+    : allWorlds
 
   return (
     <AuthenticatedAppShell user={user}>
@@ -47,7 +49,9 @@ export default async function WorldSelectionPage({
         {worlds.length === 0 ? (
           <StatusPanel
             tone="empty"
-            title={weaverMode ? 'No Weaver Worlds available' : 'No Worlds available'}
+            title={
+              weaverMode ? 'No Weaver Worlds available' : 'No Worlds available'
+            }
             action={
               <Link className={styles.secondary} href="/world/create">
                 Create your first World
@@ -65,7 +69,9 @@ export default async function WorldSelectionPage({
                 href={`/world/${world.id}`}
                 style={{ backgroundImage: `url(${uiAssets.fallbacks.world})` }}
               >
-                <span className={styles.badge}>{accessLabels[world.accessKind]}</span>
+                <span className={styles.badge}>
+                  {accessLabels[world.accessKind]}
+                </span>
                 <strong>{world.name}</strong>
                 <span className={styles.meta}>
                   {world.orphaned ? 'Orphaned World' : 'Open World'}

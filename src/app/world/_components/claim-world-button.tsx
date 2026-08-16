@@ -16,13 +16,17 @@ export function ClaimWorldButton({ worldId }: { worldId: string }) {
       const response = await fetch(`/api/v1/worlds/${worldId}/claim`, {
         method: 'POST',
       })
-      const payload = (await response.json()) as { error?: { message?: string } }
+      const payload = (await response.json()) as {
+        error?: { message?: string }
+      }
       if (!response.ok) {
         throw new Error(payload.error?.message ?? 'World could not be claimed.')
       }
       router.refresh()
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'World could not be claimed.')
+      setError(
+        cause instanceof Error ? cause.message : 'World could not be claimed.',
+      )
     } finally {
       setPending(false)
     }
@@ -30,10 +34,19 @@ export function ClaimWorldButton({ worldId }: { worldId: string }) {
 
   return (
     <div className={styles.stack}>
-      <button className={styles.button} type="button" onClick={claim} disabled={pending}>
+      <button
+        className={styles.button}
+        type="button"
+        onClick={claim}
+        disabled={pending}
+      >
         {pending ? 'Claiming…' : 'Claim World ownership'}
       </button>
-      {error ? <p className={styles.error} role="alert">{error}</p> : null}
+      {error ? (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      ) : null}
     </div>
   )
 }

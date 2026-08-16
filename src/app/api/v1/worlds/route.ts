@@ -25,7 +25,12 @@ function errorResponse(error: unknown) {
   }
 
   return NextResponse.json(
-    { error: { code: 'WORLD_OPERATION_FAILED', message: 'World operation failed.' } },
+    {
+      error: {
+        code: 'WORLD_OPERATION_FAILED',
+        message: 'World operation failed.',
+      },
+    },
     { status: 500 },
   )
 }
@@ -33,7 +38,9 @@ function errorResponse(error: unknown) {
 export async function GET(request: Request) {
   try {
     const user = await requireAuthenticatedUser(request.headers)
-    return NextResponse.json({ worlds: await listWorldNavigationChoices(user.id) })
+    return NextResponse.json({
+      worlds: await listWorldNavigationChoices(user.id),
+    })
   } catch (error) {
     return errorResponse(error)
   }

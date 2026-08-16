@@ -21,7 +21,9 @@ interface WorldOverviewPageProps {
   params: Promise<{ worldId: string }>
 }
 
-export default async function WorldOverviewPage({ params }: WorldOverviewPageProps) {
+export default async function WorldOverviewPage({
+  params,
+}: WorldOverviewPageProps) {
   const [{ worldId }, user] = await Promise.all([params, loadWorldPageUser()])
   const world = await getWorldOverview(worldId, user.id)
   if (!world) notFound()
@@ -49,7 +51,8 @@ export default async function WorldOverviewPage({ params }: WorldOverviewPagePro
         <div className={styles.stack}>
           {world.accessKind === 'CAMPAIGN_ONLY' ? (
             <div className={styles.notice}>
-              Campaign-only access does not grant general World editing or unrestricted World-content access.
+              Campaign-only access does not grant general World editing or
+              unrestricted World-content access.
             </div>
           ) : null}
 

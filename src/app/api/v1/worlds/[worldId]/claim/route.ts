@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server'
 import { AuthDomainError, requireAuthenticatedUser } from '@/server/auth'
-import {
-  WorldDomainError,
-  claimOrphanedWorld,
-} from '@/server/worlds'
+import { WorldDomainError, claimOrphanedWorld } from '@/server/worlds'
 
 export const runtime = 'nodejs'
 

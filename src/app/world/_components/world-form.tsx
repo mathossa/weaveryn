@@ -48,7 +48,9 @@ export function WorldForm({
       router.push(`/world/${payload.world.id}`)
       router.refresh()
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'World could not be saved.')
+      setError(
+        cause instanceof Error ? cause.message : 'World could not be saved.',
+      )
     } finally {
       setPending(false)
     }
@@ -75,10 +77,18 @@ export function WorldForm({
           maxLength={4000}
         />
       </div>
-      {error ? <p className={styles.error} role="alert">{error}</p> : null}
+      {error ? (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      ) : null}
       <div className={styles.formActions}>
         <button className={styles.button} type="submit" disabled={pending}>
-          {pending ? 'Saving…' : mode === 'create' ? 'Create World' : 'Save changes'}
+          {pending
+            ? 'Saving…'
+            : mode === 'create'
+              ? 'Create World'
+              : 'Save changes'}
         </button>
       </div>
     </form>

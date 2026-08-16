@@ -34,7 +34,12 @@ function errorResponse(error: unknown) {
     )
   }
   return NextResponse.json(
-    { error: { code: 'WORLD_OPERATION_FAILED', message: 'World operation failed.' } },
+    {
+      error: {
+        code: 'WORLD_OPERATION_FAILED',
+        message: 'World operation failed.',
+      },
+    },
     { status: 500 },
   )
 }

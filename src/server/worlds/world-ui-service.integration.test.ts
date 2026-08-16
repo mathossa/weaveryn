@@ -4,7 +4,10 @@ import { randomUUID } from 'node:crypto'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { prisma } from '@/lib/prisma'
 import { assertSafeDevEnvironment } from '@/server/dev-scenarios/environment'
-import { getWorldOverview, listWorldNavigationChoices } from './world-ui-service'
+import {
+  getWorldOverview,
+  listWorldNavigationChoices,
+} from './world-ui-service'
 
 const ids: string[] = []
 const emails: string[] = []
@@ -55,7 +58,8 @@ describe('World UI projections', () => {
       data: {
         id: worldId,
         name: 'Campaign-only World',
-        description: 'Owner and World members can read this basic World description.',
+        description:
+          'Owner and World members can read this basic World description.',
         ownerId: owner.id,
       },
     })

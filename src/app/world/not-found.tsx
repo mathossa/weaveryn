@@ -17,7 +17,10 @@ export default function WorldNotFound() {
             </Link>
           }
         >
-          <p>The World does not exist or is not available through your current access.</p>
+          <p>
+            The World does not exist or is not available through your current
+            access.
+          </p>
         </StatusPanel>
       </AppPage>
     </AuthenticatedAppShell>
