@@ -144,6 +144,8 @@
   border: 1px solid var(--ui-control-border);
   border-radius: var(--ui-radius-control);
   background: var(--ui-control-surface);
+  color: inherit;
+  text-decoration: none;
 }
 .notice {
   padding: 0.85rem 1rem;
