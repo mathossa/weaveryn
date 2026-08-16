@@ -27,6 +27,7 @@ export default async function WorldOverviewPage({
   const [{ worldId }, user] = await Promise.all([params, loadWorldPageUser()])
   const world = await getWorldOverview(worldId, user.id)
   if (!world) notFound()
+  const canCreateCampaign = world.accessKind === 'OWNER' || world.accessKind === 'ADMIN'
 
   return (
     <AuthenticatedAppShell
@@ -51,8 +52,7 @@ export default async function WorldOverviewPage({
         <div className={styles.stack}>
           {world.accessKind === 'CAMPAIGN_ONLY' ? (
             <div className={styles.notice}>
-              Campaign-only access does not grant general World editing or
-              unrestricted World-content access.
+              Campaign-only access does not grant general World editing or unrestricted World-content access.
             </div>
           ) : null}
 
@@ -60,16 +60,10 @@ export default async function WorldOverviewPage({
             <StatusPanel
               tone="empty"
               title="This World currently has no owner"
-              action={
-                world.canClaimOwnership ? (
-                  <ClaimWorldButton worldId={world.id} />
-                ) : undefined
-              }
+              action={world.canClaimOwnership ? <ClaimWorldButton worldId={world.id} /> : undefined}
             >
               <p>
-                Existing Campaigns and World relationships remain intact.
-                Ownership can only be claimed when the backend lifecycle rules
-                allow it.
+                Existing Campaigns and World relationships remain intact. Ownership can only be claimed when the backend lifecycle rules allow it.
               </p>
             </StatusPanel>
           ) : null}
@@ -78,30 +72,38 @@ export default async function WorldOverviewPage({
             <section className={styles.panel}>
               <h2>Campaigns you can access</h2>
               {world.campaigns.length === 0 ? (
-                <p className={styles.meta}>
-                  No accessible Campaigns in this World yet.
-                </p>
+                <p className={styles.meta}>No accessible Campaigns in this World yet.</p>
               ) : (
                 <div className={styles.campaignList}>
                   {world.campaigns.map((campaign) => (
-                    <div className={styles.campaign} key={campaign.id}>
+                    <Link
+                      className={styles.campaign}
+                      key={campaign.id}
+                      href={`/world/${world.id}/campaign/${campaign.id}`}
+                    >
                       <strong>{campaign.name}</strong>
                       <span className={styles.meta}>{campaign.role}</span>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}
-              <p className={styles.meta}>
-                Campaign overview navigation will connect here in #53.
-              </p>
+              <div className={styles.formActions}>
+                <Link className={styles.secondary} href={`/world/${world.id}/campaign`}>
+                  Browse Campaigns
+                </Link>
+                {canCreateCampaign ? (
+                  <Link className={styles.secondary} href={`/world/${world.id}/campaign/create`}>
+                    Create Campaign
+                  </Link>
+                ) : null}
+              </div>
             </section>
 
             <section className={styles.panel}>
               <h2>World context</h2>
               <p className={styles.meta}>Entities and timeline</p>
               <p>
-                World entities and timeline-aware content will connect here when
-                their dedicated UI is implemented.
+                World entities and timeline-aware content will connect here when their dedicated UI is implemented.
               </p>
             </section>
           </div>
