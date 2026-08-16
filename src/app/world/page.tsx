@@ -15,16 +15,31 @@ const accessLabels = {
   CAMPAIGN_ONLY: 'Campaign access',
 } as const
 
-export default async function WorldSelectionPage() {
-  const user = await requireAuthenticatedUser(new Headers(await headers()))
-  const worlds = await listWorldNavigationChoices(user.id)
+interface WorldSelectionPageProps {
+  searchParams: Promise<{ mode?: string | string[] }>
+}
+
+export default async function WorldSelectionPage({
+  searchParams,
+}: WorldSelectionPageProps) {
+  const [user, query] = await Promise.all([
+    requireAuthenticatedUser(new Headers(await headers())),
+    searchParams,
+  ])
+  const allWorlds = await listWorldNavigationChoices(user.id)
+  const weaverMode = query.mode === 'weaver'
+  const worlds = weaverMode ? allWorlds.filter((world) => world.canWeave) : allWorlds
 
   return (
     <AuthenticatedAppShell user={user}>
       <AppPage
-        eyebrow="Worlds"
+        eyebrow={weaverMode ? 'Weaver' : 'Worlds'}
         title="Choose a World"
-        description="Open a World you can access, or begin a new one."
+        description={
+          weaverMode
+            ? 'Choose a World where you can enter as owner, administrator, GM, or assistant GM.'
+            : 'Open a World you can access, or begin a new one.'
+        }
         wide
         actions={
           <Link className={styles.secondary} href="/world/create">
@@ -35,7 +50,7 @@ export default async function WorldSelectionPage() {
         {worlds.length === 0 ? (
           <StatusPanel
             tone="empty"
-            title="No Worlds available"
+            title={weaverMode ? 'No Weaver Worlds available' : 'No Worlds available'}
             action={
               <Link className={styles.secondary} href="/world/create">
                 Create your first World
