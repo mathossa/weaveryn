@@ -10,6 +10,7 @@ const user = {
   email: 'player@example.test',
   username: 'player',
   displayName: 'Player',
+  isInstanceAdmin: false,
 }
 
 function dependencies(
