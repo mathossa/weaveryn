@@ -115,10 +115,43 @@ export class CampaignService {
         pickCampaignUpdates(input),
       )
 
-      if (!campaign) {
+      if (!campaign) throw campaignUpdateForbidden()
+      return campaign
+    })
+  }
+
+  updateCampaignManagement(
+    campaignId: string,
+    userId: string,
+    input: UpdateCampaignInput,
+  ): Promise<CampaignRecord> {
+    return this.repository.runInTransaction(async (repository) => {
+      const access = await repository.findCampaignManagementAccess(
+        campaignId,
+        userId,
+      )
+
+      if (!access || access.status === 'ARCHIVED') {
         throw campaignUpdateForbidden()
       }
 
+      const isOwner = access.ownerId === userId
+      const canEditShared =
+        isOwner || access.role === 'GM' || access.role === 'ASSISTANT_GM'
+
+      if (!canEditShared || (input.name !== undefined && !isOwner)) {
+        throw campaignUpdateForbidden()
+      }
+
+      const updates = pickCampaignUpdates(input)
+      if (!isOwner) delete updates.name
+
+      const campaign = await repository.updateManagedCampaign(
+        campaignId,
+        updates,
+      )
+
+      if (!campaign) throw campaignUpdateForbidden()
       return campaign
     })
   }
