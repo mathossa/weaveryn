@@ -12,6 +12,7 @@ export interface WorldNavigationChoice {
   name: string
   accessKind: WorldAccessKind
   orphaned: boolean
+  canWeave: boolean
 }
 
 export interface WorldOverviewCampaign {
@@ -80,20 +81,45 @@ export async function listWorldNavigationChoices(
         select: { role: true },
         take: 1,
       },
+      campaigns: {
+        where: {
+          OR: [
+            { ownerId: userId },
+            {
+              memberships: {
+                some: {
+                  userId,
+                  role: { in: ['GM', 'ASSISTANT_GM'] },
+                },
+              },
+            },
+          ],
+        },
+        select: { id: true },
+        take: 1,
+      },
     },
     orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
   })
 
-  return worlds.map((world) => ({
-    id: world.id,
-    name: world.name,
-    accessKind: worldAccessKind({
+  return worlds.map((world) => {
+    const accessKind = worldAccessKind({
       ownerId: world.ownerId,
       userId,
       membershipRole: world.memberships[0]?.role ?? null,
-    }),
-    orphaned: world.ownerId === null,
-  }))
+    })
+
+    return {
+      id: world.id,
+      name: world.name,
+      accessKind,
+      orphaned: world.ownerId === null,
+      canWeave:
+        accessKind === 'OWNER' ||
+        accessKind === 'ADMIN' ||
+        world.campaigns.length > 0,
+    }
+  })
 }
 
 export async function getWorldOverview(
@@ -171,7 +197,7 @@ export async function getWorldOverview(
   })
   const canClaimOwnership =
     world.ownerId === null &&
-    ((membershipRole === 'ADMIN') ||
+    (membershipRole === 'ADMIN' ||
       (world._count.memberships === 0 &&
         (membershipRole === 'MEMBER' || Boolean(ownsActiveCampaign))))
 
