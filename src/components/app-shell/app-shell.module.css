@@ -494,7 +494,83 @@ a.contextEntry:hover {
   cursor: pointer;
 }
 
-@media (max-width: 900px) {
+/* Tablet keeps the desktop-style single top bar, but compresses it so the
+   World / Campaign / Character trail remains usable without switching to the
+   phone-only single-context control. */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .header {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    min-height: 68px;
+    gap: 0.7rem;
+    padding: 0.6rem 0.85rem;
+  }
+
+  .brand {
+    gap: 0.45rem;
+  }
+
+  .brandLogo {
+    width: 2.35rem;
+    height: 2.35rem;
+  }
+
+  .brandName {
+    font-size: 1.05rem;
+  }
+
+  .contextTrail,
+  .contextTrailSlot {
+    gap: 0.25rem;
+  }
+
+  .contextEntry {
+    gap: 0.4rem;
+    padding: 0.25rem 0.3rem;
+  }
+
+  .contextGlyph {
+    width: 1.85rem;
+    height: 1.85rem;
+  }
+
+  .contextGlyph svg {
+    width: 1rem;
+  }
+
+  .contextKind {
+    display: none;
+  }
+
+  .contextName {
+    max-width: 8rem;
+    font-size: 0.78rem;
+  }
+
+  .profileButton {
+    gap: 0.4rem;
+  }
+
+  .profileName {
+    max-width: 6rem;
+    font-size: 0.78rem;
+  }
+
+  .avatar {
+    width: 2.15rem;
+    height: 2.15rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 760px) {
+  .brandName,
+  .profileName,
+  .profileChevron {
+    display: none;
+  }
+}
+
+/* The compact single-context header is phone-only. */
+@media (max-width: 640px) {
   .header {
     grid-template-columns: auto minmax(0, 1fr) auto;
     min-height: 66px;
