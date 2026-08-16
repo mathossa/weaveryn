@@ -32,6 +32,7 @@ class Repository implements CharacterRepository {
   memberships = new Map<string, WorldRole>([
     [`${worldOneId}:${memberId}`, 'MEMBER'],
   ])
+  campaignWorldMemberships = new Set<string>()
   characters: CharacterRecord[] = []
   incarnations: WorldCharacterRecord[] = []
   participations = new Set<string>()
@@ -128,6 +129,9 @@ class Repository implements CharacterRepository {
   ) {
     const wc = await this.findWorldCharacterForOwner(id, userId)
     return wc ? Object.assign(wc, input, { updatedAt: now }) : null
+  }
+  async hasCampaignMembershipInWorld(worldId: string, userId: string) {
+    return this.campaignWorldMemberships.has(`${worldId}:${userId}`)
   }
   async hasCampaignCharacterParticipation(worldCharacterId: string) {
     return this.participations.has(worldCharacterId)
@@ -261,6 +265,37 @@ describe('CharacterService', () => {
       nameOverride: 'Bodwick of Aldorath',
       worldData: { history: 'after' },
     })
+  })
+
+  it('lets a Campaign member create and update only their own WorldCharacter without World edit permission', async () => {
+    const { repository, service } = harness()
+    const character = await service.createCharacter({
+      ownerUserId: ownerId,
+      name: 'Bodwick',
+    })
+    repository.campaignWorldMemberships.add(`${worldThreeId}:${ownerId}`)
+
+    const incarnation = await service.createWorldCharacter({
+      actorUserId: ownerId,
+      characterId: character.id,
+      worldId: worldThreeId,
+    })
+
+    await expect(
+      service.updateWorldCharacter(incarnation.id, ownerId, {
+        nameOverride: 'Bodwick of the invited campaign',
+      }),
+    ).resolves.toMatchObject({
+      nameOverride: 'Bodwick of the invited campaign',
+    })
+
+    await expect(
+      service.createWorldCharacter({
+        actorUserId: outsiderId,
+        characterId: character.id,
+        worldId: worldThreeId,
+      }),
+    ).rejects.toMatchObject({ code: 'CHARACTER_NOT_FOUND' })
   })
 
   it('rejects a second incarnation of the same Character in one World', async () => {
