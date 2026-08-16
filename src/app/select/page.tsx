@@ -30,7 +30,9 @@ export default async function SelectPage() {
                 </div>
               </div>
 
-              <div className={styles.characterGrid}>
+              <div
+                className={`${styles.characterGrid} ${styles.recentCharacterGrid}`}
+              >
                 {recentCharacters.map((character) => (
                   <CharacterChoiceCard key={character.id} character={character} />
                 ))}
