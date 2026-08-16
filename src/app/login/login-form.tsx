@@ -57,9 +57,7 @@ export function LoginForm() {
     setFeedback(null)
 
     const endpoint =
-      mode === 'sign-in'
-        ? '/api/auth/sign-in/email'
-        : '/api/auth/sign-up/email'
+      mode === 'sign-in' ? '/api/auth/sign-in/email' : '/api/auth/sign-up/email'
     const body =
       mode === 'sign-in'
         ? { email, password }
@@ -183,9 +181,7 @@ export function LoginForm() {
             {mode === 'register' ? (
               <HintPopover label="Show password requirements">
                 <strong className={styles.hintTitle}>Password rules</strong>
-                <span>
-                  Use at least {AUTH_PASSWORD_MIN_LENGTH} characters.
-                </span>
+                <span>Use at least {AUTH_PASSWORD_MIN_LENGTH} characters.</span>
               </HintPopover>
             ) : null}
           </div>

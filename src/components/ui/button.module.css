@@ -34,11 +34,7 @@
 
 .primary {
   border-color: color-mix(in srgb, var(--ui-accent) 72%, white 12%);
-  background: linear-gradient(
-    180deg,
-    var(--ui-accent-hover),
-    var(--ui-accent)
-  );
+  background: linear-gradient(180deg, var(--ui-accent-hover), var(--ui-accent));
   color: var(--ui-accent-ink);
 }
 
@@ -56,7 +52,11 @@
 
 .danger {
   border-color: color-mix(in srgb, var(--ui-danger) 55%, transparent);
-  background: color-mix(in srgb, var(--ui-danger) 15%, var(--ui-control-surface));
+  background: color-mix(
+    in srgb,
+    var(--ui-danger) 15%,
+    var(--ui-control-surface)
+  );
   color: var(--ui-danger);
 }
 
@@ -80,7 +80,11 @@
 }
 
 .danger:not(:disabled):hover {
-  background: color-mix(in srgb, var(--ui-danger) 22%, var(--ui-control-surface));
+  background: color-mix(
+    in srgb,
+    var(--ui-danger) 22%,
+    var(--ui-control-surface)
+  );
 }
 
 @media (prefers-reduced-motion: reduce) {

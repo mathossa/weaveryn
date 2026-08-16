@@ -65,8 +65,10 @@
   right: 0.72rem;
   width: 0.65rem;
   height: 0.65rem;
-  border-top: 1px solid color-mix(in srgb, var(--ui-accent) 34%, var(--ui-border));
-  border-left: 1px solid color-mix(in srgb, var(--ui-accent) 34%, var(--ui-border));
+  border-top: 1px solid
+    color-mix(in srgb, var(--ui-accent) 34%, var(--ui-border));
+  border-left: 1px solid
+    color-mix(in srgb, var(--ui-accent) 34%, var(--ui-border));
   background: rgb(20, 28, 45);
   content: '';
   transform: rotate(45deg);

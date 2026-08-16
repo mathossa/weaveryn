@@ -17,7 +17,8 @@ export const metadata: Metadata = {
     default: 'Weaveryn',
     template: '%s · Weaveryn',
   },
-  description: 'Persistent worlds, campaigns, characters, and connected stories.',
+  description:
+    'Persistent worlds, campaigns, characters, and connected stories.',
 }
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
