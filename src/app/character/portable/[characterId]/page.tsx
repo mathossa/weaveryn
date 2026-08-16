@@ -5,6 +5,7 @@ import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-
 import { getPortableCharacterOverview } from '@/server/characters'
 import { AddToWorldButton } from '../../_components/add-to-world-button'
 import { CharacterForm } from '../../_components/character-form'
+import { CharacterPortrait } from '../../_components/character-portrait'
 import { loadCharacterPageUser } from '../../_lib/load-character-user'
 import styles from '../../character.module.css'
 
@@ -43,7 +44,12 @@ export default async function PortableCharacterPage({
   return (
     <AuthenticatedAppShell
       user={user}
-      context={{ character: { label: character.name, href: `/character/portable/${character.id}` } }}
+      context={{
+        character: {
+          label: character.name,
+          href: `/character/portable/${character.id}`,
+        },
+      }}
     >
       <AppPage
         eyebrow="Portable Character"
@@ -78,7 +84,8 @@ export default async function PortableCharacterPage({
                 />
               ) : (
                 <p className={styles.meta}>
-                  This World is not currently available for a new incarnation of this Character.
+                  This World is not currently available for a new incarnation of
+                  this Character.
                 </p>
               )}
             </section>
@@ -87,11 +94,17 @@ export default async function PortableCharacterPage({
           <div className={styles.identityGrid}>
             <section className={styles.panel}>
               <h2>Portable identity</h2>
+              <CharacterPortrait image={character.image} name={character.name} />
               <CharacterForm
                 mode="edit"
                 characterId={character.id}
                 initialName={character.name}
               />
+              <p className={styles.meta}>
+                Portrait upload is not part of this MVP screen yet. Existing
+                artwork is shown when available; otherwise the shared Character
+                placeholder is used.
+              </p>
             </section>
 
             <section className={styles.panel}>
@@ -108,7 +121,9 @@ export default async function PortableCharacterPage({
                     >
                       <span className={styles.listCopy}>
                         <strong>{incarnation.name}</strong>
-                        <span className={styles.meta}>{incarnation.world.name}</span>
+                        <span className={styles.meta}>
+                          {incarnation.world.name}
+                        </span>
                       </span>
                       <span>Open →</span>
                     </Link>
@@ -121,7 +136,8 @@ export default async function PortableCharacterPage({
           <section className={styles.panel}>
             <h2>Add to a World</h2>
             <p className={styles.meta}>
-              Creating a WorldCharacter does not change the portable Character. The same Character can have one distinct incarnation per World.
+              Creating a WorldCharacter does not change the portable Character.
+              The same Character can have one distinct incarnation per World.
             </p>
             {character.availableWorlds.length === 0 ? (
               <p>No additional authorized Worlds are available right now.</p>
