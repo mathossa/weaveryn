@@ -29,7 +29,7 @@ export function campaignMainTimelineNotFound(worldId: string) {
 export function campaignUpdateForbidden() {
   return new CampaignDomainError(
     'CAMPAIGN_UPDATE_FORBIDDEN',
-    'Campaign does not exist, is archived, or the user is not its owner.',
+    'Campaign does not exist, is archived, or the user is not authorized to update the requested fields.',
   )
 }
 

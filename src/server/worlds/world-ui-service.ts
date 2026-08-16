@@ -14,7 +14,8 @@ export interface WorldNavigationChoice {
 export interface WorldOverviewCampaign {
   id: string
   name: string
-  role: 'OWNER' | 'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR'
+  role: 'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR'
+  isOwner: boolean
 }
 
 export interface WorldOverview {
@@ -24,6 +25,7 @@ export interface WorldOverview {
   accessKind: WorldAccessKind
   orphaned: boolean
   canEditBasicInfo: boolean
+  canCreateCampaign: boolean
   canClaimOwnership: boolean
   hasFullWorldAccess: boolean
   campaigns: WorldOverviewCampaign[]
@@ -44,7 +46,7 @@ function campaignRole(input: {
   userId: string
   membershipRole: 'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR' | null
 }): WorldOverviewCampaign['role'] {
-  if (input.ownerId === input.userId) return 'OWNER'
+  if (input.ownerId === input.userId) return 'GM'
   return input.membershipRole ?? 'SPECTATOR'
 }
 
@@ -178,6 +180,7 @@ export async function getWorldOverview(
   })
   const hasFullWorldAccess = accessKind !== 'CAMPAIGN_ONLY'
   const canEditBasicInfo = accessKind === 'OWNER' || accessKind === 'ADMIN'
+  const canCreateCampaign = accessKind === 'OWNER' || accessKind === 'ADMIN'
   const ownsActiveCampaign = await prisma.campaign.findFirst({
     where: { worldId, ownerId: userId, status: 'ACTIVE' },
     select: { id: true },
@@ -195,6 +198,7 @@ export async function getWorldOverview(
     accessKind,
     orphaned: world.ownerId === null,
     canEditBasicInfo,
+    canCreateCampaign,
     canClaimOwnership,
     hasFullWorldAccess,
     campaigns: world.campaigns.map((campaign) => ({
@@ -205,6 +209,7 @@ export async function getWorldOverview(
         userId,
         membershipRole: campaign.memberships[0]?.role ?? null,
       }),
+      isOwner: campaign.ownerId === userId,
     })),
   }
 }

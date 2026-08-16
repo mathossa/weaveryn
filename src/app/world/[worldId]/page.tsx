@@ -84,16 +84,36 @@ export default async function WorldOverviewPage({
               ) : (
                 <div className={styles.campaignList}>
                   {world.campaigns.map((campaign) => (
-                    <div className={styles.campaign} key={campaign.id}>
+                    <Link
+                      className={styles.campaign}
+                      key={campaign.id}
+                      href={`/world/${world.id}/campaign/${campaign.id}`}
+                    >
                       <strong>{campaign.name}</strong>
-                      <span className={styles.meta}>{campaign.role}</span>
-                    </div>
+                      <span className={styles.meta}>
+                        {campaign.isOwner ? 'Owner · ' : ''}
+                        {campaign.role}
+                      </span>
+                    </Link>
                   ))}
                 </div>
               )}
-              <p className={styles.meta}>
-                Campaign overview navigation will connect here in #53.
-              </p>
+              <div className={styles.formActions}>
+                <Link
+                  className={styles.secondary}
+                  href={`/world/${world.id}/campaign`}
+                >
+                  Browse Campaigns
+                </Link>
+                {world.canCreateCampaign ? (
+                  <Link
+                    className={styles.secondary}
+                    href={`/world/${world.id}/campaign/create`}
+                  >
+                    Create Campaign
+                  </Link>
+                ) : null}
+              </div>
             </section>
 
             <section className={styles.panel}>

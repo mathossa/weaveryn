@@ -7,6 +7,7 @@ import {
   type CreateCampaignMembershipInput,
 } from './campaign-membership-repository'
 import type {
+  CampaignManagementAccess,
   CampaignRecord,
   CampaignRepository,
   CampaignTimelineReference,
@@ -143,14 +144,72 @@ export class PrismaCampaignRepository implements CampaignRepository {
       data: input,
     })
 
-    if (result.count !== 1) {
-      return null
-    }
+    if (result.count !== 1) return null
 
     const campaign = await this.client.campaign.findUniqueOrThrow({
       where: { id: campaignId },
     })
 
+    return toCampaignRecord(campaign)
+  }
+
+  async findCampaignManagementAccess(
+    campaignId: string,
+    userId: string,
+  ): Promise<CampaignManagementAccess | null> {
+    const campaign = await this.client.campaign.findFirst({
+      where: {
+        id: campaignId,
+        OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+      },
+      select: {
+        ownerId: true,
+        status: true,
+        memberships: {
+          where: { userId },
+          select: { role: true },
+          take: 1,
+        },
+      },
+    })
+
+    if (!campaign) return null
+
+    return {
+      ownerId: campaign.ownerId,
+      status: campaign.status,
+      role: campaign.memberships[0]?.role ?? null,
+    }
+  }
+
+  async updateManagedCampaign(
+    campaignId: string,
+    userId: string,
+    input: UpdateCampaignRecordInput,
+  ): Promise<CampaignRecord | null> {
+    const result = await this.client.campaign.updateMany({
+      where: {
+        id: campaignId,
+        status: { not: 'ARCHIVED' },
+        OR: [
+          { ownerId: userId },
+          {
+            memberships: {
+              some: {
+                userId,
+                role: { in: ['GM', 'ASSISTANT_GM'] },
+              },
+            },
+          },
+        ],
+      },
+      data: input,
+    })
+    if (result.count !== 1) return null
+
+    const campaign = await this.client.campaign.findUniqueOrThrow({
+      where: { id: campaignId },
+    })
     return toCampaignRecord(campaign)
   }
 

@@ -8,54 +8,34 @@
   gap: 1rem;
 }
 .card {
-  position: relative;
-  min-height: 12rem;
+  min-height: 10rem;
   display: flex;
   flex-direction: column;
   justify-content: end;
-  gap: 0.35rem;
+  gap: 0.45rem;
   padding: 1rem;
-  overflow: hidden;
   border: 1px solid var(--ui-border);
   border-radius: var(--ui-radius-panel);
-  background-color: var(--ui-panel-strong);
-  background-size: cover;
-  background-position: center;
+  background: var(--ui-panel-strong);
   color: inherit;
   text-decoration: none;
 }
-.card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(5, 8, 15, 0.15),
-    rgba(5, 8, 15, 0.92)
-  );
-}
-.card > * {
-  position: relative;
-  z-index: 1;
-}
 .card strong {
-  font-size: 1.2rem;
-}
-.meta {
-  color: var(--ui-text-muted);
-  font-size: 0.82rem;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
+  font-size: 1.15rem;
 }
 .badge {
-  display: inline-flex;
   width: fit-content;
   padding: 0.2rem 0.5rem;
   border: 1px solid var(--ui-border);
   border-radius: 999px;
   color: var(--ui-accent);
   font-size: 0.72rem;
+}
+.meta {
+  color: var(--ui-text-muted);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
 }
 .panel {
   display: grid;
@@ -68,6 +48,11 @@
 .panel h2,
 .panel p {
   margin: 0;
+}
+.infoGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
 }
 .form {
   display: grid;
@@ -97,6 +82,7 @@
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
+  align-items: center;
 }
 .button,
 .secondary {
@@ -127,25 +113,15 @@
 .error {
   color: var(--ui-danger);
 }
-.infoGrid {
+.party {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1rem;
+  gap: 0.5rem;
 }
-.campaignList {
-  display: grid;
-  gap: 0.65rem;
-}
-.campaign {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.8rem;
+.partyItem {
+  padding: 0.75rem;
   border: 1px solid var(--ui-control-border);
   border-radius: var(--ui-radius-control);
   background: var(--ui-control-surface);
-  color: inherit;
-  text-decoration: none;
 }
 .notice {
   padding: 0.85rem 1rem;
