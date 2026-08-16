@@ -5,10 +5,12 @@ Weaveryn uses Better Auth for the MVP authentication boundary.
 ## Dependency
 
 - Package: `better-auth`
-- Version range: `^1.6.25`
+- Version: `1.6.25` (pinned stable release)
 - License: MIT
 - Upstream: Better Auth
 - Reason: maintained open-source email/password authentication, persisted sessions, Next.js integration, and Prisma support without requiring a hosted identity provider.
+
+The Prisma adapter is installed explicitly through `@better-auth/prisma-adapter` at the same pinned version.
 
 ## Identity model
 
@@ -45,7 +47,7 @@ Better Auth is mounted at `/api/auth/*` through its supported Next.js handler.
 
 ## Account deletion
 
-Deletion is blocked while the User still owns any Campaign or Character. Owned Worlds are explicitly orphaned by setting `World.ownerId` to `null`, preserving the World, its ID, memberships, content, timelines, and Campaign references. The User is then deleted in the same Prisma transaction. Better Auth sessions and credential account rows are removed through their explicit user-scoped cascade relationships.
+Deletion is blocked while the User still owns any Campaign or Character, regardless of Campaign status. Owned Worlds are passed through the same guarded orphaning behavior used by the World orphan lifecycle service from Issue #13, preserving the World, its ID, memberships, content, timelines, and Campaign references. The User is then deleted in the same Prisma transaction. Better Auth sessions and credential account rows are removed through their explicit user-scoped cascade relationships.
 
 ## Configuration
 
