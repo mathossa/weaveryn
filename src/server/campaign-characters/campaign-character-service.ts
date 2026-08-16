@@ -54,34 +54,38 @@ export class CampaignCharacterService {
       const campaign = await repository.findCampaignById(input.campaignId)
       if (!campaign) throw campaignCharacterCampaignNotFound(input.campaignId)
 
-      const worldCharacter = await repository.findWorldCharacterById(
-        input.worldCharacterId,
-      )
-      if (!worldCharacter)
-        throw campaignCharacterWorldCharacterNotFound(input.worldCharacterId)
-
       const isManager = await this.isManager(
         repository,
         input.actorUserId,
         input.campaignId,
         campaign.ownerId,
       )
-
-      if (!isManager) {
-        const membership = await repository.findCampaignMembership(
-          input.campaignId,
-          input.actorUserId,
-        )
-        const canAttachOwnCharacter =
-          membership?.role === 'PLAYER' &&
-          worldCharacter.ownerUserId === input.actorUserId
-
-        if (!canAttachOwnCharacter) {
-          throw campaignCharacterPermissionDenied(
+      const membership = isManager
+        ? null
+        : await repository.findCampaignMembership(
             input.campaignId,
             input.actorUserId,
           )
-        }
+
+      if (!isManager && membership?.role !== 'PLAYER') {
+        throw campaignCharacterPermissionDenied(
+          input.campaignId,
+          input.actorUserId,
+        )
+      }
+
+      const worldCharacter = await repository.findWorldCharacterById(
+        input.worldCharacterId,
+      )
+      if (!worldCharacter) {
+        throw campaignCharacterWorldCharacterNotFound(input.worldCharacterId)
+      }
+
+      if (!isManager && worldCharacter.ownerUserId !== input.actorUserId) {
+        throw campaignCharacterPermissionDenied(
+          input.campaignId,
+          input.actorUserId,
+        )
       }
 
       if (campaign.worldId !== worldCharacter.worldId) {
@@ -90,6 +94,7 @@ export class CampaignCharacterService {
           input.campaignId,
         )
       }
+
       try {
         return await repository.createCampaignCharacter({
           id: this.createId(),
@@ -160,8 +165,9 @@ export class CampaignCharacterService {
       const value = await repository.findCampaignCharacter(id)
       if (!value) throw campaignCharacterNotFound(id)
       await this.assertManager(repository, actorUserId, value.campaignId)
-      if (!(await repository.deleteCampaignCharacter(id)))
+      if (!(await repository.deleteCampaignCharacter(id))) {
         throw campaignCharacterNotFound(id)
+      }
     })
   }
 
