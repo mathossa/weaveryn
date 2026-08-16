@@ -128,7 +128,8 @@
   display: grid;
   place-items: center;
   padding: 1.5rem;
-  background: var(--ui-page-surface);
+  background: var(--ui-canvas);
+  color: var(--ui-text);
 }
 .errorPage > .panel {
   width: min(36rem, 100%);
