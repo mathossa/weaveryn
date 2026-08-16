@@ -184,10 +184,25 @@ export class PrismaCampaignRepository implements CampaignRepository {
 
   async updateManagedCampaign(
     campaignId: string,
+    userId: string,
     input: UpdateCampaignRecordInput,
   ): Promise<CampaignRecord | null> {
     const result = await this.client.campaign.updateMany({
-      where: { id: campaignId, status: { not: 'ARCHIVED' } },
+      where: {
+        id: campaignId,
+        status: { not: 'ARCHIVED' },
+        OR: [
+          { ownerId: userId },
+          {
+            memberships: {
+              some: {
+                userId,
+                role: { in: ['GM', 'ASSISTANT_GM'] },
+              },
+            },
+          },
+        ],
+      },
       data: input,
     })
     if (result.count !== 1) return null
