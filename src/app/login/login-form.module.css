@@ -87,6 +87,14 @@
   letter-spacing: 0.02em;
 }
 
+.fieldHelp {
+  color: var(--ui-text-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+
 .fieldLabelRow {
   display: flex;
   align-items: center;
