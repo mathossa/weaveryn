@@ -1,5 +1,4 @@
 export type CampaignCharactersScenarioAction =
-  | { action: 'player-self-attach' }
   | { action: 'add-first-participation' }
   | { action: 'add-second-participation' }
   | { action: 'update-first-state' }
@@ -25,7 +24,6 @@ export interface CampaignCharactersScenarioState {
 }
 
 const actions = new Set<CampaignCharactersScenarioAction['action']>([
-  'player-self-attach',
   'add-first-participation',
   'add-second-participation',
   'update-first-state',
