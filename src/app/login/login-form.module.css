@@ -87,11 +87,20 @@
   letter-spacing: 0.02em;
 }
 
-.fieldHint {
-  color: color-mix(in srgb, var(--ui-text-muted) 82%, transparent);
-  font-size: 0.74rem;
-  font-weight: 500;
-  line-height: 1.4;
+.fieldLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.hintTitle {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--ui-accent-hover);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .input {
