@@ -1,0 +1,601 @@
+.shell {
+  position: relative;
+  min-height: 100dvh;
+  background: var(--ui-canvas);
+  color: var(--ui-text);
+  isolation: isolate;
+}
+
+.background {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+}
+
+.backgroundImage {
+  object-fit: cover;
+  object-position: center;
+  opacity: 0.28;
+  filter: saturate(0.82) brightness(0.55);
+}
+
+.backgroundVeil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(36, 48, 67, 0.16), transparent 38%),
+    linear-gradient(180deg, rgba(4, 6, 11, 0.72), rgba(4, 7, 12, 0.9) 62%, rgba(3, 5, 9, 0.97));
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: minmax(11rem, 0.8fr) minmax(0, 2fr) minmax(10rem, 0.8fr);
+  min-height: 74px;
+  align-items: center;
+  gap: 1.25rem;
+  border-bottom: 1px solid var(--ui-border);
+  padding: 0.7rem clamp(1rem, 3vw, 2.25rem);
+  background: color-mix(in srgb, var(--ui-panel-strong) 94%, black 6%);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(18px);
+}
+
+.brand {
+  display: inline-flex;
+  width: max-content;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--ui-text);
+  text-decoration: none;
+}
+
+.brand:focus-visible,
+.contextEntry:focus-visible,
+.chooseEntityLink:focus-visible,
+.accountAction:focus-visible,
+.changeContextLink:focus-visible,
+.mobileContextButton:focus-visible,
+.profileButton:focus-visible,
+.closeSheetButton:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+.brandLogo {
+  width: 2.6rem;
+  height: 2.6rem;
+  object-fit: contain;
+  filter: drop-shadow(0 0 14px rgba(201, 165, 102, 0.2));
+}
+
+.brandName {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.desktopContext {
+  min-width: 0;
+}
+
+.contextTrail {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+}
+
+.contextTrailSlot {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.contextTrailSlot:not(:last-child)::after {
+  color: color-mix(in srgb, var(--ui-text-muted) 58%, transparent);
+  content: '›';
+  font-size: 1.35rem;
+  font-weight: 300;
+}
+
+.contextEntry {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.65rem;
+  border-radius: var(--ui-radius-control);
+  padding: 0.3rem 0.4rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+a.contextEntry:hover {
+  background: color-mix(in srgb, var(--ui-control-surface) 78%, transparent);
+}
+
+.contextGlyph,
+.mobileContextGlyph {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--ui-border);
+  border-radius: 999px;
+  color: var(--ui-accent-hover);
+  background: rgba(3, 7, 13, 0.55);
+}
+
+.contextGlyph {
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+.contextGlyph svg,
+.mobileContextGlyph svg {
+  width: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.35;
+}
+
+.contextCopy {
+  display: grid;
+  min-width: 0;
+}
+
+.contextKind {
+  color: var(--ui-accent);
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.contextName {
+  overflow: hidden;
+  color: var(--ui-text);
+  font-size: 0.9rem;
+  font-weight: 690;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chooseEntityLink {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  padding: 0.65rem 0.9rem;
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  font-size: 0.82rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.mobileContextButton {
+  display: none;
+}
+
+.accountArea {
+  position: relative;
+  justify-self: end;
+}
+
+.profileButton {
+  appearance: none;
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.65rem;
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  padding: 0.35rem 0.45rem;
+  background: transparent;
+  color: var(--ui-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.profileButton:hover {
+  background: color-mix(in srgb, var(--ui-control-surface) 78%, transparent);
+}
+
+.avatar,
+.accountAvatar {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--ui-border);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(224, 191, 130, 0.25), transparent 45%),
+    #111826;
+  color: var(--ui-accent-hover);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.avatar {
+  width: 2.45rem;
+  height: 2.45rem;
+  font-size: 0.76rem;
+}
+
+.profileName {
+  max-width: 10rem;
+  overflow: hidden;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileChevron,
+.chevron {
+  color: var(--ui-text-muted);
+  font-size: 0.9rem;
+}
+
+.dismissLayer {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.accountMenu {
+  position: absolute;
+  top: calc(100% + 0.65rem);
+  right: 0;
+  z-index: 60;
+  width: min(20rem, calc(100vw - 2rem));
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  padding: 1rem;
+  background: color-mix(in srgb, var(--ui-panel-strong) 97%, black 3%);
+  box-shadow: var(--ui-shadow-panel);
+}
+
+.accountIdentity {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.accountAvatar {
+  width: 2.85rem;
+  height: 2.85rem;
+  font-size: 0.8rem;
+}
+
+.accountIdentity div {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.accountIdentity strong,
+.accountIdentity span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accountIdentity strong {
+  color: var(--ui-text);
+  font-size: 0.95rem;
+}
+
+.accountIdentity span {
+  color: var(--ui-text-muted);
+  font-size: 0.78rem;
+}
+
+.accountDivider,
+.sheetDivider {
+  height: 1px;
+  background: var(--ui-border);
+}
+
+.accountDivider {
+  margin: 0.9rem 0 0.55rem;
+}
+
+.accountAction {
+  appearance: none;
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.7rem;
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  padding: 0.65rem 0.7rem;
+  background: transparent;
+  color: var(--ui-text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 650;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.accountAction:hover {
+  background: var(--ui-control-surface);
+}
+
+.logoutAction {
+  color: var(--ui-danger);
+}
+
+.accountAction:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.accountError {
+  margin: 0.55rem 0 0;
+  color: var(--ui-danger);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.content {
+  width: 100%;
+}
+
+.contextSheet {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 70;
+  display: none;
+  max-height: min(82dvh, 42rem);
+  overflow-y: auto;
+  border: 1px solid var(--ui-border);
+  border-bottom: 0;
+  border-radius: 1.5rem 1.5rem 0 0;
+  padding: 0.75rem 1rem calc(1rem + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--ui-panel-strong) 98%, black 2%);
+  box-shadow: 0 -24px 70px rgba(0, 0, 0, 0.5);
+}
+
+.sheetHandle {
+  width: 3rem;
+  height: 0.26rem;
+  margin: 0 auto 1rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ui-text-muted) 42%, transparent);
+}
+
+.contextSheet h2 {
+  margin: 0 0 0.8rem;
+  color: var(--ui-text);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.22rem;
+}
+
+.sheetContextList {
+  display: grid;
+}
+
+.sheetContextItem {
+  border-bottom: 1px solid color-mix(in srgb, var(--ui-border) 72%, transparent);
+  padding: 0.45rem 0;
+}
+
+.sheetContextItem:last-child {
+  border-bottom: 0;
+}
+
+.sheetContextItem .contextEntry {
+  width: 100%;
+  padding: 0.6rem 0.2rem;
+}
+
+.sheetContextItem .contextGlyph {
+  width: 2.55rem;
+  height: 2.55rem;
+}
+
+.sheetContextItem .contextName {
+  font-size: 1rem;
+}
+
+.noContextCopy {
+  margin: 0;
+  color: var(--ui-text-muted);
+  font-size: 0.87rem;
+  line-height: 1.55;
+}
+
+.sheetDivider {
+  margin: 1rem 0;
+}
+
+.sheetLabel {
+  margin: 0 0 0.45rem;
+  color: var(--ui-text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.changeContextLink {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: var(--ui-radius-control);
+  padding: 0.75rem 0.5rem;
+  color: var(--ui-text);
+  text-decoration: none;
+}
+
+.changeContextLink:hover {
+  background: var(--ui-control-surface);
+}
+
+.changeContextGlyph {
+  display: grid;
+  width: 2.3rem;
+  height: 2.3rem;
+  place-items: center;
+  border: 1px solid var(--ui-border);
+  border-radius: 999px;
+  color: var(--ui-accent-hover);
+}
+
+.changeContextLink span:nth-child(2) {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.changeContextLink strong {
+  font-size: 0.9rem;
+}
+
+.changeContextLink small {
+  color: var(--ui-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.closeSheetButton {
+  appearance: none;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 0.8rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .header {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    min-height: 66px;
+    gap: 0.65rem;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .brand {
+    gap: 0;
+  }
+
+  .brandLogo {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .brandName,
+  .desktopContext,
+  .profileName,
+  .profileChevron {
+    display: none;
+  }
+
+  .mobileContextButton {
+    appearance: none;
+    display: inline-flex;
+    min-width: 0;
+    max-width: min(14rem, 100%);
+    align-items: center;
+    justify-self: center;
+    gap: 0.45rem;
+    border: 1px solid var(--ui-control-border);
+    border-radius: var(--ui-radius-control);
+    padding: 0.48rem 0.65rem;
+    background: var(--ui-control-surface);
+    color: var(--ui-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .mobileContextButton:hover {
+    border-color: var(--ui-border);
+  }
+
+  .mobileContextGlyph {
+    width: 1.7rem;
+    height: 1.7rem;
+  }
+
+  .mobileContextGlyph svg {
+    width: 0.95rem;
+  }
+
+  .mobileContextLabel {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.84rem;
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .profileButton {
+    gap: 0;
+    padding: 0.2rem;
+  }
+
+  .accountMenu {
+    position: fixed;
+    top: 4.55rem;
+    right: 0.75rem;
+  }
+
+  .contextSheet {
+    display: block;
+  }
+}
+
+@media (max-width: 390px) {
+  .header {
+    gap: 0.45rem;
+    padding-inline: 0.55rem;
+  }
+
+  .mobileContextButton {
+    max-width: 11.25rem;
+    padding-inline: 0.5rem;
+  }
+
+  .mobileContextGlyph {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header {
+    scroll-behavior: auto;
+  }
+}

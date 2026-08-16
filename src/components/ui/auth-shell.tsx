@@ -16,7 +16,7 @@ export function AuthShell({ children }: AuthShellProps) {
         src={background.src}
         alt=""
         fill
-        priority
+        preload
         sizes="100vw"
         className={styles.background}
         aria-hidden="true"

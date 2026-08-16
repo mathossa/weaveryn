@@ -1,0 +1,80 @@
+.page {
+  width: min(100%, 72rem);
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2.5rem) 4rem;
+}
+
+.wide {
+  width: min(100%, 92rem);
+}
+
+.header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.headingGroup {
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 0.4rem;
+  color: var(--ui-accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  margin: 0;
+  color: var(--ui-text);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+}
+
+.description {
+  max-width: 48rem;
+  margin-top: 0.75rem;
+  color: var(--ui-text-muted);
+  font-size: 0.96rem;
+  line-height: 1.6;
+}
+
+.description p {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.body {
+  min-width: 0;
+}
+
+@media (max-width: 680px) {
+  .page {
+    padding-top: 1.35rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .header {
+    display: grid;
+    align-items: start;
+    gap: 1rem;
+  }
+
+  .actions {
+    width: 100%;
+  }
+}

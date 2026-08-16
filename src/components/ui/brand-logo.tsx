@@ -3,10 +3,10 @@ import { uiAssets } from '@/lib/ui-assets'
 
 export interface BrandLogoProps {
   className?: string
-  priority?: boolean
+  preload?: boolean
 }
 
-export function BrandLogo({ className, priority = false }: BrandLogoProps) {
+export function BrandLogo({ className, preload = false }: BrandLogoProps) {
   const logo = uiAssets.brand.logo
 
   return (
@@ -16,7 +16,7 @@ export function BrandLogo({ className, priority = false }: BrandLogoProps) {
       width={logo.width}
       height={logo.height}
       className={className}
-      priority={priority}
+      preload={preload}
     />
   )
 }
