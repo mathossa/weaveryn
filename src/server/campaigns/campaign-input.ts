@@ -5,6 +5,13 @@ export interface CampaignFormInput {
   currentWorldDateLabel: string
 }
 
+export interface CampaignManagementInput {
+  name?: string
+  description: string | null
+  currentWorldPosition: string
+  currentWorldDateLabel: string
+}
+
 export class CampaignInputError extends Error {
   constructor(message: string) {
     super(message)
@@ -19,13 +26,15 @@ function requiredString(value: unknown, label: string) {
   return value.trim()
 }
 
-export function parseCampaignFormInput(value: unknown): CampaignFormInput {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new CampaignInputError('Campaign input must be an object.')
+function descriptionValue(value: unknown) {
+  if (value === undefined || value === null) return null
+  if (typeof value !== 'string') {
+    throw new CampaignInputError('Campaign description must be text.')
   }
+  return value.trim() || null
+}
 
-  const input = value as Record<string, unknown>
-  const name = requiredString(input.name, 'Campaign name')
+function timelineValues(input: Record<string, unknown>) {
   const currentWorldPosition = requiredString(
     input.currentWorldPosition,
     'Timeline position',
@@ -39,18 +48,44 @@ export function parseCampaignFormInput(value: unknown): CampaignFormInput {
     throw new CampaignInputError('Timeline position must be numeric.')
   }
 
+  return { currentWorldPosition, currentWorldDateLabel }
+}
+
+function inputObject(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new CampaignInputError('Campaign input must be an object.')
+  }
+  return value as Record<string, unknown>
+}
+
+export function parseCampaignFormInput(value: unknown): CampaignFormInput {
+  const input = inputObject(value)
+  const name = requiredString(input.name, 'Campaign name')
   if (name.length > 120) {
     throw new CampaignInputError('Campaign name must be 120 characters or fewer.')
   }
 
-  const description =
-    input.description === undefined || input.description === null
-      ? null
-      : typeof input.description === 'string'
-        ? input.description.trim() || null
-        : (() => {
-            throw new CampaignInputError('Campaign description must be text.')
-          })()
+  return {
+    name,
+    description: descriptionValue(input.description),
+    ...timelineValues(input),
+  }
+}
 
-  return { name, description, currentWorldPosition, currentWorldDateLabel }
+export function parseCampaignManagementInput(
+  value: unknown,
+): CampaignManagementInput {
+  const input = inputObject(value)
+  const name =
+    input.name === undefined ? undefined : requiredString(input.name, 'Campaign name')
+
+  if (name && name.length > 120) {
+    throw new CampaignInputError('Campaign name must be 120 characters or fewer.')
+  }
+
+  return {
+    ...(name === undefined ? {} : { name }),
+    description: descriptionValue(input.description),
+    ...timelineValues(input),
+  }
 }
