@@ -19,12 +19,8 @@ const actions: Array<{
   label: string
 }> = [
   {
-    action: 'player-self-attach',
-    label: 'Player attaches own Character',
-  },
-  {
     action: 'add-first-participation',
-    label: 'GM adds first Campaign participation',
+    label: 'Add first Campaign participation',
   },
   {
     action: 'add-second-participation',
@@ -64,11 +60,7 @@ export function CampaignCharactersLab() {
 
   function disabled(action: CampaignCharactersScenarioAction['action']) {
     if (isBusy || !state) return true
-    if (
-      action === 'player-self-attach' ||
-      action === 'add-first-participation'
-    )
-      return Boolean(first)
+    if (action === 'add-first-participation') return Boolean(first)
     if (action === 'add-second-participation') return Boolean(second)
     if (
       action === 'update-first-state' ||
@@ -84,13 +76,11 @@ export function CampaignCharactersLab() {
     <main className="dev-page">
       <ScenarioNavigation issueNumbers={metadata.issueNumbers} />
       <header>
-        <span>Development only · Issues #18 and #54</span>
+        <span>Development only · Issue #18</span>
         <h1>CampaignCharacter participation and state</h1>
         <p>
           Observe one WorldCharacter joining multiple Campaigns in its World,
-          including a PLAYER attaching their own Character after Campaign
-          membership exists, with independent generic state and service-enforced
-          authorization.
+          with independent generic state and service-enforced authorization.
         </p>
       </header>
       <ScenarioLifecycleControls
