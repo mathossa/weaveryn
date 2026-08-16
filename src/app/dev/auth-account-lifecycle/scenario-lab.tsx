@@ -164,6 +164,7 @@ export function AuthAccountLifecycleLab() {
       <ScenarioLifecycleControls
         isBusy={busy}
         hasFixture={Boolean(result?.state?.user)}
+        resetLabel="Reset auth scenario"
         onAction={(action) => void perform({ action })}
       />
 
