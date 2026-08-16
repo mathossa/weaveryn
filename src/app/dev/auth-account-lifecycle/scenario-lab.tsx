@@ -107,7 +107,7 @@ export function AuthAccountLifecycleLab() {
   async function inspectPreflight() {
     setAuthBusy(true)
     try {
-      const response = await fetch('/api/account', {
+      const response = await fetch('/api/v1/account', {
         credentials: 'same-origin',
         cache: 'no-store',
       })
@@ -125,7 +125,7 @@ export function AuthAccountLifecycleLab() {
   async function deleteAccount() {
     setAuthBusy(true)
     try {
-      const response = await fetch('/api/account', {
+      const response = await fetch('/api/v1/account', {
         method: 'DELETE',
         credentials: 'same-origin',
       })

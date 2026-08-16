@@ -41,9 +41,9 @@ Deferred: social login, email verification workflow, password recovery email, MF
 
 Better Auth is mounted at `/api/auth/*` through its supported Next.js handler.
 
-`GET /api/account` returns account-deletion preflight state for the authenticated user.
+`GET /api/v1/account` returns account-deletion preflight state for the authenticated user.
 
-`DELETE /api/account` performs the Weaveryn-specific deletion workflow. It must not be replaced by a generic auth-framework delete-user endpoint.
+`DELETE /api/v1/account` performs the Weaveryn-specific deletion workflow. It must not be replaced by a generic auth-framework delete-user endpoint.
 
 ## Account deletion
 
