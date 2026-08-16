@@ -8,6 +8,7 @@ import type { ReactNode } from 'react'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { uiAssets } from '@/lib/ui-assets'
 import styles from './app-shell.module.css'
+import desktopStyles from './desktop-context.module.css'
 
 export type AppShellContextKind = 'world' | 'campaign' | 'character'
 
@@ -129,7 +130,7 @@ function DesktopContextEntry({
 }) {
   return (
     <Link
-      className={styles.desktopContextButton}
+      className={desktopStyles.button}
       href={item?.href ?? '/select'}
       aria-label={
         item
@@ -147,12 +148,10 @@ function DesktopContextEntry({
             <span className={styles.contextName}>{item.label}</span>
           </>
         ) : (
-          <span className={styles.desktopContextPlaceholder}>
-            {contextLabels[kind]}
-          </span>
+          <span className={desktopStyles.placeholder}>{contextLabels[kind]}</span>
         )}
       </span>
-      <span className={styles.desktopContextChevron} aria-hidden="true">
+      <span className={desktopStyles.chevron} aria-hidden="true">
         ⌄
       </span>
     </Link>
