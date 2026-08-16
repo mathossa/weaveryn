@@ -91,7 +91,13 @@ export function ipMatchesCidr(ip: string, cidr: string) {
   const [networkRaw, prefixRaw] = cidr.trim().split('/')
   const network = ipToBigInt(networkRaw)
   const candidate = ipToBigInt(ip)
-  if (!network || !candidate || network.family !== candidate.family) return false
+  if (
+    !network ||
+    !candidate ||
+    network.family !== candidate.family
+  ) {
+    return false
+  }
 
   const prefix = prefixRaw === undefined ? network.bits : Number(prefixRaw)
   if (!Number.isInteger(prefix) || prefix < 0 || prefix > network.bits) {
