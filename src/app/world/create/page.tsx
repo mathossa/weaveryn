@@ -1,13 +1,12 @@
 import Link from 'next/link'
-import { headers } from 'next/headers'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
-import { requireAuthenticatedUser } from '@/server/auth'
 import { WorldForm } from '../_components/world-form'
+import { loadWorldPageUser } from '../_lib/load-world-user'
 import styles from '../world.module.css'
 
 export default async function CreateWorldPage() {
-  const user = await requireAuthenticatedUser(new Headers(await headers()))
+  const user = await loadWorldPageUser()
 
   return (
     <AuthenticatedAppShell user={user}>
