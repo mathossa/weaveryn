@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { prisma } from '@/lib/prisma'
 import { assertSafeDevEnvironment } from '@/server/dev-scenarios/environment'
+import { MAIN_WORLD_TIMELINE_NAME } from '@/server/worlds/world-timelines'
 import { getEntrySelection } from './entry-selection'
 
 const ids: string[] = []
@@ -39,6 +40,7 @@ describe('Choose Entity integration', () => {
     await prisma.campaignMembership.deleteMany({ where: { id: { in: ids } } })
     await prisma.worldMembership.deleteMany({ where: { id: { in: ids } } })
     await prisma.campaign.deleteMany({ where: { id: { in: ids } } })
+    await prisma.worldTimeline.deleteMany({ where: { id: { in: ids } } })
     await prisma.worldCharacter.deleteMany({ where: { id: { in: ids } } })
     await prisma.character.deleteMany({ where: { id: { in: ids } } })
     await prisma.world.deleteMany({ where: { id: { in: ids } } })
@@ -106,6 +108,15 @@ describe('Choose Entity integration', () => {
       ],
     })
 
+    const ownedTimelineId = id()
+    await prisma.worldTimeline.create({
+      data: {
+        id: ownedTimelineId,
+        worldId: ownedWorldId,
+        name: MAIN_WORLD_TIMELINE_NAME,
+      },
+    })
+
     const accessibleCampaignId = id()
     const hiddenCampaignId = id()
     await prisma.campaign.createMany({
@@ -115,12 +126,18 @@ describe('Choose Entity integration', () => {
           name: 'Accessible Campaign',
           worldId: ownedWorldId,
           ownerId: outsider.id,
+          timelineId: ownedTimelineId,
+          currentWorldPosition: '1',
+          currentWorldDateLabel: 'Day 1',
         },
         {
           id: hiddenCampaignId,
           name: 'Hidden Campaign',
           worldId: ownedWorldId,
           ownerId: outsider.id,
+          timelineId: ownedTimelineId,
+          currentWorldPosition: '2',
+          currentWorldDateLabel: 'Day 2',
         },
       ],
     })
