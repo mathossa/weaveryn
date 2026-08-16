@@ -1,3 +1,5 @@
+import 'dotenv/config'
+
 import { randomBytes, randomUUID } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
 import path from 'node:path'
