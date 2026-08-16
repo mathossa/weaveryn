@@ -6,7 +6,13 @@ import { useRouter } from 'next/navigation'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { Button } from '@/components/ui/button'
 import { HintPopover } from '@/components/ui/hint-popover'
-import { AUTH_PASSWORD_MIN_LENGTH } from '@/lib/auth-policy'
+import {
+  AUTH_PASSWORD_MIN_LENGTH,
+  AUTH_USERNAME_MAX_LENGTH,
+  AUTH_USERNAME_MIN_LENGTH,
+  normalizeUsername,
+  usernameValidationMessage,
+} from '@/lib/auth-policy'
 import styles from './login-form.module.css'
 
 type AuthMode = 'sign-in' | 'register'
@@ -30,6 +36,7 @@ export function LoginForm() {
   const router = useRouter()
   const [mode, setMode] = useState<AuthMode>('sign-in')
   const [displayName, setDisplayName] = useState('')
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [feedback, setFeedback] = useState<Feedback>(null)
@@ -44,6 +51,14 @@ export function LoginForm() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (busy) return
+
+    if (mode === 'register') {
+      const usernameError = usernameValidationMessage(username)
+      if (usernameError) {
+        setFeedback({ tone: 'error', message: usernameError })
+        return
+      }
+    }
 
     if (mode === 'register' && password.length < AUTH_PASSWORD_MIN_LENGTH) {
       setFeedback({
@@ -61,7 +76,12 @@ export function LoginForm() {
     const body =
       mode === 'sign-in'
         ? { email, password }
-        : { name: displayName, email, password }
+        : {
+            name: displayName,
+            username: normalizeUsername(username),
+            email,
+            password,
+          }
 
     try {
       const response = await fetch(endpoint, {
@@ -72,9 +92,15 @@ export function LoginForm() {
       })
 
       if (!response.ok) {
+        const responseBody = (await response.json().catch(() => null)) as {
+          message?: string
+        } | null
         setFeedback({
           tone: 'error',
-          message: failureMessage(mode, response.status),
+          message:
+            mode === 'register' && responseBody?.message
+              ? responseBody.message
+              : failureMessage(mode, response.status),
         })
         return
       }
@@ -148,18 +174,41 @@ export function LoginForm() {
 
       <form className={styles.form} onSubmit={submit}>
         {mode === 'register' ? (
-          <label className={styles.field}>
-            <span>Display name</span>
-            <input
-              className={styles.input}
-              type="text"
-              autoComplete="name"
-              value={displayName}
-              onChange={(event) => setDisplayName(event.target.value)}
-              disabled={busy}
-              required
-            />
-          </label>
+          <>
+            <label className={styles.field}>
+              <span>Display name</span>
+              <input
+                className={styles.input}
+                type="text"
+                autoComplete="name"
+                value={displayName}
+                onChange={(event) => setDisplayName(event.target.value)}
+                disabled={busy}
+                required
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span>Username</span>
+              <input
+                className={styles.input}
+                type="text"
+                autoComplete="username"
+                minLength={AUTH_USERNAME_MIN_LENGTH}
+                maxLength={AUTH_USERNAME_MAX_LENGTH}
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                disabled={busy}
+                aria-describedby="auth-username-help"
+                required
+              />
+              <small id="auth-username-help" className={styles.fieldHelp}>
+                Your public @handle. {AUTH_USERNAME_MIN_LENGTH}-
+                {AUTH_USERNAME_MAX_LENGTH} characters; letters, numbers, dots,
+                underscores, and hyphens.
+              </small>
+            </label>
+          </>
         ) : null}
 
         <label className={styles.field}>
