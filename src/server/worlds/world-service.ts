@@ -31,7 +31,9 @@ function accessibleWorldFilter(userId: string) {
       },
       {
         campaigns: {
-          some: { ownerId: userId },
+          some: {
+            OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+          },
         },
       },
     ],
