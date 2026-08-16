@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { StatusPanel } from '@/components/ui/status-panel'
+import { uiAssets } from '@/lib/ui-assets'
 import { listWorldNavigationChoices } from '@/server/worlds'
 import { loadWorldPageUser } from './_lib/load-world-user'
 import styles from './world.module.css'
@@ -58,7 +59,12 @@ export default async function WorldSelectionPage({
         ) : (
           <div className={styles.grid}>
             {worlds.map((world) => (
-              <Link key={world.id} className={styles.card} href={`/world/${world.id}`}>
+              <Link
+                key={world.id}
+                className={styles.card}
+                href={`/world/${world.id}`}
+                style={{ backgroundImage: `url(${uiAssets.fallbacks.world})` }}
+              >
                 <span className={styles.badge}>{accessLabels[world.accessKind]}</span>
                 <strong>{world.name}</strong>
                 <span className={styles.meta}>
