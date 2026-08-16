@@ -60,11 +60,24 @@ export async function GET(request: Request, context: RouteContext) {
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
-    const [{ campaignId }, user, input] = await Promise.all([
+    const [{ worldId, campaignId }, user, input] = await Promise.all([
       context.params,
       requireAuthenticatedUser(request.headers),
       request.json().then(parseCampaignManagementInput),
     ])
+
+    const accessibleCampaign = await getCampaignOverview(
+      worldId,
+      campaignId,
+      user.id,
+    )
+    if (!accessibleCampaign) {
+      return NextResponse.json(
+        { error: { code: 'CAMPAIGN_NOT_FOUND', message: 'Campaign not found.' } },
+        { status: 404 },
+      )
+    }
+
     const campaign = await campaignService.updateCampaignManagement(
       campaignId,
       user.id,
