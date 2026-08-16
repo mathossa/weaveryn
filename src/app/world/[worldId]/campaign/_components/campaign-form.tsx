@@ -47,26 +47,30 @@ export function CampaignForm({
         ? `/api/v1/worlds/${worldId}/campaigns`
         : `/api/v1/worlds/${worldId}/campaigns/${campaignId}`
 
-    const response = await fetch(url, {
-      method: mode === 'create' ? 'POST' : 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    const result = await response.json()
+    try {
+      const response = await fetch(url, {
+        method: mode === 'create' ? 'POST' : 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const result = await response.json()
 
-    if (!response.ok) {
-      setError(result.error?.message ?? 'Campaign operation failed.')
+      if (!response.ok) {
+        setError(result.error?.message ?? 'Campaign operation failed.')
+        return
+      }
+
+      if (mode === 'create') {
+        router.replace(`/world/${worldId}/campaign/${result.campaign.id}`)
+        return
+      }
+
+      router.refresh()
+    } catch {
+      setError('Campaign operation failed. Check your connection and try again.')
+    } finally {
       setPending(false)
-      return
     }
-
-    if (mode === 'create') {
-      router.replace(`/world/${worldId}/campaign/${result.campaign.id}`)
-      return
-    }
-
-    router.refresh()
-    setPending(false)
   }
 
   return (
