@@ -1,10 +1,9 @@
 import Link from 'next/link'
-import { headers } from 'next/headers'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { StatusPanel } from '@/components/ui/status-panel'
-import { requireAuthenticatedUser } from '@/server/auth'
 import { listWorldNavigationChoices } from '@/server/worlds'
+import { loadWorldPageUser } from './_lib/load-world-user'
 import styles from './world.module.css'
 
 const accessLabels = {
@@ -22,10 +21,7 @@ interface WorldSelectionPageProps {
 export default async function WorldSelectionPage({
   searchParams,
 }: WorldSelectionPageProps) {
-  const [user, query] = await Promise.all([
-    requireAuthenticatedUser(new Headers(await headers())),
-    searchParams,
-  ])
+  const [user, query] = await Promise.all([loadWorldPageUser(), searchParams])
   const allWorlds = await listWorldNavigationChoices(user.id)
   const weaverMode = query.mode === 'weaver'
   const worlds = weaverMode ? allWorlds.filter((world) => world.canWeave) : allWorlds
