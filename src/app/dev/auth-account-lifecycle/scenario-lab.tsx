@@ -311,7 +311,9 @@ export function AuthAccountLifecycleLab() {
           </button>
         </div>
         {preflight ? (
-          <pre className={styles.preflight}>{JSON.stringify(preflight, null, 2)}</pre>
+          <pre className={styles.preflight}>
+            {JSON.stringify(preflight, null, 2)}
+          </pre>
         ) : null}
       </section>
 

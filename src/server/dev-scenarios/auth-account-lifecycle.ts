@@ -262,8 +262,9 @@ async function runAcceptanceChecks() {
   })
 
   await execute({ action: 'resolve-character' })
-  const readyPreflight =
-    await accountLifecycleService.preflightAccountDeletion(user.id)
+  const readyPreflight = await accountLifecycleService.preflightAccountDeletion(
+    user.id,
+  )
   const accountReady =
     readyPreflight.canDelete &&
     readyPreflight.blockers.length === 0 &&

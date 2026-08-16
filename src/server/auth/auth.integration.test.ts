@@ -83,9 +83,9 @@ describe('Better Auth integration', () => {
       }),
     ).rejects.toBeDefined()
 
-    expect(
-      await prisma.authSession.count({ where: { userId: user.id } }),
-    ).toBe(0)
+    expect(await prisma.authSession.count({ where: { userId: user.id } })).toBe(
+      0,
+    )
 
     const signIn = await auth.api.signInEmail({
       returnHeaders: true,
@@ -98,9 +98,9 @@ describe('Better Auth integration', () => {
 
     const session = await auth.api.getSession({ headers: sessionHeaders })
     expect(session?.user.id).toBe(user.id)
-    expect(
-      await prisma.authSession.count({ where: { userId: user.id } }),
-    ).toBe(1)
+    expect(await prisma.authSession.count({ where: { userId: user.id } })).toBe(
+      1,
+    )
 
     const resolvedUser = await requireAuthenticatedUser(sessionHeaders)
     expect(resolvedUser).toEqual({
@@ -115,8 +115,8 @@ describe('Better Auth integration', () => {
     await expect(
       auth.api.getSession({ headers: sessionHeaders }),
     ).resolves.toBeNull()
-    expect(
-      await prisma.authSession.count({ where: { userId: user.id } }),
-    ).toBe(0)
+    expect(await prisma.authSession.count({ where: { userId: user.id } })).toBe(
+      0,
+    )
   })
 })
