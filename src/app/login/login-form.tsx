@@ -5,6 +5,7 @@ import type { FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { Button } from '@/components/ui/button'
+import { AUTH_PASSWORD_MIN_LENGTH } from '@/lib/auth-policy'
 import styles from './login-form.module.css'
 
 type AuthMode = 'sign-in' | 'register'
@@ -42,6 +43,14 @@ export function LoginForm() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (busy) return
+
+    if (mode === 'register' && password.length < AUTH_PASSWORD_MIN_LENGTH) {
+      setFeedback({
+        tone: 'error',
+        message: `Password must be at least ${AUTH_PASSWORD_MIN_LENGTH} characters.`,
+      })
+      return
+    }
 
     setBusy(true)
     setFeedback(null)
@@ -175,11 +184,19 @@ export function LoginForm() {
             autoComplete={
               mode === 'sign-in' ? 'current-password' : 'new-password'
             }
+            aria-describedby={
+              mode === 'register' ? 'password-requirements' : undefined
+            }
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             disabled={busy}
             required
           />
+          {mode === 'register' ? (
+            <span id="password-requirements" className={styles.fieldHint}>
+              Use at least {AUTH_PASSWORD_MIN_LENGTH} characters.
+            </span>
+          ) : null}
         </label>
 
         {feedback ? (

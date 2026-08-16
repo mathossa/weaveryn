@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth'
 import { prismaAdapter } from 'better-auth/adapters/prisma'
+import { AUTH_PASSWORD_MIN_LENGTH } from './auth-policy'
 import { prisma } from './prisma'
 
 const baseURL =
@@ -13,6 +14,7 @@ export const auth = betterAuth({
     enabled: true,
     autoSignIn: false,
     requireEmailVerification: false,
+    minPasswordLength: AUTH_PASSWORD_MIN_LENGTH,
   },
   user: {
     modelName: 'User',

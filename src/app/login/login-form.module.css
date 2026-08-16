@@ -87,6 +87,13 @@
   letter-spacing: 0.02em;
 }
 
+.fieldHint {
+  color: color-mix(in srgb, var(--ui-text-muted) 82%, transparent);
+  font-size: 0.74rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
 .input {
   width: 100%;
   min-height: 48px;
