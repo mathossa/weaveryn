@@ -16,6 +16,8 @@ jobs:
     env:
       DATABASE_URL: postgresql://weaveryn:unused@127.0.0.1:5432/weaveryn_test
       DEV_DATABASE_NAME: weaveryn_test
+      BETTER_AUTH_SECRET: ci-only-better-auth-secret-change-me-1234567890
+      BETTER_AUTH_URL: http://localhost:3000
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
