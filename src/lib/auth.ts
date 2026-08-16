@@ -12,6 +12,11 @@ const baseURL =
   process.env.BETTER_AUTH_URL ??
   (process.env.NODE_ENV === 'test' ? 'http://localhost:3000' : undefined)
 
+const trustedOrigins = (process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
 type UsernameInput = { username?: unknown }
 
 function validUsername(value: unknown) {
@@ -29,6 +34,7 @@ function validUsername(value: unknown) {
 
 export const auth = betterAuth({
   baseURL,
+  trustedOrigins,
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
   emailAndPassword: {
     enabled: true,
