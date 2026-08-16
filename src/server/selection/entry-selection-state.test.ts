@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { EntryWorldCharacterChoice } from './entry-selection'
-import { resolveCharacterEntry, resolveWeaverEntry } from './entry-selection-state'
+import {
+  resolveCharacterEntry,
+  resolveWeaverEntry,
+} from './entry-selection-state'
 
-const character = (campaigns: Array<{ id: string; name: string }>): EntryWorldCharacterChoice => ({
+const character = (
+  campaigns: Array<{ id: string; name: string }>,
+): EntryWorldCharacterChoice => ({
   id: 'wc-1',
   characterId: 'character-1',
   name: 'Bodwick',

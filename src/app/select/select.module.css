@@ -73,7 +73,11 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(180deg, rgba(4, 7, 13, 0.06), rgba(4, 7, 13, 0.93) 78%);
+  background: linear-gradient(
+    180deg,
+    rgba(4, 7, 13, 0.06),
+    rgba(4, 7, 13, 0.93) 78%
+  );
 }
 
 .characterCopy {

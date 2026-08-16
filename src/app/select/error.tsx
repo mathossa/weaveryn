@@ -9,8 +9,8 @@ export default function SelectError({ reset }: { reset: () => void }) {
       <section className={styles.handoff} role="alert">
         <h1>Unable to load your entry choices</h1>
         <p className={styles.muted}>
-          Weaveryn could not load the Worlds, Campaigns, and Characters available
-          to this account. You can retry without changing any data.
+          Weaveryn could not load the Worlds, Campaigns, and Characters
+          available to this account. You can retry without changing any data.
         </p>
         <div className={styles.errorActions}>
           <button

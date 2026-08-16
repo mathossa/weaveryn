@@ -94,12 +94,14 @@ export default async function CharacterEntryPage({
                 Campaign: <strong>{state.campaign.name}</strong>
               </span>
             ) : (
-              <span>No Campaign participation yet; enter at World/Character context.</span>
+              <span>
+                No Campaign participation yet; enter at World/Character context.
+              </span>
             )}
           </div>
           <p className={styles.muted}>
-            Character, World, and Campaign overview destinations are implemented in
-            the dedicated follow-up UI issues.
+            Character, World, and Campaign overview destinations are implemented
+            in the dedicated follow-up UI issues.
           </p>
         </section>
       </AppPage>

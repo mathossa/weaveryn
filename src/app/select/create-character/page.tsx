@@ -20,7 +20,8 @@ export default function CreateCharacterHandoffPage() {
         <StatusPanel tone="empty" title="Character creation is coming next">
           <p>
             The full Character creation experience belongs to the Character UI
-            issue. Choose Entity already exposes the production entry point for it.
+            issue. Choose Entity already exposes the production entry point for
+            it.
           </p>
         </StatusPanel>
       </AppPage>

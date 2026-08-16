@@ -27,12 +27,17 @@ export default async function CharacterSelectionPage() {
             tone="empty"
             title="No characters available"
             action={
-              <Link className={styles.primaryLink} href="/select/create-character">
+              <Link
+                className={styles.primaryLink}
+                href="/select/create-character"
+              >
                 Create Character
               </Link>
             }
           >
-            <p>Create a Character or join through an invitation to get started.</p>
+            <p>
+              Create a Character or join through an invitation to get started.
+            </p>
           </StatusPanel>
         ) : (
           <div className={styles.characterGrid}>

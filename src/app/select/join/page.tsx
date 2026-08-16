@@ -19,8 +19,9 @@ export default function JoinInviteHandoffPage() {
       >
         <StatusPanel tone="empty" title="Invite joining is not implemented yet">
           <p>
-            Choose Entity exposes the invitation entry point now without inventing
-            invite backend behavior before its dedicated issue defines it.
+            Choose Entity exposes the invitation entry point now without
+            inventing invite backend behavior before its dedicated issue defines
+            it.
           </p>
         </StatusPanel>
       </AppPage>

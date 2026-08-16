@@ -22,7 +22,10 @@ export default async function SelectPage() {
       >
         <div className={styles.stack}>
           {selection.characters.length > 0 ? (
-            <section className={styles.section} aria-labelledby="recent-characters">
+            <section
+              className={styles.section}
+              aria-labelledby="recent-characters"
+            >
               <div className={styles.sectionHeader}>
                 <div>
                   <h2 id="recent-characters">Recent characters</h2>
@@ -34,13 +37,19 @@ export default async function SelectPage() {
                 className={`${styles.characterGrid} ${styles.recentCharacterGrid}`}
               >
                 {recentCharacters.map((character) => (
-                  <CharacterChoiceCard key={character.id} character={character} />
+                  <CharacterChoiceCard
+                    key={character.id}
+                    character={character}
+                  />
                 ))}
               </div>
 
               {selection.characters.length > 3 ? (
                 <div className={`${styles.moreRow} ${styles.desktopOnly}`}>
-                  <Link className={styles.secondaryLink} href="/select/characters">
+                  <Link
+                    className={styles.secondaryLink}
+                    href="/select/characters"
+                  >
                     Select other character
                   </Link>
                 </div>
@@ -48,7 +57,10 @@ export default async function SelectPage() {
 
               {selection.characters.length > 1 ? (
                 <div className={`${styles.moreRow} ${styles.mobileOnly}`}>
-                  <Link className={styles.secondaryLink} href="/select/characters">
+                  <Link
+                    className={styles.secondaryLink}
+                    href="/select/characters"
+                  >
                     Select other character
                   </Link>
                 </div>
@@ -69,7 +81,9 @@ export default async function SelectPage() {
               </span>
               <span className={styles.weaverCopy}>
                 <strong>Join as Weaver</strong>
-                <span>Choose a World, then continue to Campaign management.</span>
+                <span>
+                  Choose a World, then continue to Campaign management.
+                </span>
               </span>
               <span className={styles.weaverArrow} aria-hidden="true">
                 →
@@ -91,7 +105,10 @@ export default async function SelectPage() {
               <h2 id="entry-actions">Start something new</h2>
             </div>
             <div className={styles.actions}>
-              <Link className={styles.actionLink} href="/select/create-character">
+              <Link
+                className={styles.actionLink}
+                href="/select/create-character"
+              >
                 <strong>Create Character</strong>
                 <span>Start a new portable Character identity.</span>
               </Link>

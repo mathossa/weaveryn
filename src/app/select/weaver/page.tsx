@@ -18,8 +18,12 @@ export default async function WeaverEntryPage({
     searchParams,
     loadSelectionPageData(),
   ])
-  const selectedWorldId = typeof query.world === 'string' ? query.world : undefined
-  const state = resolveWeaverEntry(pageData.selection.weaverWorlds, selectedWorldId)
+  const selectedWorldId =
+    typeof query.world === 'string' ? query.world : undefined
+  const state = resolveWeaverEntry(
+    pageData.selection.weaverWorlds,
+    selectedWorldId,
+  )
 
   if (state.kind === 'not-found') notFound()
 
@@ -111,8 +115,8 @@ export default async function WeaverEntryPage({
             </span>
           </div>
           <p className={styles.muted}>
-            The next Campaign UI step will let you choose or create a Campaign in
-            this World.
+            The next Campaign UI step will let you choose or create a Campaign
+            in this World.
           </p>
         </section>
       </AppPage>

@@ -1,10 +1,7 @@
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { ReactNode } from 'react'
-import {
-  getAuthenticatedUser,
-  type AuthenticatedUser,
-} from '@/server/auth'
+import { getAuthenticatedUser, type AuthenticatedUser } from '@/server/auth'
 import { AppShell } from './app-shell'
 import type { AppShellContext } from './app-shell'
 
@@ -20,8 +17,7 @@ export async function AuthenticatedAppShell({
   user: suppliedUser,
 }: AuthenticatedAppShellProps) {
   const user =
-    suppliedUser ??
-    (await getAuthenticatedUser(new Headers(await headers())))
+    suppliedUser ?? (await getAuthenticatedUser(new Headers(await headers())))
   if (!user) redirect('/login')
 
   return (

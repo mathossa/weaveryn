@@ -26,7 +26,9 @@ export interface EntrySelection {
   weaverWorlds: WeaverWorldChoice[]
 }
 
-export async function getEntrySelection(userId: string): Promise<EntrySelection> {
+export async function getEntrySelection(
+  userId: string,
+): Promise<EntrySelection> {
   const [worldCharacters, weaverWorlds] = await Promise.all([
     prisma.worldCharacter.findMany({
       where: {
@@ -74,10 +76,7 @@ export async function getEntrySelection(userId: string): Promise<EntrySelection>
             status: 'ACTIVE',
             campaign: {
               status: 'ACTIVE',
-              OR: [
-                { ownerId: userId },
-                { memberships: { some: { userId } } },
-              ],
+              OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
             },
           },
           select: {
@@ -134,7 +133,9 @@ export async function getEntrySelection(userId: string): Promise<EntrySelection>
       worldId: worldCharacter.world.id,
       worldName: worldCharacter.world.name,
       createdAt: worldCharacter.createdAt,
-      campaigns: worldCharacter.campaignCharacters.map(({ campaign }) => campaign),
+      campaigns: worldCharacter.campaignCharacters.map(
+        ({ campaign }) => campaign,
+      ),
     })),
     weaverWorlds,
   }
