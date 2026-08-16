@@ -31,8 +31,9 @@ function database(users: StoredUser[]): InstanceAdminDatabase {
 
   return {
     user: userApi,
-    $transaction: async (operation: (value: { user: typeof userApi }) => unknown) =>
-      operation({ user: userApi }),
+    $transaction: async (
+      operation: (value: { user: typeof userApi }) => unknown,
+    ) => operation({ user: userApi }),
   } as unknown as InstanceAdminDatabase
 }
 
@@ -47,7 +48,9 @@ describe('instance admin service', () => {
     ]
     const service = createInstanceAdminService(database(users))
 
-    await expect(service.promoteByEmail(' ADMIN@EXAMPLE.TEST ')).resolves.toMatchObject({
+    await expect(
+      service.promoteByEmail(' ADMIN@EXAMPLE.TEST '),
+    ).resolves.toMatchObject({
       isInstanceAdmin: true,
     })
     expect(users[0]?.isInstanceAdmin).toBe(true)
@@ -56,7 +59,9 @@ describe('instance admin service', () => {
   it('rejects promotion when the user does not exist', async () => {
     const service = createInstanceAdminService(database([]))
 
-    await expect(service.promoteByEmail('missing@example.test')).rejects.toMatchObject({
+    await expect(
+      service.promoteByEmail('missing@example.test'),
+    ).rejects.toMatchObject({
       code: 'USER_NOT_FOUND',
     })
   })
@@ -71,7 +76,9 @@ describe('instance admin service', () => {
     ]
     const service = createInstanceAdminService(database(users))
 
-    await expect(service.demoteByEmail('only@example.test')).rejects.toMatchObject({
+    await expect(
+      service.demoteByEmail('only@example.test'),
+    ).rejects.toMatchObject({
       code: 'LAST_ADMIN',
     })
     expect(users[0]?.isInstanceAdmin).toBe(true)
@@ -92,7 +99,9 @@ describe('instance admin service', () => {
     ]
     const service = createInstanceAdminService(database(users))
 
-    await expect(service.demoteByEmail('first@example.test')).resolves.toMatchObject({
+    await expect(
+      service.demoteByEmail('first@example.test'),
+    ).resolves.toMatchObject({
       isInstanceAdmin: false,
     })
     expect(users[0]?.isInstanceAdmin).toBe(false)
