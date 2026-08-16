@@ -78,6 +78,7 @@ export interface CampaignRepository extends WorldAuthorizationRepository {
   ): Promise<CampaignManagementAccess | null>
   updateManagedCampaign(
     campaignId: string,
+    userId: string,
     input: UpdateCampaignRecordInput,
   ): Promise<CampaignRecord | null>
 }
