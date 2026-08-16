@@ -25,6 +25,41 @@ export type WorldOrphanLifecycleServiceDatabase = Pick<
   '$transaction'
 >
 
+export type WorldOrphanLifecycleTransaction = Parameters<
+  Parameters<typeof prisma.$transaction>[0]
+>[0]
+
+async function orphanWorldForOwner(
+  transaction: WorldOrphanLifecycleTransaction,
+  worldId: string,
+  ownerId: string,
+) {
+  const update = await transaction.world.updateMany({
+    where: { id: worldId, ownerId },
+    data: { ownerId: null },
+  })
+
+  if (update.count !== 1) throw orphanedWorldChanged(worldId)
+  return { id: worldId }
+}
+
+export async function orphanOwnedWorldsForAccountDeletion(
+  transaction: WorldOrphanLifecycleTransaction,
+  ownerId: string,
+) {
+  const worlds = await transaction.world.findMany({
+    where: { ownerId },
+    select: { id: true },
+    orderBy: { id: 'asc' },
+  })
+
+  for (const world of worlds) {
+    await orphanWorldForOwner(transaction, world.id, ownerId)
+  }
+
+  return worlds
+}
+
 export function createWorldOrphanLifecycleService(
   database: WorldOrphanLifecycleServiceDatabase = prisma,
 ) {
@@ -46,13 +81,7 @@ export function createWorldOrphanLifecycleService(
           )
         }
 
-        const update = await transaction.world.updateMany({
-          where: { id: worldId, ownerId },
-          data: { ownerId: null },
-        })
-
-        if (update.count !== 1) throw orphanedWorldChanged(worldId)
-
+        await orphanWorldForOwner(transaction, worldId, ownerId)
         return transaction.world.findUniqueOrThrow({ where: { id: worldId } })
       })
     },

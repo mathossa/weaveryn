@@ -27,20 +27,69 @@ enum CampaignRole {
 }
 
 model User {
-  id          String  @id @default(uuid()) @db.Uuid
-  email       String  @unique
-  username    String? @unique
-  displayName String?
+  id            String  @id @default(uuid()) @db.Uuid
+  email         String  @unique
+  emailVerified Boolean @default(false)
+  username      String? @unique
+  displayName   String?
+  image         String?
 
-  ownedWorlds          World[]       @relation("WorldOwner")
-  ownedCampaigns       Campaign[]    @relation("CampaignOwner")
-  ownedCharacters      Character[]   @relation("CharacterOwner")
+  ownedWorlds          World[]              @relation("WorldOwner")
+  ownedCampaigns       Campaign[]           @relation("CampaignOwner")
+  ownedCharacters      Character[]          @relation("CharacterOwner")
   worldMemberships     WorldMembership[]
   campaignMemberships  CampaignMembership[]
-  createdWorldEntities WorldEntity[] @relation("WorldEntityCreator")
+  createdWorldEntities WorldEntity[]        @relation("WorldEntityCreator")
+  authSessions         AuthSession[]
+  authAccounts         AuthAccount[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model AuthSession {
+  id        String   @id @default(uuid()) @db.Uuid
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AuthAccount {
+  id                    String    @id @default(uuid()) @db.Uuid
+  accountId             String
+  providerId            String
+  userId                String    @db.Uuid
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model AuthVerification {
+  id         String   @id @default(uuid()) @db.Uuid
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
 }
 
 model World {
@@ -89,13 +138,13 @@ model WorldEntity {
 }
 
 model EntityRelationship {
-  id               String @id @default(uuid()) @db.Uuid
-  worldId          String @db.Uuid
-  sourceEntityId   String @db.Uuid
-  targetEntityId   String @db.Uuid
+  id               String  @id @default(uuid()) @db.Uuid
+  worldId          String  @db.Uuid
+  sourceEntityId   String  @db.Uuid
+  targetEntityId   String  @db.Uuid
   relationshipType String
   label            String?
-  metadata         Json   @default("{}")
+  metadata         Json    @default("{}")
 
   world        World       @relation(fields: [worldId], references: [id], onDelete: Cascade)
   sourceEntity WorldEntity @relation("EntityRelationshipSource", fields: [sourceEntityId], references: [id], onDelete: Cascade)

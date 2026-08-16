@@ -1,0 +1,89 @@
+.credentialField {
+  display: grid;
+  max-width: 420px;
+  gap: 6px;
+  margin: 14px 0;
+  font-weight: 700;
+}
+
+.credentialField input {
+  min-height: 42px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 22%, transparent);
+  border-radius: 9px;
+  padding: 8px 11px;
+  background: var(--background);
+  color: var(--foreground);
+  font: inherit;
+}
+
+.credentialField input:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--foreground) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.button {
+  min-height: 40px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+  border-radius: 9px;
+  padding: 0 13px;
+  background: var(--foreground);
+  color: var(--background);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+  opacity: 0.84;
+}
+
+.button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--foreground) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.secondaryButton {
+  background: color-mix(in srgb, var(--foreground) 7%, var(--background));
+  color: var(--foreground);
+}
+
+.dangerButton {
+  border-color: color-mix(in srgb, #dc4f58 38%, transparent);
+  background: color-mix(in srgb, #dc4f58 10%, var(--background));
+  color: #bc3541;
+}
+
+.preflight {
+  max-height: 300px;
+  overflow: auto;
+  border-radius: 9px;
+  padding: 12px;
+  background: #14181c;
+  color: #e9f0f0;
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 720px) {
+  .buttonGroup,
+  .button {
+    width: 100%;
+  }
+
+  .credentialField {
+    max-width: none;
+  }
+}

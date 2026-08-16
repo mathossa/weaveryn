@@ -27,10 +27,12 @@ export function ScenarioLifecycleControls({
   isBusy,
   hasFixture,
   onAction,
+  resetLabel,
 }: {
   isBusy: boolean
   hasFixture: boolean
   onAction: (action: DevLifecycleAction) => void
+  resetLabel?: string
 }) {
   function performLifecycleAction(action: DevLifecycleAction) {
     if (
@@ -59,7 +61,7 @@ export function ScenarioLifecycleControls({
           disabled={isBusy}
           onClick={() => performLifecycleAction('reset')}
         >
-          {hasFixture ? 'Reset fixture' : 'Create fixture'}
+          {resetLabel ?? (hasFixture ? 'Reset fixture' : 'Create fixture')}
         </button>
         <button
           type="button"

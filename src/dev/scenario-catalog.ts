@@ -14,6 +14,22 @@ export interface DevScenarioMetadata {
 
 export const devScenarioCatalog = [
   {
+    id: 'auth-account-lifecycle',
+    title: 'Authentication and account lifecycle',
+    domain: 'Users',
+    purpose:
+      'Exercise real Better Auth registration, database sessions, logout, authenticated User resolution, deletion blockers, and World orphaning.',
+    href: '/dev/auth-account-lifecycle',
+    issueNumbers: [14],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+      'BETTER_AUTH_SECRET and BETTER_AUTH_URL configured',
+    ],
+    availability: 'available',
+    fixtureNamespace: 'dev:auth-account-lifecycle:v1',
+  },
+  {
     id: 'character-copy-migration',
     title: 'WorldCharacter copy and migration',
     domain: 'Characters',
