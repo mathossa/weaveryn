@@ -6,6 +6,7 @@ import {
   type AuthAccountLifecycleState,
 } from '@/dev/scenarios/auth-account-lifecycle'
 import { prisma } from '@/lib/prisma'
+import { accountLifecycleService } from '@/server/auth'
 import { FixtureOwnershipError } from './fixture-safety'
 
 const metadata = requireDevScenarioMetadata('auth-account-lifecycle')
@@ -169,6 +170,123 @@ async function execute(action: AuthAccountLifecycleAction) {
   return { ok: true, message: 'Resolved the owned Character blocker.' }
 }
 
+async function runAcceptanceChecks() {
+  const checks: DevAcceptanceCheck[] = []
+  const initialState = await readState()
+  const user = initialState.user
+
+  const credentialPersisted =
+    Boolean(user) && initialState.auth.credentialAccountCount === 1
+  checks.push({
+    id: 'credential-account-persisted',
+    title: 'Better Auth credential account is persisted',
+    status: credentialPersisted ? 'passed' : 'failed',
+    actor: 'Registered account',
+    target: AUTH_SCENARIO_EMAIL,
+    expected: 'One credential account linked to the Weaveryn User',
+    actual: user
+      ? `${initialState.auth.credentialAccountCount} credential account(s)`
+      : 'No registered scenario User',
+    detail:
+      'Registration must create the existing Weaveryn User identity and one Better Auth credential record.',
+  })
+
+  const sessionPersisted = Boolean(user) && initialState.auth.sessionCount > 0
+  checks.push({
+    id: 'session-persisted',
+    title: 'Signed-in session is persisted',
+    status: sessionPersisted ? 'passed' : 'failed',
+    actor: 'Authenticated browser user',
+    target: user ? `User ${user.id}` : AUTH_SCENARIO_EMAIL,
+    expected: 'At least one Better Auth session for the scenario User',
+    actual: user
+      ? `${initialState.auth.sessionCount} persisted session(s)`
+      : 'No registered scenario User',
+    detail:
+      'Sign in through the browser before running all checks so the real Better Auth session is present.',
+  })
+
+  if (!user || !credentialPersisted || !sessionPersisted) {
+    checks.push(
+      {
+        id: 'character-blocks-account-deletion',
+        title: 'Owned Character blocks account deletion',
+        status: 'pending',
+        actor: 'Account lifecycle service',
+        target: AUTH_SCENARIO_EMAIL,
+        expected: 'CHARACTERS blocker while the fixture Character exists',
+        actual: 'Waiting for a registered and signed-in scenario User',
+        detail:
+          'This check seeds the deterministic World and Character, then executes the real deletion preflight.',
+      },
+      {
+        id: 'resolved-account-can-delete',
+        title: 'Resolved account is ready for deletion',
+        status: 'pending',
+        actor: 'Account lifecycle service',
+        target: AUTH_SCENARIO_EMAIL,
+        expected:
+          'No blockers after resolving the Character; the owned World remains ready to be orphaned',
+        actual: 'Waiting for the authentication prerequisites',
+        detail:
+          'The check resolves only the deterministic Character and leaves the World for the manual deletion/orphaning step.',
+      },
+    )
+    return checks
+  }
+
+  await execute({ action: 'seed-world' })
+  await execute({ action: 'seed-character' })
+
+  const blockedPreflight =
+    await accountLifecycleService.preflightAccountDeletion(user.id)
+  const characterBlocksDeletion =
+    !blockedPreflight.canDelete &&
+    blockedPreflight.blockers.length === 1 &&
+    blockedPreflight.blockers[0] === 'CHARACTERS' &&
+    blockedPreflight.ownedCampaignCount === 0 &&
+    blockedPreflight.ownedCharacterCount === 1 &&
+    blockedPreflight.ownedWorldCount === 1
+
+  checks.push({
+    id: 'character-blocks-account-deletion',
+    title: 'Owned Character blocks account deletion',
+    status: characterBlocksDeletion ? 'passed' : 'failed',
+    actor: 'Account lifecycle service',
+    target: `User ${user.id}`,
+    expected:
+      'canDelete=false, blocker=CHARACTERS, 1 Character, 1 World, 0 Campaigns',
+    actual: JSON.stringify(blockedPreflight),
+    detail:
+      'Run all checks creates only deterministic scenario fixtures and executes the real account-deletion preflight.',
+  })
+
+  await execute({ action: 'resolve-character' })
+  const readyPreflight =
+    await accountLifecycleService.preflightAccountDeletion(user.id)
+  const accountReady =
+    readyPreflight.canDelete &&
+    readyPreflight.blockers.length === 0 &&
+    readyPreflight.ownedCampaignCount === 0 &&
+    readyPreflight.ownedCharacterCount === 0 &&
+    readyPreflight.ownedWorldCount === 1
+
+  checks.push({
+    id: 'resolved-account-can-delete',
+    title: 'Resolved account is ready for deletion',
+    status: accountReady ? 'passed' : 'failed',
+    actor: 'Account lifecycle service',
+    target: `User ${user.id}`,
+    expected:
+      'canDelete=true with no Character/Campaign blockers and the owned World preserved',
+    actual: JSON.stringify(readyPreflight),
+    detail:
+      'The deterministic Character is resolved after the blocker check; the World is intentionally left in place for the manual delete/orphan test.',
+  })
+
+  return checks
+}
+
 export const authAccountLifecycleScenario: DevScenario<
   AuthAccountLifecycleState,
   AuthAccountLifecycleAction
@@ -199,19 +317,11 @@ export const authAccountLifecycleScenario: DevScenario<
     }
   },
   async runAll() {
-    const checks: DevAcceptanceCheck[] = [
-      {
-        id: 'real-auth-flow',
-        title: 'Real Better Auth cookie flow',
-        status: 'manual',
-        detail:
-          'Use the scenario controls to register, log in, inspect the authenticated User, log out, and test account deletion.',
-      },
-    ]
+    const checks = await runAcceptanceChecks()
+    const passed = checks.filter((check) => check.status === 'passed').length
     return {
-      ok: true,
-      message:
-        'Authentication lifecycle requires the browser cookie controls below.',
+      ok: passed === checks.length,
+      message: `${passed}/${checks.length} live acceptance checks passed.`,
       checks,
     }
   },
