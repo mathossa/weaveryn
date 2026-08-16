@@ -27,12 +27,13 @@ enum CampaignRole {
 }
 
 model User {
-  id            String  @id @default(uuid()) @db.Uuid
-  email         String  @unique
-  emailVerified Boolean @default(false)
-  username      String  @unique
-  displayName   String?
-  image         String?
+  id              String  @id @default(uuid()) @db.Uuid
+  email           String  @unique
+  emailVerified   Boolean @default(false)
+  username        String  @unique
+  displayName     String?
+  image           String?
+  isInstanceAdmin Boolean @default(false)
 
   ownedWorlds          World[]              @relation("WorldOwner")
   ownedCampaigns       Campaign[]           @relation("CampaignOwner")
@@ -143,8 +144,8 @@ model EntityRelationship {
   sourceEntityId   String  @db.Uuid
   targetEntityId   String  @db.Uuid
   relationshipType String
-  label            String?
-  metadata         Json    @default("{}")
+  label             String?
+  metadata          Json    @default("{}")
 
   world        World       @relation(fields: [worldId], references: [id], onDelete: Cascade)
   sourceEntity WorldEntity @relation("EntityRelationshipSource", fields: [sourceEntityId], references: [id], onDelete: Cascade)

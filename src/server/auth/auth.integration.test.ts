@@ -119,6 +119,7 @@ describe('Better Auth integration', () => {
       email: user.email,
       username,
       displayName: DISPLAY_NAME,
+      isInstanceAdmin: false,
     })
 
     await auth.api.signOut({ headers: sessionHeaders })
