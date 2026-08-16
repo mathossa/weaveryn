@@ -6,10 +6,12 @@ import styles from '../character.module.css'
 
 export function AttachCampaignButton({
   worldCharacterId,
+  worldId,
   campaignId,
   campaignName,
 }: {
   worldCharacterId: string
+  worldId: string
   campaignId: string
   campaignName: string
 }) {
@@ -36,15 +38,18 @@ export function AttachCampaignButton({
     }
 
     router.replace(
-      `/world/${encodeURIComponent(result.campaignCharacter.campaignId ? '' : '')}`,
+      `/world/${worldId}/campaign/${campaignId}?character=${worldCharacterId}`,
     )
-    router.replace(`/character/${worldCharacterId}?campaign=${campaignId}`)
-    router.refresh()
   }
 
   return (
     <div>
-      <button className={styles.button} type="button" disabled={pending} onClick={attach}>
+      <button
+        className={styles.button}
+        type="button"
+        disabled={pending}
+        onClick={attach}
+      >
         {pending ? 'Joining…' : `Join ${campaignName}`}
       </button>
       {error ? <p className={styles.error}>{error}</p> : null}
