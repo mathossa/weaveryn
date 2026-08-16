@@ -43,6 +43,12 @@ const contextKinds: ReadonlyArray<AppShellContextKind> = [
   'character',
 ]
 
+const contextLabels: Record<AppShellContextKind, string> = {
+  world: 'World',
+  campaign: 'Campaign',
+  character: 'Character',
+}
+
 function getContextItems(context?: AppShellContext): ContextItem[] {
   if (!context) return []
 
@@ -97,7 +103,7 @@ function ContextEntry({ item }: { item: ContextItem }) {
         <ContextGlyph kind={item.kind} />
       </span>
       <span className={styles.contextCopy}>
-        <span className={styles.contextKind}>{item.kind}</span>
+        <span className={styles.contextKind}>{contextLabels[item.kind]}</span>
         <span className={styles.contextName}>{item.label}</span>
       </span>
     </>
@@ -112,6 +118,45 @@ function ContextEntry({ item }: { item: ContextItem }) {
   }
 
   return <span className={styles.contextEntry}>{content}</span>
+}
+
+function DesktopContextEntry({
+  kind,
+  item,
+}: {
+  kind: AppShellContextKind
+  item?: AppShellContextLink
+}) {
+  return (
+    <Link
+      className={styles.desktopContextButton}
+      href={item?.href ?? '/select'}
+      aria-label={
+        item
+          ? `${contextLabels[kind]}: ${item.label}`
+          : `Choose ${contextLabels[kind].toLowerCase()}`
+      }
+    >
+      <span className={styles.contextGlyph}>
+        <ContextGlyph kind={kind} />
+      </span>
+      <span className={styles.contextCopy}>
+        {item ? (
+          <>
+            <span className={styles.contextKind}>{contextLabels[kind]}</span>
+            <span className={styles.contextName}>{item.label}</span>
+          </>
+        ) : (
+          <span className={styles.desktopContextPlaceholder}>
+            {contextLabels[kind]}
+          </span>
+        )}
+      </span>
+      <span className={styles.desktopContextChevron} aria-hidden="true">
+        ⌄
+      </span>
+    </Link>
+  )
 }
 
 export function AppShell({ children, user, context }: AppShellProps) {
@@ -160,7 +205,9 @@ export function AppShell({ children, user, context }: AppShellProps) {
     try {
       const response = await fetch('/api/auth/sign-out', {
         method: 'POST',
+        headers: { 'content-type': 'application/json' },
         credentials: 'same-origin',
+        body: JSON.stringify({}),
       })
 
       if (!response.ok) {
@@ -198,19 +245,13 @@ export function AppShell({ children, user, context }: AppShellProps) {
         </Link>
 
         <nav className={styles.desktopContext} aria-label="Current context">
-          {contextItems.length > 0 ? (
-            <div className={styles.contextTrail}>
-              {contextItems.map((item) => (
-                <div className={styles.contextTrailSlot} key={item.kind}>
-                  <ContextEntry item={item} />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <Link className={styles.chooseEntityLink} href="/select">
-              Choose Entity
-            </Link>
-          )}
+          <div className={styles.contextTrail}>
+            {contextKinds.map((kind) => (
+              <div className={styles.contextTrailSlot} key={kind}>
+                <DesktopContextEntry kind={kind} item={context?.[kind]} />
+              </div>
+            ))}
+          </div>
         </nav>
 
         <button
