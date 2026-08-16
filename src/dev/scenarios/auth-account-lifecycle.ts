@@ -7,6 +7,7 @@ export interface AuthAccountLifecycleState {
   user: {
     id: string
     email: string
+    username: string
     displayName: string | null
   } | null
   auth: {
