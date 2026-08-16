@@ -39,6 +39,7 @@ export function LoginForm() {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [feedback, setFeedback] = useState<Feedback>(null)
   const [busy, setBusy] = useState(false)
 
@@ -46,6 +47,7 @@ export function LoginForm() {
     if (busy || nextMode === mode) return
     setMode(nextMode)
     setFeedback(null)
+    if (nextMode === 'sign-in') setConfirmPassword('')
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -64,6 +66,14 @@ export function LoginForm() {
       setFeedback({
         tone: 'error',
         message: `Password must be at least ${AUTH_PASSWORD_MIN_LENGTH} characters.`,
+      })
+      return
+    }
+
+    if (mode === 'register' && password !== confirmPassword) {
+      setFeedback({
+        tone: 'error',
+        message: 'Passwords do not match.',
       })
       return
     }
@@ -108,6 +118,7 @@ export function LoginForm() {
       if (mode === 'register') {
         setMode('sign-in')
         setPassword('')
+        setConfirmPassword('')
         setFeedback({
           tone: 'success',
           message: 'Account created. Sign in to enter Weaveryn.',
@@ -247,6 +258,21 @@ export function LoginForm() {
             required
           />
         </div>
+
+        {mode === 'register' ? (
+          <label className={styles.field}>
+            <span>Confirm password</span>
+            <input
+              className={styles.input}
+              type="password"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              disabled={busy}
+              required
+            />
+          </label>
+        ) : null}
 
         {feedback ? (
           <p
