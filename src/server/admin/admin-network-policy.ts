@@ -37,10 +37,7 @@ function ipv4ToBigInt(ip: string) {
   return ip
     .split('.')
     .map(Number)
-    .reduce(
-      (value, octet) => (value << BigInt(8)) | BigInt(octet),
-      BigInt(0),
-    )
+    .reduce((value, octet) => (value << BigInt(8)) | BigInt(octet), BigInt(0))
 }
 
 function ipv6ToBigInt(ip: string) {
