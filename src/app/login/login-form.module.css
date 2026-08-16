@@ -1,0 +1,167 @@
+.card {
+  width: 100%;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  padding: clamp(1.4rem, 4vw, 2.25rem);
+  background:
+    linear-gradient(180deg, rgba(19, 27, 44, 0.84), rgba(7, 11, 20, 0.91)),
+    var(--ui-panel);
+  box-shadow: var(--ui-shadow-panel);
+  backdrop-filter: blur(18px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  margin-bottom: 1.5rem;
+}
+
+.logo {
+  width: 3.35rem;
+  height: 3.35rem;
+  object-fit: contain;
+  filter: drop-shadow(0 0 18px rgba(210, 174, 105, 0.2));
+}
+
+.wordmark {
+  color: var(--ui-text);
+  font-size: clamp(1.35rem, 5vw, 1.7rem);
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.intro {
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 0.45rem;
+  color: var(--ui-accent-hover);
+  font-size: 0.74rem;
+  font-weight: 780;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.intro h1 {
+  margin: 0;
+  color: var(--ui-text);
+  font-size: clamp(2rem, 8vw, 2.65rem);
+  font-weight: 720;
+  letter-spacing: -0.035em;
+  line-height: 1.03;
+}
+
+.intro > p:last-child {
+  max-width: 25rem;
+  margin: 0.85rem auto 0;
+  color: var(--ui-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.modeSwitch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 1.65rem 0 1.35rem;
+  border-radius: calc(var(--ui-radius-control) + 0.2rem);
+  padding: 0.35rem;
+  background: rgba(2, 5, 10, 0.45);
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--ui-text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  padding: 0.72rem 0.85rem;
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  font: inherit;
+  font-size: 1rem;
+  outline: none;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background-color 140ms ease;
+}
+
+.input::placeholder {
+  color: color-mix(in srgb, var(--ui-text-muted) 55%, transparent);
+}
+
+.input:focus-visible {
+  border-color: var(--ui-accent);
+  box-shadow: var(--ui-focus-ring);
+  background: color-mix(in srgb, var(--ui-control-surface) 88%, white 5%);
+}
+
+.input:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.errorFeedback,
+.successFeedback {
+  margin: 0;
+  border-radius: var(--ui-radius-control);
+  padding: 0.72rem 0.82rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.errorFeedback {
+  border: 1px solid color-mix(in srgb, var(--ui-danger) 42%, transparent);
+  background: color-mix(in srgb, var(--ui-danger) 10%, transparent);
+  color: var(--ui-danger);
+}
+
+.successFeedback {
+  border: 1px solid color-mix(in srgb, var(--ui-success) 42%, transparent);
+  background: color-mix(in srgb, var(--ui-success) 10%, transparent);
+  color: var(--ui-success);
+}
+
+@media (max-width: 520px) {
+  .card {
+    border-radius: 1rem;
+    padding: 1.35rem 1.1rem 1.2rem;
+  }
+
+  .brand {
+    margin-bottom: 1.1rem;
+  }
+
+  .logo {
+    width: 2.85rem;
+    height: 2.85rem;
+  }
+
+  .modeSwitch {
+    margin-top: 1.35rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .input {
+    transition: none;
+  }
+}

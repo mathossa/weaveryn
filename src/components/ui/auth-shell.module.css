@@ -1,0 +1,48 @@
+.shell {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  overflow: hidden;
+  padding: clamp(1rem, 4vw, 3rem);
+  background: var(--ui-canvas);
+  color: var(--ui-text);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.background {
+  z-index: -3;
+  object-fit: cover;
+  object-position: center;
+}
+
+.veil {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      rgba(18, 27, 45, 0.18) 0%,
+      rgba(4, 7, 13, 0.48) 52%,
+      rgba(3, 5, 10, 0.78) 100%
+    ),
+    linear-gradient(180deg, rgba(4, 7, 13, 0.18), rgba(3, 5, 10, 0.62));
+}
+
+.content {
+  z-index: 0;
+  width: min(100%, 31rem);
+}
+
+@media (max-width: 520px) {
+  .shell {
+    align-items: end;
+    padding: 0.9rem;
+  }
+
+  .background {
+    object-position: 52% center;
+  }
+}

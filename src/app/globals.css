@@ -3,6 +3,26 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Shared production UI tokens. Change these deliberately in code to restyle
+     reusable controls and surfaces without adding user-facing theme state. */
+  --ui-canvas: #070912;
+  --ui-panel: rgba(9, 13, 24, 0.84);
+  --ui-panel-strong: rgba(12, 17, 29, 0.94);
+  --ui-text: #f4efe6;
+  --ui-text-muted: #b9b1a3;
+  --ui-accent: #c9a566;
+  --ui-accent-hover: #e0bf82;
+  --ui-accent-ink: #1b1409;
+  --ui-border: rgba(226, 201, 151, 0.25);
+  --ui-control-surface: rgba(5, 9, 18, 0.76);
+  --ui-control-border: rgba(231, 220, 199, 0.23);
+  --ui-danger: #ee8d82;
+  --ui-success: #8fd0aa;
+  --ui-radius-control: 0.75rem;
+  --ui-radius-panel: 1.25rem;
+  --ui-shadow-panel: 0 24px 80px rgba(0, 0, 0, 0.48);
+  --ui-focus-ring: 0 0 0 3px rgba(216, 180, 112, 0.3);
 }
 
 @theme inline {

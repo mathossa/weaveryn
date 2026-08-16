@@ -18,6 +18,30 @@ There is exactly one fallback per entity type. `default.webp` is the stable path
 used by the application; the current artwork is the Thalorin world scene, The
 Verdant Vale campaign scene, and the neutral character fallback.
 
+## Code-configurable presentation
+
+Weaveryn presentation is intentionally configurable from the codebase rather
+than from persisted user preferences.
+
+- Artwork paths and intrinsic dimensions live in `src/lib/ui-assets.ts`.
+  Replacing the configured authentication background or brand logo changes every
+  shared component that consumes that asset; screens should not duplicate those
+  paths.
+- Shared brand rendering lives in `src/components/ui/brand-logo.tsx`.
+- Shared buttons live in `src/components/ui/button.tsx` and its CSS module.
+  Screens should use the shared variants instead of defining unrelated primary
+  button styles.
+- Semantic production UI tokens such as accent colors, control surfaces, radii,
+  focus rings, and panel shadows live in `src/app/globals.css` under the
+  `--ui-*` variables.
+- Screen shells such as the authentication background component consume the
+  shared asset configuration and tokens. Future screens should follow the same
+  pattern when a presentation choice is expected to be reused.
+
+This is a developer-controlled presentation layer. A user-facing theme editor,
+runtime theme selection, and persisted theme preferences are not implied by this
+structure.
+
 ## Responsive rendering
 
 - Prefer user-uploaded artwork when present and use the matching fallback only
