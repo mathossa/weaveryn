@@ -49,6 +49,18 @@ Better Auth is mounted at `/api/auth/*` through its supported Next.js handler.
 
 Deletion is blocked while the User still owns any Campaign or Character, regardless of Campaign status. Owned Worlds are passed through the same guarded orphaning behavior used by the World orphan lifecycle service from Issue #13, preserving the World, its ID, memberships, content, timelines, and Campaign references. The User is then deleted in the same Prisma transaction. Better Auth sessions and credential account rows are removed through their explicit user-scoped cascade relationships.
 
+## Automated integration coverage
+
+Fast unit tests remain database-independent. `*.integration.test.ts` files are excluded from `npm test` and are run separately with:
+
+```bash
+npm run test:integration
+```
+
+The authentication integration test uses the real Better Auth instance and Prisma adapter against the configured PostgreSQL development or test database. It verifies registration, password hashing at rest, rejection of an incorrect password, persisted sign-in sessions, authenticated Weaveryn User resolution, and logout/session invalidation. The test creates a unique temporary account and removes it afterwards.
+
+The integration test refuses to run unless `DATABASE_URL` and `DEV_DATABASE_NAME` identify the same clearly marked development or test database. CI provisions `weaveryn_test`, applies migrations, runs the normal repository validation, and then runs the integration suite.
+
 ## Configuration
 
 Set `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` in the runtime environment. Never commit a real production secret.
