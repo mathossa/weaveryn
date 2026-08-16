@@ -5,6 +5,7 @@ import type { FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { Button } from '@/components/ui/button'
+import { HintPopover } from '@/components/ui/hint-popover'
 import { AUTH_PASSWORD_MIN_LENGTH } from '@/lib/auth-policy'
 import styles from './login-form.module.css'
 
@@ -176,28 +177,31 @@ export function LoginForm() {
           />
         </label>
 
-        <label className={styles.field}>
-          <span>Password</span>
+        <div className={styles.field}>
+          <div className={styles.fieldLabelRow}>
+            <label htmlFor="auth-password">Password</label>
+            {mode === 'register' ? (
+              <HintPopover label="Show password requirements">
+                <strong className={styles.hintTitle}>Password rules</strong>
+                <span>
+                  Use at least {AUTH_PASSWORD_MIN_LENGTH} characters.
+                </span>
+              </HintPopover>
+            ) : null}
+          </div>
           <input
+            id="auth-password"
             className={styles.input}
             type="password"
             autoComplete={
               mode === 'sign-in' ? 'current-password' : 'new-password'
-            }
-            aria-describedby={
-              mode === 'register' ? 'password-requirements' : undefined
             }
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             disabled={busy}
             required
           />
-          {mode === 'register' ? (
-            <span id="password-requirements" className={styles.fieldHint}>
-              Use at least {AUTH_PASSWORD_MIN_LENGTH} characters.
-            </span>
-          ) : null}
-        </label>
+        </div>
 
         {feedback ? (
           <p
