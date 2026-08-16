@@ -27,7 +27,6 @@ export default async function WorldOverviewPage({
   const [{ worldId }, user] = await Promise.all([params, loadWorldPageUser()])
   const world = await getWorldOverview(worldId, user.id)
   if (!world) notFound()
-  const canCreateCampaign = world.accessKind === 'OWNER' || world.accessKind === 'ADMIN'
 
   return (
     <AuthenticatedAppShell
@@ -82,7 +81,9 @@ export default async function WorldOverviewPage({
                       href={`/world/${world.id}/campaign/${campaign.id}`}
                     >
                       <strong>{campaign.name}</strong>
-                      <span className={styles.meta}>{campaign.role}</span>
+                      <span className={styles.meta}>
+                        {campaign.isOwner ? 'Owner · ' : ''}{campaign.role}
+                      </span>
                     </Link>
                   ))}
                 </div>
@@ -91,7 +92,7 @@ export default async function WorldOverviewPage({
                 <Link className={styles.secondary} href={`/world/${world.id}/campaign`}>
                   Browse Campaigns
                 </Link>
-                {canCreateCampaign ? (
+                {world.canCreateCampaign ? (
                   <Link className={styles.secondary} href={`/world/${world.id}/campaign/create`}>
                     Create Campaign
                   </Link>
