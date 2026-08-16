@@ -14,7 +14,8 @@ export interface WorldNavigationChoice {
 export interface WorldOverviewCampaign {
   id: string
   name: string
-  role: 'OWNER' | 'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR'
+  role: 'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR'
+  isOwner: boolean
 }
 
 export interface WorldOverview {
@@ -44,7 +45,7 @@ function campaignRole(input: {
   userId: string
   membershipRole: 'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR' | null
 }): WorldOverviewCampaign['role'] {
-  if (input.ownerId === input.userId) return 'OWNER'
+  if (input.ownerId === input.userId) return 'GM'
   return input.membershipRole ?? 'SPECTATOR'
 }
 
@@ -205,6 +206,7 @@ export async function getWorldOverview(
         userId,
         membershipRole: campaign.memberships[0]?.role ?? null,
       }),
+      isOwner: campaign.ownerId === userId,
     })),
   }
 }
