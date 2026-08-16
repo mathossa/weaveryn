@@ -1,14 +1,13 @@
-import { betterAuth } from 'better-auth/minimal'
+import { betterAuth } from 'better-auth'
 import { prismaAdapter } from 'better-auth/adapters/prisma'
 import { prisma } from './prisma'
 
 export const auth = betterAuth({
-  appName: 'Weaveryn',
-  baseURL: process.env.BETTER_AUTH_URL,
-  secret: process.env.BETTER_AUTH_SECRET,
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
   emailAndPassword: {
     enabled: true,
+    autoSignIn: false,
+    requireEmailVerification: false,
   },
   user: {
     modelName: 'User',
@@ -17,13 +16,13 @@ export const auth = betterAuth({
     },
   },
   session: {
-    modelName: 'AuthSession',
+    modelName: 'Session',
   },
   account: {
-    modelName: 'AuthAccount',
+    modelName: 'Account',
   },
   verification: {
-    modelName: 'AuthVerification',
+    modelName: 'Verification',
   },
   advanced: {
     database: {

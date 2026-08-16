@@ -1,22 +1,56 @@
-import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+import {
+  authenticatedUserNotFound,
+  unauthenticated,
+} from './auth-errors'
 
-export class AuthenticationRequiredError extends Error {
-  readonly code = 'AUTHENTICATION_REQUIRED'
-
-  constructor() {
-    super('Authentication is required for this operation.')
-    this.name = 'AuthenticationRequiredError'
-  }
+export interface AuthenticatedUser {
+  id: string
+  email: string
+  username: string | null
+  displayName: string | null
 }
 
-export async function getAuthenticatedUser() {
-  const session = await auth.api.getSession({ headers: await headers() })
-  return session?.user ?? null
+export interface AuthenticatedUserDependencies {
+  getSession(headers: Headers): Promise<{ user: { id: string } } | null>
+  findUser(userId: string): Promise<AuthenticatedUser | null>
 }
 
-export async function requireAuthenticatedUser() {
-  const user = await getAuthenticatedUser()
-  if (!user) throw new AuthenticationRequiredError()
+const defaultDependencies: AuthenticatedUserDependencies = {
+  async getSession(headers) {
+    return auth.api.getSession({ headers })
+  },
+  async findUser(userId) {
+    return prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        displayName: true,
+      },
+    })
+  },
+}
+
+export async function getAuthenticatedUser(
+  headers: Headers,
+  dependencies: AuthenticatedUserDependencies = defaultDependencies,
+): Promise<AuthenticatedUser | null> {
+  const session = await dependencies.getSession(headers)
+  if (!session?.user.id) return null
+
+  const user = await dependencies.findUser(session.user.id)
+  if (!user) throw authenticatedUserNotFound(session.user.id)
+  return user
+}
+
+export async function requireAuthenticatedUser(
+  headers: Headers,
+  dependencies: AuthenticatedUserDependencies = defaultDependencies,
+) {
+  const user = await getAuthenticatedUser(headers, dependencies)
+  if (!user) throw unauthenticated()
   return user
 }
