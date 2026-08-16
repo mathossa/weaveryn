@@ -137,7 +137,10 @@ class InMemoryCampaignRepository implements CampaignRepository {
     return campaign
   }
 
-  async findCampaignManagementAccess(requestedCampaignId: string, userId: string) {
+  async findCampaignManagementAccess(
+    requestedCampaignId: string,
+    userId: string,
+  ) {
     const campaign = this.campaigns.find(
       (candidate) => candidate.id === requestedCampaignId,
     )
@@ -230,7 +233,9 @@ describe('CampaignService', () => {
     ['non-member', outsiderId],
   ])('rejects Campaign creation by a %s', async (_, creatorId) => {
     const { repository, service } = createHarness()
-    await expect(service.createCampaign(createInput(creatorId))).rejects.toMatchObject({
+    await expect(
+      service.createCampaign(createInput(creatorId)),
+    ).rejects.toMatchObject({
       code: 'WORLD_PERMISSION_DENIED',
     } satisfies Partial<WorldDomainError>)
     expect(repository.campaigns).toHaveLength(0)
@@ -239,7 +244,9 @@ describe('CampaignService', () => {
   it('fails closed when the World has no main timeline', async () => {
     const { repository, service } = createHarness()
     repository.timeline = null
-    await expect(service.createCampaign(createInput(ownerId))).rejects.toMatchObject({
+    await expect(
+      service.createCampaign(createInput(ownerId)),
+    ).rejects.toMatchObject({
       code: 'CAMPAIGN_MAIN_TIMELINE_NOT_FOUND',
     } satisfies Partial<CampaignDomainError>)
   })
@@ -253,7 +260,9 @@ describe('CampaignService', () => {
       role: 'SPECTATOR',
     })
 
-    await expect(service.loadCampaign(campaign.id, campaignMemberId)).resolves.toBe(campaign)
+    await expect(
+      service.loadCampaign(campaign.id, campaignMemberId),
+    ).resolves.toBe(campaign)
     expect(campaign.ownerId).toBe(adminId)
   })
 

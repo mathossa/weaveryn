@@ -30,7 +30,12 @@ function errorResponse(error: unknown) {
     )
   }
   return NextResponse.json(
-    { error: { code: 'CAMPAIGN_OPERATION_FAILED', message: 'Campaign operation failed.' } },
+    {
+      error: {
+        code: 'CAMPAIGN_OPERATION_FAILED',
+        message: 'Campaign operation failed.',
+      },
+    },
     { status: 500 },
   )
 }
@@ -48,7 +53,9 @@ export async function GET(request: Request, context: RouteContext) {
     const campaign = await getCampaignOverview(worldId, campaignId, user.id)
     if (!campaign) {
       return NextResponse.json(
-        { error: { code: 'CAMPAIGN_NOT_FOUND', message: 'Campaign not found.' } },
+        {
+          error: { code: 'CAMPAIGN_NOT_FOUND', message: 'Campaign not found.' },
+        },
         { status: 404 },
       )
     }
@@ -73,7 +80,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     )
     if (!accessibleCampaign) {
       return NextResponse.json(
-        { error: { code: 'CAMPAIGN_NOT_FOUND', message: 'Campaign not found.' } },
+        {
+          error: { code: 'CAMPAIGN_NOT_FOUND', message: 'Campaign not found.' },
+        },
         { status: 404 },
       )
     }

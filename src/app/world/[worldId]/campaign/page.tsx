@@ -25,7 +25,9 @@ export default async function CampaignSelectionPage({
   return (
     <AuthenticatedAppShell
       user={user}
-      context={{ world: { label: selection.world.name, href: `/world/${worldId}` } }}
+      context={{
+        world: { label: selection.world.name, href: `/world/${worldId}` },
+      }}
     >
       <AppPage
         eyebrow="Campaigns"
@@ -34,7 +36,10 @@ export default async function CampaignSelectionPage({
         wide
         actions={
           selection.canCreateCampaign ? (
-            <Link className={styles.secondary} href={`/world/${worldId}/campaign/create`}>
+            <Link
+              className={styles.secondary}
+              href={`/world/${worldId}/campaign/create`}
+            >
               Create Campaign
             </Link>
           ) : null
@@ -46,7 +51,10 @@ export default async function CampaignSelectionPage({
             title="No accessible Campaigns"
             action={
               selection.canCreateCampaign ? (
-                <Link className={styles.secondary} href={`/world/${worldId}/campaign/create`}>
+                <Link
+                  className={styles.secondary}
+                  href={`/world/${worldId}/campaign/create`}
+                >
                   Create Campaign
                 </Link>
               ) : undefined
@@ -65,7 +73,8 @@ export default async function CampaignSelectionPage({
                 <span className={styles.badge}>{campaign.role}</span>
                 <strong>{campaign.name}</strong>
                 <span className={styles.meta}>
-                  {campaign.isOwner ? 'Owner · ' : ''}{campaign.status}
+                  {campaign.isOwner ? 'Owner · ' : ''}
+                  {campaign.status}
                 </span>
               </Link>
             ))}

@@ -67,7 +67,9 @@ export function CampaignForm({
 
       router.refresh()
     } catch {
-      setError('Campaign operation failed. Check your connection and try again.')
+      setError(
+        'Campaign operation failed. Check your connection and try again.',
+      )
     } finally {
       setPending(false)
     }

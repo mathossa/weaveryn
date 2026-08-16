@@ -24,14 +24,22 @@ function errorResponse(error: unknown) {
       { status: 400 },
     )
   }
-  if (error instanceof WorldDomainError || error instanceof CampaignDomainError) {
+  if (
+    error instanceof WorldDomainError ||
+    error instanceof CampaignDomainError
+  ) {
     return NextResponse.json(
       { error: { code: error.code, message: error.message } },
       { status: 403 },
     )
   }
   return NextResponse.json(
-    { error: { code: 'CAMPAIGN_OPERATION_FAILED', message: 'Campaign operation failed.' } },
+    {
+      error: {
+        code: 'CAMPAIGN_OPERATION_FAILED',
+        message: 'Campaign operation failed.',
+      },
+    },
     { status: 500 },
   )
 }

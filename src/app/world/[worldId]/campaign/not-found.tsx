@@ -17,7 +17,10 @@ export default function CampaignNotFound() {
             </Link>
           }
         >
-          <p>The Campaign does not exist in this World or is not accessible to your account.</p>
+          <p>
+            The Campaign does not exist in this World or is not accessible to
+            your account.
+          </p>
         </StatusPanel>
       </AppPage>
     </AuthenticatedAppShell>

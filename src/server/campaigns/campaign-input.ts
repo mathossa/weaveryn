@@ -62,7 +62,9 @@ export function parseCampaignFormInput(value: unknown): CampaignFormInput {
   const input = inputObject(value)
   const name = requiredString(input.name, 'Campaign name')
   if (name.length > 120) {
-    throw new CampaignInputError('Campaign name must be 120 characters or fewer.')
+    throw new CampaignInputError(
+      'Campaign name must be 120 characters or fewer.',
+    )
   }
 
   return {
@@ -77,10 +79,14 @@ export function parseCampaignManagementInput(
 ): CampaignManagementInput {
   const input = inputObject(value)
   const name =
-    input.name === undefined ? undefined : requiredString(input.name, 'Campaign name')
+    input.name === undefined
+      ? undefined
+      : requiredString(input.name, 'Campaign name')
 
   if (name && name.length > 120) {
-    throw new CampaignInputError('Campaign name must be 120 characters or fewer.')
+    throw new CampaignInputError(
+      'Campaign name must be 120 characters or fewer.',
+    )
   }
 
   return {

@@ -12,7 +12,9 @@ interface CreateCampaignPageProps {
   params: Promise<{ worldId: string }>
 }
 
-export default async function CreateCampaignPage({ params }: CreateCampaignPageProps) {
+export default async function CreateCampaignPage({
+  params,
+}: CreateCampaignPageProps) {
   const [{ worldId }, user] = await Promise.all([
     params,
     requireAuthenticatedUser(new Headers(await headers())),
@@ -23,14 +25,19 @@ export default async function CreateCampaignPage({ params }: CreateCampaignPageP
   return (
     <AuthenticatedAppShell
       user={user}
-      context={{ world: { label: selection.world.name, href: `/world/${worldId}` } }}
+      context={{
+        world: { label: selection.world.name, href: `/world/${worldId}` },
+      }}
     >
       <AppPage
         eyebrow="Campaigns"
         title="Create Campaign"
         description={`Create a Campaign in ${selection.world.name}. You will own it and receive the GM role.`}
         actions={
-          <Link className={styles.secondary} href={`/world/${worldId}/campaign`}>
+          <Link
+            className={styles.secondary}
+            href={`/world/${worldId}/campaign`}
+          >
             Back to Campaigns
           </Link>
         }

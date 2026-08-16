@@ -96,8 +96,7 @@ export async function getWorldCampaignSelection(
   if (!world) return null
 
   const worldRole = world.memberships[0]?.role ?? null
-  const canCreateCampaign =
-    world.ownerId === userId || worldRole === 'ADMIN'
+  const canCreateCampaign = world.ownerId === userId || worldRole === 'ADMIN'
 
   return {
     world: { id: world.id, name: world.name },
