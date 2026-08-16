@@ -24,6 +24,7 @@ export interface CampaignOverview {
   name: string
   description: string | null
   world: { id: string; name: string }
+  owner: { id: string; username: string; displayName: string | null }
   role: 'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR'
   isOwner: boolean
   status: 'ACTIVE' | 'ENDED' | 'ARCHIVED'
@@ -135,6 +136,9 @@ export async function getCampaignOverview(
       currentWorldPosition: true,
       currentWorldDateLabel: true,
       world: { select: { id: true, name: true } },
+      owner: {
+        select: { id: true, username: true, displayName: true },
+      },
       memberships: {
         where: { userId },
         select: { role: true },
@@ -173,6 +177,7 @@ export async function getCampaignOverview(
     name: campaign.name,
     description: campaign.description,
     world: campaign.world,
+    owner: campaign.owner,
     role,
     isOwner,
     status: campaign.status,
