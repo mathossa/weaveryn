@@ -6,8 +6,10 @@ import styles from '../select.module.css'
 
 export function PortableCharacterChoiceCard({
   character,
+  eager = false,
 }: {
   character: EntryPortableCharacterChoice
+  eager?: boolean
 }) {
   return (
     <Link
@@ -21,6 +23,7 @@ export function PortableCharacterChoiceCard({
         alt=""
         fill
         sizes="(max-width: 760px) 100vw, 33vw"
+        loading={eager ? 'eager' : 'lazy'}
       />
       <span className={styles.characterShade} aria-hidden="true" />
       <span className={styles.characterCopy}>
