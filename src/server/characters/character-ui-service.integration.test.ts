@@ -9,6 +9,7 @@ import { characterService } from './character-service'
 import {
   getPortableCharacterOverview,
   getWorldCharacterOverview,
+  listOwnedCharacterChoices,
 } from './character-ui-service'
 
 const ids: string[] = []
@@ -49,6 +50,26 @@ describe('Character UI flow', () => {
     await prisma.user.deleteMany({ where: { email: { in: emails } } })
     ids.length = 0
     emails.length = 0
+  })
+
+  it('lists the full Character chooser in stable alphabetical order', async () => {
+    const player = await createUser('ordered-list')
+
+    for (const name of ['Zara', 'Bodwick', 'Mira', 'Ada']) {
+      const character = await characterService.createCharacter({
+        ownerUserId: player.id,
+        name,
+      })
+      ids.push(character.id)
+    }
+
+    const choices = await listOwnedCharacterChoices(player.id)
+    expect(choices.map((choice) => choice.name)).toEqual([
+      'Ada',
+      'Bodwick',
+      'Mira',
+      'Zara',
+    ])
   })
 
   it('lets an invited PLAYER create their own WorldCharacter and attach it to the Campaign', async () => {
