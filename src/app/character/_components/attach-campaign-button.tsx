@@ -9,11 +9,13 @@ export function AttachCampaignButton({
   worldId,
   campaignId,
   campaignName,
+  label,
 }: {
   worldCharacterId: string
   worldId: string
   campaignId: string
   campaignName: string
+  label?: string
 }) {
   const router = useRouter()
   const [pending, setPending] = useState(false)
@@ -49,8 +51,9 @@ export function AttachCampaignButton({
         type="button"
         disabled={pending}
         onClick={attach}
+        title={label ?? `Join ${campaignName}`}
       >
-        {pending ? 'Joining…' : `Join ${campaignName}`}
+        {pending ? 'Joining…' : (label ?? `Join ${campaignName}`)}
       </button>
       {error ? <p className={styles.error}>{error}</p> : null}
     </div>
