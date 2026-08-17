@@ -9,11 +9,13 @@ export function AddToWorldButton({
   worldId,
   worldName,
   campaignId,
+  label,
 }: {
   characterId: string
   worldId: string
   worldName: string
   campaignId?: string
+  label?: string
 }) {
   const router = useRouter()
   const [pending, setPending] = useState(false)
@@ -43,8 +45,14 @@ export function AddToWorldButton({
 
   return (
     <div>
-      <button className={styles.button} type="button" disabled={pending} onClick={add}>
-        {pending ? 'Adding…' : `Add to ${worldName}`}
+      <button
+        className={styles.button}
+        type="button"
+        disabled={pending}
+        onClick={add}
+        title={label ?? `Add to ${worldName}`}
+      >
+        {pending ? 'Adding…' : (label ?? `Add to ${worldName}`)}
       </button>
       {error ? <p className={styles.error}>{error}</p> : null}
     </div>
