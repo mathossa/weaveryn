@@ -93,7 +93,7 @@ export async function listOwnedCharacterChoices(
         orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
       },
     },
-    orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+    orderBy: [{ name: 'asc' }, { id: 'asc' }],
   })
 
   return characters.map((character) => ({
