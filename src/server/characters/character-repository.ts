@@ -79,6 +79,10 @@ export interface CharacterRepository extends WorldAuthorizationRepository {
     ownerUserId: string,
     input: UpdateWorldCharacterRecordInput,
   ): Promise<WorldCharacterRecord | null>
+  hasCampaignMembershipInWorld(
+    worldId: string,
+    userId: string,
+  ): Promise<boolean>
   hasCampaignCharacterParticipation(worldCharacterId: string): Promise<boolean>
   moveWorldCharacterForOwner(
     worldCharacterId: string,

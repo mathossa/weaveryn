@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { resolveCharacterEntry } from '@/server/selection'
@@ -30,80 +30,44 @@ export default async function CharacterEntryPage({
 
   if (state.kind === 'not-found') notFound()
 
+  if (state.kind === 'selected') {
+    if (state.campaign) {
+      redirect(
+        `/world/${state.character.worldId}/campaign/${state.campaign.id}?character=${state.character.id}`,
+      )
+    }
+    redirect(`/character/${state.character.id}`)
+  }
+
   const context = {
     world: { label: state.character.worldName },
     character: { label: state.character.name },
-    ...(state.kind === 'selected' && state.campaign
-      ? { campaign: { label: state.campaign.name } }
-      : {}),
-  }
-
-  if (state.kind === 'campaign-choice') {
-    return (
-      <AuthenticatedAppShell user={pageData.user} context={context}>
-        <AppPage
-          eyebrow={state.character.worldName}
-          title={`Choose a campaign for ${state.character.name}`}
-          description="This WorldCharacter participates in more than one accessible Campaign."
-          actions={
-            <Link className={styles.backLink} href="/select">
-              Back
-            </Link>
-          }
-        >
-          <div className={styles.choiceList}>
-            {state.campaigns.map((campaign) => (
-              <Link
-                key={campaign.id}
-                className={styles.choiceLink}
-                href={`/select/character/${state.character.id}?campaign=${campaign.id}`}
-              >
-                <strong>{campaign.name}</strong>
-                <span>Continue →</span>
-              </Link>
-            ))}
-          </div>
-        </AppPage>
-      </AuthenticatedAppShell>
-    )
   }
 
   return (
     <AuthenticatedAppShell user={pageData.user} context={context}>
       <AppPage
-        eyebrow="Entry selected"
-        title={state.character.name}
-        description="Your entry context is ready. The destination overview will be connected by the next UI issues."
+        eyebrow={state.character.worldName}
+        title={`Choose a campaign for ${state.character.name}`}
+        description="This WorldCharacter participates in more than one accessible Campaign."
         actions={
           <Link className={styles.backLink} href="/select">
-            Change selection
+            Back
           </Link>
         }
       >
-        <section className={styles.handoff}>
-          <h2>Selected context</h2>
-          <div className={styles.handoffContext}>
-            <span>
-              World: <strong>{state.character.worldName}</strong>
-            </span>
-            <span>
-              Character: <strong>{state.character.name}</strong>
-            </span>
-            {state.campaign ? (
-              <span>
-                Campaign: <strong>{state.campaign.name}</strong>
-              </span>
-            ) : (
-              <span>
-                No Campaign participation yet; enter at World/Character context.
-              </span>
-            )}
-          </div>
-          <p className={styles.muted}>
-            Character, World, and Campaign overview destinations are implemented
-            in the dedicated follow-up UI issues.
-          </p>
-        </section>
+        <div className={styles.choiceList}>
+          {state.campaigns.map((campaign) => (
+            <Link
+              key={campaign.id}
+              className={styles.choiceLink}
+              href={`/world/${state.character.worldId}/campaign/${campaign.id}?character=${state.character.id}`}
+            >
+              <strong>{campaign.name}</strong>
+              <span>Continue →</span>
+            </Link>
+          ))}
+        </div>
       </AppPage>
     </AuthenticatedAppShell>
   )

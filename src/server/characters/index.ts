@@ -1,4 +1,6 @@
 export * from './character-errors'
+export * from './character-input'
 export * from './character-repository'
 export * from './character-service'
+export * from './character-ui-service'
 export * from './prisma-character-repository'

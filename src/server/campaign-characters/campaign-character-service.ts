@@ -51,22 +51,50 @@ export class CampaignCharacterService {
 
   async createCampaignCharacter(input: CreateCampaignCharacterInput) {
     return this.repository.runInTransaction(async (repository) => {
-      const campaign = await this.assertManager(
+      const campaign = await repository.findCampaignById(input.campaignId)
+      if (!campaign) throw campaignCharacterCampaignNotFound(input.campaignId)
+
+      const isManager = await this.isManager(
         repository,
         input.actorUserId,
         input.campaignId,
+        campaign.ownerId,
       )
+      const membership = isManager
+        ? null
+        : await repository.findCampaignMembership(
+            input.campaignId,
+            input.actorUserId,
+          )
+
+      if (!isManager && membership?.role !== 'PLAYER') {
+        throw campaignCharacterPermissionDenied(
+          input.campaignId,
+          input.actorUserId,
+        )
+      }
+
       const worldCharacter = await repository.findWorldCharacterById(
         input.worldCharacterId,
       )
-      if (!worldCharacter)
+      if (!worldCharacter) {
         throw campaignCharacterWorldCharacterNotFound(input.worldCharacterId)
+      }
+
+      if (!isManager && worldCharacter.ownerUserId !== input.actorUserId) {
+        throw campaignCharacterPermissionDenied(
+          input.campaignId,
+          input.actorUserId,
+        )
+      }
+
       if (campaign.worldId !== worldCharacter.worldId) {
         throw campaignCharacterCrossWorld(
           input.worldCharacterId,
           input.campaignId,
         )
       }
+
       try {
         return await repository.createCampaignCharacter({
           id: this.createId(),
@@ -137,8 +165,9 @@ export class CampaignCharacterService {
       const value = await repository.findCampaignCharacter(id)
       if (!value) throw campaignCharacterNotFound(id)
       await this.assertManager(repository, actorUserId, value.campaignId)
-      if (!(await repository.deleteCampaignCharacter(id)))
+      if (!(await repository.deleteCampaignCharacter(id))) {
         throw campaignCharacterNotFound(id)
+      }
     })
   }
 
