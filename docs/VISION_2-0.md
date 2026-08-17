@@ -535,7 +535,7 @@ player character, the other player must accept it.
 
 Example:
 
-- Bodwick may privately write that he *thinks of Elara as a sister*.
+- Bodwick may privately write that he _thinks of Elara as a sister_.
 - If Bodwick and Elara are to be canonically siblings, Elara's player must accept
   that shared relationship.
 
@@ -836,8 +836,7 @@ The DM cannot retrieve the note through a GM-only override.
 
 ### Example D — Time prevents spoilers
 
-The World database contains an event at Year 130, but Bodwick is playing at Year
-124.
+The World database contains an event at Year 130, but Bodwick is playing at Year 124.
 
 The event remains unavailable to Bodwick unless something in the story legitimately
 reveals future knowledge.
