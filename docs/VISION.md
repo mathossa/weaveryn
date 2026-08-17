@@ -1,7 +1,11 @@
-# Weaveryn Vision
+# Weaveryn Vision — legacy pointer
 
-> **Status: Under development.**
+> [!IMPORTANT]
+> This file is retained so older links do not break. The current product vision is
+> **[Vision 2.0](VISION_2-0.md)**.
 
-This document will describe the long-term product vision for Weaveryn.
+Vision 2.0 supersedes older product-direction statements in the previous README and
+older concept material when they conflict.
 
-For now, the project overview and long-term direction are described in `README.md`, while authoritative domain rules remain in `docs/ARCHITECTURE.md`.
+For current implementation rules, continue to use `ARCHITECTURE.md`,
+`DATA_MODEL.md`, and `MVP.md` alongside the vision.
