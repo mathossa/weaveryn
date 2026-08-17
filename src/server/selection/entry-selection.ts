@@ -16,6 +16,13 @@ export interface EntryWorldCharacterChoice {
   campaigns: EntryCampaignChoice[]
 }
 
+export interface EntryPortableCharacterChoice {
+  id: string
+  name: string
+  image: string | null
+  createdAt: Date
+}
+
 export interface WeaverWorldChoice {
   id: string
   name: string
@@ -23,13 +30,14 @@ export interface WeaverWorldChoice {
 
 export interface EntrySelection {
   characters: EntryWorldCharacterChoice[]
+  portableCharacters: EntryPortableCharacterChoice[]
   weaverWorlds: WeaverWorldChoice[]
 }
 
 export async function getEntrySelection(
   userId: string,
 ): Promise<EntrySelection> {
-  const [worldCharacters, weaverWorlds] = await Promise.all([
+  const [worldCharacters, portableCharacters, weaverWorlds] = await Promise.all([
     prisma.worldCharacter.findMany({
       where: {
         status: 'ACTIVE',
@@ -92,6 +100,19 @@ export async function getEntrySelection(
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
     }),
+    prisma.character.findMany({
+      where: {
+        ownerUserId: userId,
+        status: 'ACTIVE',
+      },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        createdAt: true,
+      },
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+    }),
     prisma.world.findMany({
       where: {
         OR: [
@@ -124,6 +145,10 @@ export async function getEntrySelection(
     }),
   ])
 
+  const selectedCharacterIds = new Set(
+    worldCharacters.map((worldCharacter) => worldCharacter.characterId),
+  )
+
   return {
     characters: worldCharacters.map((worldCharacter) => ({
       id: worldCharacter.id,
@@ -137,6 +162,9 @@ export async function getEntrySelection(
         ({ campaign }) => campaign,
       ),
     })),
+    portableCharacters: portableCharacters.filter(
+      (character) => !selectedCharacterIds.has(character.id),
+    ),
     weaverWorlds,
   }
 }
