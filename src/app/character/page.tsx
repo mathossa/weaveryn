@@ -107,7 +107,7 @@ export default async function CharacterIndexPage({
                         href={`/world/${worldId}/campaign/${campaignId}?character=${incarnation.id}`}
                         title={`Enter as ${incarnation.name}`}
                       >
-                        Enter as {incarnation.name}
+                        Enter Campaign
                       </Link>
                     ) : incarnation ? (
                       <AttachCampaignButton
@@ -115,6 +115,7 @@ export default async function CharacterIndexPage({
                         worldId={worldId}
                         campaignId={campaignId}
                         campaignName={campaign.name}
+                        label="Join Campaign"
                       />
                     ) : (
                       <AddToWorldButton
@@ -122,6 +123,7 @@ export default async function CharacterIndexPage({
                         worldId={worldId}
                         worldName={campaign.world.name}
                         campaignId={campaignId}
+                        label="Add to World"
                       />
                     )}
                   </div>
