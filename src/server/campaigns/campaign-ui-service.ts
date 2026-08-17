@@ -16,7 +16,9 @@ export interface WorldCampaignSelection {
 
 export interface CampaignOverviewCharacter {
   id: string
+  worldCharacterId: string
   name: string
+  ownedByCurrentUser: boolean
 }
 
 export interface CampaignOverview {
@@ -149,8 +151,9 @@ export async function getCampaignOverview(
           id: true,
           worldCharacter: {
             select: {
+              id: true,
               nameOverride: true,
-              character: { select: { name: true } },
+              character: { select: { name: true, ownerUserId: true } },
             },
           },
         },
@@ -187,9 +190,12 @@ export async function getCampaignOverview(
     canManageMembers: campaign.status !== 'ARCHIVED' && isOwner,
     characters: campaign.campaignCharacters.map((campaignCharacter) => ({
       id: campaignCharacter.id,
+      worldCharacterId: campaignCharacter.worldCharacter.id,
       name:
         campaignCharacter.worldCharacter.nameOverride ??
         campaignCharacter.worldCharacter.character.name,
+      ownedByCurrentUser:
+        campaignCharacter.worldCharacter.character.ownerUserId === userId,
     })),
   }
 }

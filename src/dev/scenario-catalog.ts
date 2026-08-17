@@ -90,6 +90,21 @@ export const devScenarioCatalog = [
     fixtureNamespace: 'dev:character-world-character-foundation:v1',
   },
   {
+    id: 'character-entry-flow',
+    title: 'Invited player Character entry flow',
+    domain: 'Characters',
+    purpose:
+      'Exercise Campaign-only WorldCharacter creation and PLAYER self-service CampaignCharacter attachment without granting general World edit permission.',
+    href: '/dev/character-entry-flow',
+    issueNumbers: [54],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+    ],
+    availability: 'available',
+    fixtureNamespace: 'dev:character-entry-flow:v1',
+  },
+  {
     id: 'world-entities',
     title: 'World entities and relationships',
     domain: 'Worlds',

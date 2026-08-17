@@ -10,18 +10,32 @@ import styles from '../campaign.module.css'
 
 interface CampaignOverviewPageProps {
   params: Promise<{ worldId: string; campaignId: string }>
+  searchParams: Promise<{ character?: string | string[] }>
 }
 
 export default async function CampaignOverviewPage({
   params,
+  searchParams,
 }: CampaignOverviewPageProps) {
-  const [{ worldId, campaignId }, user] = await Promise.all([
+  const [{ worldId, campaignId }, query, user] = await Promise.all([
     params,
+    searchParams,
     requireAuthenticatedUser(new Headers(await headers())),
   ])
   const campaign = await getCampaignOverview(worldId, campaignId, user.id)
   if (!campaign) notFound()
   const ownerLabel = campaign.owner.displayName ?? `@${campaign.owner.username}`
+  const selectedWorldCharacterId =
+    typeof query.character === 'string' ? query.character : undefined
+  const selectedCharacter = selectedWorldCharacterId
+    ? campaign.characters.find(
+        (character) =>
+          character.worldCharacterId === selectedWorldCharacterId &&
+          character.ownedByCurrentUser,
+      )
+    : undefined
+  const canChooseCharacter =
+    campaign.status === 'ACTIVE' && campaign.role !== 'SPECTATOR'
 
   return (
     <AuthenticatedAppShell
@@ -32,6 +46,14 @@ export default async function CampaignOverviewPage({
           label: campaign.name,
           href: `/world/${worldId}/campaign/${campaign.id}`,
         },
+        ...(selectedCharacter
+          ? {
+              character: {
+                label: selectedCharacter.name,
+                href: `/character/${selectedCharacter.worldCharacterId}?campaign=${campaign.id}`,
+              },
+            }
+          : {}),
       }}
     >
       <AppPage
@@ -67,6 +89,11 @@ export default async function CampaignOverviewPage({
               <p>
                 <strong>Status:</strong> {campaign.status}
               </p>
+              {selectedCharacter ? (
+                <p>
+                  <strong>Entered as:</strong> {selectedCharacter.name}
+                </p>
+              ) : null}
             </section>
 
             <section className={styles.panel}>
@@ -91,16 +118,33 @@ export default async function CampaignOverviewPage({
               <p>No active Campaign Characters are attached yet.</p>
             ) : (
               <div className={styles.party}>
-                {campaign.characters.map((character) => (
-                  <div className={styles.partyItem} key={character.id}>
-                    <strong>{character.name}</strong>
-                  </div>
-                ))}
+                {campaign.characters.map((character) =>
+                  character.ownedByCurrentUser ? (
+                    <Link
+                      className={styles.partyItem}
+                      href={`/character/${character.worldCharacterId}?campaign=${campaign.id}`}
+                      key={character.id}
+                    >
+                      <strong>{character.name}</strong> · your Character
+                    </Link>
+                  ) : (
+                    <div className={styles.partyItem} key={character.id}>
+                      <strong>{character.name}</strong>
+                    </div>
+                  ),
+                )}
               </div>
             )}
-            <p className={styles.meta}>
-              Character entry and management connects fully in #54.
-            </p>
+            {canChooseCharacter ? (
+              <div className={styles.formActions}>
+                <Link
+                  className={styles.secondary}
+                  href={`/character?world=${worldId}&campaign=${campaign.id}`}
+                >
+                  Choose or add your Character
+                </Link>
+              </div>
+            ) : null}
           </section>
 
           {campaign.canEditSharedInfo ? (

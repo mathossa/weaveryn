@@ -16,6 +16,13 @@ export interface EntryWorldCharacterChoice {
   campaigns: EntryCampaignChoice[]
 }
 
+export interface EntryPortableCharacterChoice {
+  id: string
+  name: string
+  image: string | null
+  createdAt: Date
+}
+
 export interface WeaverWorldChoice {
   id: string
   name: string
@@ -23,106 +30,129 @@ export interface WeaverWorldChoice {
 
 export interface EntrySelection {
   characters: EntryWorldCharacterChoice[]
+  portableCharacters: EntryPortableCharacterChoice[]
   weaverWorlds: WeaverWorldChoice[]
 }
 
 export async function getEntrySelection(
   userId: string,
 ): Promise<EntrySelection> {
-  const [worldCharacters, weaverWorlds] = await Promise.all([
-    prisma.worldCharacter.findMany({
-      where: {
-        status: 'ACTIVE',
-        character: {
+  const [worldCharacters, portableCharacters, weaverWorlds] = await Promise.all(
+    [
+      prisma.worldCharacter.findMany({
+        where: {
+          status: 'ACTIVE',
+          character: {
+            ownerUserId: userId,
+            status: 'ACTIVE',
+          },
+          world: {
+            OR: [
+              { ownerId: userId },
+              { memberships: { some: { userId } } },
+              {
+                campaigns: {
+                  some: {
+                    OR: [
+                      { ownerId: userId },
+                      { memberships: { some: { userId } } },
+                    ],
+                  },
+                },
+              },
+            ],
+          },
+        },
+        select: {
+          id: true,
+          characterId: true,
+          nameOverride: true,
+          createdAt: true,
+          character: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+          world: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          campaignCharacters: {
+            where: {
+              status: 'ACTIVE',
+              campaign: {
+                status: 'ACTIVE',
+                OR: [
+                  { ownerId: userId },
+                  { memberships: { some: { userId } } },
+                ],
+              },
+            },
+            select: {
+              campaign: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+            orderBy: { createdAt: 'desc' },
+          },
+        },
+        orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      }),
+      prisma.character.findMany({
+        where: {
           ownerUserId: userId,
           status: 'ACTIVE',
         },
-        world: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          createdAt: true,
+        },
+        orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      }),
+      prisma.world.findMany({
+        where: {
           OR: [
             { ownerId: userId },
-            { memberships: { some: { userId } } },
+            { memberships: { some: { userId, role: 'ADMIN' } } },
             {
               campaigns: {
                 some: {
                   OR: [
                     { ownerId: userId },
-                    { memberships: { some: { userId } } },
+                    {
+                      memberships: {
+                        some: {
+                          userId,
+                          role: { in: ['GM', 'ASSISTANT_GM'] },
+                        },
+                      },
+                    },
                   ],
                 },
               },
             },
           ],
         },
-      },
-      select: {
-        id: true,
-        characterId: true,
-        nameOverride: true,
-        createdAt: true,
-        character: {
-          select: {
-            name: true,
-            image: true,
-          },
+        select: {
+          id: true,
+          name: true,
         },
-        world: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        campaignCharacters: {
-          where: {
-            status: 'ACTIVE',
-            campaign: {
-              status: 'ACTIVE',
-              OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
-            },
-          },
-          select: {
-            campaign: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
-    }),
-    prisma.world.findMany({
-      where: {
-        OR: [
-          { ownerId: userId },
-          { memberships: { some: { userId, role: 'ADMIN' } } },
-          {
-            campaigns: {
-              some: {
-                OR: [
-                  { ownerId: userId },
-                  {
-                    memberships: {
-                      some: {
-                        userId,
-                        role: { in: ['GM', 'ASSISTANT_GM'] },
-                      },
-                    },
-                  },
-                ],
-              },
-            },
-          },
-        ],
-      },
-      select: {
-        id: true,
-        name: true,
-      },
-      orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
-    }),
-  ])
+        orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+      }),
+    ],
+  )
+
+  const selectedCharacterIds = new Set(
+    worldCharacters.map((worldCharacter) => worldCharacter.characterId),
+  )
 
   return {
     characters: worldCharacters.map((worldCharacter) => ({
@@ -137,6 +167,9 @@ export async function getEntrySelection(
         ({ campaign }) => campaign,
       ),
     })),
+    portableCharacters: portableCharacters.filter(
+      (character) => !selectedCharacterIds.has(character.id),
+    ),
     weaverWorlds,
   }
 }
