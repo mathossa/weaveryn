@@ -2,6 +2,11 @@
 
 > **Status: Under development.**
 
-This document will contain a detailed catalogue of Weaveryn features and planned capabilities.
+This document will contain a detailed catalogue of Weaveryn features and planned
+capabilities.
 
-Current implementation scope is defined by `docs/MVP.md`. Features described elsewhere in the repository may represent long-term plans rather than current implementation requirements.
+Current implementation scope is defined by `MVP.md`.
+
+Long-term product behavior and priorities are defined by
+**[Vision 2.0](VISION_2-0.md)**. Features described in Vision 2.0 may deliberately
+be post-MVP and must not be treated as already implemented.
