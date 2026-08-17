@@ -61,11 +61,13 @@ export default async function SelectPage() {
                     <CharacterChoiceCard
                       key={`world-${entry.character.id}`}
                       character={entry.character}
+                      eager
                     />
                   ) : (
                     <PortableCharacterChoiceCard
                       key={`portable-${entry.character.id}`}
                       character={entry.character}
+                      eager
                     />
                   ),
                 )}
