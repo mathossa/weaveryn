@@ -1,8 +1,12 @@
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { StatusPanel } from '@/components/ui/status-panel'
+import { getCampaignOverview } from '@/server/campaigns'
 import { listOwnedCharacterChoices } from '@/server/characters'
+import { AddToWorldButton } from './_components/add-to-world-button'
+import { AttachCampaignButton } from './_components/attach-campaign-button'
 import { loadCharacterPageUser } from './_lib/load-character-user'
 import styles from './character.module.css'
 
@@ -29,6 +33,12 @@ export default async function CharacterIndexPage({
   const campaignId =
     typeof query.campaign === 'string' ? query.campaign : undefined
   const characters = await listOwnedCharacterChoices(user.id)
+  const campaign =
+    worldId && campaignId
+      ? await getCampaignOverview(worldId, campaignId, user.id)
+      : null
+
+  if (campaignId && (!worldId || !campaign)) notFound()
 
   function hrefFor(character: (typeof characters)[number]) {
     if (!worldId) return `/character/portable/${character.id}`
@@ -51,7 +61,7 @@ export default async function CharacterIndexPage({
         title={campaignId ? 'Choose a Character for this Campaign' : 'Your Characters'}
         description={
           campaignId
-            ? 'Choose an existing portable Character or create a new one. Weaveryn will keep its World incarnation and Campaign participation separate.'
+            ? `Choose a Character for ${campaign?.name}. Only the incarnation in ${campaign?.world.name} is relevant here; portable Characters can be added to that World.`
             : 'Portable Characters can have separate incarnations in multiple Worlds and independent participation in Campaigns.'
         }
         wide
@@ -68,6 +78,53 @@ export default async function CharacterIndexPage({
           <StatusPanel tone="empty" title="No Characters yet">
             <p>Create a portable Character first. Adding it to a World is optional.</p>
           </StatusPanel>
+        ) : campaign && worldId && campaignId ? (
+          <div className={styles.grid}>
+            {characters.map((character) => {
+              const incarnation = character.worldCharacters.find(
+                (choice) => choice.world.id === worldId,
+              )
+              const alreadyParticipating = Boolean(
+                incarnation?.campaignIds.includes(campaignId),
+              )
+
+              return (
+                <article className={styles.card} key={character.id}>
+                  <strong>{incarnation?.name ?? character.name}</strong>
+                  <span className={styles.meta}>
+                    {incarnation
+                      ? `${campaign.world.name} WorldCharacter`
+                      : `Portable Character · not yet in ${campaign.world.name}`}
+                  </span>
+
+                  {alreadyParticipating && incarnation ? (
+                    <div className={styles.actions}>
+                      <Link
+                        className={styles.button}
+                        href={`/world/${worldId}/campaign/${campaignId}?character=${incarnation.id}`}
+                      >
+                        Enter as {incarnation.name}
+                      </Link>
+                    </div>
+                  ) : incarnation ? (
+                    <AttachCampaignButton
+                      worldCharacterId={incarnation.id}
+                      worldId={worldId}
+                      campaignId={campaignId}
+                      campaignName={campaign.name}
+                    />
+                  ) : (
+                    <AddToWorldButton
+                      characterId={character.id}
+                      worldId={worldId}
+                      worldName={campaign.world.name}
+                      campaignId={campaignId}
+                    />
+                  )}
+                </article>
+              )
+            })}
+          </div>
         ) : (
           <div className={styles.grid}>
             {characters.map((character) => (
