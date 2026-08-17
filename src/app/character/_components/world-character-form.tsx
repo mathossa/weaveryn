@@ -20,13 +20,16 @@ export function WorldCharacterForm({
     setPending(true)
     setError(null)
     const form = new FormData(event.currentTarget)
-    const response = await fetch(`/api/v1/world-characters/${worldCharacterId}`, {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        nameOverride: String(form.get('nameOverride') ?? ''),
-      }),
-    })
+    const response = await fetch(
+      `/api/v1/world-characters/${worldCharacterId}`,
+      {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          nameOverride: String(form.get('nameOverride') ?? ''),
+        }),
+      },
+    )
     const result = await response.json()
     if (!response.ok) {
       setError(result.error?.message ?? 'Could not update World identity.')

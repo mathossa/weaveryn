@@ -28,7 +28,10 @@ function targetQuery(worldId?: string, campaignId?: string) {
 export default async function CharacterIndexPage({
   searchParams,
 }: CharacterIndexPageProps) {
-  const [query, user] = await Promise.all([searchParams, loadCharacterPageUser()])
+  const [query, user] = await Promise.all([
+    searchParams,
+    loadCharacterPageUser(),
+  ])
   const worldId = typeof query.world === 'string' ? query.world : undefined
   const campaignId =
     typeof query.campaign === 'string' ? query.campaign : undefined
@@ -58,7 +61,11 @@ export default async function CharacterIndexPage({
     <AuthenticatedAppShell user={user}>
       <AppPage
         eyebrow="Characters"
-        title={campaignId ? 'Choose a Character for this Campaign' : 'Your Characters'}
+        title={
+          campaignId
+            ? 'Choose a Character for this Campaign'
+            : 'Your Characters'
+        }
         description={
           campaignId
             ? `Choose a Character for ${campaign?.name}. Only the incarnation in ${campaign?.world.name} is relevant here; portable Characters can be added to that World.`
@@ -76,7 +83,10 @@ export default async function CharacterIndexPage({
       >
         {characters.length === 0 ? (
           <StatusPanel tone="empty" title="No Characters yet">
-            <p>Create a portable Character first. Adding it to a World is optional.</p>
+            <p>
+              Create a portable Character first. Adding it to a World is
+              optional.
+            </p>
           </StatusPanel>
         ) : campaign && worldId && campaignId ? (
           <div className={styles.grid}>
@@ -134,7 +144,11 @@ export default async function CharacterIndexPage({
         ) : (
           <div className={styles.grid}>
             {characters.map((character) => (
-              <Link className={styles.card} href={hrefFor(character)} key={character.id}>
+              <Link
+                className={styles.card}
+                href={hrefFor(character)}
+                key={character.id}
+              >
                 <strong>{character.name}</strong>
                 <span className={styles.meta}>
                   {character.worldCharacters.length === 0

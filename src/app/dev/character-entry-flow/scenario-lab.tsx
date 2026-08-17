@@ -97,9 +97,7 @@ export function CharacterEntryFlowLab() {
         <button
           type="button"
           disabled={
-            isBusy ||
-            !state?.worldCharacter ||
-            Boolean(state.participation)
+            isBusy || !state?.worldCharacter || Boolean(state.participation)
           }
           onClick={() => void perform({ action: 'attach-to-campaign' })}
         >

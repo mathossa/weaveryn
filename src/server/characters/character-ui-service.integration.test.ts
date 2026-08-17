@@ -135,11 +135,12 @@ describe('Character UI flow', () => {
       participations: [],
     })
 
-    const participation = await campaignCharacterService.createCampaignCharacter({
-      actorUserId: player.id,
-      worldCharacterId: worldCharacter.id,
-      campaignId,
-    })
+    const participation =
+      await campaignCharacterService.createCampaignCharacter({
+        actorUserId: player.id,
+        worldCharacterId: worldCharacter.id,
+        campaignId,
+      })
     ids.push(participation.id)
 
     const afterJoin = await getWorldCharacterOverview(

@@ -18,7 +18,9 @@ function requiredName(value: unknown) {
   }
   const name = value.trim()
   if (name.length > 120) {
-    throw new CharacterInputError('Character name must be 120 characters or fewer.')
+    throw new CharacterInputError(
+      'Character name must be 120 characters or fewer.',
+    )
   }
   return name
 }

@@ -17,11 +17,12 @@ export async function POST(request: Request, context: RouteContext) {
       requireAuthenticatedUser(request.headers),
       request.json().then(parseAttachCampaignCharacterInput),
     ])
-    const campaignCharacter = await campaignCharacterService.createCampaignCharacter({
-      actorUserId: user.id,
-      worldCharacterId,
-      campaignId: input.campaignId,
-    })
+    const campaignCharacter =
+      await campaignCharacterService.createCampaignCharacter({
+        actorUserId: user.id,
+        worldCharacterId,
+        campaignId: input.campaignId,
+      })
     return NextResponse.json({ campaignCharacter }, { status: 201 })
   } catch (error) {
     return characterApiErrorResponse(error)

@@ -29,7 +29,8 @@ export default async function PortableCharacterPage({
   const character = await getPortableCharacterOverview(characterId, user.id)
   if (!character) notFound()
 
-  const targetWorldId = typeof query.world === 'string' ? query.world : undefined
+  const targetWorldId =
+    typeof query.world === 'string' ? query.world : undefined
   const targetCampaignId =
     typeof query.campaign === 'string' ? query.campaign : undefined
   const targetIncarnation = targetWorldId
@@ -94,7 +95,10 @@ export default async function PortableCharacterPage({
           <div className={styles.identityGrid}>
             <section className={styles.panel}>
               <h2>Portable identity</h2>
-              <CharacterPortrait image={character.image} name={character.name} />
+              <CharacterPortrait
+                image={character.image}
+                name={character.name}
+              />
               <CharacterForm
                 mode="edit"
                 characterId={character.id}

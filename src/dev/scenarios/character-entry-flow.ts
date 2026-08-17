@@ -1,6 +1,5 @@
 export type CharacterEntryFlowAction =
-  | { action: 'create-world-character' }
-  | { action: 'attach-to-campaign' }
+  { action: 'create-world-character' } | { action: 'attach-to-campaign' }
 
 export interface CharacterEntryFlowState {
   player: { id: string; displayName: string | null }

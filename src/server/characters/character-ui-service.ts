@@ -1,10 +1,7 @@
 import { prisma } from '@/lib/prisma'
 
 export type CharacterCampaignRole =
-  | 'GM'
-  | 'ASSISTANT_GM'
-  | 'PLAYER'
-  | 'SPECTATOR'
+  'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR'
 
 export interface CharacterWorldIncarnationChoice {
   id: string
@@ -150,7 +147,9 @@ export async function getPortableCharacterOverview(
   )
   const availableWorlds = await prisma.world.findMany({
     where: {
-      ...(existingWorldIds.length > 0 ? { id: { notIn: existingWorldIds } } : {}),
+      ...(existingWorldIds.length > 0
+        ? { id: { notIn: existingWorldIds } }
+        : {}),
       OR: [
         { ownerId: userId },
         {
@@ -161,10 +160,7 @@ export async function getPortableCharacterOverview(
         {
           campaigns: {
             some: {
-              OR: [
-                { ownerId: userId },
-                { memberships: { some: { userId } } },
-              ],
+              OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
             },
           },
         },
@@ -213,10 +209,7 @@ export async function getWorldCharacterOverview(
           },
           campaigns: {
             where: {
-              OR: [
-                { ownerId: userId },
-                { memberships: { some: { userId } } },
-              ],
+              OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
             },
             select: { id: true },
             take: 1,
@@ -226,10 +219,7 @@ export async function getWorldCharacterOverview(
       campaignCharacters: {
         where: {
           campaign: {
-            OR: [
-              { ownerId: userId },
-              { memberships: { some: { userId } } },
-            ],
+            OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
           },
         },
         select: {
@@ -296,8 +286,7 @@ export async function getWorldCharacterOverview(
   return {
     id: worldCharacter.id,
     nameOverride: worldCharacter.nameOverride,
-    displayName:
-      worldCharacter.nameOverride ?? worldCharacter.character.name,
+    displayName: worldCharacter.nameOverride ?? worldCharacter.character.name,
     status: worldCharacter.status,
     character: worldCharacter.character,
     world: {

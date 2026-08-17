@@ -109,7 +109,10 @@ describe('CampaignCharacter player attachment', () => {
   })
 
   it('does not let a SPECTATOR attach a Character', async () => {
-    const service = new CampaignCharacterService(new Repository(), () => createdId)
+    const service = new CampaignCharacterService(
+      new Repository(),
+      () => createdId,
+    )
 
     await expect(
       service.createCampaignCharacter({
@@ -123,7 +126,10 @@ describe('CampaignCharacter player attachment', () => {
   })
 
   it('does not let a PLAYER attach somebody else’s WorldCharacter', async () => {
-    const service = new CampaignCharacterService(new Repository(), () => createdId)
+    const service = new CampaignCharacterService(
+      new Repository(),
+      () => createdId,
+    )
 
     await expect(
       service.createCampaignCharacter({

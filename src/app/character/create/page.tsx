@@ -15,7 +15,10 @@ interface CreateCharacterPageProps {
 export default async function CreateCharacterPage({
   searchParams,
 }: CreateCharacterPageProps) {
-  const [query, user] = await Promise.all([searchParams, loadCharacterPageUser()])
+  const [query, user] = await Promise.all([
+    searchParams,
+    loadCharacterPageUser(),
+  ])
   const worldId = typeof query.world === 'string' ? query.world : undefined
   const campaignId =
     typeof query.campaign === 'string' ? query.campaign : undefined

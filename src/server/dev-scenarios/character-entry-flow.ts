@@ -14,7 +14,10 @@ import {
   CampaignCharacterService,
   PrismaCampaignCharacterRepository,
 } from '@/server/campaign-characters'
-import { CharacterService, PrismaCharacterRepository } from '@/server/characters'
+import {
+  CharacterService,
+  PrismaCharacterRepository,
+} from '@/server/characters'
 import { WorldDomainError, worldService } from '@/server/worlds'
 import {
   assertFixtureUsersOwned,
@@ -107,10 +110,7 @@ async function assertOwned() {
   ) {
     throw new FixtureOwnershipError('Issue #54 World fixture is not owned.')
   }
-  if (
-    timeline &&
-    (timeline.worldId !== WORLD_ID || timeline.name !== 'Main')
-  ) {
+  if (timeline && (timeline.worldId !== WORLD_ID || timeline.name !== 'Main')) {
     throw new FixtureOwnershipError('Issue #54 timeline fixture is not owned.')
   }
   if (
@@ -139,10 +139,7 @@ async function assertOwned() {
   ) {
     throw new FixtureOwnershipError('Issue #54 Character fixture is not owned.')
   }
-  if (
-    wc &&
-    (wc.characterId !== CHARACTER_ID || wc.worldId !== WORLD_ID)
-  ) {
+  if (wc && (wc.characterId !== CHARACTER_ID || wc.worldId !== WORLD_ID)) {
     throw new FixtureOwnershipError(
       'Issue #54 WorldCharacter fixture is not owned.',
     )
@@ -386,7 +383,8 @@ async function runAll(): Promise<DevScenarioActionResult> {
     })
   } catch (error) {
     worldEditDenied =
-      error instanceof WorldDomainError && error.code === 'WORLD_UPDATE_FORBIDDEN'
+      error instanceof WorldDomainError &&
+      error.code === 'WORLD_UPDATE_FORBIDDEN'
   }
   checks.push({
     id: 'no-general-world-edit-permission',
@@ -459,7 +457,10 @@ export const characterEntryFlowScenario: DevScenario<
   readState,
   reset: async () => {
     await resetFixture()
-    return { ok: true, message: 'Reset Issue #54 Character entry-flow fixture.' }
+    return {
+      ok: true,
+      message: 'Reset Issue #54 Character entry-flow fixture.',
+    }
   },
   cleanup,
   runAll,

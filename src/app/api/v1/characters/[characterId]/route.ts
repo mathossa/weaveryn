@@ -22,7 +22,12 @@ export async function GET(request: Request, context: RouteContext) {
     const character = await getPortableCharacterOverview(characterId, user.id)
     if (!character) {
       return NextResponse.json(
-        { error: { code: 'CHARACTER_NOT_FOUND', message: 'Character not found.' } },
+        {
+          error: {
+            code: 'CHARACTER_NOT_FOUND',
+            message: 'Character not found.',
+          },
+        },
         { status: 404 },
       )
     }
@@ -39,9 +44,13 @@ export async function PATCH(request: Request, context: RouteContext) {
       requireAuthenticatedUser(request.headers),
       request.json().then(parseUpdateCharacterInput),
     ])
-    const character = await characterService.updateCharacter(characterId, user.id, {
-      name: input.name,
-    })
+    const character = await characterService.updateCharacter(
+      characterId,
+      user.id,
+      {
+        name: input.name,
+      },
+    )
     return NextResponse.json({ character })
   } catch (error) {
     return characterApiErrorResponse(error)

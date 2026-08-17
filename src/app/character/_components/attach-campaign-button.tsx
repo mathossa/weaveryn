@@ -34,7 +34,9 @@ export function AttachCampaignButton({
     )
     const result = await response.json()
     if (!response.ok) {
-      setError(result.error?.message ?? 'Could not join Campaign with this Character.')
+      setError(
+        result.error?.message ?? 'Could not join Campaign with this Character.',
+      )
       setPending(false)
       return
     }
