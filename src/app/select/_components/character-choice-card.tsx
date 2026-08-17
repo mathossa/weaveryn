@@ -6,8 +6,10 @@ import styles from '../select.module.css'
 
 export function CharacterChoiceCard({
   character,
+  eager = false,
 }: {
   character: EntryWorldCharacterChoice
+  eager?: boolean
 }) {
   const campaignLabel =
     character.campaigns.length === 0
@@ -28,6 +30,7 @@ export function CharacterChoiceCard({
         alt=""
         fill
         sizes="(max-width: 760px) 100vw, 33vw"
+        loading={eager ? 'eager' : 'lazy'}
       />
       <span className={styles.characterShade} aria-hidden="true" />
       <span className={styles.characterCopy}>
