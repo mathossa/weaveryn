@@ -3,14 +3,31 @@ import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { StatusPanel } from '@/components/ui/status-panel'
 import { CharacterChoiceCard } from './_components/character-choice-card'
+import { PortableCharacterChoiceCard } from './_components/portable-character-choice-card'
 import { loadSelectionPageData } from './_lib/load-selection-page-data'
 import styles from './select.module.css'
 
 export default async function SelectPage() {
   const { user, selection } = await loadSelectionPageData()
-  const recentCharacters = selection.characters.slice(0, 3)
+  const characterEntries = [
+    ...selection.characters.map((character) => ({
+      kind: 'world' as const,
+      character,
+      createdAt: character.createdAt,
+    })),
+    ...selection.portableCharacters.map((character) => ({
+      kind: 'portable' as const,
+      character,
+      createdAt: character.createdAt,
+    })),
+  ].sort(
+    (left, right) =>
+      right.createdAt.getTime() - left.createdAt.getTime() ||
+      left.character.id.localeCompare(right.character.id),
+  )
+  const recentCharacters = characterEntries.slice(0, 3)
   const hasAnyEntry =
-    selection.characters.length > 0 || selection.weaverWorlds.length > 0
+    characterEntries.length > 0 || selection.weaverWorlds.length > 0
 
   return (
     <AuthenticatedAppShell user={user}>
@@ -21,7 +38,7 @@ export default async function SelectPage() {
         wide
       >
         <div className={styles.stack}>
-          {selection.characters.length > 0 ? (
+          {characterEntries.length > 0 ? (
             <section
               className={styles.section}
               aria-labelledby="recent-characters"
@@ -29,22 +46,34 @@ export default async function SelectPage() {
               <div className={styles.sectionHeader}>
                 <div>
                   <h2 id="recent-characters">Recent characters</h2>
-                  <p>Most recently created World incarnations appear first.</p>
+                  <p>
+                    Most recently created Character identities and World
+                    incarnations appear first.
+                  </p>
                 </div>
               </div>
 
               <div
                 className={`${styles.characterGrid} ${styles.recentCharacterGrid}`}
               >
-                {recentCharacters.map((character) => (
-                  <CharacterChoiceCard
-                    key={character.id}
-                    character={character}
-                  />
-                ))}
+                {recentCharacters.map((entry) =>
+                  entry.kind === 'world' ? (
+                    <CharacterChoiceCard
+                      key={`world-${entry.character.id}`}
+                      character={entry.character}
+                      eager
+                    />
+                  ) : (
+                    <PortableCharacterChoiceCard
+                      key={`portable-${entry.character.id}`}
+                      character={entry.character}
+                      eager
+                    />
+                  ),
+                )}
               </div>
 
-              {selection.characters.length > 3 ? (
+              {characterEntries.length > 3 ? (
                 <div className={`${styles.moreRow} ${styles.desktopOnly}`}>
                   <Link
                     className={styles.secondaryLink}
@@ -55,7 +84,7 @@ export default async function SelectPage() {
                 </div>
               ) : null}
 
-              {selection.characters.length > 1 ? (
+              {characterEntries.length > 1 ? (
                 <div className={`${styles.moreRow} ${styles.mobileOnly}`}>
                   <Link
                     className={styles.secondaryLink}

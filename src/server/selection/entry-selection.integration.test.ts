@@ -49,7 +49,7 @@ describe('Choose Entity integration', () => {
     emails.length = 0
   })
 
-  it('returns only authorized WorldCharacters, Campaign choices, and Weaver Worlds in recent creation order', async () => {
+  it('returns authorized WorldCharacters, portable Characters, Campaign choices, and Weaver Worlds', async () => {
     const actor = await createUser('actor')
     const outsider = await createUser('outsider')
 
@@ -73,12 +73,22 @@ describe('Choose Entity integration', () => {
     })
 
     const characterId = id()
-    await prisma.character.create({
-      data: {
-        id: characterId,
-        ownerUserId: actor.id,
-        name: 'Bodwick',
-      },
+    const portableCharacterId = id()
+    await prisma.character.createMany({
+      data: [
+        {
+          id: characterId,
+          ownerUserId: actor.id,
+          name: 'Bodwick',
+          createdAt: new Date('2026-08-14T12:00:00Z'),
+        },
+        {
+          id: portableCharacterId,
+          ownerUserId: actor.id,
+          name: 'Mira',
+          createdAt: new Date('2026-08-17T12:00:00Z'),
+        },
+      ],
     })
 
     const olderWorldCharacterId = id()
@@ -103,7 +113,7 @@ describe('Choose Entity integration', () => {
           id: hiddenWorldCharacterId,
           characterId,
           worldId: hiddenWorldId,
-          createdAt: new Date('2026-08-17T12:00:00Z'),
+          createdAt: new Date('2026-08-18T12:00:00Z'),
         },
       ],
     })
@@ -177,6 +187,9 @@ describe('Choose Entity integration', () => {
     })
     expect(selection.characters[1].campaigns).toEqual([
       { id: accessibleCampaignId, name: 'Accessible Campaign' },
+    ])
+    expect(selection.portableCharacters).toEqual([
+      expect.objectContaining({ id: portableCharacterId, name: 'Mira' }),
     ])
     expect(selection.weaverWorlds).toEqual([
       { id: ownedWorldId, name: 'Owned World' },

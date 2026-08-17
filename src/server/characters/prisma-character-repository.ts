@@ -135,6 +135,16 @@ export class PrismaCharacterRepository implements CharacterRepository {
         )
       : null
   }
+  async hasCampaignMembershipInWorld(worldId: string, userId: string) {
+    return (
+      (await this.db.campaign.count({
+        where: {
+          worldId,
+          OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+        },
+      })) > 0
+    )
+  }
   async hasCampaignCharacterParticipation(worldCharacterId: string) {
     return (
       (await this.db.campaignCharacter.count({ where: { worldCharacterId } })) >

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
+import { WorldDomainError } from '../worlds/world-errors'
 import {
   WORLD_PERMISSIONS,
   WorldAuthorizationService,
@@ -62,6 +63,37 @@ const pickWorldCharacterUpdates = (input: UpdateWorldCharacterRecordInput) => ({
   ...(input.worldData !== undefined ? { worldData: input.worldData } : {}),
 })
 
+async function assertOwnWorldCharacterAccess(
+  repository: CharacterRepository,
+  userId: string,
+  worldId: string,
+) {
+  const authorization = new WorldAuthorizationService(repository)
+
+  try {
+    await authorization.assertPermission(
+      userId,
+      worldId,
+      WORLD_PERMISSIONS.EDIT_CONTENT,
+    )
+    return
+  } catch (error) {
+    if (
+      !(error instanceof WorldDomainError) ||
+      error.code !== 'WORLD_PERMISSION_DENIED'
+    ) {
+      throw error
+    }
+  }
+
+  if (await repository.hasCampaignMembershipInWorld(worldId, userId)) return
+
+  throw new WorldDomainError(
+    'WORLD_PERMISSION_DENIED',
+    `User ${userId} does not have permission to manage their Character in World ${worldId}.`,
+  )
+}
+
 export class CharacterService {
   constructor(
     private readonly repository: CharacterRepository,
@@ -98,12 +130,13 @@ export class CharacterService {
         input.actorUserId,
       )
       if (!character) throw characterNotFound(input.characterId)
-      const authorization = new WorldAuthorizationService(repository)
-      await authorization.assertPermission(
+
+      await assertOwnWorldCharacterAccess(
+        repository,
         input.actorUserId,
         input.worldId,
-        WORLD_PERMISSIONS.EDIT_CONTENT,
       )
+
       try {
         return await repository.createWorldCharacter({
           id: this.createId(),
@@ -139,12 +172,13 @@ export class CharacterService {
         actorUserId,
       )
       if (!current) throw worldCharacterNotFound(worldCharacterId)
-      const authorization = new WorldAuthorizationService(repository)
-      await authorization.assertPermission(
+
+      await assertOwnWorldCharacterAccess(
+        repository,
         actorUserId,
         current.worldId,
-        WORLD_PERMISSIONS.EDIT_CONTENT,
       )
+
       const updated = await repository.updateWorldCharacterForOwner(
         worldCharacterId,
         actorUserId,

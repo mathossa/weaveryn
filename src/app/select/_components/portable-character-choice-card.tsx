@@ -1,28 +1,21 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { uiAssets } from '@/lib/ui-assets'
-import type { EntryWorldCharacterChoice } from '@/server/selection'
+import type { EntryPortableCharacterChoice } from '@/server/selection'
 import styles from '../select.module.css'
 
-export function CharacterChoiceCard({
+export function PortableCharacterChoiceCard({
   character,
   eager = false,
 }: {
-  character: EntryWorldCharacterChoice
+  character: EntryPortableCharacterChoice
   eager?: boolean
 }) {
-  const campaignLabel =
-    character.campaigns.length === 0
-      ? 'World character'
-      : character.campaigns.length === 1
-        ? character.campaigns[0].name
-        : `${character.campaigns.length} campaigns`
-
   return (
     <Link
       className={styles.characterCard}
-      href={`/select/character/${character.id}`}
-      aria-label={`Enter as ${character.name} in ${character.worldName}`}
+      href={`/character/portable/${character.id}`}
+      aria-label={`Open portable Character ${character.name}`}
     >
       <Image
         className={styles.characterImage}
@@ -35,8 +28,8 @@ export function CharacterChoiceCard({
       <span className={styles.characterShade} aria-hidden="true" />
       <span className={styles.characterCopy}>
         <strong>{character.name}</strong>
-        <span>{character.worldName}</span>
-        <span className={styles.characterMeta}>{campaignLabel}</span>
+        <span>Portable Character</span>
+        <span className={styles.characterMeta}>Not in a World yet</span>
       </span>
     </Link>
   )
