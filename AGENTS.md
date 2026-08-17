@@ -2,25 +2,36 @@
 
 ## Documentation Authority
 
-Before making domain or architectural changes, read the relevant project documentation.
+Before making domain, product, or architectural changes, read the relevant project
+documentation.
 
-Authority order:
+Different documents are authoritative for different decision types:
 
 1. `docs/ARCHITECTURE.md`
-   - Authoritative source for domain architecture, ownership, permissions,
-     lifecycle rules, and system invariants.
+   - Authoritative source for **current** domain architecture, ownership,
+     permissions, lifecycle rules, and implemented system invariants.
 2. `docs/DATA_MODEL.md`
-   - Logical representation of entities, relationships, scope, and constraints.
+   - Logical representation of current entities, relationships, scope, and
+     constraints.
    - Must not contradict `ARCHITECTURE.md`.
 3. `docs/MVP.md`
    - Defines the current MVP scope.
    - Do not implement post-MVP features unless explicitly requested.
-4. `README.md`
-   - Project overview and user-facing concepts.
-   - Not authoritative for detailed domain rules.
+4. `docs/VISION_2-0.md`
+   - Authoritative source for long-term product direction and intended UX.
+   - Supersedes older product-direction statements when they conflict.
+   - A future vision decision does not automatically override an unmodified
+     current architecture invariant; update architecture/data-model docs explicitly
+     when implementing that change.
+5. `README.md`
+   - Installation/front-door documentation and documentation index.
+   - Not authoritative for product or domain rules.
 
-If documentation is ambiguous or contradictory, do not invent a domain rule.
-Report the ambiguity before implementing it.
+When a product request is described in Vision 2.0 but deferred by MVP, treat it as
+future direction unless the task explicitly asks to implement it now.
+
+If current architecture documentation is ambiguous or contradictory, do not invent
+a domain rule. Report the ambiguity before implementing it.
 
 ## Development Rules
 
