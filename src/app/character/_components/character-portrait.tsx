@@ -16,6 +16,7 @@ export function CharacterPortrait({
         alt={`${name} portrait`}
         fill
         sizes="(max-width: 640px) 100vw, 18rem"
+        loading="eager"
       />
     </div>
   )
