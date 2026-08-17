@@ -89,7 +89,10 @@ export default async function CharacterIndexPage({
               )
 
               return (
-                <article className={styles.card} key={character.id}>
+                <article
+                  className={`${styles.card} ${styles.campaignCharacterCard}`}
+                  key={character.id}
+                >
                   <strong>{incarnation?.name ?? character.name}</strong>
                   <span className={styles.meta}>
                     {incarnation
@@ -97,30 +100,31 @@ export default async function CharacterIndexPage({
                       : `Portable Character · not yet in ${campaign.world.name}`}
                   </span>
 
-                  {alreadyParticipating && incarnation ? (
-                    <div className={styles.actions}>
+                  <div className={styles.cardAction}>
+                    {alreadyParticipating && incarnation ? (
                       <Link
                         className={styles.button}
                         href={`/world/${worldId}/campaign/${campaignId}?character=${incarnation.id}`}
+                        title={`Enter as ${incarnation.name}`}
                       >
                         Enter as {incarnation.name}
                       </Link>
-                    </div>
-                  ) : incarnation ? (
-                    <AttachCampaignButton
-                      worldCharacterId={incarnation.id}
-                      worldId={worldId}
-                      campaignId={campaignId}
-                      campaignName={campaign.name}
-                    />
-                  ) : (
-                    <AddToWorldButton
-                      characterId={character.id}
-                      worldId={worldId}
-                      worldName={campaign.world.name}
-                      campaignId={campaignId}
-                    />
-                  )}
+                    ) : incarnation ? (
+                      <AttachCampaignButton
+                        worldCharacterId={incarnation.id}
+                        worldId={worldId}
+                        campaignId={campaignId}
+                        campaignName={campaign.name}
+                      />
+                    ) : (
+                      <AddToWorldButton
+                        characterId={character.id}
+                        worldId={worldId}
+                        worldName={campaign.world.name}
+                        campaignId={campaignId}
+                      />
+                    )}
+                  </div>
                 </article>
               )
             })}
