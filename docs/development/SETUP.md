@@ -19,6 +19,15 @@ docker compose up -d postgres
 cp .env.example .env
 ```
 
+Generate a unique Better Auth secret for this environment:
+
+```bash
+openssl rand -base64 32
+```
+
+Copy the generated value into `BETTER_AUTH_SECRET` in `.env`. Use a different
+secret for each deployment and do not commit `.env`.
+
 Docker Compose initializes `weaveryn_dev`. The application and visual acceptance
 hub use the same dedicated development database by default; they must not point
 at a production or normally named application database. The Prisma configuration

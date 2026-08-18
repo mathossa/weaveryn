@@ -36,6 +36,15 @@ docker compose up -d postgres
 cp .env.example .env
 ```
 
+Generate a unique Better Auth secret for this environment:
+
+```bash
+openssl rand -base64 32
+```
+
+Copy the generated value into `BETTER_AUTH_SECRET` in `.env`. Use a different
+secret for each deployment and do not commit `.env`.
+
 The development Compose stack starts PostgreSQL 17 and uses the dedicated
 `weaveryn_dev` database.
 
