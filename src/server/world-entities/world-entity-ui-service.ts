@@ -1,7 +1,16 @@
 import { prisma } from '@/lib/prisma'
 import { getWorldOverview } from '@/server/worlds'
-import { worldEntityService } from './world-entity-service'
+import {
+  WORLD_PERMISSIONS,
+  WorldAuthorizationService,
+} from '@/server/worlds/world-permissions'
+import {
+  worldEntityTypeInUse,
+  worldEntityTypeNotFound,
+} from './world-entity-errors'
+import { PrismaWorldEntityRepository } from './prisma-world-entity-repository'
 import type { VisibilityScope } from './world-entity-repository'
+import { worldEntityService } from './world-entity-service'
 
 export type SimpleEntityFieldValue = string | number | boolean
 
@@ -11,6 +20,8 @@ export interface WorldEntityUiRecord {
   name: string
   description: string | null
   image: string | null
+  imageFocusX: number
+  imageFocusY: number
   data: Record<string, SimpleEntityFieldValue>
   visibilityScope: VisibilityScope
   visibilityCampaignId: string | null
@@ -47,6 +58,7 @@ export interface WorldEntityWorkspace {
   campaigns: { id: string; name: string }[]
   entities: WorldEntityUiRecord[]
   relationships: WorldEntityRelationshipUiRecord[]
+  relationshipTypes: string[]
   entityTypes: Awaited<ReturnType<typeof worldEntityService.listEntityTypes>>
   visibilityUsers: WorldEntityVisibilityUserChoice[]
   canEditContent: boolean
@@ -84,6 +96,39 @@ function addVisibilityUser(
   },
 ) {
   choices.set(user.id, { id: user.id, label: userLabel(user) })
+}
+
+export async function deleteWorldEntityType(
+  worldId: string,
+  userId: string,
+  typeId: string,
+) {
+  const repository = new PrismaWorldEntityRepository(prisma)
+  const authorization = new WorldAuthorizationService(repository)
+  await authorization.assertPermission(
+    userId,
+    worldId,
+    WORLD_PERMISSIONS.EDIT_CONTENT,
+  )
+
+  return prisma.$transaction(async (transaction) => {
+    const type = await transaction.worldEntityType.findFirst({
+      where: { id: typeId, worldId },
+    })
+    if (!type) throw worldEntityTypeNotFound(typeId)
+
+    const usageCount = await transaction.worldEntity.count({
+      where: {
+        worldId,
+        type: { equals: type.name, mode: 'insensitive' },
+      },
+    })
+    if (usageCount > 0) {
+      throw worldEntityTypeInUse(type.name, usageCount)
+    }
+
+    await transaction.worldEntityType.delete({ where: { id: type.id } })
+  })
 }
 
 export async function getWorldEntityWorkspace(
@@ -167,6 +212,10 @@ export async function getWorldEntityWorkspace(
     }
   }
 
+  const relationshipTypes = [...new Set(
+    relationships.map((relationship) => relationship.relationshipType.trim()).filter(Boolean),
+  )].sort((a, b) => a.localeCompare(b))
+
   return {
     world: { id: world.id, name: world.name, accessKind: world.accessKind },
     contextCampaign: contextCampaign
@@ -182,6 +231,8 @@ export async function getWorldEntityWorkspace(
       name: entity.name,
       description: entity.description,
       image: entity.image,
+      imageFocusX: entity.imageFocusX ?? 50,
+      imageFocusY: entity.imageFocusY ?? 50,
       data: simpleData(entity.data),
       visibilityScope: entity.visibilityScope,
       visibilityCampaignId: entity.visibilityCampaignId,
@@ -203,6 +254,7 @@ export async function getWorldEntityWorkspace(
       visibilityCampaignId: relationship.visibilityCampaignId,
       visibilityUserId: relationship.visibilityUserId,
     })),
+    relationshipTypes,
     entityTypes,
     visibilityUsers: [...visibilityUsers.values()].sort((a, b) =>
       a.label.localeCompare(b.label),
