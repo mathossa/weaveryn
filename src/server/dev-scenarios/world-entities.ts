@@ -207,6 +207,8 @@ async function resetFixture() {
             name: 'Lanterns Below',
             ownerId: OWNER_ID,
             timelineId: PRIMARY_TIMELINE_ID,
+            currentWorldPosition: '1',
+            currentWorldDateLabel: 'Day 1',
             memberships: {
               create: [
                 {
