@@ -84,7 +84,6 @@ export default async function CreateWorldEntityPage({
               mode="create"
               worldId={worldId}
               contextCampaignId={campaignId}
-              contextWorldCharacterId={worldCharacterId}
               entityTypes={selectableEntityTypes}
               entities={workspace.entities}
               relationshipTypes={workspace.relationshipTypes}
