@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
-import type { WorldEntityUiRecord } from '@/server/world-entities'
 import { uiAssets } from '@/lib/ui-assets'
+import type { WorldEntityUiRecord } from '@/server/world-entities'
 import styles from '../entity.module.css'
 
 function entityHref(worldId: string, entityId: string, campaignId?: string) {
@@ -85,6 +85,7 @@ export function EntityBrowser({
                   backgroundImage: `url(${JSON.stringify(
                     entity.image || uiAssets.backgrounds.entityBanner.src,
                   )})`,
+                  backgroundPosition: `${entity.imageFocusX}% ${entity.imageFocusY}%`,
                 }}
                 aria-hidden="true"
               />
