@@ -7,25 +7,50 @@ import { PortableCharacterChoiceCard } from './_components/portable-character-ch
 import { loadSelectionPageData } from './_lib/load-selection-page-data'
 import styles from './select.module.css'
 
-export default async function SelectPage() {
-  const { user, selection } = await loadSelectionPageData()
+interface SelectPageProps {
+  searchParams: Promise<{ show?: string | string[] }>
+}
+
+export default async function SelectPage({ searchParams }: SelectPageProps) {
+  const [{ user, selection }, query] = await Promise.all([
+    loadSelectionPageData(),
+    searchParams,
+  ])
+  const showAll = query.show === 'all'
   const characterEntries = [
-    ...selection.characters.map((character) => ({
-      kind: 'world' as const,
-      character,
-      createdAt: character.createdAt,
-    })),
+    ...selection.characters.flatMap((character) =>
+      character.campaigns.length > 0
+        ? character.campaigns.map((campaign) => ({
+            kind: 'world' as const,
+            key: `world-${character.id}-campaign-${campaign.id}`,
+            character,
+            campaign,
+            createdAt: character.createdAt,
+          }))
+        : [
+            {
+              kind: 'world' as const,
+              key: `world-${character.id}-no-campaign`,
+              character,
+              campaign: null,
+              createdAt: character.createdAt,
+            },
+          ],
+    ),
     ...selection.portableCharacters.map((character) => ({
       kind: 'portable' as const,
+      key: `portable-${character.id}`,
       character,
       createdAt: character.createdAt,
     })),
   ].sort(
     (left, right) =>
       right.createdAt.getTime() - left.createdAt.getTime() ||
-      left.character.id.localeCompare(right.character.id),
+      left.key.localeCompare(right.key),
   )
-  const recentCharacters = characterEntries.slice(0, 3)
+  const visibleCharacters = showAll
+    ? characterEntries
+    : characterEntries.slice(0, 3)
   const hasAnyEntry =
     characterEntries.length > 0 || selection.weaverWorlds.length > 0
 
@@ -34,7 +59,7 @@ export default async function SelectPage() {
       <AppPage
         eyebrow="Signed in"
         title="Choose Entity"
-        description="Enter through a character you play, or join as Weaver to manage Worlds and Campaigns."
+        description="Enter directly through a character and Campaign, or join as Weaver to manage Worlds and Campaigns."
         wide
       >
         <div className={styles.stack}>
@@ -45,52 +70,44 @@ export default async function SelectPage() {
             >
               <div className={styles.sectionHeader}>
                 <div>
-                  <h2 id="recent-characters">Recent characters</h2>
+                  <h2 id="recent-characters">
+                    {showAll ? 'All character entries' : 'Recent character entries'}
+                  </h2>
                   <p>
-                    Most recently created Character identities and World
-                    incarnations appear first.
+                    Each Campaign is a direct entry for that WorldCharacter. A
+                    WorldCharacter without a Campaign opens in its World context.
                   </p>
                 </div>
               </div>
 
-              <div
-                className={`${styles.characterGrid} ${styles.recentCharacterGrid}`}
-              >
-                {recentCharacters.map((entry) =>
-                  entry.kind === 'world' ? (
-                    <CharacterChoiceCard
-                      key={`world-${entry.character.id}`}
-                      character={entry.character}
-                      eager
-                    />
-                  ) : (
-                    <PortableCharacterChoiceCard
-                      key={`portable-${entry.character.id}`}
-                      character={entry.character}
-                      eager
-                    />
-                  ),
-                )}
+              <div className={showAll ? styles.characterViewport : undefined}>
+                <div className={styles.characterGrid}>
+                  {visibleCharacters.map((entry, index) =>
+                    entry.kind === 'world' ? (
+                      <CharacterChoiceCard
+                        key={entry.key}
+                        character={entry.character}
+                        campaign={entry.campaign}
+                        eager={index < 3}
+                      />
+                    ) : (
+                      <PortableCharacterChoiceCard
+                        key={entry.key}
+                        character={entry.character}
+                        eager={index < 3}
+                      />
+                    ),
+                  )}
+                </div>
               </div>
 
               {characterEntries.length > 3 ? (
-                <div className={`${styles.moreRow} ${styles.desktopOnly}`}>
+                <div className={styles.moreRow}>
                   <Link
                     className={styles.secondaryLink}
-                    href="/select/characters"
+                    href={showAll ? '/select' : '/select?show=all'}
                   >
-                    Select other character
-                  </Link>
-                </div>
-              ) : null}
-
-              {characterEntries.length > 1 ? (
-                <div className={`${styles.moreRow} ${styles.mobileOnly}`}>
-                  <Link
-                    className={styles.secondaryLink}
-                    href="/select/characters"
-                  >
-                    Select other character
+                    {showAll ? 'Show recent' : 'More characters'}
                   </Link>
                 </div>
               ) : null}
