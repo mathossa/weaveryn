@@ -30,6 +30,13 @@
   color: var(--ui-text-muted);
 }
 
+.characterViewport {
+  max-height: min(52vh, 35rem);
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  overscroll-behavior: contain;
+}
+
 .characterGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -272,12 +279,16 @@
 }
 
 @media (max-width: 760px) {
+  .characterViewport {
+    max-height: min(48vh, 28rem);
+  }
+
   .characterGrid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .recentCharacterGrid > :nth-child(n + 2) {
-    display: none;
+  .characterCard {
+    min-height: 11rem;
   }
 
   .desktopOnly {
