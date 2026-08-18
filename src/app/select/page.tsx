@@ -119,6 +119,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
         title="Choose Entity"
         description="Enter directly through a character and Campaign, or join as Weaver to manage Worlds and Campaigns."
         wide
+        bounded={showAll}
       >
         <div
           className={`${styles.stack} ${showAll ? styles.expandedStack : ''}`}
