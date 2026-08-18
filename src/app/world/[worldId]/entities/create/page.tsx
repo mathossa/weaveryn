@@ -45,7 +45,9 @@ export default async function CreateWorldEntityPage({
       )
     : undefined
   const selectableEntityTypes = workspace.entityTypes.filter(
-    (type) => type.scope === 'BUILT_IN' || (type.usageCount ?? 0) > 0,
+    (type) =>
+      type.value !== 'character' &&
+      (type.scope === 'BUILT_IN' || (type.usageCount ?? 0) > 0),
   )
 
   return (
