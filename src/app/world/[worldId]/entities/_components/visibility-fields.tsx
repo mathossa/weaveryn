@@ -2,6 +2,7 @@
 
 import type { VisibilityScope } from '@/server/world-entities'
 import styles from '../entity.module.css'
+import visibilityStyles from './visibility-fields.module.css'
 
 export interface VisibilityValue {
   scope: VisibilityScope
@@ -14,18 +15,22 @@ export function VisibilityFields({
   onChange,
   campaigns,
   users,
+  compact = false,
 }: {
   value: VisibilityValue
   onChange: (value: VisibilityValue) => void
   campaigns: { id: string; name: string }[]
   users: { id: string; label: string }[]
+  compact?: boolean
 }) {
   function change(patch: Partial<VisibilityValue>) {
     onChange({ ...value, ...patch })
   }
 
   return (
-    <div className={styles.visibilityFields}>
+    <div
+      className={`${styles.visibilityFields} ${compact ? visibilityStyles.compact : ''}`}
+    >
       <label className={styles.field}>
         <span>Visibility</span>
         <select
