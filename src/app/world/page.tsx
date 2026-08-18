@@ -66,7 +66,11 @@ export default async function WorldSelectionPage({
               <Link
                 key={world.id}
                 className={styles.card}
-                href={`/world/${world.id}`}
+                href={
+                  weaverMode
+                    ? `/select/weaver?world=${world.id}`
+                    : `/world/${world.id}`
+                }
                 style={{ backgroundImage: `url(${uiAssets.fallbacks.world})` }}
               >
                 <span className={styles.badge}>
