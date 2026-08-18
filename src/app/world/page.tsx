@@ -73,9 +73,7 @@ export default async function WorldSelectionPage({
                     : `/world/${world.id}`
                 }
                 tracking={
-                  weaverMode
-                    ? { kind: 'WEAVER', worldId: world.id }
-                    : undefined
+                  weaverMode ? { kind: 'WEAVER', worldId: world.id } : undefined
                 }
                 style={{ backgroundImage: `url(${uiAssets.fallbacks.world})` }}
               >

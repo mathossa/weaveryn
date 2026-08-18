@@ -50,7 +50,10 @@ export function parseEntryUseInput(value: unknown): EntryUseInput {
   }
 
   if (candidate.kind === 'WEAVER') {
-    if (typeof candidate.worldId !== 'string' || candidate.worldId.length === 0) {
+    if (
+      typeof candidate.worldId !== 'string' ||
+      candidate.worldId.length === 0
+    ) {
       throw new EntryPreferenceDomainError(
         'ENTRY_PREFERENCE_INVALID',
         'World ID is required for Weaver entry tracking.',

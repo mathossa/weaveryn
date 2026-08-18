@@ -20,10 +20,7 @@ function errorResponse(error: unknown) {
     return NextResponse.json(
       { error: { code: error.code, message: error.message } },
       {
-        status:
-          error.code === 'ENTRY_PREFERENCE_INVALID'
-            ? 400
-            : 404,
+        status: error.code === 'ENTRY_PREFERENCE_INVALID' ? 400 : 404,
       },
     )
   }

@@ -261,7 +261,9 @@ async function runAcceptanceChecks() {
   await resetFixture()
 
   const initial = await readState()
-  const campaignNames = initial?.worldCharacter?.campaigns.map(({ name }) => name)
+  const campaignNames = initial?.worldCharacter?.campaigns.map(
+    ({ name }) => name,
+  )
   checks.push({
     id: 'campaign-entry-cards',
     title: 'One WorldCharacter exposes two Campaign entry contexts',
@@ -291,7 +293,9 @@ async function runAcceptanceChecks() {
     actor: 'Cora',
     target: 'Bodwick — The Verdant Vale',
     expected: `${pinKey} pinned`,
-    actual: pin ? `${pin.entryKey}; pinned=${pin.pinned}` : 'Preference missing',
+    actual: pin
+      ? `${pin.entryKey}; pinned=${pin.pinned}`
+      : 'Preference missing',
     detail:
       'Pinning uses the production entry-preference service and does not pin every appearance of the Character.',
   })

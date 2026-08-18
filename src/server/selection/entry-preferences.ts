@@ -4,8 +4,7 @@ import { getEntrySelection } from './entry-selection'
 export const WEAVER_ENTRY_KEY = 'weaver'
 
 export type EntryPreferenceErrorCode =
-  | 'ENTRY_PREFERENCE_NOT_AVAILABLE'
-  | 'ENTRY_PREFERENCE_INVALID'
+  'ENTRY_PREFERENCE_NOT_AVAILABLE' | 'ENTRY_PREFERENCE_INVALID'
 
 export class EntryPreferenceDomainError extends Error {
   constructor(
@@ -48,7 +47,8 @@ export function parseCharacterEntryPinInput(
   if (
     candidate.campaignId !== undefined &&
     candidate.campaignId !== null &&
-    (typeof candidate.campaignId !== 'string' || candidate.campaignId.length === 0)
+    (typeof candidate.campaignId !== 'string' ||
+      candidate.campaignId.length === 0)
   ) {
     throw new EntryPreferenceDomainError(
       'ENTRY_PREFERENCE_INVALID',
@@ -163,10 +163,7 @@ export async function setCharacterEntryPinned(input: {
     input.worldCharacterId,
     input.campaignId,
   )
-  const entryKey = characterEntryKey(
-    input.worldCharacterId,
-    input.campaignId,
-  )
+  const entryKey = characterEntryKey(input.worldCharacterId, input.campaignId)
 
   return prisma.entryPreference.upsert({
     where: {
@@ -197,10 +194,7 @@ export async function recordCharacterEntryUse(input: {
     input.worldCharacterId,
     input.campaignId,
   )
-  const entryKey = characterEntryKey(
-    input.worldCharacterId,
-    input.campaignId,
-  )
+  const entryKey = characterEntryKey(input.worldCharacterId, input.campaignId)
   const lastUsedAt = new Date()
 
   return prisma.entryPreference.upsert({

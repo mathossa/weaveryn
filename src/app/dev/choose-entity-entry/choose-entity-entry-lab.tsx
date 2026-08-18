@@ -57,7 +57,9 @@ export function ChooseEntityEntryLab() {
                 </ul>
               </>
             ) : (
-              <p>Reset the fixture to create the deterministic entry contexts.</p>
+              <p>
+                Reset the fixture to create the deterministic entry contexts.
+              </p>
             )}
           </section>
 

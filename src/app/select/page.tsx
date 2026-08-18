@@ -41,10 +41,8 @@ interface PortableCharacterEntry {
 type CharacterEntry = WorldCharacterEntry | PortableCharacterEntry
 
 export default async function SelectPage({ searchParams }: SelectPageProps) {
-  const [
-    { user, selection, entryPreferences, weaverResume },
-    query,
-  ] = await Promise.all([loadSelectionPageData(), searchParams])
+  const [{ user, selection, entryPreferences, weaverResume }, query] =
+    await Promise.all([loadSelectionPageData(), searchParams])
   const showAll = query.show === 'all'
   const preferenceByKey = new Map(
     entryPreferences.map((preference) => [preference.entryKey, preference]),
@@ -78,13 +76,15 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
             ]
           })(),
     ),
-    ...selection.portableCharacters.map<PortableCharacterEntry>((character) => ({
-      kind: 'portable',
-      key: `portable-${character.id}`,
-      character,
-      preference: undefined,
-      createdAt: character.createdAt,
-    })),
+    ...selection.portableCharacters.map<PortableCharacterEntry>(
+      (character) => ({
+        kind: 'portable',
+        key: `portable-${character.id}`,
+        character,
+        preference: undefined,
+        createdAt: character.createdAt,
+      }),
+    ),
   ].sort((left, right) => {
     const pinnedDifference =
       Number(right.preference?.pinned ?? false) -
@@ -128,8 +128,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
     ),
   )
   const weaverHighlighted =
-    latestUsedAt > 0 &&
-    weaverResume?.lastUsedAt?.getTime() === latestUsedAt
+    latestUsedAt > 0 && weaverResume?.lastUsedAt?.getTime() === latestUsedAt
   const weaverResumeLabel = weaverResume
     ? weaverResume.campaign
       ? `${weaverResume.world.name} — ${weaverResume.campaign.name}`
@@ -162,7 +161,8 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                   </h2>
                   <p>
                     Each Campaign is a direct entry for that WorldCharacter. A
-                    WorldCharacter without a Campaign opens in its World context.
+                    WorldCharacter without a Campaign opens in its World
+                    context.
                   </p>
                 </div>
               </div>
@@ -180,7 +180,8 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                         pinned={entry.preference?.pinned ?? false}
                         highlighted={
                           latestUsedAt > 0 &&
-                          entry.preference?.lastUsedAt?.getTime() === latestUsedAt
+                          entry.preference?.lastUsedAt?.getTime() ===
+                            latestUsedAt
                         }
                         eager={index < eagerCharacterCount}
                       />
