@@ -48,6 +48,11 @@
   padding: 1rem 1.15rem 1.25rem;
 }
 
+/* Image focus has its own lightweight editor directly on the entity artwork. */
+.body form > section:first-of-type {
+  display: none;
+}
+
 .closeButton {
   flex: 0 0 auto;
   min-height: 2.5rem;
