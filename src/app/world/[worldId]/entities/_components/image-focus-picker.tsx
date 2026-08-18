@@ -2,6 +2,8 @@
 
 /* eslint-disable @next/next/no-img-element */
 
+import { FocalImage } from './focal-image'
+
 export function ImageFocusPicker({
   src,
   x,
@@ -14,7 +16,9 @@ export function ImageFocusPicker({
   onChange: (value: { x: number; y: number }) => void
 }) {
   function setFromPointer(event: React.PointerEvent<HTMLButtonElement>) {
-    const rect = event.currentTarget.getBoundingClientRect()
+    const image = event.currentTarget.querySelector('img')
+    if (!image) return
+    const rect = image.getBoundingClientRect()
     const nextX = Math.round(((event.clientX - rect.left) / rect.width) * 100)
     const nextY = Math.round(((event.clientY - rect.top) / rect.height) * 100)
     onChange({
@@ -22,13 +26,6 @@ export function ImageFocusPicker({
       y: Math.max(0, Math.min(100, nextY)),
     })
   }
-
-  const cropStyle = {
-    backgroundImage: `url(${JSON.stringify(src)})`,
-    backgroundPosition: `${x}% ${y}%`,
-    backgroundSize: 'cover',
-    backgroundRepeat: 'no-repeat',
-  } as const
 
   return (
     <div style={{ display: 'grid', gap: '0.9rem' }}>
@@ -77,7 +74,8 @@ export function ImageFocusPicker({
           />
         </button>
         <small style={{ color: 'var(--ui-text-muted)' }}>
-          Click the actual image; the image itself stays still while you choose the focus.
+          Click the important point. Weaveryn centres that point in each crop whenever
+          the image edges allow it.
         </small>
       </div>
 
@@ -91,29 +89,41 @@ export function ImageFocusPicker({
       >
         <div style={{ display: 'grid', gap: '0.35rem' }}>
           <small style={{ color: 'var(--ui-text-muted)' }}>Card crop</small>
-          <div
-            aria-hidden="true"
-            style={{
-              ...cropStyle,
-              aspectRatio: '4 / 5',
-              border: '1px solid var(--ui-border)',
-              borderRadius: 'var(--ui-radius-control)',
-            }}
+          <FocalImage
+            src={src}
+            focusX={x}
+            focusY={y}
+            className="entity-focus-card-preview"
           />
         </div>
         <div style={{ display: 'grid', gap: '0.35rem' }}>
           <small style={{ color: 'var(--ui-text-muted)' }}>Detail crop</small>
-          <div
-            aria-hidden="true"
-            style={{
-              ...cropStyle,
-              aspectRatio: '16 / 7',
-              border: '1px solid var(--ui-border)',
-              borderRadius: 'var(--ui-radius-control)',
-            }}
+          <FocalImage
+            src={src}
+            focusX={x}
+            focusY={y}
+            className="entity-focus-detail-preview"
           />
         </div>
       </div>
+
+      <style jsx global>{`
+        .entity-focus-card-preview,
+        .entity-focus-detail-preview {
+          min-height: 9rem;
+          border: 1px solid var(--ui-border);
+          border-radius: var(--ui-radius-control);
+          background: var(--ui-control-surface);
+        }
+
+        .entity-focus-card-preview {
+          aspect-ratio: 4 / 5;
+        }
+
+        .entity-focus-detail-preview {
+          aspect-ratio: 16 / 7;
+        }
+      `}</style>
     </div>
   )
 }
