@@ -19,6 +19,8 @@ export interface WorldEntityRecord extends VisibilityRecord {
   name: string
   description: string | null
   image: string | null
+  imageFocusX?: number
+  imageFocusY?: number
   data: unknown
   createdAt: Date
   updatedAt: Date
@@ -62,6 +64,8 @@ export interface CreateWorldEntityRecordInput {
   name: string
   description?: string | null
   image?: string | null
+  imageFocusX?: number
+  imageFocusY?: number
   data: StructuredData
   createdById: string
   visibilityScope: VisibilityScope
@@ -74,6 +78,8 @@ export interface UpdateWorldEntityRecordInput {
   name?: string
   description?: string | null
   image?: string | null
+  imageFocusX?: number
+  imageFocusY?: number
   data?: StructuredData
   visibilityScope?: VisibilityScope
   visibilityCampaignId?: string | null
