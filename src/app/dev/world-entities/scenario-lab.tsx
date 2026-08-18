@@ -16,12 +16,17 @@ const metadata = requireDevScenarioMetadata('world-entities')
 const locationId = '20000000-0000-4000-8000-000000000010'
 const organizationId = '20000000-0000-4000-8000-000000000011'
 const otherWorldEntityId = '20000000-0000-4000-8000-000000000012'
+const campaignEntityId = '20000000-0000-4000-8000-000000000014'
 
 const actions: Array<{
   action: WorldEntitiesScenarioAction['action']
   label: string
 }> = [
   { action: 'create-entities', label: 'Create World entities' },
+  {
+    action: 'create-visibility-entities',
+    label: 'Create MVP visibility + custom type examples',
+  },
   { action: 'update-entity', label: 'Edit Moonwatch' },
   { action: 'link-entities', label: 'Link Moonwatch to Lantern Guild' },
   {
@@ -42,16 +47,22 @@ export function WorldEntitiesLab() {
   const hasPrimaryEntities =
     entityIds.has(locationId) && entityIds.has(organizationId)
   const hasCrossWorldEntity = entityIds.has(otherWorldEntityId)
-  const hasRelationship = Boolean(state?.relationships.length)
+  const hasVisibilityEntities = entityIds.has(campaignEntityId)
+  const hasWorldRelationship = Boolean(
+    state?.relationships.some(
+      (relationship) => relationship.relationshipType === 'HOSTS',
+    ),
+  )
 
   function isDisabled(action: WorldEntitiesScenarioAction['action']) {
     if (isBusy || !state) return true
     if (action === 'create-entities') return state.entities.length > 0
+    if (action === 'create-visibility-entities') return hasVisibilityEntities
     if (action === 'update-entity') return !entityIds.has(locationId)
     if (action === 'link-entities') {
-      return !hasPrimaryEntities || hasRelationship
+      return !hasPrimaryEntities || hasWorldRelationship
     }
-    if (action === 'delete-relationship') return !hasRelationship
+    if (action === 'delete-relationship') return !hasWorldRelationship
     if (action === 'cross-world-link') {
       return !hasPrimaryEntities || !hasCrossWorldEntity
     }
@@ -62,11 +73,12 @@ export function WorldEntitiesLab() {
     <main className="dev-page">
       <ScenarioNavigation issueNumbers={metadata.issueNumbers} />
       <header>
-        <span>Development only · Issue #20</span>
+        <span>Development only · Issues #20 and #55</span>
         <h1>World entities and relationships</h1>
         <p>
-          Exercise generic World content, structured data, explicit graph
-          relationships, same-World validation, and backend authorization.
+          Exercise generic World content, simple structured data, reusable custom
+          types, MVP visibility, explicit graph relationships, same-World
+          validation, and backend authorization.
         </p>
       </header>
       <ScenarioLifecycleControls
@@ -89,7 +101,17 @@ export function WorldEntitiesLab() {
               {state.entities.map((entity) => (
                 <li key={entity.id}>
                   <strong>{entity.name}</strong> · {entity.type} ·{' '}
+                  <strong>{entity.visibilityScope}</strong> ·{' '}
                   <code>{JSON.stringify(entity.data)}</code>
+                </li>
+              ))}
+            </ul>
+            <h3>Reusable custom types</h3>
+            <ul>
+              {state.entityTypes.map((entityType) => (
+                <li key={entityType.id}>
+                  <strong>{entityType.name}</strong> ·{' '}
+                  {entityType.campaignId ? 'Campaign' : 'World'} scope
                 </li>
               ))}
             </ul>
@@ -98,7 +120,8 @@ export function WorldEntitiesLab() {
               {state.relationships.map((relationship) => (
                 <li key={relationship.id}>
                   {relationship.sourceEntityId} → {relationship.targetEntityId}{' '}
-                  · <strong>{relationship.relationshipType}</strong>
+                  · <strong>{relationship.relationshipType}</strong> ·{' '}
+                  {relationship.visibilityScope}
                   {relationship.label ? ` · ${relationship.label}` : ''}
                 </li>
               ))}
