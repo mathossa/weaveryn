@@ -68,6 +68,8 @@ export default async function CreateWorldEntityPage({
               worldId={worldId}
               contextCampaignId={campaignId}
               entityTypes={workspace.entityTypes}
+              entities={workspace.entities}
+              relationshipTypes={workspace.relationshipTypes}
               campaigns={workspace.campaigns}
               visibilityUsers={workspace.visibilityUsers}
             />
