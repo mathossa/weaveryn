@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import styles from '../entity.module.css'
+import { connectionTypeLabel } from './connection-language'
 
 export function RelationshipTypeInput({
   value,
@@ -18,13 +19,13 @@ export function RelationshipTypeInput({
   if (choices.length === 0) {
     return (
       <label className={styles.field}>
-        <span>Relationship type</span>
+        <span>How are they connected?</span>
         <input
           required
           maxLength={80}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          placeholder="e.g. LOCATED_IN"
+          placeholder="e.g. is protected by"
         />
       </label>
     )
@@ -33,7 +34,7 @@ export function RelationshipTypeInput({
   return (
     <div className={styles.relationshipTypeFields}>
       <label className={styles.field}>
-        <span>Relationship type</span>
+        <span>How are they connected?</span>
         <select
           value={choice}
           onChange={(event) => {
@@ -45,21 +46,21 @@ export function RelationshipTypeInput({
         >
           {choices.map((item) => (
             <option key={item} value={item}>
-              {item}
+              {connectionTypeLabel(item)}
             </option>
           ))}
-          <option value="__custom__">Custom…</option>
+          <option value="__custom__">Other…</option>
         </select>
       </label>
       {choice === '__custom__' ? (
         <label className={styles.field}>
-          <span>Custom relationship type</span>
+          <span>Describe the connection</span>
           <input
             required
             maxLength={80}
             value={value}
             onChange={(event) => onChange(event.target.value)}
-            placeholder="e.g. PROTECTS"
+            placeholder="e.g. is protected by"
           />
         </label>
       ) : null}
