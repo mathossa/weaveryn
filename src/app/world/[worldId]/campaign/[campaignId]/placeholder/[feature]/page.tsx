@@ -31,7 +31,10 @@ interface CampaignPlaceholderPageProps {
     campaignId: string
     feature: string
   }>
-  searchParams: Promise<{ character?: string | string[] }>
+  searchParams: Promise<{
+    character?: string | string[]
+    mode?: string | string[]
+  }>
 }
 
 export default async function CampaignPlaceholderPage({
@@ -48,7 +51,10 @@ export default async function CampaignPlaceholderPage({
   const campaign = await getCampaignOverview(worldId, campaignId, user.id)
   if (!campaign) notFound()
 
-  const requestedCharacterId = requestedCharacterContext(query.character)
+  const explicitWeaverMode = query.mode === 'weaver'
+  const requestedCharacterId = explicitWeaverMode
+    ? undefined
+    : requestedCharacterContext(query.character)
   const selectedCharacter = requestedCharacterId
     ? campaign.characters.find(
         (character) =>
@@ -56,10 +62,12 @@ export default async function CampaignPlaceholderPage({
           character.ownedByCurrentUser,
       )
     : undefined
-  const campaignHref = withCharacterContext(
-    `/world/${worldId}/campaign/${campaign.id}`,
-    selectedCharacter?.worldCharacterId,
-  )
+  const campaignHref = explicitWeaverMode
+    ? `/world/${worldId}/campaign/${campaign.id}?mode=weaver`
+    : withCharacterContext(
+        `/world/${worldId}/campaign/${campaign.id}`,
+        selectedCharacter?.worldCharacterId,
+      )
   const label = featureLabels[feature as FeatureKey]
 
   return (
