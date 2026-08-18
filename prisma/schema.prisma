@@ -106,7 +106,7 @@ model AuthVerification {
   value      String
   expiresAt  DateTime
   createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  updatedAt DateTime @updatedAt
 
   @@index([identifier])
 }
@@ -135,15 +135,16 @@ model World {
 }
 
 model WorldEntity {
-  id          String  @id @default(uuid()) @db.Uuid
-  worldId     String  @db.Uuid
-  type        String
-  name        String
-  description String?
-  image       String?
-  imageFocusX Int     @default(50)
-  imageFocusY Int     @default(50)
-  data        Json    @default("{}")
+  id               String  @id @default(uuid()) @db.Uuid
+  worldId          String  @db.Uuid
+  worldCharacterId String? @db.Uuid
+  type             String
+  name             String
+  description      String?
+  image            String?
+  imageFocusX      Int     @default(50)
+  imageFocusY      Int     @default(50)
+  data             Json    @default("{}")
 
   createdById String? @db.Uuid
 
@@ -151,10 +152,11 @@ model WorldEntity {
   visibilityCampaignId String?         @db.Uuid
   visibilityUserId     String?         @db.Uuid
 
-  world              World     @relation(fields: [worldId], references: [id], onDelete: Cascade)
-  createdBy          User?     @relation("WorldEntityCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  visibilityCampaign Campaign? @relation("WorldEntityVisibilityCampaign", fields: [visibilityCampaignId], references: [id], onDelete: SetNull)
-  visibilityUser     User?     @relation("WorldEntityVisibilityUser", fields: [visibilityUserId], references: [id], onDelete: SetNull)
+  world              World           @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  worldCharacter     WorldCharacter? @relation("WorldCharacterEntity", fields: [worldCharacterId, worldId], references: [id, worldId], onDelete: Restrict, onUpdate: Restrict)
+  createdBy          User?           @relation("WorldEntityCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  visibilityCampaign Campaign?       @relation("WorldEntityVisibilityCampaign", fields: [visibilityCampaignId], references: [id], onDelete: SetNull)
+  visibilityUser     User?           @relation("WorldEntityVisibilityUser", fields: [visibilityUserId], references: [id], onDelete: SetNull)
 
   sourceRelationships EntityRelationship[] @relation("EntityRelationshipSource")
   targetRelationships EntityRelationship[] @relation("EntityRelationshipTarget")
@@ -162,6 +164,7 @@ model WorldEntity {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([worldCharacterId])
   @@index([worldId])
   @@index([createdById])
   @@index([visibilityCampaignId])
@@ -252,6 +255,7 @@ model WorldCharacter {
 
   character          Character           @relation(fields: [characterId], references: [id], onDelete: Cascade)
   world              World               @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  worldEntity        WorldEntity?        @relation("WorldCharacterEntity")
   campaignCharacters CampaignCharacter[]
   entryPreferences   EntryPreference[]
 
@@ -259,6 +263,7 @@ model WorldCharacter {
   updatedAt DateTime @updatedAt
 
   @@unique([characterId, worldId])
+  @@unique([id, worldId])
   @@index([worldId])
 }
 
