@@ -139,14 +139,9 @@ export interface WorldEntityRepository extends WorldAuthorizationRepository {
     userId: string,
   ): Promise<CampaignVisibilityAccessRecord[]>
   userExists(userId: string): Promise<boolean>
-  createWorldEntityType(
+  upsertWorldEntityType(
     input: CreateWorldEntityTypeRecordInput,
   ): Promise<WorldEntityTypeRecord>
-  findWorldEntityType(
-    worldId: string,
-    scopeKey: string,
-    normalizedName: string,
-  ): Promise<WorldEntityTypeRecord | null>
   listWorldEntityTypes(
     worldId: string,
     campaignId?: string,
