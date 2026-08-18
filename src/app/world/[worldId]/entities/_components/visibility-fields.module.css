@@ -1,0 +1,14 @@
+.compact {
+  grid-template-columns: minmax(0, 1fr) !important;
+  width: 100%;
+  min-width: 0;
+}
+
+.compact > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.compact p {
+  grid-column: 1 !important;
+}

@@ -1,5 +1,6 @@
 export type WorldEntitiesScenarioAction =
   | { action: 'create-entities' }
+  | { action: 'create-visibility-entities' }
   | { action: 'update-entity' }
   | { action: 'link-entities' }
   | { action: 'delete-relationship' }
@@ -14,6 +15,10 @@ export interface WorldEntitiesScenarioState {
     type: string
     name: string
     data: unknown
+    visibilityScope: 'WORLD' | 'CAMPAIGN' | 'GM' | 'PLAYER' | 'PRIVATE'
+    visibilityCampaignId: string | null
+    visibilityUserId: string | null
+    createdById: string | null
   }>
   relationships: Array<{
     id: string
@@ -23,11 +28,19 @@ export interface WorldEntitiesScenarioState {
     relationshipType: string
     label: string | null
     metadata: unknown
+    visibilityScope: 'WORLD' | 'CAMPAIGN' | 'GM' | 'PLAYER' | 'PRIVATE'
+  }>
+  entityTypes: Array<{
+    id: string
+    worldId: string
+    campaignId: string | null
+    name: string
   }>
 }
 
 const actions = new Set<WorldEntitiesScenarioAction['action']>([
   'create-entities',
+  'create-visibility-entities',
   'update-entity',
   'link-entities',
   'delete-relationship',

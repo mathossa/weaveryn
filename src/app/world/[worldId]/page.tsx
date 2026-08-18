@@ -39,7 +39,7 @@ export default async function WorldOverviewPage({
         description={
           world.hasFullWorldAccess
             ? world.description || 'No World description has been added yet.'
-            : 'You can navigate this World through one or more Campaigns. World content visibility will be resolved through Campaign timeline and visibility rules as those content views are implemented.'
+            : 'You can navigate this World through one or more Campaigns. World content is filtered by your Campaign and visibility access.'
         }
         wide
         actions={
@@ -120,9 +120,17 @@ export default async function WorldOverviewPage({
               <h2>World context</h2>
               <p className={styles.meta}>Entities and timeline</p>
               <p>
-                World entities and timeline-aware content will connect here when
-                their dedicated UI is implemented.
+                Browse interconnected World entities now. Basic World history
+                and main-timeline facts are tracked separately in #113.
               </p>
+              <div className={styles.formActions}>
+                <Link
+                  className={styles.secondary}
+                  href={`/world/${world.id}/entities`}
+                >
+                  Browse World entities
+                </Link>
+              </div>
             </section>
           </div>
 

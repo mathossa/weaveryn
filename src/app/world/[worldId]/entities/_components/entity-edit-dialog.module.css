@@ -1,0 +1,84 @@
+.dialog {
+  width: min(62rem, calc(100vw - 8rem));
+  max-width: calc(100vw - 8rem);
+  max-height: calc(100dvh - 6rem);
+  margin: 3rem auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-panel-strong);
+  color: var(--ui-text);
+}
+
+.dialog::backdrop {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  max-height: calc(100dvh - 6rem);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  border-bottom: 1px solid var(--ui-border);
+  background: var(--ui-panel-strong);
+}
+
+.header h2,
+.header p {
+  margin: 0;
+}
+
+.header p {
+  margin-top: 0.2rem;
+  color: var(--ui-text-muted);
+  font-size: 0.85rem;
+}
+
+.body {
+  min-height: 0;
+  overflow: auto;
+  padding: 1rem 1.15rem 1.25rem;
+}
+
+/* Image focus has its own lightweight editor directly on the entity artwork. */
+.body form > section:first-of-type {
+  display: none;
+}
+
+.closeButton {
+  flex: 0 0 auto;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .dialog {
+    width: calc(100vw - 1rem);
+    max-width: calc(100vw - 1rem);
+    max-height: 94dvh;
+    margin: 3dvh auto;
+  }
+
+  .shell {
+    max-height: 94dvh;
+  }
+
+  .header {
+    align-items: start;
+  }
+}

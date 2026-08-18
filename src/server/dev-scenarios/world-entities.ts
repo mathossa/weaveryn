@@ -28,15 +28,26 @@ const PRIMARY_TIMELINE_ID = '20000000-0000-4000-8000-000000000003'
 const SECONDARY_TIMELINE_ID = '20000000-0000-4000-8000-000000000004'
 const MEMBER_MEMBERSHIP_ID = '20000000-0000-4000-8000-000000000005'
 const VIEWER_MEMBERSHIP_ID = '20000000-0000-4000-8000-000000000006'
+const CAMPAIGN_ID = '20000000-0000-4000-8000-000000000007'
+const CAMPAIGN_OWNER_MEMBERSHIP_ID = '20000000-0000-4000-8000-000000000008'
+const CAMPAIGN_PLAYER_MEMBERSHIP_ID = '20000000-0000-4000-8000-000000000009'
 const OWNER_ID = '20000000-0000-4000-8000-00000000000a'
 const MEMBER_ID = '20000000-0000-4000-8000-00000000000b'
 const VIEWER_ID = '20000000-0000-4000-8000-00000000000c'
+const CAMPAIGN_PLAYER_ID = '20000000-0000-4000-8000-00000000000d'
 const LOCATION_ID = '20000000-0000-4000-8000-000000000010'
 const ORGANIZATION_ID = '20000000-0000-4000-8000-000000000011'
 const OTHER_WORLD_ENTITY_ID = '20000000-0000-4000-8000-000000000012'
 const UNAUTHORIZED_ENTITY_ID = '20000000-0000-4000-8000-000000000013'
+const CAMPAIGN_ENTITY_ID = '20000000-0000-4000-8000-000000000014'
+const CAMPAIGN_ENTITY_TWO_ID = '20000000-0000-4000-8000-000000000015'
+const GM_ENTITY_ID = '20000000-0000-4000-8000-000000000016'
+const PLAYER_ENTITY_ID = '20000000-0000-4000-8000-000000000017'
+const PRIVATE_ENTITY_ID = '20000000-0000-4000-8000-000000000018'
+const CUSTOM_ENTITY_ID = '20000000-0000-4000-8000-000000000019'
 const RELATIONSHIP_ID = '20000000-0000-4000-8000-000000000020'
 const CROSS_WORLD_RELATIONSHIP_ID = '20000000-0000-4000-8000-000000000021'
+const CAMPAIGN_RELATIONSHIP_ID = '20000000-0000-4000-8000-000000000022'
 
 const people = [
   {
@@ -56,6 +67,12 @@ const people = [
     email: 'dev-world-entities-viewer@weaveryn.local',
     username: 'world-entities-viewer',
     displayName: 'Vela (World viewer)',
+  },
+  {
+    id: CAMPAIGN_PLAYER_ID,
+    email: 'dev-world-entities-player@weaveryn.local',
+    username: 'world-entities-player',
+    displayName: 'Tarin (Campaign-only player)',
   },
 ] as const
 
@@ -86,7 +103,7 @@ async function assertFixturesOwned(transaction: Prisma.TransactionClient) {
 async function readState(): Promise<WorldEntitiesScenarioState | null> {
   return prisma.$transaction(async (transaction) => {
     await assertFixturesOwned(transaction)
-    const [worlds, entities, relationships] = await Promise.all([
+    const [worlds, entities, relationships, entityTypes] = await Promise.all([
       transaction.world.findMany({
         where: { id: { in: [PRIMARY_WORLD_ID, SECONDARY_WORLD_ID] } },
         select: { id: true, name: true },
@@ -102,6 +119,10 @@ async function readState(): Promise<WorldEntitiesScenarioState | null> {
           type: true,
           name: true,
           data: true,
+          visibilityScope: true,
+          visibilityCampaignId: true,
+          visibilityUserId: true,
+          createdById: true,
         },
         orderBy: { id: 'asc' },
       }),
@@ -115,7 +136,13 @@ async function readState(): Promise<WorldEntitiesScenarioState | null> {
           relationshipType: true,
           label: true,
           metadata: true,
+          visibilityScope: true,
         },
+        orderBy: { id: 'asc' },
+      }),
+      transaction.worldEntityType.findMany({
+        where: { worldId: PRIMARY_WORLD_ID },
+        select: { id: true, worldId: true, campaignId: true, name: true },
         orderBy: { id: 'asc' },
       }),
     ])
@@ -126,7 +153,7 @@ async function readState(): Promise<WorldEntitiesScenarioState | null> {
         'World entity scenario fixture is only partially present.',
       )
     }
-    return { worlds, entities, relationships }
+    return { worlds, entities, relationships, entityTypes }
   })
 }
 
@@ -174,6 +201,30 @@ async function resetFixture() {
             },
           ],
         },
+        campaigns: {
+          create: {
+            id: CAMPAIGN_ID,
+            name: 'Lanterns Below',
+            ownerId: OWNER_ID,
+            timelineId: PRIMARY_TIMELINE_ID,
+            currentWorldPosition: '1',
+            currentWorldDateLabel: 'Day 1',
+            memberships: {
+              create: [
+                {
+                  id: CAMPAIGN_OWNER_MEMBERSHIP_ID,
+                  userId: OWNER_ID,
+                  role: 'GM',
+                },
+                {
+                  id: CAMPAIGN_PLAYER_MEMBERSHIP_ID,
+                  userId: CAMPAIGN_PLAYER_ID,
+                  role: 'PLAYER',
+                },
+              ],
+            },
+          },
+        },
       },
     })
     await transaction.world.create({
@@ -214,6 +265,65 @@ async function createEntities() {
     type: 'location',
     name: 'Veyra Crossing',
     data: { concept: 'distant settlement' },
+  })
+}
+
+async function createVisibilityEntities() {
+  await serviceWithId(CAMPAIGN_ENTITY_ID).createEntity({
+    actorUserId: OWNER_ID,
+    worldId: PRIMARY_WORLD_ID,
+    contextCampaignId: CAMPAIGN_ID,
+    type: 'location',
+    name: 'Lantern Camp',
+    data: { status: 'temporary' },
+  })
+  await serviceWithId(CAMPAIGN_ENTITY_TWO_ID).createEntity({
+    actorUserId: OWNER_ID,
+    worldId: PRIMARY_WORLD_ID,
+    contextCampaignId: CAMPAIGN_ID,
+    type: 'item',
+    name: 'Campaign Ledger',
+  })
+  await serviceWithId(GM_ENTITY_ID).createEntity({
+    actorUserId: OWNER_ID,
+    worldId: PRIMARY_WORLD_ID,
+    type: 'person',
+    name: 'Hidden Patron',
+    visibility: { scope: 'GM', campaignId: CAMPAIGN_ID },
+  })
+  await serviceWithId(PLAYER_ENTITY_ID).createEntity({
+    actorUserId: OWNER_ID,
+    worldId: PRIMARY_WORLD_ID,
+    type: 'item',
+    name: 'Tarin Clue',
+    visibility: {
+      scope: 'PLAYER',
+      campaignId: CAMPAIGN_ID,
+      userId: CAMPAIGN_PLAYER_ID,
+    },
+  })
+  await serviceWithId(PRIVATE_ENTITY_ID).createEntity({
+    actorUserId: MEMBER_ID,
+    worldId: PRIMARY_WORLD_ID,
+    type: 'person',
+    name: 'Marek Private Draft',
+    visibility: { scope: 'PRIVATE' },
+  })
+  await serviceWithId(CUSTOM_ENTITY_ID).createEntity({
+    actorUserId: OWNER_ID,
+    worldId: PRIMARY_WORLD_ID,
+    type: 'Astral Beacon',
+    name: 'North Beacon',
+    data: { active: true, height: 82 },
+  })
+  await serviceWithId(CAMPAIGN_RELATIONSHIP_ID).createRelationship({
+    actorUserId: OWNER_ID,
+    worldId: PRIMARY_WORLD_ID,
+    contextCampaignId: CAMPAIGN_ID,
+    sourceEntityId: CAMPAIGN_ENTITY_ID,
+    targetEntityId: CAMPAIGN_ENTITY_TWO_ID,
+    relationshipType: 'STORES',
+    label: 'Kept at camp',
   })
 }
 
@@ -283,7 +393,64 @@ async function runAll() {
     expected: '3 persisted ruleset-agnostic entities',
     actual: `${state?.entities.length ?? 0} entities`,
     detail:
-      'Owner and MEMBER both use World EDIT_CONTENT authorization; entity types and structured data remain generic.',
+      'Owner and MEMBER both use World EDIT_CONTENT authorization; normal World-context creation defaults to WORLD visibility.',
+  })
+
+  await createVisibilityEntities()
+  state = await readState()
+  const campaignPlayerEntities =
+    await worldEntityServiceForScenario().listEntities(
+      PRIMARY_WORLD_ID,
+      CAMPAIGN_PLAYER_ID,
+    )
+  const viewerEntities = await worldEntityServiceForScenario().listEntities(
+    PRIMARY_WORLD_ID,
+    VIEWER_ID,
+  )
+  const campaignPlayerRelationships =
+    await worldEntityServiceForScenario().listRelationships(
+      PRIMARY_WORLD_ID,
+      CAMPAIGN_PLAYER_ID,
+    )
+  checks.push({
+    id: 'visibility',
+    title: 'MVP visibility filters Campaign-only World access',
+    status:
+      campaignPlayerEntities
+        .map((entity) => entity.name)
+        .sort()
+        .join('|') ===
+        ['Campaign Ledger', 'Lantern Camp', 'Tarin Clue'].sort().join('|') &&
+      viewerEntities.every((entity) => entity.visibilityScope === 'WORLD') &&
+      campaignPlayerRelationships.some(
+        (relationship) => relationship.id === CAMPAIGN_RELATIONSHIP_ID,
+      )
+        ? 'passed'
+        : 'failed',
+    actor: 'Tarin (Campaign-only PLAYER) and Vela (World VIEWER)',
+    target: 'WORLD, CAMPAIGN, GM, PLAYER, PRIVATE entities and relationships',
+    expected:
+      'Tarin sees Campaign + targeted PLAYER content but not WORLD/GM/PRIVATE; Vela sees only WORLD content',
+    actual: `Tarin: ${campaignPlayerEntities.map((entity) => entity.name).join(', ')}; Vela: ${viewerEntities.map((entity) => entity.name).join(', ')}`,
+    detail:
+      'Campaign membership grants only visibility-scoped World content and does not create WorldMembership or general edit permission.',
+  })
+  checks.push({
+    id: 'custom-type',
+    title: 'Free-text entity types become reusable',
+    status: state?.entityTypes.some(
+      (entityType) => entityType.name === 'Astral Beacon',
+    )
+      ? 'passed'
+      : 'failed',
+    actor: 'Elara (World owner)',
+    target: 'Astral Beacon custom type',
+    expected: 'Reusable World-scoped type suggestion',
+    actual:
+      state?.entityTypes.map((entityType) => entityType.name).join(', ') ||
+      'no custom types',
+    detail:
+      'Custom types are persisted as reusable suggestions without turning WorldEntity.type into a fixed enum.',
   })
 
   await updateEntity()
@@ -304,25 +471,25 @@ async function runAll() {
       ? `${updated.name} ${JSON.stringify(updated.data)}`
       : 'missing',
     detail:
-      'The service only accepts explicit editable fields; World placement and creator attribution are not update inputs.',
+      'Normal product input exposes simple structured fields rather than raw JSON; the application service still preserves generic structured data.',
   })
 
   await linkEntities()
   state = await readState()
+  const worldRelationship = state?.relationships.find(
+    (relationship) => relationship.id === RELATIONSHIP_ID,
+  )
   checks.push({
     id: 'relationship',
     title: 'Same-World entities can be linked explicitly',
     status:
-      state?.relationships.length === 1 &&
-      state.relationships[0]?.relationshipType === 'HOSTS'
-        ? 'passed'
-        : 'failed',
+      worldRelationship?.relationshipType === 'HOSTS' ? 'passed' : 'failed',
     actor: 'Marek (World member)',
     target: 'Moonwatch → Lantern Guild',
-    expected: 'HOSTS relationship',
-    actual: state?.relationships[0]?.relationshipType ?? 'missing',
+    expected: 'WORLD-visible HOSTS relationship',
+    actual: worldRelationship?.relationshipType ?? 'missing',
     detail:
-      'The relationship is a first-class record rather than an ID hidden inside entity JSON.',
+      'The relationship is a first-class directed record with its own server-enforced visibility.',
   })
 
   await deleteRelationship()
@@ -334,15 +501,19 @@ async function runAll() {
     id: 'relationship-delete',
     title: 'Deleting a relationship preserves both linked entities',
     status:
-      state?.relationships.length === 0 && primaryEntities.length === 2
+      !state?.relationships.some(
+        (relationship) => relationship.id === RELATIONSHIP_ID,
+      ) &&
+      primaryEntities.some((entity) => entity.id === LOCATION_ID) &&
+      primaryEntities.some((entity) => entity.id === ORGANIZATION_ID)
         ? 'passed'
         : 'failed',
     actor: 'Marek (World member)',
     target: 'HOSTS relationship',
-    expected: '0 relationships and both Aldorath entities retained',
-    actual: `${state?.relationships.length ?? 0} relationships; ${primaryEntities.length} entities`,
+    expected: 'HOSTS link removed and both entities retained',
+    actual: `${state?.relationships.length ?? 0} remaining relationships; ${primaryEntities.length} Aldorath entities`,
     detail:
-      'Relationship deletion removes only the link record; entity deletion has separate lifecycle behavior.',
+      'Relationship deletion removes only the link record; entity deletion has a separate confirmed product workflow.',
   })
 
   let crossWorldCode: string | null = null
@@ -389,6 +560,10 @@ async function runAll() {
   return checks
 }
 
+function worldEntityServiceForScenario() {
+  return new WorldEntityService(new PrismaWorldEntityRepository(prisma))
+}
+
 export const worldEntitiesScenario: DevScenario<
   WorldEntitiesScenarioState,
   WorldEntitiesScenarioAction
@@ -421,14 +596,16 @@ export const worldEntitiesScenario: DevScenario<
     const checks = await runAll()
     return {
       ok: checks.every((check) => check.status === 'passed'),
-      message: 'Executed World entity and relationship acceptance checks.',
+      message: 'Executed World entity, visibility, and relationship checks.',
       checks,
     }
   },
   isAction: isWorldEntitiesScenarioAction,
   async execute(action) {
     if (action.action === 'create-entities') await createEntities()
-    else if (action.action === 'update-entity') await updateEntity()
+    else if (action.action === 'create-visibility-entities') {
+      await createVisibilityEntities()
+    } else if (action.action === 'update-entity') await updateEntity()
     else if (action.action === 'link-entities') await linkEntities()
     else if (action.action === 'delete-relationship') {
       await deleteRelationship()
@@ -448,7 +625,9 @@ export const worldEntitiesScenario: DevScenario<
             ? 'Vela (World viewer)'
             : action.action === 'cross-world-link'
               ? 'Elara (World owner)'
-              : 'Registered scenario actor',
+              : action.action === 'create-visibility-entities'
+                ? 'Elara, Marek, Tarin'
+                : 'Registered scenario actor',
         target: 'World entity graph',
         expected: 'Registered service behavior',
         actual: 'Action completed',

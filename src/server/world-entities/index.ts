@@ -1,4 +1,6 @@
 export * from './world-entity-errors'
+export * from './world-entity-input'
 export * from './world-entity-repository'
 export * from './world-entity-service'
+export * from './world-entity-ui-service'
 export * from './prisma-world-entity-repository'

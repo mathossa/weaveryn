@@ -1,0 +1,54 @@
+.form {
+  display: grid;
+  min-width: 0;
+  width: 100%;
+  gap: 1rem;
+}
+
+.composer {
+  display: grid;
+  min-width: 0;
+  width: 100%;
+  gap: 0.75rem;
+}
+
+.advanced {
+  display: block;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-top: 1px solid var(--ui-border);
+  padding-top: 0.75rem;
+}
+
+.advanced summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--ui-accent);
+  font-weight: 750;
+}
+
+.advancedBody {
+  display: grid;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  gap: 0.9rem;
+  padding-top: 0.9rem;
+  overflow: hidden;
+}
+
+.advancedBody > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 720px) {
+  .form,
+  .composer,
+  .advanced,
+  .advancedBody {
+    width: 100%;
+  }
+}

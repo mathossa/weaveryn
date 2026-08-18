@@ -1,12 +1,15 @@
 import { Prisma, type PrismaClient } from '@/generated/prisma/client'
 import type { WorldMembershipRecord } from '../worlds/world-membership-repository'
 import type {
+  CampaignVisibilityAccessRecord,
   CreateEntityRelationshipRecordInput,
   CreateWorldEntityRecordInput,
+  CreateWorldEntityTypeRecordInput,
   EntityRelationshipRecord,
   UpdateWorldEntityRecordInput,
   WorldEntityRecord,
   WorldEntityRepository,
+  WorldEntityTypeRecord,
 } from './world-entity-repository'
 
 type Db = PrismaClient | Prisma.TransactionClient
@@ -15,6 +18,22 @@ const toEntity = (value: WorldEntityRecord): WorldEntityRecord => value
 const toRelationship = (
   value: EntityRelationshipRecord,
 ): EntityRelationshipRecord => value
+const toEntityType = (value: WorldEntityTypeRecord): WorldEntityTypeRecord =>
+  value
+
+function toCampaignAccess(value: {
+  id: string
+  worldId: string | null
+  ownerId: string
+  memberships: { role: CampaignVisibilityAccessRecord['membershipRole'] }[]
+}): CampaignVisibilityAccessRecord {
+  return {
+    id: value.id,
+    worldId: value.worldId,
+    ownerId: value.ownerId,
+    membershipRole: value.memberships[0]?.role ?? null,
+  }
+}
 
 export class PrismaWorldEntityRepository implements WorldEntityRepository {
   constructor(
@@ -51,6 +70,8 @@ export class PrismaWorldEntityRepository implements WorldEntityRepository {
       await this.db.worldEntity.create({
         data: {
           ...input,
+          visibilityCampaignId: input.visibilityCampaignId ?? null,
+          visibilityUserId: input.visibilityUserId ?? null,
           data: input.data as Prisma.InputJsonValue,
         },
       }),
@@ -111,10 +132,18 @@ export class PrismaWorldEntityRepository implements WorldEntityRepository {
       await this.db.entityRelationship.create({
         data: {
           ...input,
+          visibilityCampaignId: input.visibilityCampaignId ?? null,
+          visibilityUserId: input.visibilityUserId ?? null,
           metadata: input.metadata as Prisma.InputJsonValue,
         },
       }),
     )
+  }
+
+  findRelationship(worldId: string, relationshipId: string) {
+    return this.db.entityRelationship
+      .findFirst({ where: { id: relationshipId, worldId } })
+      .then((value) => (value ? toRelationship(value) : null))
   }
 
   async listRelationships(worldId: string) {
@@ -131,5 +160,89 @@ export class PrismaWorldEntityRepository implements WorldEntityRepository {
       where: { id: relationshipId, worldId },
     })
     return result.count === 1
+  }
+
+  async findAccessibleCampaign(campaignId: string, userId: string) {
+    const campaign = await this.db.campaign.findFirst({
+      where: {
+        id: campaignId,
+        OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+      },
+      select: {
+        id: true,
+        worldId: true,
+        ownerId: true,
+        memberships: {
+          where: { userId },
+          select: { role: true },
+          take: 1,
+        },
+      },
+    })
+    return campaign ? toCampaignAccess(campaign) : null
+  }
+
+  async listCampaignAccesses(worldId: string, userId: string) {
+    return (
+      await this.db.campaign.findMany({
+        where: {
+          worldId,
+          OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+        },
+        select: {
+          id: true,
+          worldId: true,
+          ownerId: true,
+          memberships: {
+            where: { userId },
+            select: { role: true },
+            take: 1,
+          },
+        },
+        orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+      })
+    ).map(toCampaignAccess)
+  }
+
+  async userExists(userId: string) {
+    return Boolean(
+      await this.db.user.findUnique({
+        where: { id: userId },
+        select: { id: true },
+      }),
+    )
+  }
+
+  async upsertWorldEntityType(input: CreateWorldEntityTypeRecordInput) {
+    return toEntityType(
+      await this.db.worldEntityType.upsert({
+        where: {
+          worldId_scopeKey_normalizedName: {
+            worldId: input.worldId,
+            scopeKey: input.scopeKey,
+            normalizedName: input.normalizedName,
+          },
+        },
+        update: { name: input.name },
+        create: {
+          ...input,
+          campaignId: input.campaignId ?? null,
+        },
+      }),
+    )
+  }
+
+  async listWorldEntityTypes(worldId: string, campaignId?: string) {
+    return (
+      await this.db.worldEntityType.findMany({
+        where: {
+          worldId,
+          ...(campaignId
+            ? { OR: [{ campaignId: null }, { campaignId }] }
+            : { campaignId: null }),
+        },
+        orderBy: [{ name: 'asc' }, { id: 'asc' }],
+      })
+    ).map(toEntityType)
   }
 }
