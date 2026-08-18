@@ -11,12 +11,14 @@ const sourceId = '20000000-0000-4000-8000-000000000003'
 const targetId = '20000000-0000-4000-8000-000000000004'
 
 describe('World entity input parsing', () => {
-  it('accepts simple structured fields and MVP visibility', () => {
+  it('accepts simple structured fields, image focus, initial relationships, and MVP visibility', () => {
     expect(
       parseCreateWorldEntityInput({
         type: '  Astral Beacon  ',
         name: '  Beacon One ',
         description: '  An old tower. ',
+        imageFocusX: 72,
+        imageFocusY: 31,
         data: { keeper: 'Elara', height: 82, active: true },
         contextCampaignId: campaignId,
         visibility: {
@@ -24,12 +26,21 @@ describe('World entity input parsing', () => {
           campaignId,
           userId,
         },
+        initialRelationships: [
+          {
+            targetEntityId: targetId,
+            relationshipType: '  PROTECTS ',
+            label: ' Northern approach ',
+          },
+        ],
       }),
     ).toEqual({
       type: 'Astral Beacon',
       name: 'Beacon One',
       description: 'An old tower.',
       image: undefined,
+      imageFocusX: 72,
+      imageFocusY: 31,
       data: { keeper: 'Elara', height: 82, active: true },
       contextCampaignId: campaignId,
       visibility: {
@@ -37,10 +48,17 @@ describe('World entity input parsing', () => {
         campaignId,
         userId,
       },
+      initialRelationships: [
+        {
+          targetEntityId: targetId,
+          relationshipType: 'PROTECTS',
+          label: 'Northern approach',
+        },
+      ],
     })
   })
 
-  it('rejects nested or non-simple custom field values', () => {
+  it('rejects nested custom fields and invalid image focus', () => {
     expect(() =>
       parseCreateWorldEntityInput({
         type: 'location',
@@ -48,6 +66,13 @@ describe('World entity input parsing', () => {
         data: { nested: { unsafe: true } },
       }),
     ).toThrow('must be text, a number, or a boolean')
+    expect(() =>
+      parseCreateWorldEntityInput({
+        type: 'location',
+        name: 'Moonwatch',
+        imageFocusX: 101,
+      }),
+    ).toThrow('Image focus X must be an integer from 0 to 100')
   })
 
   it('requires at least one update and validates UUID targets', () => {
