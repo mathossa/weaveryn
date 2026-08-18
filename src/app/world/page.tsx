@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
+import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { StatusPanel } from '@/components/ui/status-panel'
 import { uiAssets } from '@/lib/ui-assets'
 import { listWorldNavigationChoices } from '@/server/worlds'
@@ -63,13 +64,18 @@ export default async function WorldSelectionPage({
         ) : (
           <div className={styles.grid}>
             {worlds.map((world) => (
-              <Link
+              <TrackedEntryLink
                 key={world.id}
                 className={styles.card}
                 href={
                   weaverMode
-                    ? `/select/weaver?world=${world.id}`
+                    ? `/world/${world.id}?mode=weaver`
                     : `/world/${world.id}`
+                }
+                tracking={
+                  weaverMode
+                    ? { kind: 'WEAVER', worldId: world.id }
+                    : undefined
                 }
                 style={{ backgroundImage: `url(${uiAssets.fallbacks.world})` }}
               >
@@ -80,7 +86,7 @@ export default async function WorldSelectionPage({
                 <span className={styles.meta}>
                   {world.orphaned ? 'Orphaned World' : 'Open World'}
                 </span>
-              </Link>
+              </TrackedEntryLink>
             ))}
           </div>
         )}
