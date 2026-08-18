@@ -6,7 +6,6 @@ import { prisma } from '@/lib/prisma'
 import { assertSafeDevEnvironment } from '@/server/dev-scenarios/environment'
 import { MAIN_WORLD_TIMELINE_NAME } from '@/server/worlds/world-timelines'
 import {
-  EntryPreferenceDomainError,
   characterEntryKey,
   getWeaverResume,
   listEntryPreferences,
@@ -183,7 +182,7 @@ describe('Choose Entity entry preferences integration', () => {
         campaignId: hiddenCampaignId,
         pinned: true,
       }),
-    ).rejects.toMatchObject<EntryPreferenceDomainError>({
+    ).rejects.toMatchObject({
       code: 'ENTRY_PREFERENCE_NOT_AVAILABLE',
     })
     await expect(
@@ -191,7 +190,7 @@ describe('Choose Entity entry preferences integration', () => {
         userId: actor.id,
         worldId: hiddenWorldId,
       }),
-    ).rejects.toMatchObject<EntryPreferenceDomainError>({
+    ).rejects.toMatchObject({
       code: 'ENTRY_PREFERENCE_NOT_AVAILABLE',
     })
   })
