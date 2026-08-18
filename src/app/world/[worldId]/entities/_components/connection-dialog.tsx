@@ -30,11 +30,13 @@ export function ConnectionDialog({
   return (
     <>
       <button
-        className={pageStyles.primaryButton}
+        className={pageStyles.iconButton}
         type="button"
+        aria-label="Add connection"
+        title="Add connection"
         onClick={() => dialogRef.current?.showModal()}
       >
-        Add connection
+        +
       </button>
 
       <dialog
