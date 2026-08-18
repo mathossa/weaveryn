@@ -14,7 +14,47 @@ import type {
 
 type Db = PrismaClient | Prisma.TransactionClient
 
-const toEntity = (value: WorldEntityRecord): WorldEntityRecord => value
+const worldCharacterInclude = {
+  worldCharacter: {
+    include: {
+      character: { select: { name: true, image: true } },
+      campaignCharacters: { select: { campaignId: true } },
+    },
+  },
+} satisfies Prisma.WorldEntityInclude
+
+type WorldEntityWithCharacter = Prisma.WorldEntityGetPayload<{
+  include: typeof worldCharacterInclude
+}>
+
+function toEntity(value: WorldEntityWithCharacter): WorldEntityRecord {
+  const worldCharacter = value.worldCharacter
+  return {
+    id: value.id,
+    worldId: value.worldId,
+    type: value.type,
+    name: worldCharacter
+      ? worldCharacter.nameOverride?.trim() || worldCharacter.character.name
+      : value.name,
+    description: value.description,
+    image: worldCharacter ? worldCharacter.character.image : value.image,
+    imageFocusX: value.imageFocusX,
+    imageFocusY: value.imageFocusY,
+    data: value.data,
+    worldCharacterId: value.worldCharacterId,
+    worldCharacterCampaignIds:
+      worldCharacter?.campaignCharacters.map(
+        (participation) => participation.campaignId,
+      ) ?? [],
+    createdById: value.createdById,
+    visibilityScope: value.visibilityScope,
+    visibilityCampaignId: value.visibilityCampaignId,
+    visibilityUserId: value.visibilityUserId,
+    createdAt: value.createdAt,
+    updatedAt: value.updatedAt,
+  }
+}
+
 const toRelationship = (
   value: EntityRelationshipRecord,
 ): EntityRelationshipRecord => value
@@ -74,19 +114,26 @@ export class PrismaWorldEntityRepository implements WorldEntityRepository {
           visibilityUserId: input.visibilityUserId ?? null,
           data: input.data as Prisma.InputJsonValue,
         },
+        include: worldCharacterInclude,
       }),
     )
   }
 
   findEntity(worldId: string, entityId: string) {
     return this.db.worldEntity
-      .findFirst({ where: { id: entityId, worldId } })
+      .findFirst({
+        where: { id: entityId, worldId },
+        include: worldCharacterInclude,
+      })
       .then((value) => (value ? toEntity(value) : null))
   }
 
   findEntityById(entityId: string) {
     return this.db.worldEntity
-      .findUnique({ where: { id: entityId } })
+      .findUnique({
+        where: { id: entityId },
+        include: worldCharacterInclude,
+      })
       .then((value) => (value ? toEntity(value) : null))
   }
 
@@ -94,6 +141,7 @@ export class PrismaWorldEntityRepository implements WorldEntityRepository {
     return (
       await this.db.worldEntity.findMany({
         where: { worldId },
+        include: worldCharacterInclude,
         orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
       })
     ).map(toEntity)
@@ -115,6 +163,7 @@ export class PrismaWorldEntityRepository implements WorldEntityRepository {
       ? toEntity(
           await this.db.worldEntity.findUniqueOrThrow({
             where: { id: entityId },
+            include: worldCharacterInclude,
           }),
         )
       : null
