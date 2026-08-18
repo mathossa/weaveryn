@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { prisma } from '@/lib/prisma'
 import { assertSafeDevEnvironment } from '@/server/dev-scenarios/environment'
+import { deleteWorldEntityType } from './world-entity-ui-service'
 import { worldEntityService } from './world-entity-service'
 
 const worldIds: string[] = []
@@ -180,37 +181,50 @@ describe('World entity MVP visibility', () => {
     ).not.toContain(campaignRelationship.id)
   })
 
-  it('persists reusable free-text types and entity deletion only removes linked relationships', async () => {
+  it('creates initial relationships atomically, persists focus, and guards custom type deletion', async () => {
     const { owner, worldId } = await createWorldFixture()
 
-    const custom = await worldEntityService.createEntity({
-      actorUserId: owner.id,
-      worldId,
-      type: 'Astral Beacon',
-      name: 'North Beacon',
-      data: { height: 82, active: true },
-    })
     const linked = await worldEntityService.createEntity({
       actorUserId: owner.id,
       worldId,
       type: 'location',
       name: 'Beacon Hill',
     })
-    const relationship = await worldEntityService.createRelationship({
+    const custom = await worldEntityService.createEntity({
       actorUserId: owner.id,
       worldId,
-      sourceEntityId: custom.id,
-      targetEntityId: linked.id,
-      relationshipType: 'LOCATED_AT',
+      type: 'Astral Beacon',
+      name: 'North Beacon',
+      imageFocusX: 72,
+      imageFocusY: 31,
+      data: { height: 82, active: true },
+      initialRelationships: [
+        {
+          targetEntityId: linked.id,
+          relationshipType: 'LOCATED_AT',
+          label: 'Hilltop position',
+        },
+      ],
     })
 
-    expect(
-      await worldEntityService.listEntityTypes(worldId, owner.id),
-    ).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ value: 'Astral Beacon', scope: 'WORLD' }),
-      ]),
-    )
+    expect(custom).toMatchObject({ imageFocusX: 72, imageFocusY: 31 })
+    const relationship = await prisma.entityRelationship.findFirstOrThrow({
+      where: { sourceEntityId: custom.id, targetEntityId: linked.id },
+    })
+    expect(relationship).toMatchObject({
+      relationshipType: 'LOCATED_AT',
+      label: 'Hilltop position',
+    })
+
+    const customType = (
+      await worldEntityService.listEntityTypes(worldId, owner.id)
+    ).find((type) => type.value === 'Astral Beacon')
+    expect(customType).toMatchObject({ scope: 'WORLD', usageCount: 1 })
+    expect(customType?.id).toBeTruthy()
+
+    await expect(
+      deleteWorldEntityType(worldId, owner.id, customType!.id!),
+    ).rejects.toMatchObject({ code: 'WORLD_ENTITY_TYPE_IN_USE' })
 
     await worldEntityService.deleteEntity(worldId, owner.id, custom.id)
 
@@ -219,6 +233,11 @@ describe('World entity MVP visibility', () => {
       await prisma.entityRelationship.findUnique({
         where: { id: relationship.id },
       }),
+    ).toBeNull()
+
+    await deleteWorldEntityType(worldId, owner.id, customType!.id!)
+    expect(
+      await prisma.worldEntityType.findUnique({ where: { id: customType!.id! } }),
     ).toBeNull()
   })
 })
