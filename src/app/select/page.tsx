@@ -2,10 +2,7 @@ import Link from 'next/link'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { StatusPanel } from '@/components/ui/status-panel'
-import {
-  characterEntryKey,
-  WEAVER_ENTRY_KEY,
-} from '@/server/selection'
+import { characterEntryKey } from '@/server/selection'
 import { CharacterChoiceCard } from './_components/character-choice-card'
 import { PortableCharacterChoiceCard } from './_components/portable-character-choice-card'
 import { loadSelectionPageData } from './_lib/load-selection-page-data'
@@ -16,10 +13,10 @@ interface SelectPageProps {
 }
 
 export default async function SelectPage({ searchParams }: SelectPageProps) {
-  const [{ user, selection, entryPreferences }, query] = await Promise.all([
-    loadSelectionPageData(),
-    searchParams,
-  ])
+  const [
+    { user, selection, entryPreferences, weaverResume },
+    query,
+  ] = await Promise.all([loadSelectionPageData(), searchParams])
   const showAll = query.show === 'all'
   const preferenceByKey = new Map(
     entryPreferences.map((preference) => [preference.entryKey, preference]),
@@ -83,24 +80,25 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
   const hasAnyEntry =
     characterEntries.length > 0 || selection.weaverWorlds.length > 0
 
-  const weaverPreference = preferenceByKey.get(WEAVER_ENTRY_KEY)
-  const weaverResumeWorld = weaverPreference?.worldId
-    ? selection.weaverWorlds.find(
-        (world) => world.id === weaverPreference.worldId,
-      )
-    : undefined
-  const weaverHref = weaverResumeWorld
-    ? `/select/weaver?world=${weaverResumeWorld.id}`
-    : '/select/weaver'
+  const weaverHref = weaverResume?.campaign
+    ? `/select/weaver?world=${weaverResume.world.id}&campaign=${weaverResume.campaign.id}`
+    : weaverResume?.world
+      ? `/select/weaver?world=${weaverResume.world.id}`
+      : '/select/weaver'
   const latestUsedAt = Math.max(
-    weaverPreference?.lastUsedAt?.getTime() ?? 0,
+    weaverResume?.lastUsedAt?.getTime() ?? 0,
     ...characterEntries.map(
       (entry) => entry.preference?.lastUsedAt?.getTime() ?? 0,
     ),
   )
   const weaverHighlighted =
     latestUsedAt > 0 &&
-    weaverPreference?.lastUsedAt?.getTime() === latestUsedAt
+    weaverResume?.lastUsedAt?.getTime() === latestUsedAt
+  const weaverResumeLabel = weaverResume
+    ? weaverResume.campaign
+      ? `${weaverResume.world.name} — ${weaverResume.campaign.name}`
+      : weaverResume.world.name
+    : null
 
   return (
     <AuthenticatedAppShell user={user}>
@@ -186,8 +184,8 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
               <span className={styles.weaverCopy}>
                 <strong>Join as Weaver</strong>
                 <span>
-                  {weaverResumeWorld
-                    ? `Last managed: ${weaverResumeWorld.name}`
+                  {weaverResumeLabel
+                    ? `Last managed: ${weaverResumeLabel}`
                     : 'Choose a World, then continue to Campaign management.'}
                 </span>
               </span>
