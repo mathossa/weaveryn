@@ -150,6 +150,7 @@ export function RelationshipForm({
             </p>
           </div>
           <VisibilityFields
+            compact
             value={visibility}
             onChange={setVisibility}
             campaigns={campaigns}
