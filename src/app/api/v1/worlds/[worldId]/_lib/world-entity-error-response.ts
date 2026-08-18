@@ -20,9 +20,12 @@ export function worldEntityApiErrorResponse(error: unknown) {
   if (error instanceof WorldEntityDomainError) {
     const status =
       error.code === 'WORLD_ENTITY_NOT_FOUND' ||
-      error.code === 'ENTITY_RELATIONSHIP_NOT_FOUND'
+      error.code === 'ENTITY_RELATIONSHIP_NOT_FOUND' ||
+      error.code === 'WORLD_ENTITY_TYPE_NOT_FOUND'
         ? 404
-        : 400
+        : error.code === 'WORLD_ENTITY_TYPE_IN_USE'
+          ? 409
+          : 400
     return jsonError(error.code, error.message, status)
   }
   if (error instanceof WorldDomainError) {
