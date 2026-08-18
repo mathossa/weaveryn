@@ -1,0 +1,87 @@
+.root {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.pickerArea {
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+}
+
+.imageButton {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0;
+  overflow: hidden;
+  cursor: crosshair;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-control-surface);
+}
+
+.fullImage {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 20rem;
+}
+
+.marker {
+  position: absolute;
+  width: 1.2rem;
+  height: 1.2rem;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--ui-accent);
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
+.helpText,
+.previewLabel {
+  color: var(--ui-text-muted);
+}
+
+.previews {
+  display: grid;
+  grid-template-columns: 8rem minmax(12rem, 1fr);
+  gap: 0.8rem;
+  align-items: end;
+}
+
+.previewGroup {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.cardPreview,
+.detailPreview {
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+
+.cardPreview {
+  width: 8rem;
+  height: 8rem;
+}
+
+.detailPreview {
+  width: 100%;
+  height: 12rem;
+}
+
+@media (max-width: 720px) {
+  .previews {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .cardPreview {
+    width: 6rem;
+    height: 8rem;
+  }
+}
