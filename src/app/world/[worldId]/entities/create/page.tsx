@@ -3,6 +3,10 @@ import { notFound } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { StatusPanel } from '@/components/ui/status-panel'
+import {
+  requestedCharacterContext,
+  withCharacterContext,
+} from '@/lib/campaign-context'
 import { getWorldEntityWorkspace } from '@/server/world-entities'
 import { loadWorldPageUser } from '../../../_lib/load-world-user'
 import { EntityForm } from '../_components/entity-form'
@@ -10,7 +14,10 @@ import styles from '../entity.module.css'
 
 interface CreateWorldEntityPageProps {
   params: Promise<{ worldId: string }>
-  searchParams: Promise<{ campaign?: string | string[] }>
+  searchParams: Promise<{
+    campaign?: string | string[]
+    character?: string | string[]
+  }>
 }
 
 export default async function CreateWorldEntityPage({
@@ -24,9 +31,19 @@ export default async function CreateWorldEntityPage({
   ])
   const campaignId =
     typeof requested.campaign === 'string' ? requested.campaign : undefined
+  const worldCharacterId = requestedCharacterContext(requested.character)
   const workspace = await getWorldEntityWorkspace(worldId, user.id, campaignId)
   if (!workspace) notFound()
-  const query = campaignId ? `?campaign=${campaignId}` : ''
+  const entitiesHref = withCharacterContext(
+    `/world/${worldId}/entities${campaignId ? `?campaign=${campaignId}` : ''}`,
+    worldCharacterId,
+  )
+  const campaignHref = workspace.contextCampaign
+    ? withCharacterContext(
+        `/world/${worldId}/campaign/${workspace.contextCampaign.id}`,
+        worldCharacterId,
+      )
+    : undefined
   const selectableEntityTypes = workspace.entityTypes.filter(
     (type) => type.scope === 'BUILT_IN' || (type.usageCount ?? 0) > 0,
   )
@@ -36,11 +53,11 @@ export default async function CreateWorldEntityPage({
       user={user}
       context={{
         world: { label: workspace.world.name, href: `/world/${worldId}` },
-        ...(workspace.contextCampaign
+        ...(workspace.contextCampaign && campaignHref
           ? {
               campaign: {
                 label: workspace.contextCampaign.name,
-                href: `/world/${worldId}/campaign/${workspace.contextCampaign.id}`,
+                href: campaignHref,
               },
             }
           : {}),
@@ -56,10 +73,7 @@ export default async function CreateWorldEntityPage({
         }
         wide
         actions={
-          <Link
-            className={styles.secondaryButton}
-            href={`/world/${worldId}/entities${query}`}
-          >
+          <Link className={styles.secondaryButton} href={entitiesHref}>
             Cancel
           </Link>
         }
@@ -70,6 +84,7 @@ export default async function CreateWorldEntityPage({
               mode="create"
               worldId={worldId}
               contextCampaignId={campaignId}
+              contextWorldCharacterId={worldCharacterId}
               entityTypes={selectableEntityTypes}
               entities={workspace.entities}
               relationshipTypes={workspace.relationshipTypes}
