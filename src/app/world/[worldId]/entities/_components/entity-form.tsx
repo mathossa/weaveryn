@@ -2,12 +2,14 @@
 
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
+import { uiAssets } from '@/lib/ui-assets'
 import type {
   SimpleEntityFieldValue,
   WorldEntityTypeChoice,
   WorldEntityUiRecord,
 } from '@/server/world-entities'
 import styles from '../entity.module.css'
+import { RelationshipTypeInput } from './relationship-type-input'
 import {
   VisibilityFields,
   type VisibilityValue,
@@ -20,6 +22,13 @@ interface EditableField {
   key: string
   kind: FieldKind
   value: string | boolean
+}
+
+interface InitialRelationshipDraft {
+  id: string
+  targetEntityId: string
+  relationshipType: string
+  label: string
 }
 
 function fieldKind(value: SimpleEntityFieldValue): FieldKind {
@@ -46,6 +55,18 @@ function makeField(): EditableField {
   }
 }
 
+function makeRelationship(
+  entities: WorldEntityUiRecord[],
+  relationshipTypes: string[],
+): InitialRelationshipDraft {
+  return {
+    id: `relationship-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    targetEntityId: entities[0]?.id ?? '',
+    relationshipType: relationshipTypes[0] ?? '',
+    label: '',
+  }
+}
+
 function visibilityPayload(value: VisibilityValue) {
   return {
     scope: value.scope,
@@ -66,6 +87,8 @@ export function EntityForm({
   worldId,
   contextCampaignId,
   entityTypes,
+  entities,
+  relationshipTypes,
   campaigns,
   visibilityUsers,
   initialEntity,
@@ -74,6 +97,8 @@ export function EntityForm({
   worldId: string
   contextCampaignId?: string
   entityTypes: WorldEntityTypeChoice[]
+  entities: WorldEntityUiRecord[]
+  relationshipTypes: string[]
   campaigns: { id: string; name: string }[]
   visibilityUsers: { id: string; label: string }[]
   initialEntity?: WorldEntityUiRecord
@@ -93,13 +118,16 @@ export function EntityForm({
     initialEntity && !knownInitialType ? initialEntity.type : '',
   )
   const [name, setName] = useState(initialEntity?.name ?? '')
-  const [description, setDescription] = useState(
-    initialEntity?.description ?? '',
-  )
+  const [description, setDescription] = useState(initialEntity?.description ?? '')
   const [image, setImage] = useState(initialEntity?.image ?? '')
+  const [imageFocusX, setImageFocusX] = useState(initialEntity?.imageFocusX ?? 50)
+  const [imageFocusY, setImageFocusY] = useState(initialEntity?.imageFocusY ?? 50)
   const [fields, setFields] = useState<EditableField[]>(
     initialFields(initialEntity?.data ?? {}),
   )
+  const [initialRelationships, setInitialRelationships] = useState<
+    InitialRelationshipDraft[]
+  >([])
   const [visibility, setVisibility] = useState<VisibilityValue>({
     scope:
       initialEntity?.visibilityScope ??
@@ -115,10 +143,22 @@ export function EntityForm({
     () => (typeChoice === '__custom__' ? customType.trim() : typeChoice),
     [customType, typeChoice],
   )
+  const previewImage = image.trim() || uiAssets.backgrounds.entityBanner.src
 
   function updateField(id: string, patch: Partial<EditableField>) {
     setFields((current) =>
       current.map((field) => (field.id === id ? { ...field, ...patch } : field)),
+    )
+  }
+
+  function updateRelationship(
+    id: string,
+    patch: Partial<InitialRelationshipDraft>,
+  ) {
+    setInitialRelationships((current) =>
+      current.map((relationship) =>
+        relationship.id === id ? { ...relationship, ...patch } : relationship,
+      ),
     )
   }
 
@@ -127,21 +167,34 @@ export function EntityForm({
     for (const field of fields) {
       const key = field.key.trim()
       if (!key) continue
-      if (field.kind === 'boolean') {
-        data[key] = Boolean(field.value)
-      } else if (field.kind === 'number') {
-        data[key] = Number(field.value)
-      } else {
-        data[key] = String(field.value)
-      }
+      if (field.kind === 'boolean') data[key] = Boolean(field.value)
+      else if (field.kind === 'number') data[key] = Number(field.value)
+      else data[key] = String(field.value)
     }
     return data
+  }
+
+  function setFocusFromPointer(event: React.PointerEvent<HTMLDivElement>) {
+    const rect = event.currentTarget.getBoundingClientRect()
+    const x = Math.round(((event.clientX - rect.left) / rect.width) * 100)
+    const y = Math.round(((event.clientY - rect.top) / rect.height) * 100)
+    setImageFocusX(Math.max(0, Math.min(100, x)))
+    setImageFocusY(Math.max(0, Math.min(100, y)))
   }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!entityType) {
       setError('Choose or enter an entity type.')
+      return
+    }
+    if (
+      initialRelationships.some(
+        (relationship) =>
+          !relationship.targetEntityId || !relationship.relationshipType.trim(),
+      )
+    ) {
+      setError('Every initial relationship needs a target and relationship type.')
       return
     }
 
@@ -159,9 +212,20 @@ export function EntityForm({
           name,
           description,
           image,
+          imageFocusX,
+          imageFocusY,
           data: structuredData(),
           ...(contextCampaignId ? { contextCampaignId } : {}),
           visibility: visibilityPayload(visibility),
+          ...(mode === 'create'
+            ? {
+                initialRelationships: initialRelationships.map((relationship) => ({
+                  targetEntityId: relationship.targetEntityId,
+                  relationshipType: relationship.relationshipType,
+                  label: relationship.label,
+                })),
+              }
+            : {}),
         }),
       },
     )
@@ -183,10 +247,7 @@ export function EntityForm({
       <div className={styles.formGrid}>
         <label className={styles.field}>
           <span>Type</span>
-          <select
-            value={typeChoice}
-            onChange={(event) => setTypeChoice(event.target.value)}
-          >
+          <select value={typeChoice} onChange={(event) => setTypeChoice(event.target.value)}>
             {entityTypes.map((choice) => (
               <option value={choice.value} key={`${choice.scope}:${choice.value}`}>
                 {choice.label}
@@ -228,6 +289,55 @@ export function EntityForm({
         </label>
       </div>
 
+      <section className={styles.formSection}>
+        <div className={styles.sectionHeading}>
+          <div>
+            <h2>Image focus</h2>
+            <p>
+              Click the important point in the image. The same focus is respected
+              by portrait cards and landscape detail views.
+            </p>
+          </div>
+        </div>
+        <div
+          className={styles.focusPreview}
+          style={{
+            backgroundImage: `url(${JSON.stringify(previewImage)})`,
+            backgroundPosition: `${imageFocusX}% ${imageFocusY}%`,
+          }}
+          onPointerDown={setFocusFromPointer}
+          role="presentation"
+        >
+          <span
+            className={styles.focusMarker}
+            style={{ left: `${imageFocusX}%`, top: `${imageFocusY}%` }}
+            aria-hidden="true"
+          />
+        </div>
+        <div className={styles.focusControls}>
+          <label className={styles.field}>
+            <span>Horizontal focus · {imageFocusX}%</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={imageFocusX}
+              onChange={(event) => setImageFocusX(Number(event.target.value))}
+            />
+          </label>
+          <label className={styles.field}>
+            <span>Vertical focus · {imageFocusY}%</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={imageFocusY}
+              onChange={(event) => setImageFocusY(Number(event.target.value))}
+            />
+          </label>
+        </div>
+      </section>
+
       <label className={styles.field}>
         <span>Description</span>
         <textarea
@@ -237,6 +347,97 @@ export function EntityForm({
           onChange={(event) => setDescription(event.target.value)}
         />
       </label>
+
+      {mode === 'create' ? (
+        <section className={styles.formSection}>
+          <div className={styles.sectionHeading}>
+            <div>
+              <h2>Initial relationships</h2>
+              <p>
+                Optionally link this new entity to existing visible entities. All
+                links are created in the same transaction as the entity.
+              </p>
+            </div>
+            <button
+              className={styles.secondaryButton}
+              type="button"
+              disabled={entities.length === 0}
+              onClick={() =>
+                setInitialRelationships((current) => [
+                  ...current,
+                  makeRelationship(entities, relationshipTypes),
+                ])
+              }
+            >
+              Add relationship
+            </button>
+          </div>
+          {entities.length === 0 ? (
+            <p className={styles.helpText}>
+              There are no existing visible entities to link yet.
+            </p>
+          ) : initialRelationships.length === 0 ? (
+            <p className={styles.helpText}>No initial relationships configured.</p>
+          ) : (
+            <div className={styles.initialRelationships}>
+              {initialRelationships.map((relationship) => (
+                <div className={styles.initialRelationshipRow} key={relationship.id}>
+                  <RelationshipTypeInput
+                    value={relationship.relationshipType}
+                    onChange={(relationshipType) =>
+                      updateRelationship(relationship.id, { relationshipType })
+                    }
+                    choices={relationshipTypes}
+                  />
+                  <label className={styles.field}>
+                    <span>Target entity</span>
+                    <select
+                      required
+                      value={relationship.targetEntityId}
+                      onChange={(event) =>
+                        updateRelationship(relationship.id, {
+                          targetEntityId: event.target.value,
+                        })
+                      }
+                    >
+                      {entities.map((entity) => (
+                        <option key={entity.id} value={entity.id}>
+                          {entity.name} · {entity.type}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className={styles.field}>
+                    <span>Label (optional)</span>
+                    <input
+                      maxLength={240}
+                      value={relationship.label}
+                      onChange={(event) =>
+                        updateRelationship(relationship.id, {
+                          label: event.target.value,
+                        })
+                      }
+                      placeholder="Human-readable context"
+                    />
+                  </label>
+                  <button
+                    className={styles.iconButton}
+                    type="button"
+                    aria-label="Remove initial relationship"
+                    onClick={() =>
+                      setInitialRelationships((current) =>
+                        current.filter((item) => item.id !== relationship.id),
+                      )
+                    }
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      ) : null}
 
       <section className={styles.formSection}>
         <div className={styles.sectionHeading}>
