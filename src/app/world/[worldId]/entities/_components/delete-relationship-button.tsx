@@ -24,10 +24,11 @@ export function DeleteRelationshipButton({
     )
     if (!response.ok) {
       const result = await response.json().catch(() => null)
-      setError(result?.error?.message ?? 'Could not remove relationship.')
+      setError(result?.error?.message ?? 'Could not remove connection.')
       setPending(false)
       return
     }
+    setPending(false)
     router.refresh()
   }
 
