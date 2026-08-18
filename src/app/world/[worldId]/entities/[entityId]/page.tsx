@@ -106,21 +106,18 @@ export default async function WorldEntityDetailPage({
                   <h2>Entity details</h2>
                   <p>Persistent World identity and MVP structured information.</p>
                 </div>
-                <div className={styles.formActions}>
-                  <span className={styles.badge}>{entity.visibilityScope}</span>
-                  {workspace.canEditContent ? (
-                    <EntityEditDialog
-                      worldId={worldId}
-                      contextCampaignId={campaignId}
-                      entityTypes={workspace.entityTypes}
-                      entities={workspace.entities}
-                      relationshipTypes={workspace.relationshipTypes}
-                      campaigns={workspace.campaigns}
-                      visibilityUsers={workspace.visibilityUsers}
-                      entity={entity}
-                    />
-                  ) : null}
-                </div>
+                {workspace.canEditContent ? (
+                  <EntityEditDialog
+                    worldId={worldId}
+                    contextCampaignId={campaignId}
+                    entityTypes={workspace.entityTypes}
+                    entities={workspace.entities}
+                    relationshipTypes={workspace.relationshipTypes}
+                    campaigns={workspace.campaigns}
+                    visibilityUsers={workspace.visibilityUsers}
+                    entity={entity}
+                  />
+                ) : null}
               </div>
               <dl className={styles.definitionGrid}>
                 <div>
