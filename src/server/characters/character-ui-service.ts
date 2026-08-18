@@ -1,7 +1,10 @@
 import { prisma } from '@/lib/prisma'
 
 export type CharacterCampaignRole =
-  'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR'
+  | 'GM'
+  | 'ASSISTANT_GM'
+  | 'PLAYER'
+  | 'SPECTATOR'
 
 export interface CharacterWorldIncarnationChoice {
   id: string
@@ -43,6 +46,7 @@ export interface WorldCharacterOverview {
   nameOverride: string | null
   displayName: string
   status: string
+  worldEntityId: string | null
   character: { id: string; name: string; image: string | null }
   world: { id: string; name: string }
   canEditWorldIdentity: boolean
@@ -196,6 +200,7 @@ export async function getWorldCharacterOverview(
       id: true,
       nameOverride: true,
       status: true,
+      worldEntity: { select: { id: true } },
       character: { select: { id: true, name: true, image: true } },
       world: {
         select: {
@@ -288,6 +293,7 @@ export async function getWorldCharacterOverview(
     nameOverride: worldCharacter.nameOverride,
     displayName: worldCharacter.nameOverride ?? worldCharacter.character.name,
     status: worldCharacter.status,
+    worldEntityId: worldCharacter.worldEntity?.id ?? null,
     character: worldCharacter.character,
     world: {
       id: worldCharacter.world.id,
