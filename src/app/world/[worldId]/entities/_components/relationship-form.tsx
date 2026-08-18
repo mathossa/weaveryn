@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import type { WorldEntityUiRecord } from '@/server/world-entities'
 import styles from '../entity.module.css'
+import connectionStyles from './connection-form.module.css'
 import { RelationshipTypeInput } from './relationship-type-input'
 import {
   VisibilityFields,
@@ -98,12 +99,13 @@ export function RelationshipForm({
   }
 
   return (
-    <form className={styles.relationshipForm} onSubmit={submit}>
+    <form className={connectionStyles.form} onSubmit={submit}>
       <p className={styles.helpText}>
         Build a simple sentence. Weaveryn keeps the technical direction and link
         details in the background.
       </p>
-      <div className={styles.formGrid}>
+
+      <div className={connectionStyles.composer}>
         <div className={styles.field}>
           <span>This entity</span>
           <strong>{sourceEntityName}</strong>
@@ -129,29 +131,31 @@ export function RelationshipForm({
         </label>
       </div>
 
-      <details className={styles.panel}>
+      <details className={connectionStyles.advanced}>
         <summary>More options</summary>
-        <label className={styles.field}>
-          <span>Note (optional)</span>
-          <input
-            maxLength={240}
-            value={label}
-            onChange={(event) => setLabel(event.target.value)}
-            placeholder="Extra context for this connection"
+        <div className={connectionStyles.advancedBody}>
+          <label className={styles.field}>
+            <span>Note (optional)</span>
+            <input
+              maxLength={240}
+              value={label}
+              onChange={(event) => setLabel(event.target.value)}
+              placeholder="Extra context for this connection"
+            />
+          </label>
+          <div>
+            <h3>Who can see this connection?</h3>
+            <p className={styles.helpText}>
+              By default this follows the current World or Campaign context.
+            </p>
+          </div>
+          <VisibilityFields
+            value={visibility}
+            onChange={setVisibility}
+            campaigns={campaigns}
+            users={visibilityUsers}
           />
-        </label>
-        <div>
-          <h3>Who can see this connection?</h3>
-          <p className={styles.helpText}>
-            By default this follows the current World or Campaign context.
-          </p>
         </div>
-        <VisibilityFields
-          value={visibility}
-          onChange={setVisibility}
-          campaigns={campaigns}
-          users={visibilityUsers}
-        />
       </details>
 
       {error ? <p className={styles.error}>{error}</p> : null}
