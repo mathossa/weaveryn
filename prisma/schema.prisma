@@ -26,6 +26,14 @@ enum CampaignRole {
   SPECTATOR
 }
 
+enum VisibilityScope {
+  WORLD
+  CAMPAIGN
+  GM
+  PLAYER
+  PRIVATE
+}
+
 model User {
   id              String  @id @default(uuid()) @db.Uuid
   email           String  @unique
@@ -35,14 +43,18 @@ model User {
   image           String?
   isInstanceAdmin Boolean @default(false)
 
-  ownedWorlds          World[]              @relation("WorldOwner")
-  ownedCampaigns       Campaign[]           @relation("CampaignOwner")
-  ownedCharacters      Character[]          @relation("CharacterOwner")
-  worldMemberships     WorldMembership[]
-  campaignMemberships  CampaignMembership[]
-  createdWorldEntities WorldEntity[]        @relation("WorldEntityCreator")
-  authSessions         AuthSession[]
-  authAccounts         AuthAccount[]
+  ownedWorlds                          World[]              @relation("WorldOwner")
+  ownedCampaigns                       Campaign[]           @relation("CampaignOwner")
+  ownedCharacters                      Character[]          @relation("CharacterOwner")
+  worldMemberships                     WorldMembership[]
+  campaignMemberships                  CampaignMembership[]
+  createdWorldEntities                 WorldEntity[]        @relation("WorldEntityCreator")
+  playerVisibleWorldEntities           WorldEntity[]        @relation("WorldEntityVisibilityUser")
+  createdEntityRelationships           EntityRelationship[] @relation("EntityRelationshipCreator")
+  playerVisibleEntityRelationships     EntityRelationship[] @relation("EntityRelationshipVisibilityUser")
+  createdWorldEntityTypes              WorldEntityType[]    @relation("WorldEntityTypeCreator")
+  authSessions                         AuthSession[]
+  authAccounts                         AuthAccount[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -107,6 +119,7 @@ model World {
   characters          WorldCharacter[]
   entities            WorldEntity[]
   entityRelationships EntityRelationship[]
+  entityTypes         WorldEntityType[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -125,8 +138,14 @@ model WorldEntity {
 
   createdById String? @db.Uuid
 
-  world     World @relation(fields: [worldId], references: [id], onDelete: Cascade)
-  createdBy User? @relation("WorldEntityCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  visibilityScope      VisibilityScope @default(WORLD)
+  visibilityCampaignId String?         @db.Uuid
+  visibilityUserId     String?         @db.Uuid
+
+  world              World     @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  createdBy          User?     @relation("WorldEntityCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  visibilityCampaign Campaign? @relation("WorldEntityVisibilityCampaign", fields: [visibilityCampaignId], references: [id], onDelete: SetNull)
+  visibilityUser     User?     @relation("WorldEntityVisibilityUser", fields: [visibilityUserId], references: [id], onDelete: SetNull)
 
   sourceRelationships EntityRelationship[] @relation("EntityRelationshipSource")
   targetRelationships EntityRelationship[] @relation("EntityRelationshipTarget")
@@ -136,6 +155,9 @@ model WorldEntity {
 
   @@index([worldId])
   @@index([createdById])
+  @@index([visibilityCampaignId])
+  @@index([visibilityUserId])
+  @@index([worldId, visibilityScope])
 }
 
 model EntityRelationship {
@@ -147,9 +169,18 @@ model EntityRelationship {
   label             String?
   metadata          Json    @default("{}")
 
-  world        World       @relation(fields: [worldId], references: [id], onDelete: Cascade)
-  sourceEntity WorldEntity @relation("EntityRelationshipSource", fields: [sourceEntityId], references: [id], onDelete: Cascade)
-  targetEntity WorldEntity @relation("EntityRelationshipTarget", fields: [targetEntityId], references: [id], onDelete: Cascade)
+  createdById String? @db.Uuid
+
+  visibilityScope      VisibilityScope @default(WORLD)
+  visibilityCampaignId String?         @db.Uuid
+  visibilityUserId     String?         @db.Uuid
+
+  world              World       @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  sourceEntity       WorldEntity @relation("EntityRelationshipSource", fields: [sourceEntityId], references: [id], onDelete: Cascade)
+  targetEntity       WorldEntity @relation("EntityRelationshipTarget", fields: [targetEntityId], references: [id], onDelete: Cascade)
+  createdBy          User?       @relation("EntityRelationshipCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  visibilityCampaign Campaign?   @relation("EntityRelationshipVisibilityCampaign", fields: [visibilityCampaignId], references: [id], onDelete: SetNull)
+  visibilityUser     User?       @relation("EntityRelationshipVisibilityUser", fields: [visibilityUserId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -157,6 +188,32 @@ model EntityRelationship {
   @@index([worldId])
   @@index([sourceEntityId])
   @@index([targetEntityId])
+  @@index([createdById])
+  @@index([visibilityCampaignId])
+  @@index([visibilityUserId])
+  @@index([worldId, visibilityScope])
+}
+
+model WorldEntityType {
+  id             String  @id @default(uuid()) @db.Uuid
+  worldId        String  @db.Uuid
+  campaignId     String? @db.Uuid
+  scopeKey       String
+  name           String
+  normalizedName String
+  createdById    String? @db.Uuid
+
+  world     World     @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  campaign  Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  createdBy User?     @relation("WorldEntityTypeCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([worldId, scopeKey, normalizedName])
+  @@index([worldId])
+  @@index([campaignId])
+  @@index([createdById])
 }
 
 model Character {
@@ -245,8 +302,11 @@ model Campaign {
   currentWorldDateLabel String?
   status                CampaignStatus @default(ACTIVE)
 
-  memberships        CampaignMembership[]
-  campaignCharacters CampaignCharacter[]
+  memberships                CampaignMembership[]
+  campaignCharacters         CampaignCharacter[]
+  visibleWorldEntities       WorldEntity[]        @relation("WorldEntityVisibilityCampaign")
+  visibleEntityRelationships EntityRelationship[] @relation("EntityRelationshipVisibilityCampaign")
+  worldEntityTypes           WorldEntityType[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
