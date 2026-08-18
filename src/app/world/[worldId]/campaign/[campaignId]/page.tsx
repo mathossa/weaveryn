@@ -94,6 +94,14 @@ export default async function CampaignOverviewPage({
                   <strong>Entered as:</strong> {selectedCharacter.name}
                 </p>
               ) : null}
+              <div className={styles.formActions}>
+                <Link
+                  className={styles.secondary}
+                  href={`/world/${worldId}/entities?campaign=${campaign.id}`}
+                >
+                  Browse World entities
+                </Link>
+              </div>
             </section>
 
             <section className={styles.panel}>
