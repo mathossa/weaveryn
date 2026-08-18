@@ -8,7 +8,7 @@ import { loadWorldPageUser } from '../../../_lib/load-world-user'
 import { connectionTypeLabel } from '../_components/connection-language'
 import { DeleteEntityButton } from '../_components/delete-entity-button'
 import { DeleteRelationshipButton } from '../_components/delete-relationship-button'
-import { EntityForm } from '../_components/entity-form'
+import { EntityEditDialog } from '../_components/entity-edit-dialog'
 import { RelationshipForm } from '../_components/relationship-form'
 import styles from '../entity.module.css'
 
@@ -108,7 +108,21 @@ export default async function WorldEntityDetailPage({
                   <h2>Entity details</h2>
                   <p>Persistent World identity and MVP structured information.</p>
                 </div>
-                <span className={styles.badge}>{entity.visibilityScope}</span>
+                <div className={styles.formActions}>
+                  <span className={styles.badge}>{entity.visibilityScope}</span>
+                  {workspace.canEditContent ? (
+                    <EntityEditDialog
+                      worldId={worldId}
+                      contextCampaignId={campaignId}
+                      entityTypes={workspace.entityTypes}
+                      entities={workspace.entities}
+                      relationshipTypes={workspace.relationshipTypes}
+                      campaigns={workspace.campaigns}
+                      visibilityUsers={workspace.visibilityUsers}
+                      entity={entity}
+                    />
+                  ) : null}
+                </div>
               </div>
               <dl className={styles.definitionGrid}>
                 <div>
@@ -162,23 +176,6 @@ export default async function WorldEntityDetailPage({
                 </dl>
               )}
             </section>
-
-            {workspace.canEditContent ? (
-              <details className={styles.panel}>
-                <summary>Edit entity</summary>
-                <EntityForm
-                  mode="edit"
-                  worldId={worldId}
-                  contextCampaignId={campaignId}
-                  entityTypes={workspace.entityTypes}
-                  entities={workspace.entities}
-                  relationshipTypes={workspace.relationshipTypes}
-                  campaigns={workspace.campaigns}
-                  visibilityUsers={workspace.visibilityUsers}
-                  initialEntity={entity}
-                />
-              </details>
-            ) : null}
 
             {workspace.canEditContent ? (
               <section className={`${styles.panel} ${styles.dangerZone}`}>
