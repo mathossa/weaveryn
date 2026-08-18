@@ -134,6 +134,8 @@ model WorldEntity {
   name        String
   description String?
   image       String?
+  imageFocusX Int     @default(50)
+  imageFocusY Int     @default(50)
   data        Json    @default("{}")
 
   createdById String? @db.Uuid
