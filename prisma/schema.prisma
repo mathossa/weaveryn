@@ -34,6 +34,11 @@ enum VisibilityScope {
   PRIVATE
 }
 
+enum EntryPreferenceKind {
+  CHARACTER
+  WEAVER
+}
+
 model User {
   id              String  @id @default(uuid()) @db.Uuid
   email           String  @unique
@@ -53,6 +58,7 @@ model User {
   createdEntityRelationships           EntityRelationship[] @relation("EntityRelationshipCreator")
   playerVisibleEntityRelationships     EntityRelationship[] @relation("EntityRelationshipVisibilityUser")
   createdWorldEntityTypes              WorldEntityType[]    @relation("WorldEntityTypeCreator")
+  entryPreferences                     EntryPreference[]
   authSessions                         AuthSession[]
   authAccounts                         AuthAccount[]
 
@@ -120,6 +126,7 @@ model World {
   entities            WorldEntity[]
   entityRelationships EntityRelationship[]
   entityTypes         WorldEntityType[]
+  entryPreferences    EntryPreference[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -246,6 +253,7 @@ model WorldCharacter {
   character          Character           @relation(fields: [characterId], references: [id], onDelete: Cascade)
   world              World               @relation(fields: [worldId], references: [id], onDelete: Cascade)
   campaignCharacters CampaignCharacter[]
+  entryPreferences   EntryPreference[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -309,6 +317,7 @@ model Campaign {
   visibleWorldEntities       WorldEntity[]        @relation("WorldEntityVisibilityCampaign")
   visibleEntityRelationships EntityRelationship[] @relation("EntityRelationshipVisibilityCampaign")
   worldEntityTypes           WorldEntityType[]
+  entryPreferences           EntryPreference[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -352,4 +361,30 @@ model CampaignCharacter {
 
   @@unique([worldCharacterId, campaignId])
   @@index([campaignId])
+}
+
+model EntryPreference {
+  id               String              @id @default(uuid()) @db.Uuid
+  userId           String              @db.Uuid
+  entryKey         String
+  kind             EntryPreferenceKind
+  worldCharacterId String?             @db.Uuid
+  campaignId       String?             @db.Uuid
+  worldId          String?             @db.Uuid
+  pinned           Boolean             @default(false)
+  lastUsedAt       DateTime?
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  worldCharacter WorldCharacter? @relation(fields: [worldCharacterId], references: [id], onDelete: Cascade)
+  campaign       Campaign?       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  world          World?          @relation(fields: [worldId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, entryKey])
+  @@index([userId, pinned, lastUsedAt])
+  @@index([worldCharacterId])
+  @@index([campaignId])
+  @@index([worldId])
 }
