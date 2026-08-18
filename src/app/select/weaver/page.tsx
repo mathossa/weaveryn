@@ -6,7 +6,10 @@ import {
 import { loadSelectionPageData } from '../_lib/load-selection-page-data'
 
 interface WeaverEntryPageProps {
-  searchParams: Promise<{ world?: string | string[] }>
+  searchParams: Promise<{
+    world?: string | string[]
+    campaign?: string | string[]
+  }>
 }
 
 export default async function WeaverEntryPage({
@@ -18,6 +21,8 @@ export default async function WeaverEntryPage({
   ])
   const selectedWorldId =
     typeof query.world === 'string' ? query.world : undefined
+  const selectedCampaignId =
+    typeof query.campaign === 'string' ? query.campaign : undefined
   const state = resolveWeaverEntry(
     pageData.selection.weaverWorlds,
     selectedWorldId,
@@ -30,6 +35,13 @@ export default async function WeaverEntryPage({
   await recordWeaverEntryUse({
     userId: pageData.user.id,
     worldId: state.world.id,
+    campaignId: selectedCampaignId,
   })
-  redirect(`/world/${state.world.id}`)
+
+  if (selectedCampaignId) {
+    redirect(
+      `/world/${state.world.id}/campaign/${selectedCampaignId}?mode=weaver`,
+    )
+  }
+  redirect(`/world/${state.world.id}?mode=weaver`)
 }
