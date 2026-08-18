@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import { uiAssets } from '@/lib/ui-assets'
 import type { WorldEntityUiRecord } from '@/server/world-entities'
 import styles from '../entity.module.css'
+import { FocalImage } from './focal-image'
 
 function entityHref(worldId: string, entityId: string, campaignId?: string) {
   const query = campaignId ? `?campaign=${campaignId}` : ''
@@ -79,15 +80,11 @@ export function EntityBrowser({
               href={entityHref(worldId, entity.id, campaignId)}
               key={entity.id}
             >
-              <div
+              <FocalImage
                 className={styles.entityArt}
-                style={{
-                  backgroundImage: `url(${JSON.stringify(
-                    entity.image || uiAssets.backgrounds.entityBanner.src,
-                  )})`,
-                  backgroundPosition: `${entity.imageFocusX}% ${entity.imageFocusY}%`,
-                }}
-                aria-hidden="true"
+                src={entity.image || uiAssets.backgrounds.entityBanner.src}
+                focusX={entity.imageFocusX}
+                focusY={entity.imageFocusY}
               />
               <div className={styles.entityCardCopy}>
                 <div className={styles.entityCardHeading}>
