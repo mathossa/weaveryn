@@ -2,6 +2,7 @@ import type {
   CreateEntityRelationshipInput,
   CreateWorldEntityInput,
   EntityVisibilityInput,
+  InitialEntityRelationshipInput,
   UpdateWorldEntityInput,
 } from './world-entity-service'
 import type { StructuredData, VisibilityScope } from './world-entity-repository'
@@ -75,6 +76,26 @@ function optionalUuid(value: unknown, label: string): string | undefined {
   return value
 }
 
+function requiredUuid(value: unknown, label: string): string {
+  if (typeof value !== 'string' || !UUID_PATTERN.test(value)) {
+    throw new WorldEntityInputError(`${label} must be a valid UUID.`)
+  }
+  return value
+}
+
+function optionalFocus(value: unknown, label: string): number | undefined {
+  if (value === undefined) return undefined
+  if (
+    typeof value !== 'number' ||
+    !Number.isInteger(value) ||
+    value < 0 ||
+    value > 100
+  ) {
+    throw new WorldEntityInputError(`${label} must be an integer from 0 to 100.`)
+  }
+  return value
+}
+
 function parseVisibility(value: unknown): EntityVisibilityInput | undefined {
   if (value === undefined) return undefined
   const input = asObject(value)
@@ -134,6 +155,37 @@ function parseStructuredData(value: unknown): StructuredData | undefined {
   return result
 }
 
+function parseInitialRelationships(value: unknown): InitialEntityRelationshipInput[] | undefined {
+  if (value === undefined) return undefined
+  if (!Array.isArray(value)) {
+    throw new WorldEntityInputError('Initial relationships must be a list.')
+  }
+  if (value.length > 20) {
+    throw new WorldEntityInputError(
+      'An entity may define at most 20 initial relationships.',
+    )
+  }
+  return value.map((entry, index) => {
+    const input = asObject(entry)
+    return {
+      targetEntityId: requiredUuid(
+        input.targetEntityId,
+        `Initial relationship ${index + 1} target`,
+      ),
+      relationshipType: requiredString(
+        input.relationshipType,
+        `Initial relationship ${index + 1} type`,
+        80,
+      ),
+      label: optionalString(
+        input.label,
+        `Initial relationship ${index + 1} label`,
+        240,
+      ),
+    }
+  })
+}
+
 export function parseCreateWorldEntityInput(value: unknown): Omit<
   CreateWorldEntityInput,
   'actorUserId' | 'worldId'
@@ -144,9 +196,12 @@ export function parseCreateWorldEntityInput(value: unknown): Omit<
     name: requiredString(input.name, 'Entity name', 160),
     description: optionalString(input.description, 'Description', 10000),
     image: optionalString(input.image, 'Image', 2000),
+    imageFocusX: optionalFocus(input.imageFocusX, 'Image focus X'),
+    imageFocusY: optionalFocus(input.imageFocusY, 'Image focus Y'),
     data: parseStructuredData(input.data),
     contextCampaignId: optionalUuid(input.contextCampaignId, 'Campaign context'),
     visibility: parseVisibility(input.visibility),
+    initialRelationships: parseInitialRelationships(input.initialRelationships),
   }
 }
 
@@ -165,6 +220,12 @@ export function parseUpdateWorldEntityInput(value: unknown): UpdateWorldEntityIn
   }
   if (input.image !== undefined) {
     result.image = optionalString(input.image, 'Image', 2000)
+  }
+  if (input.imageFocusX !== undefined) {
+    result.imageFocusX = optionalFocus(input.imageFocusX, 'Image focus X')
+  }
+  if (input.imageFocusY !== undefined) {
+    result.imageFocusY = optionalFocus(input.imageFocusY, 'Image focus Y')
   }
   if (input.data !== undefined) result.data = parseStructuredData(input.data)
   if (input.contextCampaignId !== undefined) {
@@ -200,11 +261,4 @@ export function parseCreateEntityRelationshipInput(value: unknown): Omit<
     contextCampaignId: optionalUuid(input.contextCampaignId, 'Campaign context'),
     visibility: parseVisibility(input.visibility),
   }
-}
-
-function requiredUuid(value: unknown, label: string): string {
-  if (typeof value !== 'string' || !UUID_PATTERN.test(value)) {
-    throw new WorldEntityInputError(`${label} must be a valid UUID.`)
-  }
-  return value
 }
