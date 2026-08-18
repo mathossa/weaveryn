@@ -1,3 +1,4 @@
+import type { Prisma } from '@/generated/prisma/client'
 import { requireDevScenarioMetadata } from '@/dev/scenario-catalog'
 import type { DevAcceptanceCheck, DevScenario } from '@/dev/scenario-contracts'
 import type {
@@ -49,9 +50,7 @@ const fixture: WorldFixtureDefinition = {
   ],
 }
 
-async function deleteScenarioDependants(
-  transaction: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
-) {
+async function deleteScenarioDependants(transaction: Prisma.TransactionClient) {
   await transaction.entryPreference.deleteMany({
     where: {
       userId: OWNER_ID,
@@ -420,10 +419,7 @@ export const chooseEntityEntryScenario: DevScenario<
       return {
         code: error.code,
         message: error.message,
-        status:
-          error.code === 'ENTRY_PREFERENCE_INVALID'
-            ? 400
-            : 404,
+        status: error.code === 'ENTRY_PREFERENCE_INVALID' ? 400 : 404,
       }
     }
     if (error instanceof FixtureOwnershipError) {
