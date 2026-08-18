@@ -83,6 +83,12 @@ export default async function WorldEntityDetailPage({
         worldCharacterId,
       )
     : undefined
+  const ownedCharacterHref =
+    entity.worldCharacterId && entity.worldCharacterOwnedByCurrentUser
+      ? `/character/${entity.worldCharacterId}${
+          campaignId ? `?campaign=${campaignId}` : ''
+        }`
+      : undefined
 
   return (
     <AuthenticatedAppShell
@@ -100,17 +106,26 @@ export default async function WorldEntityDetailPage({
       }}
     >
       <AppPage
-        eyebrow={entity.type}
+        eyebrow={entity.worldCharacterId ? 'Playable Character' : entity.type}
         title={entity.name}
         description={
           entity.description ||
-          'No description has been added to this entity yet.'
+          (entity.worldCharacterId
+            ? 'This World entity is the graph identity of a playable WorldCharacter.'
+            : 'No description has been added to this entity yet.')
         }
         wide
         actions={
-          <Link className={styles.secondaryButton} href={entitiesHref}>
-            Back to entities
-          </Link>
+          <div className={styles.actions}>
+            {ownedCharacterHref ? (
+              <Link className={styles.secondaryButton} href={ownedCharacterHref}>
+                Open Character
+              </Link>
+            ) : null}
+            <Link className={styles.secondaryButton} href={entitiesHref}>
+              Back to entities
+            </Link>
+          </div>
         }
       >
         <div className={styles.detailWorkspace}>
@@ -131,10 +146,12 @@ export default async function WorldEntityDetailPage({
                 <div>
                   <h2>Entity details</h2>
                   <p>
-                    Persistent World identity and MVP structured information.
+                    {entity.worldCharacterId
+                      ? 'Name and portrait resolve from the linked Character / WorldCharacter identity.'
+                      : 'Persistent World identity and MVP structured information.'}
                   </p>
                 </div>
-                {workspace.canEditContent ? (
+                {workspace.canEditContent && !entity.worldCharacterId ? (
                   <EntityEditDialog
                     worldId={worldId}
                     contextCampaignId={campaignId}
@@ -150,13 +167,17 @@ export default async function WorldEntityDetailPage({
               <dl className={styles.definitionGrid}>
                 <div>
                   <dt>Type</dt>
-                  <dd>{entity.type}</dd>
+                  <dd>{entity.worldCharacterId ? 'Character' : entity.type}</dd>
                 </div>
                 <div>
                   <dt>Visibility</dt>
-                  <dd>{entity.visibilityScope}</dd>
+                  <dd>
+                    {entity.worldCharacterId
+                      ? 'World / participating Campaigns'
+                      : entity.visibilityScope}
+                  </dd>
                 </div>
-                {entity.visibilityCampaignId ? (
+                {entity.visibilityCampaignId && !entity.worldCharacterId ? (
                   <div>
                     <dt>Campaign target</dt>
                     <dd>
@@ -167,7 +188,7 @@ export default async function WorldEntityDetailPage({
                     </dd>
                   </div>
                 ) : null}
-                {entity.visibilityUserId ? (
+                {entity.visibilityUserId && !entity.worldCharacterId ? (
                   <div>
                     <dt>Player target</dt>
                     <dd>
@@ -178,6 +199,32 @@ export default async function WorldEntityDetailPage({
                   </div>
                 ) : null}
               </dl>
+
+              {entity.worldCharacterId ? (
+                <>
+                  <h3>Playable Character identity</h3>
+                  <p className={styles.helpText}>
+                    This entity participates in the normal World relationship
+                    graph, but its identity is managed through the Character
+                    workflow rather than duplicated here.
+                  </p>
+                  {ownedCharacterHref ? (
+                    <div className={styles.actions}>
+                      <Link
+                        className={styles.secondaryButton}
+                        href={ownedCharacterHref}
+                      >
+                        Manage my Character
+                      </Link>
+                    </div>
+                  ) : (
+                    <p className={styles.helpText}>
+                      This Character belongs to another player. Their editable
+                      Character view is not exposed here.
+                    </p>
+                  )}
+                </>
+              ) : null}
 
               <h3>Custom fields</h3>
               {Object.keys(entity.data).length === 0 ? (
@@ -200,7 +247,7 @@ export default async function WorldEntityDetailPage({
               )}
             </section>
 
-            {workspace.canEditContent ? (
+            {workspace.canEditContent && !entity.worldCharacterId ? (
               <section className={`${styles.panel} ${styles.dangerZone}`}>
                 <h2>Delete entity</h2>
                 <p>
