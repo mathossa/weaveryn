@@ -126,6 +126,32 @@ async function requireCharacterEntry(
   return { character, campaign: null }
 }
 
+async function findManageableWeaverCampaign(
+  userId: string,
+  worldId: string,
+  campaignId: string,
+) {
+  return prisma.campaign.findFirst({
+    where: {
+      id: campaignId,
+      worldId,
+      status: 'ACTIVE',
+      OR: [
+        { ownerId: userId },
+        {
+          memberships: {
+            some: {
+              userId,
+              role: { in: ['GM', 'ASSISTANT_GM'] },
+            },
+          },
+        },
+      ],
+    },
+    select: { id: true, name: true },
+  })
+}
+
 export async function setCharacterEntryPinned(input: {
   userId: string
   worldCharacterId: string
@@ -213,6 +239,22 @@ export async function recordWeaverEntryUse(input: {
     )
   }
 
+  let campaignId: string | null = null
+  if (input.campaignId) {
+    const campaign = await findManageableWeaverCampaign(
+      input.userId,
+      input.worldId,
+      input.campaignId,
+    )
+    if (!campaign) {
+      throw new EntryPreferenceDomainError(
+        'ENTRY_PREFERENCE_NOT_AVAILABLE',
+        'Weaver Campaign is not available.',
+      )
+    }
+    campaignId = campaign.id
+  }
+
   const lastUsedAt = new Date()
   return prisma.entryPreference.upsert({
     where: {
@@ -226,12 +268,12 @@ export async function recordWeaverEntryUse(input: {
       entryKey: WEAVER_ENTRY_KEY,
       kind: 'WEAVER',
       worldId: input.worldId,
-      campaignId: input.campaignId ?? null,
+      campaignId,
       lastUsedAt,
     },
     update: {
       worldId: input.worldId,
-      campaignId: input.campaignId ?? null,
+      campaignId,
       lastUsedAt,
     },
   })
@@ -258,9 +300,17 @@ export async function getWeaverResume(userId: string) {
   )
   if (!world) return null
 
+  const campaign = preference.campaignId
+    ? await findManageableWeaverCampaign(
+        userId,
+        preference.worldId,
+        preference.campaignId,
+      )
+    : null
+
   return {
     world,
-    campaignId: preference.campaignId,
+    campaign,
     lastUsedAt: preference.lastUsedAt,
   }
 }
