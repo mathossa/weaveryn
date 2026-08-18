@@ -43,6 +43,11 @@
   gap: 1rem;
 }
 
+.characterCardFrame {
+  position: relative;
+  min-width: 0;
+}
+
 .characterCard,
 .weaverCard,
 .choiceLink,
@@ -53,7 +58,9 @@
 
 .characterCard {
   position: relative;
+  display: block;
   min-height: 17rem;
+  height: 100%;
   overflow: hidden;
   border: 1px solid var(--ui-border);
   border-radius: var(--ui-radius-panel);
@@ -62,11 +69,40 @@
   isolation: isolate;
 }
 
+.resumeEntry {
+  border-color: var(--ui-accent);
+  box-shadow: var(--ui-shadow-panel), 0 0 0 1px var(--ui-accent);
+}
+
+.pinButton {
+  position: absolute;
+  z-index: 2;
+  top: 0.65rem;
+  right: 0.65rem;
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid var(--ui-control-border);
+  border-radius: 50%;
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 1rem;
+}
+
+.pinButton:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
 .characterCard:focus-visible,
 .weaverCard:focus-visible,
 .choiceLink:focus-visible,
 .actionLink:focus-visible,
-.backLink:focus-visible {
+.backLink:focus-visible,
+.pinButton:focus-visible {
   outline: none;
   box-shadow: var(--ui-focus-ring);
 }
