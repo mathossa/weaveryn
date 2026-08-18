@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import type { WorldEntityUiRecord } from '@/server/world-entities'
 import styles from '../entity.module.css'
+import { RelationshipTypeInput } from './relationship-type-input'
 import {
   VisibilityFields,
   type VisibilityValue,
@@ -28,6 +29,7 @@ export function RelationshipForm({
   worldId,
   sourceEntityId,
   entities,
+  relationshipTypes,
   campaigns,
   visibilityUsers,
   contextCampaignId,
@@ -35,6 +37,7 @@ export function RelationshipForm({
   worldId: string
   sourceEntityId: string
   entities: WorldEntityUiRecord[]
+  relationshipTypes: string[]
   campaigns: { id: string; name: string }[]
   visibilityUsers: { id: string; label: string }[]
   contextCampaignId?: string
@@ -42,7 +45,9 @@ export function RelationshipForm({
   const router = useRouter()
   const targets = entities.filter((entity) => entity.id !== sourceEntityId)
   const [targetEntityId, setTargetEntityId] = useState(targets[0]?.id ?? '')
-  const [relationshipType, setRelationshipType] = useState('RELATED_TO')
+  const [relationshipType, setRelationshipType] = useState(
+    relationshipTypes[0] ?? '',
+  )
   const [label, setLabel] = useState('')
   const [visibility, setVisibility] = useState<VisibilityValue>({
     scope: contextCampaignId ? 'CAMPAIGN' : 'WORLD',
@@ -54,7 +59,7 @@ export function RelationshipForm({
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!targetEntityId) return
+    if (!targetEntityId || !relationshipType.trim()) return
     setPending(true)
     setError(null)
 
@@ -93,16 +98,11 @@ export function RelationshipForm({
   return (
     <form className={styles.relationshipForm} onSubmit={submit}>
       <div className={styles.formGrid}>
-        <label className={styles.field}>
-          <span>Relationship type</span>
-          <input
-            required
-            maxLength={80}
-            value={relationshipType}
-            onChange={(event) => setRelationshipType(event.target.value)}
-            placeholder="e.g. LOCATED_IN"
-          />
-        </label>
+        <RelationshipTypeInput
+          value={relationshipType}
+          onChange={setRelationshipType}
+          choices={relationshipTypes}
+        />
         <label className={styles.field}>
           <span>Target entity</span>
           <select
