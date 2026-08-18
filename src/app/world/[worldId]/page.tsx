@@ -19,19 +19,33 @@ const accessLabels = {
 
 interface WorldOverviewPageProps {
   params: Promise<{ worldId: string }>
+  searchParams: Promise<{ mode?: string | string[] }>
 }
 
 export default async function WorldOverviewPage({
   params,
+  searchParams,
 }: WorldOverviewPageProps) {
-  const [{ worldId }, user] = await Promise.all([params, loadWorldPageUser()])
+  const [{ worldId }, query, user] = await Promise.all([
+    params,
+    searchParams,
+    loadWorldPageUser(),
+  ])
   const world = await getWorldOverview(worldId, user.id)
   if (!world) notFound()
+  const weaverMode = query.mode === 'weaver'
 
   return (
     <AuthenticatedAppShell
       user={user}
-      context={{ world: { label: world.name, href: `/world/${world.id}` } }}
+      context={{
+        world: {
+          label: world.name,
+          href: weaverMode
+            ? `/world/${world.id}?mode=weaver`
+            : `/world/${world.id}`,
+        },
+      }}
     >
       <AppPage
         eyebrow={accessLabels[world.accessKind]}
@@ -43,7 +57,10 @@ export default async function WorldOverviewPage({
         }
         wide
         actions={
-          <Link className={styles.secondary} href="/world">
+          <Link
+            className={styles.secondary}
+            href={weaverMode ? '/world?mode=weaver' : '/world'}
+          >
             Change World
           </Link>
         }
@@ -83,19 +100,30 @@ export default async function WorldOverviewPage({
                 </p>
               ) : (
                 <div className={styles.campaignList}>
-                  {world.campaigns.map((campaign) => (
-                    <Link
-                      className={styles.campaign}
-                      key={campaign.id}
-                      href={`/world/${world.id}/campaign/${campaign.id}`}
-                    >
-                      <strong>{campaign.name}</strong>
-                      <span className={styles.meta}>
-                        {campaign.isOwner ? 'Owner · ' : ''}
-                        {campaign.role}
-                      </span>
-                    </Link>
-                  ))}
+                  {world.campaigns.map((campaign) => {
+                    const manageableCampaign =
+                      campaign.isOwner ||
+                      campaign.role === 'GM' ||
+                      campaign.role === 'ASSISTANT_GM'
+                    const href =
+                      weaverMode && manageableCampaign
+                        ? `/select/weaver?world=${world.id}&campaign=${campaign.id}`
+                        : `/world/${world.id}/campaign/${campaign.id}`
+
+                    return (
+                      <Link
+                        className={styles.campaign}
+                        key={campaign.id}
+                        href={href}
+                      >
+                        <strong>{campaign.name}</strong>
+                        <span className={styles.meta}>
+                          {campaign.isOwner ? 'Owner · ' : ''}
+                          {campaign.role}
+                        </span>
+                      </Link>
+                    )
+                  })}
                 </div>
               )}
               <div className={styles.formActions}>
