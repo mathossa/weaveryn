@@ -82,20 +82,16 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
   const hasAnyEntry =
     characterEntries.length > 0 || selection.weaverWorlds.length > 0
 
-  const fallbackWeaverWorld =
-    selection.weaverWorlds.length === 1 ? selection.weaverWorlds[0] : null
-  const weaverWorld = weaverResume?.world ?? fallbackWeaverWorld
-  const weaverCampaign = weaverResume?.campaign ?? null
-  const weaverHref = weaverCampaign
-    ? `/world/${weaverWorld!.id}/campaign/${weaverCampaign.id}?mode=weaver`
-    : weaverWorld
-      ? `/world/${weaverWorld.id}?mode=weaver`
-      : '/select/weaver'
-  const weaverTracking = weaverWorld
+  const weaverResumeHref = weaverResume?.campaign
+    ? `/world/${weaverResume.world.id}/campaign/${weaverResume.campaign.id}?mode=weaver`
+    : weaverResume
+      ? `/world/${weaverResume.world.id}?mode=weaver`
+      : null
+  const weaverResumeTracking = weaverResume
     ? {
         kind: 'WEAVER' as const,
-        worldId: weaverWorld.id,
-        campaignId: weaverCampaign?.id,
+        worldId: weaverResume.world.id,
+        campaignId: weaverResume.campaign?.id,
       }
     : undefined
   const latestUsedAt = Math.max(
@@ -192,26 +188,39 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                 <p>Enter through the game-master side of Weaveryn.</p>
               </div>
             </div>
-            <TrackedEntryLink
+            <div
               className={`${styles.weaverCard} ${weaverHighlighted ? styles.resumeEntry : ''}`}
-              href={weaverHref}
-              tracking={weaverTracking}
             >
-              <span className={styles.weaverGlyph} aria-hidden="true">
-                ✦
-              </span>
-              <span className={styles.weaverCopy}>
-                <strong>Join as Weaver</strong>
-                <span>
-                  {weaverResumeLabel
-                    ? `Last managed: ${weaverResumeLabel}`
-                    : 'Choose a World, then continue to Campaign management.'}
+              <Link
+                className={styles.weaverMainAction}
+                href="/world?mode=weaver"
+              >
+                <span className={styles.weaverGlyph} aria-hidden="true">
+                  ✦
                 </span>
-              </span>
-              <span className={styles.weaverArrow} aria-hidden="true">
-                →
-              </span>
-            </TrackedEntryLink>
+                <span className={styles.weaverCopy}>
+                  <strong>Join as Weaver</strong>
+                  <span>
+                    {weaverResumeLabel
+                      ? `Last managed: ${weaverResumeLabel}`
+                      : 'Choose a World, then continue to Campaign management.'}
+                  </span>
+                </span>
+                <span className={styles.weaverArrow} aria-hidden="true">
+                  →
+                </span>
+              </Link>
+
+              {weaverResumeHref ? (
+                <TrackedEntryLink
+                  className={styles.weaverContinue}
+                  href={weaverResumeHref}
+                  tracking={weaverResumeTracking}
+                >
+                  Continue
+                </TrackedEntryLink>
+              ) : null}
+            </div>
           </section>
 
           {!hasAnyEntry ? (
