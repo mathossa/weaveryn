@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
+import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { StatusPanel } from '@/components/ui/status-panel'
 import { characterEntryKey } from '@/server/selection'
 import { CharacterChoiceCard } from './_components/character-choice-card'
@@ -80,11 +81,22 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
   const hasAnyEntry =
     characterEntries.length > 0 || selection.weaverWorlds.length > 0
 
-  const weaverHref = weaverResume?.campaign
-    ? `/select/weaver?world=${weaverResume.world.id}&campaign=${weaverResume.campaign.id}`
-    : weaverResume?.world
-      ? `/select/weaver?world=${weaverResume.world.id}`
+  const fallbackWeaverWorld =
+    selection.weaverWorlds.length === 1 ? selection.weaverWorlds[0] : null
+  const weaverWorld = weaverResume?.world ?? fallbackWeaverWorld
+  const weaverCampaign = weaverResume?.campaign ?? null
+  const weaverHref = weaverCampaign
+    ? `/world/${weaverWorld!.id}/campaign/${weaverCampaign.id}?mode=weaver`
+    : weaverWorld
+      ? `/world/${weaverWorld.id}?mode=weaver`
       : '/select/weaver'
+  const weaverTracking = weaverWorld
+    ? {
+        kind: 'WEAVER' as const,
+        worldId: weaverWorld.id,
+        campaignId: weaverCampaign?.id,
+      }
+    : undefined
   const latestUsedAt = Math.max(
     weaverResume?.lastUsedAt?.getTime() ?? 0,
     ...characterEntries.map(
@@ -174,9 +186,10 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                 <p>Enter through the game-master side of Weaveryn.</p>
               </div>
             </div>
-            <Link
+            <TrackedEntryLink
               className={`${styles.weaverCard} ${weaverHighlighted ? styles.resumeEntry : ''}`}
               href={weaverHref}
+              tracking={weaverTracking}
             >
               <span className={styles.weaverGlyph} aria-hidden="true">
                 ✦
@@ -192,7 +205,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
               <span className={styles.weaverArrow} aria-hidden="true">
                 →
               </span>
-            </Link>
+            </TrackedEntryLink>
           </section>
 
           {!hasAnyEntry ? (
