@@ -95,7 +95,7 @@ export function ImageFocusPicker({
             aria-hidden="true"
             style={{
               ...cropStyle,
-              minHeight: '9rem',
+              aspectRatio: '4 / 5',
               border: '1px solid var(--ui-border)',
               borderRadius: 'var(--ui-radius-control)',
             }}
@@ -107,7 +107,7 @@ export function ImageFocusPicker({
             aria-hidden="true"
             style={{
               ...cropStyle,
-              minHeight: '9rem',
+              aspectRatio: '16 / 7',
               border: '1px solid var(--ui-border)',
               borderRadius: 'var(--ui-radius-control)',
             }}
