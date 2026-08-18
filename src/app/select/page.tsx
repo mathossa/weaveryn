@@ -78,6 +78,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
   const visibleCharacters = showAll
     ? characterEntries
     : characterEntries.slice(0, 3)
+  const eagerCharacterCount = showAll ? 6 : 3
   const hasAnyEntry =
     characterEntries.length > 0 || selection.weaverWorlds.length > 0
 
@@ -158,13 +159,13 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                           latestUsedAt > 0 &&
                           entry.preference?.lastUsedAt?.getTime() === latestUsedAt
                         }
-                        eager={index < 3}
+                        eager={index < eagerCharacterCount}
                       />
                     ) : (
                       <PortableCharacterChoiceCard
                         key={entry.key}
                         character={entry.character}
-                        eager={index < 3}
+                        eager={index < eagerCharacterCount}
                       />
                     ),
                   )}
