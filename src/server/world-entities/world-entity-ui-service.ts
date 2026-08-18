@@ -23,6 +23,7 @@ export interface WorldEntityUiRecord {
   imageFocusX: number
   imageFocusY: number
   data: Record<string, SimpleEntityFieldValue>
+  worldCharacterId: string | null
   visibilityScope: VisibilityScope
   visibilityCampaignId: string | null
   visibilityUserId: string | null
@@ -247,6 +248,7 @@ export async function getWorldEntityWorkspace(
       imageFocusX: entity.imageFocusX ?? 50,
       imageFocusY: entity.imageFocusY ?? 50,
       data: simpleData(entity.data),
+      worldCharacterId: entity.worldCharacterId ?? null,
       visibilityScope: entity.visibilityScope,
       visibilityCampaignId: entity.visibilityCampaignId,
       visibilityUserId: entity.visibilityUserId,
