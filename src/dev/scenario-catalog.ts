@@ -109,9 +109,9 @@ export const devScenarioCatalog = [
     title: 'World entities and relationships',
     domain: 'Worlds',
     purpose:
-      'Exercise generic World entities, structured data, explicit relationships, same-World validation, and backend authorization through the real World entity service.',
+      'Exercise generic World entities, simple structured data, reusable custom types, MVP visibility, explicit relationships, same-World validation, and backend authorization through the real World entity service.',
     href: '/dev/world-entities',
-    issueNumbers: [20],
+    issueNumbers: [20, 55],
     prerequisites: [
       'Dedicated development database',
       'Applied Prisma migrations',
