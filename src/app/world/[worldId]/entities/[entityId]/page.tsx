@@ -84,6 +84,7 @@ export default async function WorldEntityDetailPage({
                 backgroundImage: `url(${JSON.stringify(
                   entity.image || uiAssets.backgrounds.entityBanner.src,
                 )})`,
+                backgroundPosition: `${entity.imageFocusX}% ${entity.imageFocusY}%`,
               }}
               aria-label={`${entity.name} artwork`}
             />
@@ -157,6 +158,8 @@ export default async function WorldEntityDetailPage({
                   worldId={worldId}
                   contextCampaignId={campaignId}
                   entityTypes={workspace.entityTypes}
+                  entities={workspace.entities}
+                  relationshipTypes={workspace.relationshipTypes}
                   campaigns={workspace.campaigns}
                   visibilityUsers={workspace.visibilityUsers}
                   initialEntity={entity}
@@ -256,6 +259,7 @@ export default async function WorldEntityDetailPage({
                     worldId={worldId}
                     sourceEntityId={entity.id}
                     entities={workspace.entities}
+                    relationshipTypes={workspace.relationshipTypes}
                     campaigns={workspace.campaigns}
                     visibilityUsers={workspace.visibilityUsers}
                     contextCampaignId={campaignId}
