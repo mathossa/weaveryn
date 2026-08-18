@@ -5,6 +5,7 @@ import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-
 import { uiAssets } from '@/lib/ui-assets'
 import { getWorldEntityWorkspace } from '@/server/world-entities'
 import { loadWorldPageUser } from '../../../_lib/load-world-user'
+import { connectionTypeLabel } from '../_components/connection-language'
 import { DeleteEntityButton } from '../_components/delete-entity-button'
 import { DeleteRelationshipButton } from '../_components/delete-relationship-button'
 import { EntityForm } from '../_components/entity-form'
@@ -43,6 +44,18 @@ export default async function WorldEntityDetailPage({
   const incoming = workspace.relationships.filter(
     (relationship) => relationship.targetEntityId === entityId,
   )
+  const connections = [
+    ...outgoing.map((relationship) => ({
+      relationship,
+      otherEntityId: relationship.targetEntityId,
+      sentence: `${entity.name} ${connectionTypeLabel(relationship.relationshipType)} ${relationship.targetName}`,
+    })),
+    ...incoming.map((relationship) => ({
+      relationship,
+      otherEntityId: relationship.sourceEntityId,
+      sentence: `${relationship.sourceName} ${connectionTypeLabel(relationship.relationshipType)} ${entity.name}`,
+    })),
+  ]
   const query = campaignId ? `?campaign=${campaignId}` : ''
 
   return (
@@ -171,8 +184,8 @@ export default async function WorldEntityDetailPage({
               <section className={`${styles.panel} ${styles.dangerZone}`}>
                 <h2>Delete entity</h2>
                 <p>
-                  Deleting this entity also removes relationships that point to or
-                  from it. It does not delete the other linked entities.
+                  Deleting this entity also removes its connections. It does not
+                  delete the other connected entities.
                 </p>
                 <DeleteEntityButton
                   worldId={worldId}
@@ -187,55 +200,17 @@ export default async function WorldEntityDetailPage({
           <aside className={styles.relationshipPanel}>
             <div className={styles.relationshipScroll}>
               <section className={styles.panel}>
-                <h2>Outgoing relationships</h2>
-                {outgoing.length === 0 ? (
-                  <p className={styles.helpText}>No outgoing relationships.</p>
+                <h2>Connections</h2>
+                {connections.length === 0 ? (
+                  <p className={styles.helpText}>No connections yet.</p>
                 ) : (
                   <div className={styles.relationshipList}>
-                    {outgoing.map((relationship) => (
+                    {connections.map(({ relationship, otherEntityId, sentence }) => (
                       <div className={styles.relationshipItem} key={relationship.id}>
                         <Link
-                          href={entityHref(
-                            worldId,
-                            relationship.targetEntityId,
-                            campaignId,
-                          )}
+                          href={entityHref(worldId, otherEntityId, campaignId)}
                         >
-                          <strong>{relationship.relationshipType}</strong>
-                          <span>→ {relationship.targetName}</span>
-                          {relationship.label ? (
-                            <small>{relationship.label}</small>
-                          ) : null}
-                        </Link>
-                        {workspace.canEditContent ? (
-                          <DeleteRelationshipButton
-                            worldId={worldId}
-                            relationshipId={relationship.id}
-                          />
-                        ) : null}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              <section className={styles.panel}>
-                <h2>Incoming relationships</h2>
-                {incoming.length === 0 ? (
-                  <p className={styles.helpText}>No incoming relationships.</p>
-                ) : (
-                  <div className={styles.relationshipList}>
-                    {incoming.map((relationship) => (
-                      <div className={styles.relationshipItem} key={relationship.id}>
-                        <Link
-                          href={entityHref(
-                            worldId,
-                            relationship.sourceEntityId,
-                            campaignId,
-                          )}
-                        >
-                          <strong>{relationship.relationshipType}</strong>
-                          <span>← {relationship.sourceName}</span>
+                          <strong>{sentence}</strong>
                           {relationship.label ? (
                             <small>{relationship.label}</small>
                           ) : null}
@@ -254,10 +229,11 @@ export default async function WorldEntityDetailPage({
 
               {workspace.canEditContent ? (
                 <section className={styles.panel}>
-                  <h2>Add relationship</h2>
+                  <h2>Add connection</h2>
                   <RelationshipForm
                     worldId={worldId}
                     sourceEntityId={entity.id}
+                    sourceEntityName={entity.name}
                     entities={workspace.entities}
                     relationshipTypes={workspace.relationshipTypes}
                     campaigns={workspace.campaigns}
