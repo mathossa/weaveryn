@@ -71,7 +71,19 @@ function userLabel(user: {
   displayName: string | null
   email: string
 }) {
-  return user.displayName?.trim() || `@${user.username}` || user.email
+  return user.displayName?.trim() || `@${user.username}`
+}
+
+function addVisibilityUser(
+  choices: Map<string, WorldEntityVisibilityUserChoice>,
+  user: {
+    id: string
+    username: string
+    displayName: string | null
+    email: string
+  },
+) {
+  choices.set(user.id, { id: user.id, label: userLabel(user) })
 }
 
 export async function getWorldEntityWorkspace(
@@ -119,22 +131,15 @@ export async function getWorldEntityWorkspace(
         },
       },
     })
-    if (worldPeople?.owner) {
-      visibilityUsers.set(worldPeople.owner.id, {
-        id: worldPeople.owner.id,
-        label: userLabel(worldPeople.owner),
-      })
-    }
+    if (worldPeople?.owner) addVisibilityUser(visibilityUsers, worldPeople.owner)
     for (const membership of worldPeople?.memberships ?? []) {
-      visibilityUsers.set(membership.user.id, {
-        id: membership.user.id,
-        label: userLabel(membership.user),
-      })
+      addVisibilityUser(visibilityUsers, membership.user)
     }
 
-    if (contextCampaignId && contextCampaign) {
-      const campaignPeople = await prisma.campaign.findUnique({
-        where: { id: contextCampaignId },
+    const accessibleCampaignIds = world.campaigns.map((campaign) => campaign.id)
+    if (accessibleCampaignIds.length > 0) {
+      const campaignPeople = await prisma.campaign.findMany({
+        where: { id: { in: accessibleCampaignIds } },
         select: {
           owner: {
             select: { id: true, username: true, displayName: true, email: true },
@@ -153,17 +158,11 @@ export async function getWorldEntityWorkspace(
           },
         },
       })
-      if (campaignPeople?.owner) {
-        visibilityUsers.set(campaignPeople.owner.id, {
-          id: campaignPeople.owner.id,
-          label: userLabel(campaignPeople.owner),
-        })
-      }
-      for (const membership of campaignPeople?.memberships ?? []) {
-        visibilityUsers.set(membership.user.id, {
-          id: membership.user.id,
-          label: userLabel(membership.user),
-        })
+      for (const campaign of campaignPeople) {
+        addVisibilityUser(visibilityUsers, campaign.owner)
+        for (const membership of campaign.memberships) {
+          addVisibilityUser(visibilityUsers, membership.user)
+        }
       }
     }
   }
