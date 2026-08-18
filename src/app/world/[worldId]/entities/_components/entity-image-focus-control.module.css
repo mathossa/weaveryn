@@ -1,0 +1,148 @@
+.imageShell {
+  position: relative;
+  min-width: 0;
+}
+
+.focusButton {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  min-height: 2.4rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 55%, var(--ui-control-border));
+  border-radius: var(--ui-radius-control);
+  background: color-mix(in srgb, var(--ui-panel-strong) 88%, transparent);
+  color: var(--ui-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-0.2rem);
+  transition: opacity 140ms ease, transform 140ms ease, border-color 140ms ease;
+  backdrop-filter: blur(8px);
+}
+
+.imageShell:hover .focusButton,
+.imageShell:focus-within .focusButton {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.focusButton:hover {
+  border-color: var(--ui-accent);
+}
+
+.dialog {
+  width: min(58rem, calc(100vw - 8rem));
+  max-width: calc(100vw - 8rem);
+  max-height: calc(100dvh - 6rem);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-panel-strong);
+  color: var(--ui-text);
+}
+
+.dialog::backdrop {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.dialogShell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: calc(100dvh - 6rem);
+}
+
+.header,
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  background: var(--ui-panel-strong);
+}
+
+.header {
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.footer {
+  justify-content: flex-end;
+  border-top: 1px solid var(--ui-border);
+}
+
+.header h2,
+.header p,
+.error {
+  margin: 0;
+}
+
+.header p {
+  margin-top: 0.2rem;
+  color: var(--ui-text-muted);
+  font-size: 0.85rem;
+}
+
+.body {
+  min-height: 0;
+  overflow: auto;
+  padding: 1rem 1.15rem 1.25rem;
+}
+
+.primaryButton,
+.secondaryButton {
+  min-height: 2.6rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--ui-radius-control);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primaryButton {
+  border: 0;
+  background: var(--ui-accent);
+  color: var(--ui-accent-ink);
+}
+
+.secondaryButton {
+  border: 1px solid var(--ui-control-border);
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.error {
+  margin-top: 0.8rem;
+  color: var(--ui-danger);
+}
+
+@media (hover: none) {
+  .focusButton {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .dialog {
+    width: calc(100vw - 1rem);
+    max-width: calc(100vw - 1rem);
+    max-height: 94dvh;
+  }
+
+  .dialogShell {
+    max-height: 94dvh;
+  }
+
+  .header {
+    align-items: start;
+  }
+}
