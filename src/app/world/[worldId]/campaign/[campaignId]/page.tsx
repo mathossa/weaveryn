@@ -4,9 +4,14 @@ import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
+import {
+  requestedCharacterContext,
+  withCharacterContext,
+} from '@/lib/campaign-context'
 import { uiAssets } from '@/lib/ui-assets'
 import { requireAuthenticatedUser } from '@/server/auth'
 import { getCampaignOverview } from '@/server/campaigns'
+import { listEntryPreferences } from '@/server/selection'
 import {
   CampaignDashboardIcon,
   type CampaignDashboardIconName,
@@ -34,18 +39,46 @@ export default async function CampaignOverviewPage({
     searchParams,
     requireAuthenticatedUser(new Headers(await headers())),
   ])
-  const campaign = await getCampaignOverview(worldId, campaignId, user.id)
+  const [campaign, entryPreferences] = await Promise.all([
+    getCampaignOverview(worldId, campaignId, user.id),
+    listEntryPreferences(user.id),
+  ])
   if (!campaign) notFound()
 
-  const selectedWorldCharacterId =
-    typeof query.character === 'string' ? query.character : undefined
-  const selectedCharacter = selectedWorldCharacterId
+  const requestedWorldCharacterId = requestedCharacterContext(query.character)
+  const latestCampaignPreference = requestedWorldCharacterId
+    ? undefined
+    : entryPreferences
+        .filter(
+          (preference) =>
+            preference.campaignId === campaign.id && preference.lastUsedAt,
+        )
+        .sort(
+          (left, right) =>
+            (right.lastUsedAt?.getTime() ?? 0) -
+            (left.lastUsedAt?.getTime() ?? 0),
+        )[0]
+  const preferredWorldCharacterId =
+    requestedWorldCharacterId ??
+    (latestCampaignPreference?.kind === 'CHARACTER'
+      ? (latestCampaignPreference.worldCharacterId ?? undefined)
+      : undefined)
+  const selectedCharacter = preferredWorldCharacterId
     ? campaign.characters.find(
         (character) =>
-          character.worldCharacterId === selectedWorldCharacterId &&
+          character.worldCharacterId === preferredWorldCharacterId &&
           character.ownedByCurrentUser,
       )
     : undefined
+  const characterContextId = selectedCharacter?.worldCharacterId
+  const campaignHref = withCharacterContext(
+    `/world/${worldId}/campaign/${campaign.id}`,
+    characterContextId,
+  )
+  const manageCampaignHref = withCharacterContext(
+    `/world/${worldId}/campaign/${campaign.id}/manage`,
+    characterContextId,
+  )
   const canChooseCharacter =
     campaign.status === 'ACTIVE' && campaign.role !== 'SPECTATOR'
   const canManageCampaign =
@@ -57,23 +90,28 @@ export default async function CampaignOverviewPage({
       campaign.role === 'ASSISTANT_GM')
 
   const placeholderBase = `/world/${worldId}/campaign/${campaign.id}/placeholder`
+  const placeholderHref = (feature: string) =>
+    withCharacterContext(`${placeholderBase}/${feature}`, characterContextId)
   const quickActions: QuickAction[] = [
-    { label: 'Add Note', icon: 'note', href: `${placeholderBase}/notes` },
-    { label: 'Add Event', icon: 'event', href: `${placeholderBase}/event` },
-    { label: 'Roll Dice', icon: 'dice', href: `${placeholderBase}/dice` },
-    { label: 'Open Map', icon: 'map', href: `${placeholderBase}/map` },
-    { label: 'NPCs', icon: 'npc', href: `${placeholderBase}/npcs` },
-    { label: 'Items', icon: 'item', href: `${placeholderBase}/items` },
+    { label: 'Add Note', icon: 'note', href: placeholderHref('notes') },
+    { label: 'Add Event', icon: 'event', href: placeholderHref('event') },
+    { label: 'Roll Dice', icon: 'dice', href: placeholderHref('dice') },
+    { label: 'Open Map', icon: 'map', href: placeholderHref('map') },
+    { label: 'NPCs', icon: 'npc', href: placeholderHref('npcs') },
+    { label: 'Items', icon: 'item', href: placeholderHref('items') },
     {
       label: 'World Entities',
       icon: 'entities',
-      href: `/world/${worldId}/entities?campaign=${campaign.id}`,
+      href: withCharacterContext(
+        `/world/${worldId}/entities?campaign=${campaign.id}`,
+        characterContextId,
+      ),
       implemented: true,
     },
     {
       label: 'Timeline',
       icon: 'timeline',
-      href: `${placeholderBase}/timeline`,
+      href: placeholderHref('timeline'),
     },
   ]
 
@@ -84,7 +122,7 @@ export default async function CampaignOverviewPage({
         world: { label: campaign.world.name, href: `/world/${worldId}` },
         campaign: {
           label: campaign.name,
-          href: `/world/${worldId}/campaign/${campaign.id}`,
+          href: campaignHref,
         },
         ...(selectedCharacter
           ? {
@@ -106,7 +144,7 @@ export default async function CampaignOverviewPage({
             {canManageCampaign ? (
               <Link
                 className={styles.manageCampaignLink}
-                href={`/world/${worldId}/campaign/${campaign.id}/manage`}
+                href={manageCampaignHref}
               >
                 <CampaignDashboardIcon name="manage" />
                 Manage Campaign
@@ -186,7 +224,7 @@ export default async function CampaignOverviewPage({
             </div>
             <Link
               className={styles.dashboardPanelLink}
-              href={`${placeholderBase}/activity`}
+              href={placeholderHref('activity')}
             >
               Activity placeholder <span aria-hidden="true">→</span>
             </Link>
@@ -262,7 +300,7 @@ export default async function CampaignOverviewPage({
                 <small>Map support arrives in 0.3.0</small>
               </span>
             </div>
-            <Link className={styles.dashboardMapLink} href={`${placeholderBase}/map`}>
+            <Link className={styles.dashboardMapLink} href={placeholderHref('map')}>
               Open map placeholder
             </Link>
           </section>
@@ -289,7 +327,7 @@ export default async function CampaignOverviewPage({
             </div>
             <Link
               className={styles.dashboardPanelLink}
-              href={`${placeholderBase}/objectives`}
+              href={placeholderHref('objectives')}
             >
               Objectives placeholder <span aria-hidden="true">→</span>
             </Link>
@@ -335,7 +373,7 @@ export default async function CampaignOverviewPage({
                   notes/lore foundation.
                 </span>
               </p>
-              <Link href={`${placeholderBase}/notes`}>Notes placeholder →</Link>
+              <Link href={placeholderHref('notes')}>Notes placeholder →</Link>
             </div>
           </section>
 
@@ -403,7 +441,7 @@ export default async function CampaignOverviewPage({
                 {canManageCampaign ? (
                   <Link
                     className={styles.dashboardPrimaryLink}
-                    href={`/world/${worldId}/campaign/${campaign.id}/manage`}
+                    href={manageCampaignHref}
                   >
                     Manage Campaign
                   </Link>
