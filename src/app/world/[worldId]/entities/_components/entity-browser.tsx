@@ -2,23 +2,34 @@
 
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
+import { withCharacterContext } from '@/lib/campaign-context'
 import { uiAssets } from '@/lib/ui-assets'
 import type { WorldEntityUiRecord } from '@/server/world-entities'
 import styles from '../entity.module.css'
 import { FocalImage } from './focal-image'
 
-function entityHref(worldId: string, entityId: string, campaignId?: string) {
+function entityHref(
+  worldId: string,
+  entityId: string,
+  campaignId?: string,
+  worldCharacterId?: string,
+) {
   const query = campaignId ? `?campaign=${campaignId}` : ''
-  return `/world/${worldId}/entities/${entityId}${query}`
+  return withCharacterContext(
+    `/world/${worldId}/entities/${entityId}${query}`,
+    worldCharacterId,
+  )
 }
 
 export function EntityBrowser({
   worldId,
   campaignId,
+  worldCharacterId,
   entities,
 }: {
   worldId: string
   campaignId?: string
+  worldCharacterId?: string
   entities: WorldEntityUiRecord[]
 }) {
   const [search, setSearch] = useState('')
@@ -80,7 +91,12 @@ export function EntityBrowser({
           filtered.map((entity) => (
             <Link
               className={styles.entityCard}
-              href={entityHref(worldId, entity.id, campaignId)}
+              href={entityHref(
+                worldId,
+                entity.id,
+                campaignId,
+                worldCharacterId,
+              )}
               key={entity.id}
             >
               <FocalImage

@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { withCharacterContext } from '@/lib/campaign-context'
 import styles from '../entity.module.css'
 
 export function DeleteEntityButton({
@@ -9,11 +10,13 @@ export function DeleteEntityButton({
   entityId,
   entityName,
   contextCampaignId,
+  contextWorldCharacterId,
 }: {
   worldId: string
   entityId: string
   entityName: string
   contextCampaignId?: string
+  contextWorldCharacterId?: string
 }) {
   const router = useRouter()
   const [pending, setPending] = useState(false)
@@ -39,7 +42,12 @@ export function DeleteEntityButton({
     }
 
     const query = contextCampaignId ? `?campaign=${contextCampaignId}` : ''
-    router.replace(`/world/${worldId}/entities${query}`)
+    router.replace(
+      withCharacterContext(
+        `/world/${worldId}/entities${query}`,
+        contextWorldCharacterId,
+      ),
+    )
     router.refresh()
   }
 
