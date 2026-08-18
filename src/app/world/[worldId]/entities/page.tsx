@@ -5,7 +5,6 @@ import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-
 import { getWorldEntityWorkspace } from '@/server/world-entities'
 import { loadWorldPageUser } from '../../_lib/load-world-user'
 import { EntityBrowser } from './_components/entity-browser'
-import { EntityTypeManager } from './_components/entity-type-manager'
 import styles from './entity.module.css'
 
 interface WorldEntitiesPageProps {
@@ -64,9 +63,6 @@ export default async function WorldEntitiesPage({
             <Link className={styles.secondaryButton} href={backHref}>
               {workspace.contextCampaign ? 'Back to Campaign' : 'World overview'}
             </Link>
-            {workspace.canEditContent ? (
-              <EntityTypeManager worldId={worldId} types={workspace.entityTypes} />
-            ) : null}
             {workspace.canEditContent ? (
               <Link
                 className={styles.primaryButton}
