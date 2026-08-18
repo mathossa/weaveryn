@@ -18,6 +18,7 @@
     "typecheck": "node scripts/clean-next-dev-types.mjs && next typegen && tsc --noEmit",
     "prisma:validate": "prisma validate",
     "prisma:generate": "prisma generate",
+    "db:dummy": "node scripts/weaveryn-dummy-data.mjs",
     "weaveryn": "node scripts/weaveryn-admin.mjs",
     "validate": "npm run format:check && npm run lint && npm run prisma:validate && npm run prisma:generate && npm run typecheck && npm test && npm run build"
   },
