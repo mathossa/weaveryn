@@ -5,26 +5,87 @@ import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { requireAuthenticatedUser } from '@/server/auth'
 import { getCampaignOverview } from '@/server/campaigns'
+import { listEntryPreferences } from '@/server/selection'
 import { CampaignForm } from '../../_components/campaign-form'
 import styles from '../../campaign.module.css'
 
 interface CampaignManagePageProps {
   params: Promise<{ worldId: string; campaignId: string }>
+  searchParams: Promise<{ character?: string | string[] }>
+}
+
+function characterFromCampaignReferer(
+  referer: string | null,
+  worldId: string,
+  campaignId: string,
+) {
+  if (!referer) return undefined
+
+  try {
+    const url = new URL(referer)
+    if (url.pathname !== `/world/${worldId}/campaign/${campaignId}`) {
+      return undefined
+    }
+
+    return url.searchParams.get('character') ?? undefined
+  } catch {
+    return undefined
+  }
 }
 
 export default async function CampaignManagePage({
   params,
+  searchParams,
 }: CampaignManagePageProps) {
-  const [{ worldId, campaignId }, user] = await Promise.all([
+  const [{ worldId, campaignId }, query, requestHeaders] = await Promise.all([
     params,
-    requireAuthenticatedUser(new Headers(await headers())),
+    searchParams,
+    headers(),
   ])
-  const campaign = await getCampaignOverview(worldId, campaignId, user.id)
+  const user = await requireAuthenticatedUser(new Headers(requestHeaders))
+  const [campaign, entryPreferences] = await Promise.all([
+    getCampaignOverview(worldId, campaignId, user.id),
+    listEntryPreferences(user.id),
+  ])
   if (!campaign) notFound()
 
   const canManageCampaign =
     campaign.canEditSharedInfo || campaign.canEditName || campaign.canManageMembers
   if (!canManageCampaign) notFound()
+
+  const requestedCharacterId =
+    typeof query.character === 'string' ? query.character : undefined
+  const referredCharacterId = characterFromCampaignReferer(
+    requestHeaders.get('referer'),
+    worldId,
+    campaignId,
+  )
+  const latestCampaignPreference = entryPreferences
+    .filter(
+      (preference) =>
+        preference.campaignId === campaign.id && preference.lastUsedAt,
+    )
+    .sort(
+      (left, right) =>
+        (right.lastUsedAt?.getTime() ?? 0) -
+        (left.lastUsedAt?.getTime() ?? 0),
+    )[0]
+  const preferredCharacterId =
+    requestedCharacterId ??
+    referredCharacterId ??
+    (latestCampaignPreference?.kind === 'CHARACTER'
+      ? (latestCampaignPreference.worldCharacterId ?? undefined)
+      : undefined)
+  const selectedCharacter = preferredCharacterId
+    ? campaign.characters.find(
+        (character) =>
+          character.worldCharacterId === preferredCharacterId &&
+          character.ownedByCurrentUser,
+      )
+    : undefined
+  const campaignHref = selectedCharacter
+    ? `/world/${worldId}/campaign/${campaign.id}?character=${selectedCharacter.worldCharacterId}`
+    : `/world/${worldId}/campaign/${campaign.id}`
 
   const ownerLabel = campaign.owner.displayName ?? `@${campaign.owner.username}`
 
@@ -35,8 +96,16 @@ export default async function CampaignManagePage({
         world: { label: campaign.world.name, href: `/world/${worldId}` },
         campaign: {
           label: campaign.name,
-          href: `/world/${worldId}/campaign/${campaign.id}`,
+          href: campaignHref,
         },
+        ...(selectedCharacter
+          ? {
+              character: {
+                label: selectedCharacter.name,
+                href: `/character/${selectedCharacter.worldCharacterId}?campaign=${campaign.id}`,
+              },
+            }
+          : {}),
       }}
     >
       <AppPage
@@ -46,10 +115,7 @@ export default async function CampaignManagePage({
         wide
         actions={
           <div className={styles.formActions}>
-            <Link
-              className={styles.secondary}
-              href={`/world/${worldId}/campaign/${campaign.id}`}
-            >
+            <Link className={styles.secondary} href={campaignHref}>
               Back to Campaign
             </Link>
             <Link className={styles.secondary} href={`/world/${worldId}/campaign`}>
@@ -75,6 +141,11 @@ export default async function CampaignManagePage({
               <p>
                 <strong>Status:</strong> {campaign.status}
               </p>
+              {selectedCharacter ? (
+                <p>
+                  <strong>Entered as:</strong> {selectedCharacter.name}
+                </p>
+              ) : null}
             </section>
 
             <section className={styles.panel}>
