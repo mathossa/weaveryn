@@ -9,6 +9,7 @@ import type {
   WorldEntityUiRecord,
 } from '@/server/world-entities'
 import styles from '../entity.module.css'
+import { ImageFocusPicker } from './image-focus-picker'
 import { RelationshipTypeInput } from './relationship-type-input'
 import {
   VisibilityFields,
@@ -137,6 +138,7 @@ export function EntityForm({
     userId: initialEntity?.visibilityUserId ?? '',
   })
   const [pending, setPending] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const entityType = useMemo(
@@ -174,14 +176,6 @@ export function EntityForm({
     return data
   }
 
-  function setFocusFromPointer(event: React.PointerEvent<HTMLDivElement>) {
-    const rect = event.currentTarget.getBoundingClientRect()
-    const x = Math.round(((event.clientX - rect.left) / rect.width) * 100)
-    const y = Math.round(((event.clientY - rect.top) / rect.height) * 100)
-    setImageFocusX(Math.max(0, Math.min(100, x)))
-    setImageFocusY(Math.max(0, Math.min(100, y)))
-  }
-
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!entityType) {
@@ -194,11 +188,12 @@ export function EntityForm({
           !relationship.targetEntityId || !relationship.relationshipType.trim(),
       )
     ) {
-      setError('Every initial relationship needs a target and relationship type.')
+      setError('Every connection needs another entity and a connection description.')
       return
     }
 
     setPending(true)
+    setSaved(false)
     setError(null)
     const response = await fetch(
       mode === 'create'
@@ -238,8 +233,15 @@ export function EntityForm({
 
     const entityId = result.entity.id as string
     const query = contextCampaignId ? `?campaign=${contextCampaignId}` : ''
+
+    if (mode === 'edit') {
+      setPending(false)
+      setSaved(true)
+      router.refresh()
+      return
+    }
+
     router.replace(`/world/${worldId}/entities/${entityId}${query}`)
-    router.refresh()
   }
 
   return (
@@ -294,26 +296,21 @@ export function EntityForm({
           <div>
             <h2>Image focus</h2>
             <p>
-              Click the important point in the image. The same focus is respected
-              by portrait cards and landscape detail views.
+              Click the important point on the full image. The picker no longer
+              moves the picture underneath your cursor; the card and detail crops
+              below show the result.
             </p>
           </div>
         </div>
-        <div
-          className={styles.focusPreview}
-          style={{
-            backgroundImage: `url(${JSON.stringify(previewImage)})`,
-            backgroundPosition: `${imageFocusX}% ${imageFocusY}%`,
+        <ImageFocusPicker
+          src={previewImage}
+          x={imageFocusX}
+          y={imageFocusY}
+          onChange={({ x, y }) => {
+            setImageFocusX(x)
+            setImageFocusY(y)
           }}
-          onPointerDown={setFocusFromPointer}
-          role="presentation"
-        >
-          <span
-            className={styles.focusMarker}
-            style={{ left: `${imageFocusX}%`, top: `${imageFocusY}%` }}
-            aria-hidden="true"
-          />
-        </div>
+        />
         <div className={styles.focusControls}>
           <label className={styles.field}>
             <span>Horizontal focus · {imageFocusX}%</span>
@@ -352,10 +349,10 @@ export function EntityForm({
         <section className={styles.formSection}>
           <div className={styles.sectionHeading}>
             <div>
-              <h2>Initial relationships</h2>
+              <h2>Connections</h2>
               <p>
-                Optionally link this new entity to existing visible entities. All
-                links are created in the same transaction as the entity.
+                Optional. Connect this new entity to things that already exist by
+                building a simple sentence.
               </p>
             </div>
             <button
@@ -369,69 +366,79 @@ export function EntityForm({
                 ])
               }
             >
-              Add relationship
+              Add connection
             </button>
           </div>
           {entities.length === 0 ? (
             <p className={styles.helpText}>
-              There are no existing visible entities to link yet.
+              There are no existing visible entities to connect to yet.
             </p>
           ) : initialRelationships.length === 0 ? (
-            <p className={styles.helpText}>No initial relationships configured.</p>
+            <p className={styles.helpText}>No connections added yet.</p>
           ) : (
             <div className={styles.initialRelationships}>
               {initialRelationships.map((relationship) => (
-                <div className={styles.initialRelationshipRow} key={relationship.id}>
-                  <RelationshipTypeInput
-                    value={relationship.relationshipType}
-                    onChange={(relationshipType) =>
-                      updateRelationship(relationship.id, { relationshipType })
-                    }
-                    choices={relationshipTypes}
-                  />
-                  <label className={styles.field}>
-                    <span>Target entity</span>
-                    <select
-                      required
-                      value={relationship.targetEntityId}
-                      onChange={(event) =>
-                        updateRelationship(relationship.id, {
-                          targetEntityId: event.target.value,
-                        })
+                <div className={styles.panel} key={relationship.id}>
+                  <div className={styles.formGrid}>
+                    <div className={styles.field}>
+                      <span>This entity</span>
+                      <strong>{name.trim() || 'This entity'}</strong>
+                    </div>
+                    <RelationshipTypeInput
+                      value={relationship.relationshipType}
+                      onChange={(relationshipType) =>
+                        updateRelationship(relationship.id, { relationshipType })
+                      }
+                      choices={relationshipTypes}
+                    />
+                    <label className={styles.field}>
+                      <span>Connect to</span>
+                      <select
+                        required
+                        value={relationship.targetEntityId}
+                        onChange={(event) =>
+                          updateRelationship(relationship.id, {
+                            targetEntityId: event.target.value,
+                          })
+                        }
+                      >
+                        {entities.map((entity) => (
+                          <option key={entity.id} value={entity.id}>
+                            {entity.name} · {entity.type}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  <details>
+                    <summary>More options</summary>
+                    <label className={styles.field}>
+                      <span>Note (optional)</span>
+                      <input
+                        maxLength={240}
+                        value={relationship.label}
+                        onChange={(event) =>
+                          updateRelationship(relationship.id, {
+                            label: event.target.value,
+                          })
+                        }
+                        placeholder="Extra context for this connection"
+                      />
+                    </label>
+                  </details>
+                  <div className={styles.formActions}>
+                    <button
+                      className={styles.linkButton}
+                      type="button"
+                      onClick={() =>
+                        setInitialRelationships((current) =>
+                          current.filter((item) => item.id !== relationship.id),
+                        )
                       }
                     >
-                      {entities.map((entity) => (
-                        <option key={entity.id} value={entity.id}>
-                          {entity.name} · {entity.type}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className={styles.field}>
-                    <span>Label (optional)</span>
-                    <input
-                      maxLength={240}
-                      value={relationship.label}
-                      onChange={(event) =>
-                        updateRelationship(relationship.id, {
-                          label: event.target.value,
-                        })
-                      }
-                      placeholder="Human-readable context"
-                    />
-                  </label>
-                  <button
-                    className={styles.iconButton}
-                    type="button"
-                    aria-label="Remove initial relationship"
-                    onClick={() =>
-                      setInitialRelationships((current) =>
-                        current.filter((item) => item.id !== relationship.id),
-                      )
-                    }
-                  >
-                    ×
-                  </button>
+                      Remove connection
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -544,6 +551,11 @@ export function EntityForm({
       </section>
 
       {error ? <p className={styles.error}>{error}</p> : null}
+      {saved ? (
+        <p className={styles.helpText} role="status">
+          Saved. The entity view is refreshing in the background.
+        </p>
+      ) : null}
       <div className={styles.formActions}>
         <button className={styles.primaryButton} disabled={pending} type="submit">
           {pending
