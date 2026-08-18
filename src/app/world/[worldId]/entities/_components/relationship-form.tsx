@@ -6,10 +6,7 @@ import type { WorldEntityUiRecord } from '@/server/world-entities'
 import styles from '../entity.module.css'
 import connectionStyles from './connection-form.module.css'
 import { RelationshipTypeInput } from './relationship-type-input'
-import {
-  VisibilityFields,
-  type VisibilityValue,
-} from './visibility-fields'
+import { VisibilityFields, type VisibilityValue } from './visibility-fields'
 
 function visibilityPayload(value: VisibilityValue) {
   return {
@@ -161,7 +158,11 @@ export function RelationshipForm({
 
       {error ? <p className={styles.error}>{error}</p> : null}
       <div className={styles.formActions}>
-        <button className={styles.primaryButton} disabled={pending} type="submit">
+        <button
+          className={styles.primaryButton}
+          disabled={pending}
+          type="submit"
+        >
           {pending ? 'Connecting…' : 'Connect'}
         </button>
       </div>

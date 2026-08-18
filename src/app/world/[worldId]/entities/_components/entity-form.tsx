@@ -11,10 +11,7 @@ import type {
 import styles from '../entity.module.css'
 import { ImageFocusPicker } from './image-focus-picker'
 import { RelationshipTypeInput } from './relationship-type-input'
-import {
-  VisibilityFields,
-  type VisibilityValue,
-} from './visibility-fields'
+import { VisibilityFields, type VisibilityValue } from './visibility-fields'
 
 type FieldKind = 'text' | 'number' | 'boolean'
 
@@ -38,7 +35,9 @@ function fieldKind(value: SimpleEntityFieldValue): FieldKind {
   return 'text'
 }
 
-function initialFields(data: Record<string, SimpleEntityFieldValue>): EditableField[] {
+function initialFields(
+  data: Record<string, SimpleEntityFieldValue>,
+): EditableField[] {
   return Object.entries(data).map(([key, value], index) => ({
     id: `${key}-${index}`,
     key,
@@ -113,16 +112,22 @@ export function EntityForm({
       ? knownInitialType
         ? initialEntity.type
         : '__custom__'
-      : entityTypes[0]?.value ?? '__custom__',
+      : (entityTypes[0]?.value ?? '__custom__'),
   )
   const [customType, setCustomType] = useState(
     initialEntity && !knownInitialType ? initialEntity.type : '',
   )
   const [name, setName] = useState(initialEntity?.name ?? '')
-  const [description, setDescription] = useState(initialEntity?.description ?? '')
+  const [description, setDescription] = useState(
+    initialEntity?.description ?? '',
+  )
   const [image, setImage] = useState(initialEntity?.image ?? '')
-  const [imageFocusX, setImageFocusX] = useState(initialEntity?.imageFocusX ?? 50)
-  const [imageFocusY, setImageFocusY] = useState(initialEntity?.imageFocusY ?? 50)
+  const [imageFocusX, setImageFocusX] = useState(
+    initialEntity?.imageFocusX ?? 50,
+  )
+  const [imageFocusY, setImageFocusY] = useState(
+    initialEntity?.imageFocusY ?? 50,
+  )
   const [fields, setFields] = useState<EditableField[]>(
     initialFields(initialEntity?.data ?? {}),
   )
@@ -133,8 +138,7 @@ export function EntityForm({
     scope:
       initialEntity?.visibilityScope ??
       (contextCampaignId ? 'CAMPAIGN' : 'WORLD'),
-    campaignId:
-      initialEntity?.visibilityCampaignId ?? contextCampaignId ?? '',
+    campaignId: initialEntity?.visibilityCampaignId ?? contextCampaignId ?? '',
     userId: initialEntity?.visibilityUserId ?? '',
   })
   const [pending, setPending] = useState(false)
@@ -149,7 +153,9 @@ export function EntityForm({
 
   function updateField(id: string, patch: Partial<EditableField>) {
     setFields((current) =>
-      current.map((field) => (field.id === id ? { ...field, ...patch } : field)),
+      current.map((field) =>
+        field.id === id ? { ...field, ...patch } : field,
+      ),
     )
   }
 
@@ -188,7 +194,9 @@ export function EntityForm({
           !relationship.targetEntityId || !relationship.relationshipType.trim(),
       )
     ) {
-      setError('Every connection needs another entity and a connection description.')
+      setError(
+        'Every connection needs another entity and a connection description.',
+      )
       return
     }
 
@@ -214,11 +222,13 @@ export function EntityForm({
           visibility: visibilityPayload(visibility),
           ...(mode === 'create'
             ? {
-                initialRelationships: initialRelationships.map((relationship) => ({
-                  targetEntityId: relationship.targetEntityId,
-                  relationshipType: relationship.relationshipType,
-                  label: relationship.label,
-                })),
+                initialRelationships: initialRelationships.map(
+                  (relationship) => ({
+                    targetEntityId: relationship.targetEntityId,
+                    relationshipType: relationship.relationshipType,
+                    label: relationship.label,
+                  }),
+                ),
               }
             : {}),
         }),
@@ -249,9 +259,15 @@ export function EntityForm({
       <div className={styles.formGrid}>
         <label className={styles.field}>
           <span>Type</span>
-          <select value={typeChoice} onChange={(event) => setTypeChoice(event.target.value)}>
+          <select
+            value={typeChoice}
+            onChange={(event) => setTypeChoice(event.target.value)}
+          >
             {entityTypes.map((choice) => (
-              <option value={choice.value} key={`${choice.scope}:${choice.value}`}>
+              <option
+                value={choice.value}
+                key={`${choice.scope}:${choice.value}`}
+              >
                 {choice.label}
                 {choice.scope === 'CAMPAIGN' ? ' · Campaign' : ''}
               </option>
@@ -297,8 +313,8 @@ export function EntityForm({
             <h2>Image focus</h2>
             <p>
               Click the important point on the full image. The picker no longer
-              moves the picture underneath your cursor; the card and detail crops
-              below show the result.
+              moves the picture underneath your cursor; the card and detail
+              crops below show the result.
             </p>
           </div>
         </div>
@@ -351,8 +367,8 @@ export function EntityForm({
             <div>
               <h2>Connections</h2>
               <p>
-                Optional. Connect this new entity to things that already exist by
-                building a simple sentence.
+                Optional. Connect this new entity to things that already exist
+                by building a simple sentence.
               </p>
             </div>
             <button
@@ -387,7 +403,9 @@ export function EntityForm({
                     <RelationshipTypeInput
                       value={relationship.relationshipType}
                       onChange={(relationshipType) =>
-                        updateRelationship(relationship.id, { relationshipType })
+                        updateRelationship(relationship.id, {
+                          relationshipType,
+                        })
                       }
                       choices={relationshipTypes}
                     />
@@ -450,7 +468,9 @@ export function EntityForm({
         <div className={styles.sectionHeading}>
           <div>
             <h2>Structured custom fields</h2>
-            <p>Simple text, number, and yes/no values. No raw JSON is exposed.</p>
+            <p>
+              Simple text, number, and yes/no values. No raw JSON is exposed.
+            </p>
           </div>
           <button
             className={styles.secondaryButton}
@@ -557,7 +577,11 @@ export function EntityForm({
         </p>
       ) : null}
       <div className={styles.formActions}>
-        <button className={styles.primaryButton} disabled={pending} type="submit">
+        <button
+          className={styles.primaryButton}
+          disabled={pending}
+          type="submit"
+        >
           {pending
             ? 'Saving…'
             : mode === 'create'

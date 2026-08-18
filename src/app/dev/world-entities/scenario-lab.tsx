@@ -76,8 +76,8 @@ export function WorldEntitiesLab() {
         <span>Development only · Issues #20 and #55</span>
         <h1>World entities and relationships</h1>
         <p>
-          Exercise generic World content, simple structured data, reusable custom
-          types, MVP visibility, explicit graph relationships, same-World
+          Exercise generic World content, simple structured data, reusable
+          custom types, MVP visibility, explicit graph relationships, same-World
           validation, and backend authorization.
         </p>
       </header>

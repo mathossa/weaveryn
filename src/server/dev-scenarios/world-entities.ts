@@ -398,10 +398,11 @@ async function runAll() {
 
   await createVisibilityEntities()
   state = await readState()
-  const campaignPlayerEntities = await worldEntityServiceForScenario().listEntities(
-    PRIMARY_WORLD_ID,
-    CAMPAIGN_PLAYER_ID,
-  )
+  const campaignPlayerEntities =
+    await worldEntityServiceForScenario().listEntities(
+      PRIMARY_WORLD_ID,
+      CAMPAIGN_PLAYER_ID,
+    )
   const viewerEntities = await worldEntityServiceForScenario().listEntities(
     PRIMARY_WORLD_ID,
     VIEWER_ID,
@@ -415,7 +416,10 @@ async function runAll() {
     id: 'visibility',
     title: 'MVP visibility filters Campaign-only World access',
     status:
-      campaignPlayerEntities.map((entity) => entity.name).sort().join('|') ===
+      campaignPlayerEntities
+        .map((entity) => entity.name)
+        .sort()
+        .join('|') ===
         ['Campaign Ledger', 'Lantern Camp', 'Tarin Clue'].sort().join('|') &&
       viewerEntities.every((entity) => entity.visibilityScope === 'WORLD') &&
       campaignPlayerRelationships.some(
@@ -434,10 +438,11 @@ async function runAll() {
   checks.push({
     id: 'custom-type',
     title: 'Free-text entity types become reusable',
-    status:
-      state?.entityTypes.some((entityType) => entityType.name === 'Astral Beacon')
-        ? 'passed'
-        : 'failed',
+    status: state?.entityTypes.some(
+      (entityType) => entityType.name === 'Astral Beacon',
+    )
+      ? 'passed'
+      : 'failed',
     actor: 'Elara (World owner)',
     target: 'Astral Beacon custom type',
     expected: 'Reusable World-scoped type suggestion',
@@ -477,7 +482,8 @@ async function runAll() {
   checks.push({
     id: 'relationship',
     title: 'Same-World entities can be linked explicitly',
-    status: worldRelationship?.relationshipType === 'HOSTS' ? 'passed' : 'failed',
+    status:
+      worldRelationship?.relationshipType === 'HOSTS' ? 'passed' : 'failed',
     actor: 'Marek (World member)',
     target: 'Moonwatch → Lantern Guild',
     expected: 'WORLD-visible HOSTS relationship',
@@ -489,14 +495,16 @@ async function runAll() {
   await deleteRelationship()
   state = await readState()
   const primaryEntities =
-    state?.entities.filter((entity) => entity.worldId === PRIMARY_WORLD_ID) ?? []
+    state?.entities.filter((entity) => entity.worldId === PRIMARY_WORLD_ID) ??
+    []
   checks.push({
     id: 'relationship-delete',
     title: 'Deleting a relationship preserves both linked entities',
     status:
       !state?.relationships.some(
         (relationship) => relationship.id === RELATIONSHIP_ID,
-      ) && primaryEntities.some((entity) => entity.id === LOCATION_ID) &&
+      ) &&
+      primaryEntities.some((entity) => entity.id === LOCATION_ID) &&
       primaryEntities.some((entity) => entity.id === ORGANIZATION_ID)
         ? 'passed'
         : 'failed',

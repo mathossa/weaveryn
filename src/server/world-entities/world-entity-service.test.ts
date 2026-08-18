@@ -123,7 +123,9 @@ class Repository implements WorldEntityRepository {
     return [...this.campaigns.values()]
       .filter((campaign) => campaign.worldId === worldId)
       .map((campaign) => this.campaignAccess(campaign.id, userId))
-      .filter((value): value is CampaignVisibilityAccessRecord => Boolean(value))
+      .filter((value): value is CampaignVisibilityAccessRecord =>
+        Boolean(value),
+      )
   }
 
   async userExists(userId: string) {
@@ -223,7 +225,10 @@ class Repository implements WorldEntityRepository {
   }
 
   async deleteRelationship(worldId: string, relationshipIdValue: string) {
-    const relationship = await this.findRelationship(worldId, relationshipIdValue)
+    const relationship = await this.findRelationship(
+      worldId,
+      relationshipIdValue,
+    )
     if (!relationship) return false
     this.relationships.delete(relationshipIdValue)
     return true

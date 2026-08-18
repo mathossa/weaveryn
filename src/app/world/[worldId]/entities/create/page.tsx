@@ -80,8 +80,8 @@ export default async function CreateWorldEntityPage({
         ) : (
           <StatusPanel tone="error" title="World editing permission required">
             <p>
-              You can read content available to this context, but your World role
-              does not permit creating World entities.
+              You can read content available to this context, but your World
+              role does not permit creating World entities.
             </p>
           </StatusPanel>
         )}

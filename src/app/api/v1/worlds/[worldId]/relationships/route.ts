@@ -16,7 +16,10 @@ export async function GET(request: Request, context: RouteContext) {
   try {
     const user = await requireAuthenticatedUser(request.headers)
     const { worldId } = await context.params
-    const relationships = await worldEntityService.listRelationships(worldId, user.id)
+    const relationships = await worldEntityService.listRelationships(
+      worldId,
+      user.id,
+    )
     return NextResponse.json({ relationships })
   } catch (error) {
     return worldEntityApiErrorResponse(error)

@@ -228,7 +228,9 @@ describe('World entity MVP visibility', () => {
 
     await worldEntityService.deleteEntity(worldId, owner.id, custom.id)
 
-    expect(await prisma.worldEntity.findUnique({ where: { id: linked.id } })).not.toBeNull()
+    expect(
+      await prisma.worldEntity.findUnique({ where: { id: linked.id } }),
+    ).not.toBeNull()
     expect(
       await prisma.entityRelationship.findUnique({
         where: { id: relationship.id },
@@ -237,7 +239,9 @@ describe('World entity MVP visibility', () => {
 
     await deleteWorldEntityType(worldId, owner.id, customType!.id!)
     expect(
-      await prisma.worldEntityType.findUnique({ where: { id: customType!.id! } }),
+      await prisma.worldEntityType.findUnique({
+        where: { id: customType!.id! },
+      }),
     ).toBeNull()
   })
 })

@@ -78,7 +78,8 @@ export default async function WorldEntityDetailPage({
         eyebrow={entity.type}
         title={entity.name}
         description={
-          entity.description || 'No description has been added to this entity yet.'
+          entity.description ||
+          'No description has been added to this entity yet.'
         }
         wide
         actions={
@@ -107,7 +108,9 @@ export default async function WorldEntityDetailPage({
               <div className={styles.sectionHeading}>
                 <div>
                   <h2>Entity details</h2>
-                  <p>Persistent World identity and MVP structured information.</p>
+                  <p>
+                    Persistent World identity and MVP structured information.
+                  </p>
                 </div>
                 {workspace.canEditContent ? (
                   <EntityEditDialog
@@ -198,7 +201,9 @@ export default async function WorldEntityDetailPage({
                 <div className={styles.sectionHeading}>
                   <div>
                     <h2>Connections</h2>
-                    <p>People, places, and other entities connected to this one.</p>
+                    <p>
+                      People, places, and other entities connected to this one.
+                    </p>
                   </div>
                   {workspace.canEditContent ? (
                     <ConnectionDialog
@@ -218,24 +223,33 @@ export default async function WorldEntityDetailPage({
                   <p className={styles.helpText}>No connections yet.</p>
                 ) : (
                   <div className={styles.relationshipList}>
-                    {connections.map(({ relationship, otherEntityId, sentence }) => (
-                      <div className={styles.relationshipItem} key={relationship.id}>
-                        <Link
-                          href={entityHref(worldId, otherEntityId, campaignId)}
+                    {connections.map(
+                      ({ relationship, otherEntityId, sentence }) => (
+                        <div
+                          className={styles.relationshipItem}
+                          key={relationship.id}
                         >
-                          <strong>{sentence}</strong>
-                          {relationship.label ? (
-                            <small>{relationship.label}</small>
+                          <Link
+                            href={entityHref(
+                              worldId,
+                              otherEntityId,
+                              campaignId,
+                            )}
+                          >
+                            <strong>{sentence}</strong>
+                            {relationship.label ? (
+                              <small>{relationship.label}</small>
+                            ) : null}
+                          </Link>
+                          {workspace.canEditContent ? (
+                            <DeleteRelationshipButton
+                              worldId={worldId}
+                              relationshipId={relationship.id}
+                            />
                           ) : null}
-                        </Link>
-                        {workspace.canEditContent ? (
-                          <DeleteRelationshipButton
-                            worldId={worldId}
-                            relationshipId={relationship.id}
-                          />
-                        ) : null}
-                      </div>
-                    ))}
+                        </div>
+                      ),
+                    )}
                   </div>
                 )}
               </section>

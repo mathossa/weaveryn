@@ -283,13 +283,17 @@
 
 .customFieldRow {
   display: grid;
-  grid-template-columns: minmax(8rem, 1fr) minmax(7rem, 0.55fr) minmax(8rem, 1fr) auto;
+  grid-template-columns:
+    minmax(8rem, 1fr) minmax(7rem, 0.55fr) minmax(8rem, 1fr)
+    auto;
   gap: 0.55rem;
 }
 
 .initialRelationshipRow {
   display: grid;
-  grid-template-columns: minmax(12rem, 1fr) minmax(12rem, 1fr) minmax(12rem, 1fr) auto;
+  grid-template-columns:
+    minmax(12rem, 1fr) minmax(12rem, 1fr) minmax(12rem, 1fr)
+    auto;
   gap: 0.65rem;
   align-items: end;
   padding: 0.75rem;

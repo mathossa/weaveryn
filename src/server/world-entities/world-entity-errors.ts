@@ -39,17 +39,11 @@ export function entityRelationshipCrossWorld() {
 }
 
 export function worldEntityVisibilityInvalid(message: string) {
-  return new WorldEntityDomainError(
-    'WORLD_ENTITY_VISIBILITY_INVALID',
-    message,
-  )
+  return new WorldEntityDomainError('WORLD_ENTITY_VISIBILITY_INVALID', message)
 }
 
 export function worldEntityTypeScopeInvalid(message: string) {
-  return new WorldEntityDomainError(
-    'WORLD_ENTITY_TYPE_SCOPE_INVALID',
-    message,
-  )
+  return new WorldEntityDomainError('WORLD_ENTITY_TYPE_SCOPE_INVALID', message)
 }
 
 export function worldEntityTypeNotFound(typeId: string) {

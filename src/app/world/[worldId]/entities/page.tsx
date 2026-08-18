@@ -50,7 +50,9 @@ export default async function WorldEntitiesPage({
       }}
     >
       <AppPage
-        eyebrow={workspace.contextCampaign ? 'Campaign World view' : 'Worldbuilding'}
+        eyebrow={
+          workspace.contextCampaign ? 'Campaign World view' : 'Worldbuilding'
+        }
         title="World entities"
         description={
           workspace.contextCampaign
@@ -61,7 +63,9 @@ export default async function WorldEntitiesPage({
         actions={
           <>
             <Link className={styles.secondaryButton} href={backHref}>
-              {workspace.contextCampaign ? 'Back to Campaign' : 'World overview'}
+              {workspace.contextCampaign
+                ? 'Back to Campaign'
+                : 'World overview'}
             </Link>
             {workspace.canEditContent ? (
               <Link
@@ -76,9 +80,9 @@ export default async function WorldEntitiesPage({
       >
         {workspace.world.accessKind === 'CAMPAIGN_ONLY' ? (
           <div className={styles.notice}>
-            Campaign-only access does not grant unrestricted World browsing. This
-            list contains only content visible through your Campaign role or
-            targeted visibility.
+            Campaign-only access does not grant unrestricted World browsing.
+            This list contains only content visible through your Campaign role
+            or targeted visibility.
           </div>
         ) : null}
         <EntityBrowser

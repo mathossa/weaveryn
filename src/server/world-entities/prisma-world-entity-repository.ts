@@ -18,7 +18,8 @@ const toEntity = (value: WorldEntityRecord): WorldEntityRecord => value
 const toRelationship = (
   value: EntityRelationshipRecord,
 ): EntityRelationshipRecord => value
-const toEntityType = (value: WorldEntityTypeRecord): WorldEntityTypeRecord => value
+const toEntityType = (value: WorldEntityTypeRecord): WorldEntityTypeRecord =>
+  value
 
 function toCampaignAccess(value: {
   id: string
@@ -205,7 +206,10 @@ export class PrismaWorldEntityRepository implements WorldEntityRepository {
 
   async userExists(userId: string) {
     return Boolean(
-      await this.db.user.findUnique({ where: { id: userId }, select: { id: true } }),
+      await this.db.user.findUnique({
+        where: { id: userId },
+        select: { id: true },
+      }),
     )
   }
 

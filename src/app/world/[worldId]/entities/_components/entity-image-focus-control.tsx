@@ -43,14 +43,17 @@ export function EntityImageFocusControl({
     setPending(true)
     setError(null)
 
-    const response = await fetch(`/api/v1/worlds/${worldId}/entities/${entityId}`, {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        imageFocusX: draftX,
-        imageFocusY: draftY,
-      }),
-    })
+    const response = await fetch(
+      `/api/v1/worlds/${worldId}/entities/${entityId}`,
+      {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          imageFocusX: draftX,
+          imageFocusY: draftY,
+        }),
+      },
+    )
 
     const result = await response.json().catch(() => null)
     if (!response.ok) {
@@ -86,14 +89,18 @@ export function EntityImageFocusControl({
           className={styles.dialog}
           ref={dialogRef}
           onClick={(event) => {
-            if (event.target === event.currentTarget) event.currentTarget.close()
+            if (event.target === event.currentTarget)
+              event.currentTarget.close()
           }}
         >
           <div className={styles.dialogShell}>
             <header className={styles.header}>
               <div>
                 <h2>Adjust image focus</h2>
-                <p>Choose the point that should stay as close to the centre as the crop allows.</p>
+                <p>
+                  Choose the point that should stay as close to the centre as
+                  the crop allows.
+                </p>
               </div>
               <button
                 className={styles.secondaryButton}

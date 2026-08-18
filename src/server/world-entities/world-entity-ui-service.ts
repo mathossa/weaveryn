@@ -67,14 +67,16 @@ export interface WorldEntityWorkspace {
 function simpleData(value: unknown): Record<string, SimpleEntityFieldValue> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
   return Object.fromEntries(
-    Object.entries(value).filter((entry): entry is [string, SimpleEntityFieldValue] => {
-      const field = entry[1]
-      return (
-        typeof field === 'string' ||
-        typeof field === 'number' ||
-        typeof field === 'boolean'
-      )
-    }),
+    Object.entries(value).filter(
+      (entry): entry is [string, SimpleEntityFieldValue] => {
+        const field = entry[1]
+        return (
+          typeof field === 'string' ||
+          typeof field === 'number' ||
+          typeof field === 'boolean'
+        )
+      },
+    ),
   )
 }
 
@@ -151,7 +153,8 @@ export async function getWorldEntityWorkspace(
     world.accessKind === 'ADMIN' ||
     world.accessKind === 'MEMBER'
   const contextCampaign = contextCampaignId
-    ? world.campaigns.find((campaign) => campaign.id === contextCampaignId) ?? null
+    ? (world.campaigns.find((campaign) => campaign.id === contextCampaignId) ??
+      null)
     : null
 
   const visibilityUsers = new Map<string, WorldEntityVisibilityUserChoice>()
@@ -176,7 +179,8 @@ export async function getWorldEntityWorkspace(
         },
       },
     })
-    if (worldPeople?.owner) addVisibilityUser(visibilityUsers, worldPeople.owner)
+    if (worldPeople?.owner)
+      addVisibilityUser(visibilityUsers, worldPeople.owner)
     for (const membership of worldPeople?.memberships ?? []) {
       addVisibilityUser(visibilityUsers, membership.user)
     }
@@ -187,7 +191,12 @@ export async function getWorldEntityWorkspace(
         where: { id: { in: accessibleCampaignIds } },
         select: {
           owner: {
-            select: { id: true, username: true, displayName: true, email: true },
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+              email: true,
+            },
           },
           memberships: {
             select: {
@@ -212,9 +221,13 @@ export async function getWorldEntityWorkspace(
     }
   }
 
-  const relationshipTypes = [...new Set(
-    relationships.map((relationship) => relationship.relationshipType.trim()).filter(Boolean),
-  )].sort((a, b) => a.localeCompare(b))
+  const relationshipTypes = [
+    ...new Set(
+      relationships
+        .map((relationship) => relationship.relationshipType.trim())
+        .filter(Boolean),
+    ),
+  ].sort((a, b) => a.localeCompare(b))
 
   return {
     world: { id: world.id, name: world.name, accessKind: world.accessKind },

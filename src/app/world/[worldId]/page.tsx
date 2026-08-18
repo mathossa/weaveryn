@@ -120,8 +120,8 @@ export default async function WorldOverviewPage({
               <h2>World context</h2>
               <p className={styles.meta}>Entities and timeline</p>
               <p>
-                Browse interconnected World entities now. Basic World history and
-                main-timeline facts are tracked separately in #113.
+                Browse interconnected World entities now. Basic World history
+                and main-timeline facts are tracked separately in #113.
               </p>
               <div className={styles.formActions}>
                 <Link

@@ -91,7 +91,9 @@ function optionalFocus(value: unknown, label: string): number | undefined {
     value < 0 ||
     value > 100
   ) {
-    throw new WorldEntityInputError(`${label} must be an integer from 0 to 100.`)
+    throw new WorldEntityInputError(
+      `${label} must be an integer from 0 to 100.`,
+    )
   }
   return value
 }
@@ -100,7 +102,10 @@ function parseVisibility(value: unknown): EntityVisibilityInput | undefined {
   if (value === undefined) return undefined
   const input = asObject(value)
   const scope = input.scope
-  if (typeof scope !== 'string' || !VISIBILITY_SCOPES.has(scope as VisibilityScope)) {
+  if (
+    typeof scope !== 'string' ||
+    !VISIBILITY_SCOPES.has(scope as VisibilityScope)
+  ) {
     throw new WorldEntityInputError('Visibility scope is invalid.')
   }
   return {
@@ -115,7 +120,9 @@ function parseStructuredData(value: unknown): StructuredData | undefined {
   const input = asObject(value)
   const entries = Object.entries(input)
   if (entries.length > 50) {
-    throw new WorldEntityInputError('An entity may have at most 50 custom fields.')
+    throw new WorldEntityInputError(
+      'An entity may have at most 50 custom fields.',
+    )
   }
 
   const result: StructuredData = {}
@@ -155,7 +162,9 @@ function parseStructuredData(value: unknown): StructuredData | undefined {
   return result
 }
 
-function parseInitialRelationships(value: unknown): InitialEntityRelationshipInput[] | undefined {
+function parseInitialRelationships(
+  value: unknown,
+): InitialEntityRelationshipInput[] | undefined {
   if (value === undefined) return undefined
   if (!Array.isArray(value)) {
     throw new WorldEntityInputError('Initial relationships must be a list.')
@@ -186,10 +195,9 @@ function parseInitialRelationships(value: unknown): InitialEntityRelationshipInp
   })
 }
 
-export function parseCreateWorldEntityInput(value: unknown): Omit<
-  CreateWorldEntityInput,
-  'actorUserId' | 'worldId'
-> {
+export function parseCreateWorldEntityInput(
+  value: unknown,
+): Omit<CreateWorldEntityInput, 'actorUserId' | 'worldId'> {
   const input = asObject(value)
   return {
     type: requiredString(input.type, 'Entity type', 80),
@@ -199,13 +207,18 @@ export function parseCreateWorldEntityInput(value: unknown): Omit<
     imageFocusX: optionalFocus(input.imageFocusX, 'Image focus X'),
     imageFocusY: optionalFocus(input.imageFocusY, 'Image focus Y'),
     data: parseStructuredData(input.data),
-    contextCampaignId: optionalUuid(input.contextCampaignId, 'Campaign context'),
+    contextCampaignId: optionalUuid(
+      input.contextCampaignId,
+      'Campaign context',
+    ),
     visibility: parseVisibility(input.visibility),
     initialRelationships: parseInitialRelationships(input.initialRelationships),
   }
 }
 
-export function parseUpdateWorldEntityInput(value: unknown): UpdateWorldEntityInput {
+export function parseUpdateWorldEntityInput(
+  value: unknown,
+): UpdateWorldEntityInput {
   const input = asObject(value)
   const result: UpdateWorldEntityInput = {}
 
@@ -239,15 +252,16 @@ export function parseUpdateWorldEntityInput(value: unknown): UpdateWorldEntityIn
   }
 
   if (Object.keys(result).length === 0) {
-    throw new WorldEntityInputError('At least one entity field must be provided.')
+    throw new WorldEntityInputError(
+      'At least one entity field must be provided.',
+    )
   }
   return result
 }
 
-export function parseCreateEntityRelationshipInput(value: unknown): Omit<
-  CreateEntityRelationshipInput,
-  'actorUserId' | 'worldId'
-> {
+export function parseCreateEntityRelationshipInput(
+  value: unknown,
+): Omit<CreateEntityRelationshipInput, 'actorUserId' | 'worldId'> {
   const input = asObject(value)
   return {
     sourceEntityId: requiredUuid(input.sourceEntityId, 'Source entity'),
@@ -258,7 +272,10 @@ export function parseCreateEntityRelationshipInput(value: unknown): Omit<
       80,
     ),
     label: optionalString(input.label, 'Relationship label', 240),
-    contextCampaignId: optionalUuid(input.contextCampaignId, 'Campaign context'),
+    contextCampaignId: optionalUuid(
+      input.contextCampaignId,
+      'Campaign context',
+    ),
     visibility: parseVisibility(input.visibility),
   }
 }

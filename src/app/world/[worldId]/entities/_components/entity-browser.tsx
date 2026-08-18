@@ -52,7 +52,10 @@ export function EntityBrowser({
         </label>
         <label className={styles.field}>
           <span>Type</span>
-          <select value={type} onChange={(event) => setType(event.target.value)}>
+          <select
+            value={type}
+            onChange={(event) => setType(event.target.value)}
+          >
             <option value="ALL">All types</option>
             {types.map((choice) => (
               <option value={choice} key={choice}>

@@ -130,16 +130,16 @@ function canViewRecord(record: VisibilityRecord, context: VisibilityContext) {
     case 'CAMPAIGN':
       return Boolean(
         record.visibilityCampaignId &&
-          context.campaigns.has(record.visibilityCampaignId),
+        context.campaigns.has(record.visibilityCampaignId),
       )
     case 'GM': {
       if (!record.visibilityCampaignId) return false
       const access = context.campaigns.get(record.visibilityCampaignId)
       return Boolean(
         access &&
-          (access.ownerId === context.userId ||
-            access.membershipRole === 'GM' ||
-            access.membershipRole === 'ASSISTANT_GM'),
+        (access.ownerId === context.userId ||
+          access.membershipRole === 'GM' ||
+          access.membershipRole === 'ASSISTANT_GM'),
       )
     }
     case 'PLAYER':
@@ -153,7 +153,9 @@ function canViewRecord(record: VisibilityRecord, context: VisibilityContext) {
   }
 }
 
-function pickEntityUpdates(input: UpdateWorldEntityInput): UpdateWorldEntityRecordInput {
+function pickEntityUpdates(
+  input: UpdateWorldEntityInput,
+): UpdateWorldEntityRecordInput {
   return {
     ...(input.type !== undefined ? { type: input.type } : {}),
     ...(input.name !== undefined ? { name: input.name } : {}),
@@ -189,7 +191,10 @@ export class WorldEntityService {
     const membership = isWorldOwner
       ? null
       : await repository.findMembership(worldId, userId)
-    const campaignAccesses = await repository.listCampaignAccesses(worldId, userId)
+    const campaignAccesses = await repository.listCampaignAccesses(
+      worldId,
+      userId,
+    )
 
     if (!isWorldOwner && !membership && campaignAccesses.length === 0) {
       throw worldPermissionDenied(worldId, userId)
@@ -234,7 +239,7 @@ export class WorldEntityService {
     const campaignId =
       input.visibility?.campaignId ??
       (scope === 'CAMPAIGN' || scope === 'GM'
-        ? input.contextCampaignId ?? null
+        ? (input.contextCampaignId ?? null)
         : null)
     const userId = input.visibility?.userId ?? null
 
@@ -279,7 +284,9 @@ export class WorldEntityService {
       )
     }
     if (!(await repository.userExists(userId))) {
-      throw worldEntityVisibilityInvalid('PLAYER visibility target User does not exist.')
+      throw worldEntityVisibilityInvalid(
+        'PLAYER visibility target User does not exist.',
+      )
     }
     if (campaignId) {
       const campaign = await repository.findAccessibleCampaign(
@@ -444,13 +451,21 @@ export class WorldEntityService {
     userId: string,
     entityId: string,
   ): Promise<WorldEntityRecord | null> {
-    const context = await this.getVisibilityContext(this.repository, worldId, userId)
+    const context = await this.getVisibilityContext(
+      this.repository,
+      worldId,
+      userId,
+    )
     const entity = await this.repository.findEntity(worldId, entityId)
     return entity && canViewRecord(entity, context) ? entity : null
   }
 
   async listEntities(worldId: string, userId: string) {
-    const context = await this.getVisibilityContext(this.repository, worldId, userId)
+    const context = await this.getVisibilityContext(
+      this.repository,
+      worldId,
+      userId,
+    )
     const entities = await this.repository.listEntities(worldId)
     return entities.filter((entity) => canViewRecord(entity, context))
   }
@@ -468,7 +483,11 @@ export class WorldEntityService {
         worldId,
         WORLD_PERMISSIONS.EDIT_CONTENT,
       )
-      const context = await this.getVisibilityContext(repository, worldId, userId)
+      const context = await this.getVisibilityContext(
+        repository,
+        worldId,
+        userId,
+      )
       const current = await repository.findEntity(worldId, entityId)
       if (!current || !canViewRecord(current, context)) {
         throw worldEntityNotFound(entityId)
@@ -516,7 +535,11 @@ export class WorldEntityService {
         worldId,
         WORLD_PERMISSIONS.EDIT_CONTENT,
       )
-      const context = await this.getVisibilityContext(repository, worldId, userId)
+      const context = await this.getVisibilityContext(
+        repository,
+        worldId,
+        userId,
+      )
       const current = await repository.findEntity(worldId, entityId)
       if (!current || !canViewRecord(current, context)) {
         throw worldEntityNotFound(entityId)
@@ -540,7 +563,11 @@ export class WorldEntityService {
   }
 
   async listRelationships(worldId: string, userId: string) {
-    const context = await this.getVisibilityContext(this.repository, worldId, userId)
+    const context = await this.getVisibilityContext(
+      this.repository,
+      worldId,
+      userId,
+    )
     const [relationships, entities] = await Promise.all([
       this.repository.listRelationships(worldId),
       this.repository.listEntities(worldId),
@@ -566,7 +593,11 @@ export class WorldEntityService {
         worldId,
         WORLD_PERMISSIONS.EDIT_CONTENT,
       )
-      const context = await this.getVisibilityContext(repository, worldId, userId)
+      const context = await this.getVisibilityContext(
+        repository,
+        worldId,
+        userId,
+      )
       const relationship = await repository.findRelationship(
         worldId,
         relationshipId,
@@ -613,7 +644,9 @@ export class WorldEntityService {
     const builtIn: WorldEntityTypeChoice[] = BUILT_IN_WORLD_ENTITY_TYPES.map(
       (choice) => ({ ...choice, scope: 'BUILT_IN' }),
     )
-    const seen = new Set(builtIn.map((choice) => normalizeTypeName(choice.value)))
+    const seen = new Set(
+      builtIn.map((choice) => normalizeTypeName(choice.value)),
+    )
     const customChoices = custom
       .filter((choice) => !seen.has(choice.normalizedName))
       .map((choice) => ({

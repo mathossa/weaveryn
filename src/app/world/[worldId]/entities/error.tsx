@@ -11,7 +11,11 @@ export default function WorldEntitiesError({ reset }: { reset: () => void }) {
         tone="error"
         title="Could not load the World entity workspace"
         action={
-          <button className={styles.primaryButton} type="button" onClick={reset}>
+          <button
+            className={styles.primaryButton}
+            type="button"
+            onClick={reset}
+          >
             Try again
           </button>
         }

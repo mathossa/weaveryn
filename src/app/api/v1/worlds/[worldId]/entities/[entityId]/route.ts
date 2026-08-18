@@ -16,10 +16,19 @@ export async function GET(request: Request, context: RouteContext) {
   try {
     const user = await requireAuthenticatedUser(request.headers)
     const { worldId, entityId } = await context.params
-    const entity = await worldEntityService.loadEntity(worldId, user.id, entityId)
+    const entity = await worldEntityService.loadEntity(
+      worldId,
+      user.id,
+      entityId,
+    )
     if (!entity) {
       return NextResponse.json(
-        { error: { code: 'WORLD_ENTITY_NOT_FOUND', message: 'World entity not found.' } },
+        {
+          error: {
+            code: 'WORLD_ENTITY_NOT_FOUND',
+            message: 'World entity not found.',
+          },
+        },
         { status: 404 },
       )
     }

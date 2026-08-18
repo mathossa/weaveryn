@@ -45,8 +45,8 @@ export function ImageFocusPicker({
           />
         </button>
         <small className={styles.helpText}>
-          Click the important point. Weaveryn centres that point in each crop whenever
-          the image edges allow it.
+          Click the important point. Weaveryn centres that point in each crop
+          whenever the image edges allow it.
         </small>
       </div>
 

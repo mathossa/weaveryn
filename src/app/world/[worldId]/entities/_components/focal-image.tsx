@@ -33,7 +33,8 @@ export function FocalImage({
   const recalculate = useCallback(() => {
     const container = containerRef.current
     const image = imageRef.current
-    if (!container || !image || !image.naturalWidth || !image.naturalHeight) return
+    if (!container || !image || !image.naturalWidth || !image.naturalHeight)
+      return
 
     const containerWidth = container.clientWidth
     const containerHeight = container.clientHeight
@@ -51,8 +52,16 @@ export function FocalImage({
     // Put the selected point in the visual centre whenever the crop leaves enough
     // image around it. Near an edge, clamp to the available image rather than
     // exposing empty space.
-    const left = clamp(containerWidth / 2 - focalPixelX, containerWidth - width, 0)
-    const top = clamp(containerHeight / 2 - focalPixelY, containerHeight - height, 0)
+    const left = clamp(
+      containerWidth / 2 - focalPixelX,
+      containerWidth - width,
+      0,
+    )
+    const top = clamp(
+      containerHeight / 2 - focalPixelY,
+      containerHeight - height,
+      0,
+    )
 
     setRendered({ width, height, left, top })
   }, [focusX, focusY])
