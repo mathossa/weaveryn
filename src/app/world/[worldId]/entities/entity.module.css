@@ -274,7 +274,9 @@
   line-height: 1.45;
 }
 
-.customFields {
+.customFields,
+.initialRelationships,
+.typeList {
   display: grid;
   gap: 0.65rem;
 }
@@ -283,6 +285,49 @@
   display: grid;
   grid-template-columns: minmax(8rem, 1fr) minmax(7rem, 0.55fr) minmax(8rem, 1fr) auto;
   gap: 0.55rem;
+}
+
+.initialRelationshipRow {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) minmax(12rem, 1fr) minmax(12rem, 1fr) auto;
+  gap: 0.65rem;
+  align-items: end;
+  padding: 0.75rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+
+.relationshipTypeFields {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.focusPreview {
+  position: relative;
+  min-height: 15rem;
+  overflow: hidden;
+  cursor: crosshair;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background-size: cover;
+}
+
+.focusMarker {
+  position: absolute;
+  width: 1.15rem;
+  height: 1.15rem;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--ui-accent);
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.65);
+  pointer-events: none;
+}
+
+.focusControls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
 }
 
 .visibilityFields {
@@ -424,6 +469,52 @@
   border-color: color-mix(in srgb, var(--ui-danger) 45%, var(--ui-border));
 }
 
+.typeDialog {
+  width: min(42rem, calc(100vw - 2rem));
+  max-height: min(70dvh, 42rem);
+  overflow: auto;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-panel-strong);
+  color: var(--ui-text);
+  padding: 1rem;
+}
+
+.typeDialog::backdrop {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.dialogHeader,
+.typeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dialogHeader {
+  margin-bottom: 1rem;
+}
+
+.dialogHeader h2,
+.dialogHeader p,
+.typeRow p {
+  margin: 0;
+}
+
+.typeRow {
+  padding: 0.75rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+
+@media (max-width: 1100px) {
+  .initialRelationshipRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 960px) {
   .entityList {
     grid-template-columns: 1fr;
@@ -445,7 +536,9 @@
 @media (max-width: 720px) {
   .toolbar,
   .formGrid,
-  .visibilityFields {
+  .visibilityFields,
+  .focusControls,
+  .initialRelationshipRow {
     grid-template-columns: 1fr;
   }
 
@@ -484,7 +577,9 @@
     grid-template-columns: 1fr;
   }
 
-  .sectionHeading {
+  .sectionHeading,
+  .dialogHeader,
+  .typeRow {
     display: grid;
   }
 
