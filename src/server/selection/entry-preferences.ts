@@ -17,6 +17,53 @@ export class EntryPreferenceDomainError extends Error {
   }
 }
 
+export interface CharacterEntryPinInput {
+  worldCharacterId: string
+  campaignId?: string | null
+  pinned: boolean
+}
+
+export function parseCharacterEntryPinInput(
+  value: unknown,
+): CharacterEntryPinInput {
+  if (!value || typeof value !== 'object') {
+    throw new EntryPreferenceDomainError(
+      'ENTRY_PREFERENCE_INVALID',
+      'Entry preference input must be an object.',
+    )
+  }
+
+  const candidate = value as Record<string, unknown>
+  if (
+    typeof candidate.worldCharacterId !== 'string' ||
+    candidate.worldCharacterId.length === 0 ||
+    typeof candidate.pinned !== 'boolean'
+  ) {
+    throw new EntryPreferenceDomainError(
+      'ENTRY_PREFERENCE_INVALID',
+      'A WorldCharacter and pinned state are required.',
+    )
+  }
+
+  if (
+    candidate.campaignId !== undefined &&
+    candidate.campaignId !== null &&
+    (typeof candidate.campaignId !== 'string' || candidate.campaignId.length === 0)
+  ) {
+    throw new EntryPreferenceDomainError(
+      'ENTRY_PREFERENCE_INVALID',
+      'Campaign ID must be a non-empty string when provided.',
+    )
+  }
+
+  return {
+    worldCharacterId: candidate.worldCharacterId,
+    campaignId:
+      typeof candidate.campaignId === 'string' ? candidate.campaignId : null,
+    pinned: candidate.pinned,
+  }
+}
+
 export function characterEntryKey(
   worldCharacterId: string,
   campaignId?: string | null,
@@ -128,6 +175,7 @@ export async function recordCharacterEntryUse(input: {
     input.worldCharacterId,
     input.campaignId,
   )
+  const lastUsedAt = new Date()
 
   return prisma.entryPreference.upsert({
     where: {
@@ -142,9 +190,9 @@ export async function recordCharacterEntryUse(input: {
       kind: 'CHARACTER',
       worldCharacterId: input.worldCharacterId,
       campaignId: input.campaignId ?? null,
-      lastUsedAt: new Date(),
+      lastUsedAt,
     },
-    update: { lastUsedAt: new Date() },
+    update: { lastUsedAt },
   })
 }
 
@@ -165,6 +213,7 @@ export async function recordWeaverEntryUse(input: {
     )
   }
 
+  const lastUsedAt = new Date()
   return prisma.entryPreference.upsert({
     where: {
       userId_entryKey: {
@@ -178,12 +227,12 @@ export async function recordWeaverEntryUse(input: {
       kind: 'WEAVER',
       worldId: input.worldId,
       campaignId: input.campaignId ?? null,
-      lastUsedAt: new Date(),
+      lastUsedAt,
     },
     update: {
       worldId: input.worldId,
       campaignId: input.campaignId ?? null,
-      lastUsedAt: new Date(),
+      lastUsedAt,
     },
   })
 }
