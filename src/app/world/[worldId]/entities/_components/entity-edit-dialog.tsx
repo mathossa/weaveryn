@@ -31,9 +31,10 @@ export function EntityEditDialog({
   const dialogRef = useRef<HTMLDialogElement>(null)
   const selectableEntityTypes = entityTypes.filter(
     (type) =>
-      type.scope === 'BUILT_IN' ||
-      (type.usageCount ?? 0) > 0 ||
-      type.value === entity.type,
+      type.value !== 'character' &&
+      (type.scope === 'BUILT_IN' ||
+        (type.usageCount ?? 0) > 0 ||
+        type.value === entity.type),
   )
 
   return (
