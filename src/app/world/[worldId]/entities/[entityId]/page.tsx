@@ -6,10 +6,11 @@ import { uiAssets } from '@/lib/ui-assets'
 import { getWorldEntityWorkspace } from '@/server/world-entities'
 import { loadWorldPageUser } from '../../../_lib/load-world-user'
 import { connectionTypeLabel } from '../_components/connection-language'
+import { ConnectionDialog } from '../_components/connection-dialog'
 import { DeleteEntityButton } from '../_components/delete-entity-button'
 import { DeleteRelationshipButton } from '../_components/delete-relationship-button'
 import { EntityEditDialog } from '../_components/entity-edit-dialog'
-import { RelationshipForm } from '../_components/relationship-form'
+import { FocalImage } from '../_components/focal-image'
 import styles from '../entity.module.css'
 
 interface WorldEntityDetailPageProps {
@@ -91,15 +92,12 @@ export default async function WorldEntityDetailPage({
       >
         <div className={styles.detailWorkspace}>
           <div className={styles.detailScroll}>
-            <div
+            <FocalImage
               className={styles.detailBanner}
-              style={{
-                backgroundImage: `url(${JSON.stringify(
-                  entity.image || uiAssets.backgrounds.entityBanner.src,
-                )})`,
-                backgroundPosition: `${entity.imageFocusX}% ${entity.imageFocusY}%`,
-              }}
-              aria-label={`${entity.name} artwork`}
+              src={entity.image || uiAssets.backgrounds.entityBanner.src}
+              focusX={entity.imageFocusX}
+              focusY={entity.imageFocusY}
+              alt={`${entity.name} artwork`}
             />
 
             <section className={styles.panel}>
@@ -197,7 +195,25 @@ export default async function WorldEntityDetailPage({
           <aside className={styles.relationshipPanel}>
             <div className={styles.relationshipScroll}>
               <section className={styles.panel}>
-                <h2>Connections</h2>
+                <div className={styles.sectionHeading}>
+                  <div>
+                    <h2>Connections</h2>
+                    <p>People, places, and other entities connected to this one.</p>
+                  </div>
+                  {workspace.canEditContent ? (
+                    <ConnectionDialog
+                      worldId={worldId}
+                      sourceEntityId={entity.id}
+                      sourceEntityName={entity.name}
+                      entities={workspace.entities}
+                      relationshipTypes={workspace.relationshipTypes}
+                      campaigns={workspace.campaigns}
+                      visibilityUsers={workspace.visibilityUsers}
+                      contextCampaignId={campaignId}
+                    />
+                  ) : null}
+                </div>
+
                 {connections.length === 0 ? (
                   <p className={styles.helpText}>No connections yet.</p>
                 ) : (
@@ -223,22 +239,6 @@ export default async function WorldEntityDetailPage({
                   </div>
                 )}
               </section>
-
-              {workspace.canEditContent ? (
-                <section className={styles.panel}>
-                  <h2>Add connection</h2>
-                  <RelationshipForm
-                    worldId={worldId}
-                    sourceEntityId={entity.id}
-                    sourceEntityName={entity.name}
-                    entities={workspace.entities}
-                    relationshipTypes={workspace.relationshipTypes}
-                    campaigns={workspace.campaigns}
-                    visibilityUsers={workspace.visibilityUsers}
-                    contextCampaignId={campaignId}
-                  />
-                </section>
-              ) : null}
             </div>
           </aside>
         </div>
