@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import Link from 'next/link'
+import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { uiAssets } from '@/lib/ui-assets'
 import type {
   EntryCampaignChoice,
@@ -22,16 +22,21 @@ export function CharacterChoiceCard({
   eager?: boolean
 }) {
   const destination = campaign
-    ? `/select/character/${character.id}?campaign=${campaign.id}`
-    : `/select/character/${character.id}`
+    ? `/world/${character.worldId}/campaign/${campaign.id}?character=${character.id}`
+    : `/character/${character.id}`
   const contextLabel = campaign?.name ?? 'No campaign'
 
   return (
     <div className={styles.characterCardFrame}>
-      <Link
+      <TrackedEntryLink
         className={`${styles.characterCard} ${highlighted ? styles.resumeEntry : ''}`}
         href={destination}
-        aria-label={
+        tracking={{
+          kind: 'CHARACTER',
+          worldCharacterId: character.id,
+          campaignId: campaign?.id,
+        }}
+        ariaLabel={
           campaign
             ? `Enter ${campaign.name} as ${character.name} in ${character.worldName}`
             : `Open ${character.name} in ${character.worldName}`
@@ -55,7 +60,7 @@ export function CharacterChoiceCard({
             {campaign ? 'Campaign entry' : 'World character'}
           </span>
         </span>
-      </Link>
+      </TrackedEntryLink>
       <PinEntryButton
         worldCharacterId={character.id}
         campaignId={campaign?.id}
