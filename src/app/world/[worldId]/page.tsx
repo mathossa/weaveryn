@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
+import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { StatusPanel } from '@/components/ui/status-panel'
 import { getWorldOverview } from '@/server/worlds'
 import { ClaimWorldButton } from '../_components/claim-world-button'
@@ -19,19 +20,33 @@ const accessLabels = {
 
 interface WorldOverviewPageProps {
   params: Promise<{ worldId: string }>
+  searchParams: Promise<{ mode?: string | string[] }>
 }
 
 export default async function WorldOverviewPage({
   params,
+  searchParams,
 }: WorldOverviewPageProps) {
-  const [{ worldId }, user] = await Promise.all([params, loadWorldPageUser()])
+  const [{ worldId }, query, user] = await Promise.all([
+    params,
+    searchParams,
+    loadWorldPageUser(),
+  ])
   const world = await getWorldOverview(worldId, user.id)
   if (!world) notFound()
+  const weaverMode = query.mode === 'weaver'
 
   return (
     <AuthenticatedAppShell
       user={user}
-      context={{ world: { label: world.name, href: `/world/${world.id}` } }}
+      context={{
+        world: {
+          label: world.name,
+          href: weaverMode
+            ? `/world/${world.id}?mode=weaver`
+            : `/world/${world.id}`,
+        },
+      }}
     >
       <AppPage
         eyebrow={accessLabels[world.accessKind]}
@@ -43,7 +58,10 @@ export default async function WorldOverviewPage({
         }
         wide
         actions={
-          <Link className={styles.secondary} href="/world">
+          <Link
+            className={styles.secondary}
+            href={weaverMode ? '/world?mode=weaver' : '/world'}
+          >
             Change World
           </Link>
         }
@@ -83,25 +101,42 @@ export default async function WorldOverviewPage({
                 </p>
               ) : (
                 <div className={styles.campaignList}>
-                  {world.campaigns.map((campaign) => (
-                    <Link
-                      className={styles.campaign}
-                      key={campaign.id}
-                      href={`/world/${world.id}/campaign/${campaign.id}`}
-                    >
-                      <strong>{campaign.name}</strong>
-                      <span className={styles.meta}>
-                        {campaign.isOwner ? 'Owner · ' : ''}
-                        {campaign.role}
-                      </span>
-                    </Link>
-                  ))}
+                  {world.campaigns.map((campaign) => {
+                    const manageableCampaign =
+                      campaign.isOwner ||
+                      campaign.role === 'GM' ||
+                      campaign.role === 'ASSISTANT_GM'
+                    const trackAsWeaver = weaverMode && manageableCampaign
+
+                    return (
+                      <TrackedEntryLink
+                        className={styles.campaign}
+                        key={campaign.id}
+                        href={`/world/${world.id}/campaign/${campaign.id}${trackAsWeaver ? '?mode=weaver' : ''}`}
+                        tracking={
+                          trackAsWeaver
+                            ? {
+                                kind: 'WEAVER',
+                                worldId: world.id,
+                                campaignId: campaign.id,
+                              }
+                            : undefined
+                        }
+                      >
+                        <strong>{campaign.name}</strong>
+                        <span className={styles.meta}>
+                          {campaign.isOwner ? 'Owner · ' : ''}
+                          {campaign.role}
+                        </span>
+                      </TrackedEntryLink>
+                    )
+                  })}
                 </div>
               )}
               <div className={styles.formActions}>
                 <Link
                   className={styles.secondary}
-                  href={`/world/${world.id}/campaign`}
+                  href={`/world/${world.id}/campaign${weaverMode ? '?mode=weaver' : ''}`}
                 >
                   Browse Campaigns
                 </Link>

@@ -8,6 +8,7 @@ export interface AppPageProps {
   actions?: ReactNode
   children?: ReactNode
   wide?: boolean
+  bounded?: boolean
 }
 
 export function AppPage({
@@ -17,9 +18,12 @@ export function AppPage({
   actions,
   children,
   wide = false,
+  bounded = false,
 }: AppPageProps) {
   return (
-    <section className={`${styles.page} ${wide ? styles.wide : ''}`}>
+    <section
+      className={`${styles.page} ${wide ? styles.wide : ''} ${bounded ? styles.bounded : ''}`}
+    >
       <header className={styles.header}>
         <div className={styles.headingGroup}>
           {eyebrow ? <p className={styles.eyebrow}>{eyebrow}</p> : null}

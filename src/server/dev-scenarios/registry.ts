@@ -6,6 +6,7 @@ import { campaignMembershipsScenario } from './campaign-memberships'
 import { characterCopyMigrationScenario } from './character-copy-migration'
 import { characterEntryFlowScenario } from './character-entry-flow'
 import { characterWorldCharacterFoundationScenario } from './character-world-character-foundation'
+import { chooseEntityEntryScenario } from './choose-entity-entry'
 import { orphanedWorldLifecycleScenario } from './orphaned-world-lifecycle'
 import { worldEntitiesScenario } from './world-entities'
 import { worldOwnershipTransferScenario } from './world-ownership-transfer'
@@ -21,6 +22,7 @@ const scenarios = new Map<string, DevScenario>([
     characterWorldCharacterFoundationScenario,
   ],
   [characterEntryFlowScenario.metadata.id, characterEntryFlowScenario],
+  [chooseEntityEntryScenario.metadata.id, chooseEntityEntryScenario],
   [campaignFoundationScenario.metadata.id, campaignFoundationScenario],
   [campaignMembershipsScenario.metadata.id, campaignMembershipsScenario],
   [worldEntitiesScenario.metadata.id, worldEntitiesScenario],

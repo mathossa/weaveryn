@@ -1,96 +1,208 @@
 import Link from 'next/link'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
+import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { StatusPanel } from '@/components/ui/status-panel'
+import {
+  characterEntryKey,
+  type EntryCampaignChoice,
+  type EntryPortableCharacterChoice,
+  type EntryWorldCharacterChoice,
+} from '@/server/selection'
 import { CharacterChoiceCard } from './_components/character-choice-card'
 import { PortableCharacterChoiceCard } from './_components/portable-character-choice-card'
 import { loadSelectionPageData } from './_lib/load-selection-page-data'
 import styles from './select.module.css'
 
-export default async function SelectPage() {
-  const { user, selection } = await loadSelectionPageData()
-  const characterEntries = [
-    ...selection.characters.map((character) => ({
-      kind: 'world' as const,
-      character,
-      createdAt: character.createdAt,
-    })),
-    ...selection.portableCharacters.map((character) => ({
-      kind: 'portable' as const,
-      character,
-      createdAt: character.createdAt,
-    })),
-  ].sort(
-    (left, right) =>
-      right.createdAt.getTime() - left.createdAt.getTime() ||
-      left.character.id.localeCompare(right.character.id),
+interface SelectPageProps {
+  searchParams: Promise<{ show?: string | string[] }>
+}
+
+type SelectionPageData = Awaited<ReturnType<typeof loadSelectionPageData>>
+type EntryPreference = SelectionPageData['entryPreferences'][number]
+
+interface WorldCharacterEntry {
+  kind: 'world'
+  key: string
+  character: EntryWorldCharacterChoice
+  campaign: EntryCampaignChoice | null
+  preference: EntryPreference | undefined
+  createdAt: Date
+}
+
+interface PortableCharacterEntry {
+  kind: 'portable'
+  key: string
+  character: EntryPortableCharacterChoice
+  preference: undefined
+  createdAt: Date
+}
+
+type CharacterEntry = WorldCharacterEntry | PortableCharacterEntry
+
+export default async function SelectPage({ searchParams }: SelectPageProps) {
+  const [{ user, selection, entryPreferences, weaverResume }, query] =
+    await Promise.all([loadSelectionPageData(), searchParams])
+  const showAll = query.show === 'all'
+  const preferenceByKey = new Map(
+    entryPreferences.map((preference) => [preference.entryKey, preference]),
   )
-  const recentCharacters = characterEntries.slice(0, 3)
+
+  const characterEntries: CharacterEntry[] = [
+    ...selection.characters.flatMap<WorldCharacterEntry>((character) =>
+      character.campaigns.length > 0
+        ? character.campaigns.map((campaign) => {
+            const key = characterEntryKey(character.id, campaign.id)
+            return {
+              kind: 'world' as const,
+              key,
+              character,
+              campaign,
+              preference: preferenceByKey.get(key),
+              createdAt: character.createdAt,
+            }
+          })
+        : (() => {
+            const key = characterEntryKey(character.id)
+            return [
+              {
+                kind: 'world' as const,
+                key,
+                character,
+                campaign: null,
+                preference: preferenceByKey.get(key),
+                createdAt: character.createdAt,
+              },
+            ]
+          })(),
+    ),
+    ...selection.portableCharacters.map<PortableCharacterEntry>(
+      (character) => ({
+        kind: 'portable',
+        key: `portable-${character.id}`,
+        character,
+        preference: undefined,
+        createdAt: character.createdAt,
+      }),
+    ),
+  ].sort((left, right) => {
+    const pinnedDifference =
+      Number(right.preference?.pinned ?? false) -
+      Number(left.preference?.pinned ?? false)
+    if (pinnedDifference !== 0) return pinnedDifference
+
+    const lastUsedDifference =
+      (right.preference?.lastUsedAt?.getTime() ?? 0) -
+      (left.preference?.lastUsedAt?.getTime() ?? 0)
+    if (lastUsedDifference !== 0) return lastUsedDifference
+
+    return (
+      right.createdAt.getTime() - left.createdAt.getTime() ||
+      left.key.localeCompare(right.key)
+    )
+  })
+
+  const visibleCharacters = showAll
+    ? characterEntries
+    : characterEntries.slice(0, 3)
+  const eagerCharacterCount = showAll ? 6 : 3
   const hasAnyEntry =
     characterEntries.length > 0 || selection.weaverWorlds.length > 0
+
+  const weaverResumeHref = weaverResume?.campaign
+    ? `/world/${weaverResume.world.id}/campaign/${weaverResume.campaign.id}?mode=weaver`
+    : weaverResume
+      ? `/world/${weaverResume.world.id}?mode=weaver`
+      : null
+  const weaverResumeTracking = weaverResume
+    ? {
+        kind: 'WEAVER' as const,
+        worldId: weaverResume.world.id,
+        campaignId: weaverResume.campaign?.id,
+      }
+    : undefined
+  const latestUsedAt = Math.max(
+    weaverResume?.lastUsedAt?.getTime() ?? 0,
+    ...characterEntries.map(
+      (entry) => entry.preference?.lastUsedAt?.getTime() ?? 0,
+    ),
+  )
+  const weaverHighlighted =
+    latestUsedAt > 0 && weaverResume?.lastUsedAt?.getTime() === latestUsedAt
+  const weaverResumeLabel = weaverResume
+    ? weaverResume.campaign
+      ? `${weaverResume.world.name} — ${weaverResume.campaign.name}`
+      : weaverResume.world.name
+    : null
 
   return (
     <AuthenticatedAppShell user={user}>
       <AppPage
         eyebrow="Signed in"
         title="Choose Entity"
-        description="Enter through a character you play, or join as Weaver to manage Worlds and Campaigns."
+        description="Enter directly through a character and Campaign, or join as Weaver to manage Worlds and Campaigns."
         wide
+        bounded={showAll}
       >
-        <div className={styles.stack}>
+        <div
+          className={`${styles.stack} ${showAll ? styles.expandedStack : ''}`}
+        >
           {characterEntries.length > 0 ? (
             <section
-              className={styles.section}
+              className={`${styles.section} ${showAll ? styles.expandedCharacterSection : ''}`}
               aria-labelledby="recent-characters"
             >
               <div className={styles.sectionHeader}>
                 <div>
-                  <h2 id="recent-characters">Recent characters</h2>
+                  <h2 id="recent-characters">
+                    {showAll
+                      ? 'All character entries'
+                      : 'Pinned and recent character entries'}
+                  </h2>
                   <p>
-                    Most recently created Character identities and World
-                    incarnations appear first.
+                    Each Campaign is a direct entry for that WorldCharacter. A
+                    WorldCharacter without a Campaign opens in its World
+                    context.
                   </p>
                 </div>
               </div>
 
-              <div
-                className={`${styles.characterGrid} ${styles.recentCharacterGrid}`}
-              >
-                {recentCharacters.map((entry) =>
-                  entry.kind === 'world' ? (
-                    <CharacterChoiceCard
-                      key={`world-${entry.character.id}`}
-                      character={entry.character}
-                      eager
-                    />
-                  ) : (
-                    <PortableCharacterChoiceCard
-                      key={`portable-${entry.character.id}`}
-                      character={entry.character}
-                      eager
-                    />
-                  ),
-                )}
+              <div className={showAll ? styles.characterViewport : undefined}>
+                <div
+                  className={`${styles.characterGrid} ${showAll ? styles.expandedCharacterGrid : ''}`}
+                >
+                  {visibleCharacters.map((entry, index) =>
+                    entry.kind === 'world' ? (
+                      <CharacterChoiceCard
+                        key={entry.key}
+                        character={entry.character}
+                        campaign={entry.campaign}
+                        pinned={entry.preference?.pinned ?? false}
+                        highlighted={
+                          latestUsedAt > 0 &&
+                          entry.preference?.lastUsedAt?.getTime() ===
+                            latestUsedAt
+                        }
+                        eager={index < eagerCharacterCount}
+                      />
+                    ) : (
+                      <PortableCharacterChoiceCard
+                        key={entry.key}
+                        character={entry.character}
+                        eager={index < eagerCharacterCount}
+                      />
+                    ),
+                  )}
+                </div>
               </div>
 
               {characterEntries.length > 3 ? (
-                <div className={`${styles.moreRow} ${styles.desktopOnly}`}>
+                <div className={styles.moreRow}>
                   <Link
                     className={styles.secondaryLink}
-                    href="/select/characters"
+                    href={showAll ? '/select' : '/select?show=all'}
                   >
-                    Select other character
-                  </Link>
-                </div>
-              ) : null}
-
-              {characterEntries.length > 1 ? (
-                <div className={`${styles.moreRow} ${styles.mobileOnly}`}>
-                  <Link
-                    className={styles.secondaryLink}
-                    href="/select/characters"
-                  >
-                    Select other character
+                    {showAll ? 'Show recent' : 'More characters'}
                   </Link>
                 </div>
               ) : null}
@@ -104,20 +216,39 @@ export default async function SelectPage() {
                 <p>Enter through the game-master side of Weaveryn.</p>
               </div>
             </div>
-            <Link className={styles.weaverCard} href="/select/weaver">
-              <span className={styles.weaverGlyph} aria-hidden="true">
-                ✦
-              </span>
-              <span className={styles.weaverCopy}>
-                <strong>Join as Weaver</strong>
-                <span>
-                  Choose a World, then continue to Campaign management.
+            <div
+              className={`${styles.weaverCard} ${weaverHighlighted ? styles.resumeEntry : ''}`}
+            >
+              <Link
+                className={styles.weaverMainAction}
+                href="/world?mode=weaver"
+              >
+                <span className={styles.weaverGlyph} aria-hidden="true">
+                  ✦
                 </span>
-              </span>
-              <span className={styles.weaverArrow} aria-hidden="true">
-                →
-              </span>
-            </Link>
+                <span className={styles.weaverCopy}>
+                  <strong>Join as Weaver</strong>
+                  <span>
+                    {weaverResumeLabel
+                      ? `Last managed: ${weaverResumeLabel}`
+                      : 'Choose a World, then continue to Campaign management.'}
+                  </span>
+                </span>
+                <span className={styles.weaverArrow} aria-hidden="true">
+                  →
+                </span>
+              </Link>
+
+              {weaverResumeHref ? (
+                <TrackedEntryLink
+                  className={styles.weaverContinue}
+                  href={weaverResumeHref}
+                  tracking={weaverResumeTracking}
+                >
+                  Continue
+                </TrackedEntryLink>
+              ) : null}
+            </div>
           </section>
 
           {!hasAnyEntry ? (

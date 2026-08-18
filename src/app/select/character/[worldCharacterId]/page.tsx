@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
+import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { resolveCharacterEntry } from '@/server/selection'
 import { loadSelectionPageData } from '../../_lib/load-selection-page-data'
 import styles from '../../select.module.css'
@@ -58,14 +59,19 @@ export default async function CharacterEntryPage({
       >
         <div className={styles.choiceList}>
           {state.campaigns.map((campaign) => (
-            <Link
+            <TrackedEntryLink
               key={campaign.id}
               className={styles.choiceLink}
               href={`/world/${state.character.worldId}/campaign/${campaign.id}?character=${state.character.id}`}
+              tracking={{
+                kind: 'CHARACTER',
+                worldCharacterId: state.character.id,
+                campaignId: campaign.id,
+              }}
             >
               <strong>{campaign.name}</strong>
               <span>Continue →</span>
-            </Link>
+            </TrackedEntryLink>
           ))}
         </div>
       </AppPage>

@@ -30,14 +30,27 @@
   color: var(--ui-text-muted);
 }
 
+.characterViewport {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  overscroll-behavior: contain;
+}
+
 .characterGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
 }
 
+.characterCardFrame {
+  position: relative;
+  min-width: 0;
+}
+
 .characterCard,
-.weaverCard,
+.weaverMainAction,
+.weaverContinue,
 .choiceLink,
 .actionLink {
   color: inherit;
@@ -46,7 +59,9 @@
 
 .characterCard {
   position: relative;
+  display: block;
   min-height: 17rem;
+  height: 100%;
   overflow: hidden;
   border: 1px solid var(--ui-border);
   border-radius: var(--ui-radius-panel);
@@ -55,11 +70,43 @@
   isolation: isolate;
 }
 
+.resumeEntry {
+  border-color: var(--ui-accent);
+  box-shadow:
+    var(--ui-shadow-panel),
+    0 0 0 1px var(--ui-accent);
+}
+
+.pinButton {
+  position: absolute;
+  z-index: 2;
+  top: 0.65rem;
+  right: 0.65rem;
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid var(--ui-control-border);
+  border-radius: 50%;
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 1rem;
+}
+
+.pinButton:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
 .characterCard:focus-visible,
-.weaverCard:focus-visible,
+.weaverMainAction:focus-visible,
+.weaverContinue:focus-visible,
 .choiceLink:focus-visible,
 .actionLink:focus-visible,
-.backLink:focus-visible {
+.backLink:focus-visible,
+.pinButton:focus-visible {
   outline: none;
   box-shadow: var(--ui-focus-ring);
 }
@@ -104,13 +151,43 @@
 
 .weaverCard {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.15rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  overflow: hidden;
   border: 1px solid var(--ui-border);
   border-radius: var(--ui-radius-panel);
   background: var(--ui-panel-strong);
+}
+
+.weaverMainAction {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+}
+
+.weaverMainAction:hover {
+  background: color-mix(in srgb, var(--ui-control-surface) 48%, transparent);
+}
+
+.weaverContinue {
+  display: inline-flex;
+  min-width: 7.5rem;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid var(--ui-border);
+  padding: 0.75rem 1.15rem;
+  background: color-mix(in srgb, var(--ui-control-surface) 74%, transparent);
+  color: var(--ui-accent-hover);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.weaverContinue:hover {
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
 }
 
 .weaverGlyph {
@@ -126,6 +203,7 @@
 
 .weaverCopy {
   display: grid;
+  min-width: 0;
   gap: 0.2rem;
 }
 
@@ -134,7 +212,10 @@
 }
 
 .weaverCopy span {
+  overflow: hidden;
   color: var(--ui-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .weaverArrow {
@@ -271,13 +352,88 @@
   display: none;
 }
 
+@media (min-width: 761px) {
+  .expandedStack {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    gap: 1rem;
+  }
+
+  .expandedCharacterSection {
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .expandedCharacterSection .characterViewport {
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .expandedCharacterGrid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .expandedCharacterGrid .characterCard {
+    min-height: 10.5rem;
+  }
+
+  .expandedCharacterGrid .characterCopy {
+    gap: 0.12rem;
+    padding: 0.7rem;
+  }
+
+  .expandedCharacterGrid .characterCopy strong {
+    font-size: 1rem;
+  }
+
+  .expandedCharacterGrid .characterCopy span {
+    font-size: 0.72rem;
+  }
+
+  .expandedCharacterGrid .characterMeta {
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+  }
+
+  .expandedCharacterGrid .pinButton {
+    top: 0.45rem;
+    right: 0.45rem;
+    width: 1.9rem;
+    height: 1.9rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  .expandedCharacterGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 760px) {
-  .characterGrid {
+  .characterViewport {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .expandedStack {
+    height: auto;
+    overflow: visible;
+  }
+
+  .characterGrid,
+  .expandedCharacterGrid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .recentCharacterGrid > :nth-child(n + 2) {
-    display: none;
+  .characterCard {
+    min-height: 11rem;
   }
 
   .desktopOnly {
@@ -293,9 +449,20 @@
   }
 
   .weaverCard {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .weaverMainAction {
+    grid-template-columns: auto minmax(0, 1fr) auto;
     min-height: 3.35rem;
-    padding-block: 0.65rem;
+    gap: 0.7rem;
+    padding: 0.65rem 0.8rem;
+  }
+
+  .weaverContinue {
+    min-width: auto;
+    padding-inline: 0.85rem;
+    font-size: 0.82rem;
   }
 
   .weaverGlyph {

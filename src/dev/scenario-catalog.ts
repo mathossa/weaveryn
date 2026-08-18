@@ -105,6 +105,21 @@ export const devScenarioCatalog = [
     fixtureNamespace: 'dev:character-entry-flow:v1',
   },
   {
+    id: 'choose-entity-entry',
+    title: 'Choose Entity entry preferences',
+    domain: 'Selection',
+    purpose:
+      'Exercise Campaign-specific Character entry cards, per-entry pinning, recent-use tracking, and Weaver resume context through the real selection services.',
+    href: '/dev/choose-entity-entry',
+    issueNumbers: [51],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+    ],
+    availability: 'available',
+    fixtureNamespace: 'dev:choose-entity-entry:v1',
+  },
+  {
     id: 'world-entities',
     title: 'World entities and relationships',
     domain: 'Worlds',

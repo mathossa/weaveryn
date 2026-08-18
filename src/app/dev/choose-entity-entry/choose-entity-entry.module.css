@@ -1,0 +1,111 @@
+.page {
+  min-height: 100vh;
+  padding: 2rem;
+  background: var(--ui-canvas);
+  color: var(--ui-text);
+}
+
+.shell {
+  width: min(72rem, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.header {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.header h1,
+.header p {
+  margin: 0;
+}
+
+.header span,
+.header p,
+.panel > span,
+.panel p,
+.preferences span {
+  color: var(--ui-text-muted);
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.panel,
+.preferences {
+  padding: 1rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-panel-strong);
+}
+
+.panel {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+}
+
+.panel h2,
+.panel p,
+.preferences h2 {
+  margin: 0;
+}
+
+.panel ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.actions {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.actions button {
+  min-height: 2.75rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.actions button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.actions button:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+.preferences {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.preferences article {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.75rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-control);
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 1rem;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
