@@ -9,8 +9,12 @@
 }
 
 .bounded {
+  position: fixed;
+  top: 74px;
+  right: 0;
+  bottom: 0;
+  left: 0;
   display: grid;
-  height: calc(100dvh - 74px);
   min-height: 0;
   grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
@@ -82,12 +86,13 @@
 
 @media (min-width: 641px) and (max-width: 1024px) {
   .bounded {
-    height: calc(100dvh - 68px);
+    top: 68px;
   }
 }
 
 @media (max-width: 760px) {
   .bounded {
+    position: static;
     display: block;
     height: auto;
     overflow: visible;
