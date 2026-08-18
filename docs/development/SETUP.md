@@ -44,6 +44,43 @@ npx prisma generate
 Use `npx prisma migrate dev` instead when intentionally authoring a new schema
 migration.
 
+## Optional development dummy data
+
+After applying migrations, you can populate the development database with a
+reusable sample dataset:
+
+```bash
+npm run db:dummy
+```
+
+The dataset includes multiple users, two Worlds, three Campaigns, mixed World and
+Campaign roles, eleven Characters, WorldCharacters, CampaignCharacters, World
+entities, and entity relationships. Nine of the Characters belong to one primary
+sample user so character-selection screens can be exercised with a larger list.
+One Character is also represented in two Worlds to exercise the portable
+`Character -> WorldCharacter` model.
+
+The default sample identities are database records only and do not have Better
+Auth passwords. To attach the primary sample data to an existing account that you
+can log in with, pass that account's email address:
+
+```bash
+npm run db:dummy -- --owner-email you@example.com
+```
+
+Rerunning the command refreshes only its own namespaced records. Remove the dummy
+dataset with:
+
+```bash
+npm run db:dummy -- --clean
+```
+
+The dummy-data command follows the same database-name safety principle as the
+visual scenario tooling: it refuses to run when `NODE_ENV=production`, when the
+expected database name is not clearly a dev/test name, or when `DATABASE_URL`
+does not target `DEV_DATABASE_NAME`. It also checks its deterministic IDs and
+sample identities before replacing anything so a conflicting record fails closed.
+
 ## Start Weaveryn
 
 ```bash
