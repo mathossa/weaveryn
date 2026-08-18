@@ -2,10 +2,8 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
-import {
-  recordCharacterEntryUse,
-  resolveCharacterEntry,
-} from '@/server/selection'
+import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
+import { resolveCharacterEntry } from '@/server/selection'
 import { loadSelectionPageData } from '../../_lib/load-selection-page-data'
 import styles from '../../select.module.css'
 
@@ -34,12 +32,6 @@ export default async function CharacterEntryPage({
   if (state.kind === 'not-found') notFound()
 
   if (state.kind === 'selected') {
-    await recordCharacterEntryUse({
-      userId: pageData.user.id,
-      worldCharacterId: state.character.id,
-      campaignId: state.campaign?.id,
-    })
-
     if (state.campaign) {
       redirect(
         `/world/${state.character.worldId}/campaign/${state.campaign.id}?character=${state.character.id}`,
@@ -67,14 +59,19 @@ export default async function CharacterEntryPage({
       >
         <div className={styles.choiceList}>
           {state.campaigns.map((campaign) => (
-            <Link
+            <TrackedEntryLink
               key={campaign.id}
               className={styles.choiceLink}
-              href={`/select/character/${state.character.id}?campaign=${campaign.id}`}
+              href={`/world/${state.character.worldId}/campaign/${campaign.id}?character=${state.character.id}`}
+              tracking={{
+                kind: 'CHARACTER',
+                worldCharacterId: state.character.id,
+                campaignId: campaign.id,
+              }}
             >
               <strong>{campaign.name}</strong>
               <span>Continue →</span>
-            </Link>
+            </TrackedEntryLink>
           ))}
         </div>
       </AppPage>
