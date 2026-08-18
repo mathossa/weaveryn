@@ -2,7 +2,10 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
-import { resolveCharacterEntry } from '@/server/selection'
+import {
+  recordCharacterEntryUse,
+  resolveCharacterEntry,
+} from '@/server/selection'
 import { loadSelectionPageData } from '../../_lib/load-selection-page-data'
 import styles from '../../select.module.css'
 
@@ -31,6 +34,12 @@ export default async function CharacterEntryPage({
   if (state.kind === 'not-found') notFound()
 
   if (state.kind === 'selected') {
+    await recordCharacterEntryUse({
+      userId: pageData.user.id,
+      worldCharacterId: state.character.id,
+      campaignId: state.campaign?.id,
+    })
+
     if (state.campaign) {
       redirect(
         `/world/${state.character.worldId}/campaign/${state.campaign.id}?character=${state.character.id}`,
@@ -61,7 +70,7 @@ export default async function CharacterEntryPage({
             <Link
               key={campaign.id}
               className={styles.choiceLink}
-              href={`/world/${state.character.worldId}/campaign/${campaign.id}?character=${state.character.id}`}
+              href={`/select/character/${state.character.id}?campaign=${campaign.id}`}
             >
               <strong>{campaign.name}</strong>
               <span>Continue →</span>
