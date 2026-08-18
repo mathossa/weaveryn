@@ -10,7 +10,7 @@ import { ConnectionDialog } from '../_components/connection-dialog'
 import { DeleteEntityButton } from '../_components/delete-entity-button'
 import { DeleteRelationshipButton } from '../_components/delete-relationship-button'
 import { EntityEditDialog } from '../_components/entity-edit-dialog'
-import { FocalImage } from '../_components/focal-image'
+import { EntityImageFocusControl } from '../_components/entity-image-focus-control'
 import styles from '../entity.module.css'
 
 interface WorldEntityDetailPageProps {
@@ -92,12 +92,15 @@ export default async function WorldEntityDetailPage({
       >
         <div className={styles.detailWorkspace}>
           <div className={styles.detailScroll}>
-            <FocalImage
+            <EntityImageFocusControl
+              worldId={worldId}
+              entityId={entity.id}
               className={styles.detailBanner}
               src={entity.image || uiAssets.backgrounds.entityBanner.src}
               focusX={entity.imageFocusX}
               focusY={entity.imageFocusY}
               alt={`${entity.name} artwork`}
+              editable={workspace.canEditContent}
             />
 
             <section className={styles.panel}>
