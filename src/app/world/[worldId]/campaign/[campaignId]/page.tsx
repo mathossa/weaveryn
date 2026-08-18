@@ -252,6 +252,7 @@ export default async function CampaignOverviewPage({
               alt=""
               fill
               sizes="(max-width: 760px) 100vw, 42vw"
+              loading="eager"
             />
             <div className={styles.dashboardMapShade} />
             <div className={styles.dashboardMapMarker}>
