@@ -20,7 +20,10 @@ import styles from '../campaign.module.css'
 
 interface CampaignOverviewPageProps {
   params: Promise<{ worldId: string; campaignId: string }>
-  searchParams: Promise<{ character?: string | string[] }>
+  searchParams: Promise<{
+    character?: string | string[]
+    mode?: string | string[]
+  }>
 }
 
 interface QuickAction {
@@ -45,24 +48,27 @@ export default async function CampaignOverviewPage({
   ])
   if (!campaign) notFound()
 
+  const explicitWeaverMode = query.mode === 'weaver'
   const requestedWorldCharacterId = requestedCharacterContext(query.character)
-  const latestCampaignPreference = requestedWorldCharacterId
+  const latestCampaignPreference =
+    requestedWorldCharacterId || explicitWeaverMode
+      ? undefined
+      : entryPreferences
+          .filter(
+            (preference) =>
+              preference.campaignId === campaign.id && preference.lastUsedAt,
+          )
+          .sort(
+            (left, right) =>
+              (right.lastUsedAt?.getTime() ?? 0) -
+              (left.lastUsedAt?.getTime() ?? 0),
+          )[0]
+  const preferredWorldCharacterId = explicitWeaverMode
     ? undefined
-    : entryPreferences
-        .filter(
-          (preference) =>
-            preference.campaignId === campaign.id && preference.lastUsedAt,
-        )
-        .sort(
-          (left, right) =>
-            (right.lastUsedAt?.getTime() ?? 0) -
-            (left.lastUsedAt?.getTime() ?? 0),
-        )[0]
-  const preferredWorldCharacterId =
-    requestedWorldCharacterId ??
-    (latestCampaignPreference?.kind === 'CHARACTER'
-      ? (latestCampaignPreference.worldCharacterId ?? undefined)
-      : undefined)
+    : (requestedWorldCharacterId ??
+      (latestCampaignPreference?.kind === 'CHARACTER'
+        ? (latestCampaignPreference.worldCharacterId ?? undefined)
+        : undefined))
   const selectedCharacter = preferredWorldCharacterId
     ? campaign.characters.find(
         (character) =>
@@ -71,14 +77,18 @@ export default async function CampaignOverviewPage({
       )
     : undefined
   const characterContextId = selectedCharacter?.worldCharacterId
-  const campaignHref = withCharacterContext(
-    `/world/${worldId}/campaign/${campaign.id}`,
-    characterContextId,
-  )
-  const manageCampaignHref = withCharacterContext(
-    `/world/${worldId}/campaign/${campaign.id}/manage`,
-    characterContextId,
-  )
+  const campaignHref = explicitWeaverMode
+    ? `/world/${worldId}/campaign/${campaign.id}?mode=weaver`
+    : withCharacterContext(
+        `/world/${worldId}/campaign/${campaign.id}`,
+        characterContextId,
+      )
+  const manageCampaignHref = explicitWeaverMode
+    ? `/world/${worldId}/campaign/${campaign.id}/manage?mode=weaver`
+    : withCharacterContext(
+        `/world/${worldId}/campaign/${campaign.id}/manage`,
+        characterContextId,
+      )
   const canChooseCharacter =
     campaign.status === 'ACTIVE' && campaign.role !== 'SPECTATOR'
   const canManageCampaign =
@@ -91,7 +101,9 @@ export default async function CampaignOverviewPage({
 
   const placeholderBase = `/world/${worldId}/campaign/${campaign.id}/placeholder`
   const placeholderHref = (feature: string) =>
-    withCharacterContext(`${placeholderBase}/${feature}`, characterContextId)
+    explicitWeaverMode
+      ? `${placeholderBase}/${feature}?mode=weaver`
+      : withCharacterContext(`${placeholderBase}/${feature}`, characterContextId)
   const quickActions: QuickAction[] = [
     { label: 'Add Note', icon: 'note', href: placeholderHref('notes') },
     { label: 'Add Event', icon: 'event', href: placeholderHref('event') },
