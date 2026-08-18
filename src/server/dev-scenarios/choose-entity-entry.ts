@@ -58,7 +58,6 @@ async function deleteScenarioDependants(transaction: Prisma.TransactionClient) {
         { worldCharacterId: WORLD_CHARACTER_ID },
         { campaignId: { in: [CAMPAIGN_ONE_ID, CAMPAIGN_TWO_ID] } },
         { worldId: WORLD_ID },
-        { entryKey: 'weaver' },
       ],
     },
   })
