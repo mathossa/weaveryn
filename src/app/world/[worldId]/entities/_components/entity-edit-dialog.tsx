@@ -29,6 +29,12 @@ export function EntityEditDialog({
   entity: WorldEntityUiRecord
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const selectableEntityTypes = entityTypes.filter(
+    (type) =>
+      type.scope === 'BUILT_IN' ||
+      (type.usageCount ?? 0) > 0 ||
+      type.value === entity.type,
+  )
 
   return (
     <>
@@ -67,7 +73,7 @@ export function EntityEditDialog({
               mode="edit"
               worldId={worldId}
               contextCampaignId={contextCampaignId}
-              entityTypes={entityTypes}
+              entityTypes={selectableEntityTypes}
               entities={entities}
               relationshipTypes={relationshipTypes}
               campaigns={campaigns}
