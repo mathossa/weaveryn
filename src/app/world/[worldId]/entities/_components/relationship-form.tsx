@@ -28,6 +28,7 @@ function visibilityPayload(value: VisibilityValue) {
 export function RelationshipForm({
   worldId,
   sourceEntityId,
+  sourceEntityName,
   entities,
   relationshipTypes,
   campaigns,
@@ -36,6 +37,7 @@ export function RelationshipForm({
 }: {
   worldId: string
   sourceEntityId: string
+  sourceEntityName: string
   entities: WorldEntityUiRecord[]
   relationshipTypes: string[]
   campaigns: { id: string; name: string }[]
@@ -77,7 +79,7 @@ export function RelationshipForm({
     })
     const result = await response.json().catch(() => null)
     if (!response.ok) {
-      setError(result?.error?.message ?? 'Could not create relationship.')
+      setError(result?.error?.message ?? 'Could not create connection.')
       setPending(false)
       return
     }
@@ -90,21 +92,29 @@ export function RelationshipForm({
   if (targets.length === 0) {
     return (
       <p className={styles.helpText}>
-        Create another visible entity before adding a relationship.
+        Create another visible entity before adding a connection.
       </p>
     )
   }
 
   return (
     <form className={styles.relationshipForm} onSubmit={submit}>
+      <p className={styles.helpText}>
+        Build a simple sentence. Weaveryn keeps the technical direction and link
+        details in the background.
+      </p>
       <div className={styles.formGrid}>
+        <div className={styles.field}>
+          <span>This entity</span>
+          <strong>{sourceEntityName}</strong>
+        </div>
         <RelationshipTypeInput
           value={relationshipType}
           onChange={setRelationshipType}
           choices={relationshipTypes}
         />
         <label className={styles.field}>
-          <span>Target entity</span>
+          <span>Connect to</span>
           <select
             required
             value={targetEntityId}
@@ -118,25 +128,36 @@ export function RelationshipForm({
           </select>
         </label>
       </div>
-      <label className={styles.field}>
-        <span>Label (optional)</span>
-        <input
-          maxLength={240}
-          value={label}
-          onChange={(event) => setLabel(event.target.value)}
-          placeholder="Human-readable context"
+
+      <details className={styles.panel}>
+        <summary>More options</summary>
+        <label className={styles.field}>
+          <span>Note (optional)</span>
+          <input
+            maxLength={240}
+            value={label}
+            onChange={(event) => setLabel(event.target.value)}
+            placeholder="Extra context for this connection"
+          />
+        </label>
+        <div>
+          <h3>Who can see this connection?</h3>
+          <p className={styles.helpText}>
+            By default this follows the current World or Campaign context.
+          </p>
+        </div>
+        <VisibilityFields
+          value={visibility}
+          onChange={setVisibility}
+          campaigns={campaigns}
+          users={visibilityUsers}
         />
-      </label>
-      <VisibilityFields
-        value={visibility}
-        onChange={setVisibility}
-        campaigns={campaigns}
-        users={visibilityUsers}
-      />
+      </details>
+
       {error ? <p className={styles.error}>{error}</p> : null}
       <div className={styles.formActions}>
         <button className={styles.primaryButton} disabled={pending} type="submit">
-          {pending ? 'Linking…' : 'Add relationship'}
+          {pending ? 'Connecting…' : 'Connect'}
         </button>
       </div>
     </form>
