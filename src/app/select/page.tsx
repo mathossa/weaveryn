@@ -120,10 +120,12 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
         description="Enter directly through a character and Campaign, or join as Weaver to manage Worlds and Campaigns."
         wide
       >
-        <div className={styles.stack}>
+        <div
+          className={`${styles.stack} ${showAll ? styles.expandedStack : ''}`}
+        >
           {characterEntries.length > 0 ? (
             <section
-              className={styles.section}
+              className={`${styles.section} ${showAll ? styles.expandedCharacterSection : ''}`}
               aria-labelledby="recent-characters"
             >
               <div className={styles.sectionHeader}>
@@ -141,7 +143,9 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
               </div>
 
               <div className={showAll ? styles.characterViewport : undefined}>
-                <div className={styles.characterGrid}>
+                <div
+                  className={`${styles.characterGrid} ${showAll ? styles.expandedCharacterGrid : ''}`}
+                >
                   {visibleCharacters.map((entry, index) =>
                     entry.kind === 'world' ? (
                       <CharacterChoiceCard
