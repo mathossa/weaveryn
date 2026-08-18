@@ -11,7 +11,10 @@ import styles from '../../campaign.module.css'
 
 interface CampaignManagePageProps {
   params: Promise<{ worldId: string; campaignId: string }>
-  searchParams: Promise<{ character?: string | string[] }>
+  searchParams: Promise<{
+    character?: string | string[]
+    mode?: string | string[]
+  }>
 }
 
 function characterFromCampaignReferer(
@@ -53,29 +56,36 @@ export default async function CampaignManagePage({
     campaign.canEditSharedInfo || campaign.canEditName || campaign.canManageMembers
   if (!canManageCampaign) notFound()
 
+  const explicitWeaverMode = query.mode === 'weaver'
   const requestedCharacterId =
     typeof query.character === 'string' ? query.character : undefined
-  const referredCharacterId = characterFromCampaignReferer(
-    requestHeaders.get('referer'),
-    worldId,
-    campaignId,
-  )
-  const latestCampaignPreference = entryPreferences
-    .filter(
-      (preference) =>
-        preference.campaignId === campaign.id && preference.lastUsedAt,
-    )
-    .sort(
-      (left, right) =>
-        (right.lastUsedAt?.getTime() ?? 0) -
-        (left.lastUsedAt?.getTime() ?? 0),
-    )[0]
-  const preferredCharacterId =
-    requestedCharacterId ??
-    referredCharacterId ??
-    (latestCampaignPreference?.kind === 'CHARACTER'
-      ? (latestCampaignPreference.worldCharacterId ?? undefined)
-      : undefined)
+  const referredCharacterId = explicitWeaverMode
+    ? undefined
+    : characterFromCampaignReferer(
+        requestHeaders.get('referer'),
+        worldId,
+        campaignId,
+      )
+  const latestCampaignPreference =
+    requestedCharacterId || referredCharacterId || explicitWeaverMode
+      ? undefined
+      : entryPreferences
+          .filter(
+            (preference) =>
+              preference.campaignId === campaign.id && preference.lastUsedAt,
+          )
+          .sort(
+            (left, right) =>
+              (right.lastUsedAt?.getTime() ?? 0) -
+              (left.lastUsedAt?.getTime() ?? 0),
+          )[0]
+  const preferredCharacterId = explicitWeaverMode
+    ? undefined
+    : (requestedCharacterId ??
+      referredCharacterId ??
+      (latestCampaignPreference?.kind === 'CHARACTER'
+        ? (latestCampaignPreference.worldCharacterId ?? undefined)
+        : undefined))
   const selectedCharacter = preferredCharacterId
     ? campaign.characters.find(
         (character) =>
@@ -83,9 +93,11 @@ export default async function CampaignManagePage({
           character.ownedByCurrentUser,
       )
     : undefined
-  const campaignHref = selectedCharacter
-    ? `/world/${worldId}/campaign/${campaign.id}?character=${selectedCharacter.worldCharacterId}`
-    : `/world/${worldId}/campaign/${campaign.id}`
+  const campaignHref = explicitWeaverMode
+    ? `/world/${worldId}/campaign/${campaign.id}?mode=weaver`
+    : selectedCharacter
+      ? `/world/${worldId}/campaign/${campaign.id}?character=${selectedCharacter.worldCharacterId}`
+      : `/world/${worldId}/campaign/${campaign.id}`
 
   const ownerLabel = campaign.owner.displayName ?? `@${campaign.owner.username}`
 
