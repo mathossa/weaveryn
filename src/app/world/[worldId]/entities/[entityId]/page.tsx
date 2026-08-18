@@ -2,6 +2,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
+import {
+  requestedCharacterContext,
+  withCharacterContext,
+} from '@/lib/campaign-context'
 import { uiAssets } from '@/lib/ui-assets'
 import { getWorldEntityWorkspace } from '@/server/world-entities'
 import { loadWorldPageUser } from '../../../_lib/load-world-user'
@@ -15,12 +19,23 @@ import styles from '../entity.module.css'
 
 interface WorldEntityDetailPageProps {
   params: Promise<{ worldId: string; entityId: string }>
-  searchParams: Promise<{ campaign?: string | string[] }>
+  searchParams: Promise<{
+    campaign?: string | string[]
+    character?: string | string[]
+  }>
 }
 
-function entityHref(worldId: string, entityId: string, campaignId?: string) {
+function entityHref(
+  worldId: string,
+  entityId: string,
+  campaignId?: string,
+  worldCharacterId?: string,
+) {
   const query = campaignId ? `?campaign=${campaignId}` : ''
-  return `/world/${worldId}/entities/${entityId}${query}`
+  return withCharacterContext(
+    `/world/${worldId}/entities/${entityId}${query}`,
+    worldCharacterId,
+  )
 }
 
 export default async function WorldEntityDetailPage({
@@ -34,6 +49,7 @@ export default async function WorldEntityDetailPage({
   ])
   const campaignId =
     typeof requested.campaign === 'string' ? requested.campaign : undefined
+  const worldCharacterId = requestedCharacterContext(requested.character)
   const workspace = await getWorldEntityWorkspace(worldId, user.id, campaignId)
   if (!workspace) notFound()
   const entity = workspace.entities.find((choice) => choice.id === entityId)
@@ -57,18 +73,27 @@ export default async function WorldEntityDetailPage({
       sentence: `${relationship.sourceName} ${connectionTypeLabel(relationship.relationshipType)} ${entity.name}`,
     })),
   ]
-  const query = campaignId ? `?campaign=${campaignId}` : ''
+  const entitiesHref = withCharacterContext(
+    `/world/${worldId}/entities${campaignId ? `?campaign=${campaignId}` : ''}`,
+    worldCharacterId,
+  )
+  const campaignHref = workspace.contextCampaign
+    ? withCharacterContext(
+        `/world/${worldId}/campaign/${workspace.contextCampaign.id}`,
+        worldCharacterId,
+      )
+    : undefined
 
   return (
     <AuthenticatedAppShell
       user={user}
       context={{
         world: { label: workspace.world.name, href: `/world/${worldId}` },
-        ...(workspace.contextCampaign
+        ...(workspace.contextCampaign && campaignHref
           ? {
               campaign: {
                 label: workspace.contextCampaign.name,
-                href: `/world/${worldId}/campaign/${workspace.contextCampaign.id}`,
+                href: campaignHref,
               },
             }
           : {}),
@@ -83,10 +108,7 @@ export default async function WorldEntityDetailPage({
         }
         wide
         actions={
-          <Link
-            className={styles.secondaryButton}
-            href={`/world/${worldId}/entities${query}`}
-          >
+          <Link className={styles.secondaryButton} href={entitiesHref}>
             Back to entities
           </Link>
         }
@@ -190,6 +212,7 @@ export default async function WorldEntityDetailPage({
                   entityId={entity.id}
                   entityName={entity.name}
                   contextCampaignId={campaignId}
+                  contextWorldCharacterId={worldCharacterId}
                 />
               </section>
             ) : null}
@@ -234,6 +257,7 @@ export default async function WorldEntityDetailPage({
                               worldId,
                               otherEntityId,
                               campaignId,
+                              worldCharacterId,
                             )}
                           >
                             <strong>{sentence}</strong>
