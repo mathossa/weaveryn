@@ -56,6 +56,7 @@ Suggested asset:
 `campaign-adventure-placeholder.webp`
 
 Purpose:
+
 - atmospheric fallback when a Campaign has no custom/current-adventure artwork;
 - wide cinematic composition;
 - should tolerate dark left-side text overlays and a small right-side context card.
@@ -69,6 +70,7 @@ Suggested asset:
 `campaign-map-placeholder.webp`
 
 Purpose:
+
 - stylized fantasy regional/local map used until real map data exists;
 - should look credible behind a location marker and dark UI overlay;
 - avoid text labels baked into the image because the application will add its own labels.

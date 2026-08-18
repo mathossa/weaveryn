@@ -53,7 +53,9 @@ export default async function CampaignManagePage({
   if (!campaign) notFound()
 
   const canManageCampaign =
-    campaign.canEditSharedInfo || campaign.canEditName || campaign.canManageMembers
+    campaign.canEditSharedInfo ||
+    campaign.canEditName ||
+    campaign.canManageMembers
   if (!canManageCampaign) notFound()
 
   const explicitWeaverMode = query.mode === 'weaver'
@@ -130,7 +132,10 @@ export default async function CampaignManagePage({
             <Link className={styles.secondary} href={campaignHref}>
               Back to Campaign
             </Link>
-            <Link className={styles.secondary} href={`/world/${worldId}/campaign`}>
+            <Link
+              className={styles.secondary}
+              href={`/world/${worldId}/campaign`}
+            >
               Change Campaign
             </Link>
           </div>

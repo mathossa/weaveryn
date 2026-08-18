@@ -144,7 +144,11 @@
   border: 1px solid color-mix(in srgb, var(--ui-accent) 52%, transparent);
   border-radius: var(--ui-radius-control);
   padding: 0.65rem 0.9rem;
-  background: color-mix(in srgb, var(--ui-accent) 10%, var(--ui-control-surface));
+  background: color-mix(
+    in srgb,
+    var(--ui-accent) 10%,
+    var(--ui-control-surface)
+  );
   color: var(--ui-accent-hover);
   font-weight: 750;
   text-decoration: none;
@@ -207,7 +211,12 @@
   inset: 0;
   z-index: -2;
   background:
-    linear-gradient(90deg, rgba(4, 8, 12, 0.94), rgba(4, 8, 12, 0.58) 58%, rgba(4, 8, 12, 0.25)),
+    linear-gradient(
+      90deg,
+      rgba(4, 8, 12, 0.94),
+      rgba(4, 8, 12, 0.58) 58%,
+      rgba(4, 8, 12, 0.25)
+    ),
     linear-gradient(0deg, rgba(3, 6, 10, 0.82), transparent 62%);
 }
 
@@ -549,7 +558,12 @@
   inset: 0;
   z-index: -2;
   background:
-    radial-gradient(circle at 52% 56%, transparent 0 12%, rgba(3, 6, 10, 0.1) 28%, rgba(3, 6, 10, 0.66) 100%),
+    radial-gradient(
+      circle at 52% 56%,
+      transparent 0 12%,
+      rgba(3, 6, 10, 0.1) 28%,
+      rgba(3, 6, 10, 0.66) 100%
+    ),
     linear-gradient(180deg, rgba(3, 6, 10, 0.18), rgba(3, 6, 10, 0.56));
 }
 
@@ -652,7 +666,11 @@
 }
 
 .dashboardAction[data-implemented='true'] {
-  border-color: color-mix(in srgb, var(--ui-accent) 42%, var(--ui-control-border));
+  border-color: color-mix(
+    in srgb,
+    var(--ui-accent) 42%,
+    var(--ui-control-border)
+  );
   color: var(--ui-accent-hover);
 }
 
@@ -668,7 +686,11 @@
 .dashboardPrimaryLink:hover,
 .manageCampaignLink:hover {
   border-color: var(--ui-accent);
-  background: color-mix(in srgb, var(--ui-accent) 10%, var(--ui-control-surface));
+  background: color-mix(
+    in srgb,
+    var(--ui-accent) 10%,
+    var(--ui-control-surface)
+  );
 }
 
 .dashboardNotesPlaceholder {

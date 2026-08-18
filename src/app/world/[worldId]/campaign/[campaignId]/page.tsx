@@ -92,7 +92,9 @@ export default async function CampaignOverviewPage({
   const canChooseCharacter =
     campaign.status === 'ACTIVE' && campaign.role !== 'SPECTATOR'
   const canManageCampaign =
-    campaign.canEditSharedInfo || campaign.canEditName || campaign.canManageMembers
+    campaign.canEditSharedInfo ||
+    campaign.canEditName ||
+    campaign.canManageMembers
   const isWeaverContext =
     !selectedCharacter &&
     (campaign.isOwner ||
@@ -103,7 +105,10 @@ export default async function CampaignOverviewPage({
   const placeholderHref = (feature: string) =>
     explicitWeaverMode
       ? `${placeholderBase}/${feature}?mode=weaver`
-      : withCharacterContext(`${placeholderBase}/${feature}`, characterContextId)
+      : withCharacterContext(
+          `${placeholderBase}/${feature}`,
+          characterContextId,
+        )
   const quickActions: QuickAction[] = [
     { label: 'Add Note', icon: 'note', href: placeholderHref('notes') },
     { label: 'Add Event', icon: 'event', href: placeholderHref('event') },
@@ -162,14 +167,19 @@ export default async function CampaignOverviewPage({
                 Manage Campaign
               </Link>
             ) : null}
-            <Link className={styles.secondary} href={`/world/${worldId}/campaign`}>
+            <Link
+              className={styles.secondary}
+              href={`/world/${worldId}/campaign`}
+            >
               Change Campaign
             </Link>
           </div>
         }
       >
         <div className={styles.dashboardGrid}>
-          <section className={`${styles.dashboardPanel} ${styles.dashboardHero}`}>
+          <section
+            className={`${styles.dashboardPanel} ${styles.dashboardHero}`}
+          >
             <Image
               className={styles.dashboardHeroImage}
               src={uiAssets.fallbacks.campaign}
@@ -193,7 +203,9 @@ export default async function CampaignOverviewPage({
               </div>
             </div>
             <aside className={styles.dashboardHeroContext}>
-              <span className={styles.dashboardMiniLabel}>Current World time</span>
+              <span className={styles.dashboardMiniLabel}>
+                Current World time
+              </span>
               <strong>{campaign.currentWorldDateLabel ?? 'Not set'}</strong>
               <small>
                 Position {campaign.currentWorldPosition ?? 'not set'}
@@ -259,7 +271,10 @@ export default async function CampaignOverviewPage({
                 </p>
               ) : (
                 campaign.characters.map((character) => (
-                  <article className={styles.dashboardPartyMember} key={character.id}>
+                  <article
+                    className={styles.dashboardPartyMember}
+                    key={character.id}
+                  >
                     <span className={styles.dashboardPartyPortrait}>
                       <Image
                         src={character.image || uiAssets.fallbacks.character}
@@ -312,7 +327,10 @@ export default async function CampaignOverviewPage({
                 <small>Map support arrives in 0.3.0</small>
               </span>
             </div>
-            <Link className={styles.dashboardMapLink} href={placeholderHref('map')}>
+            <Link
+              className={styles.dashboardMapLink}
+              href={placeholderHref('map')}
+            >
               Open map placeholder
             </Link>
           </section>
@@ -397,12 +415,16 @@ export default async function CampaignOverviewPage({
               <>
                 <div className={styles.dashboardPanelHeader}>
                   <h2 id="campaign-quick-view">Character Quick View</h2>
-                  <span className={styles.dashboardContextPill}>Entered as Character</span>
+                  <span className={styles.dashboardContextPill}>
+                    Entered as Character
+                  </span>
                 </div>
                 <div className={styles.dashboardCharacterQuickView}>
                   <span className={styles.dashboardQuickPortrait}>
                     <Image
-                      src={selectedCharacter.image || uiAssets.fallbacks.character}
+                      src={
+                        selectedCharacter.image || uiAssets.fallbacks.character
+                      }
                       alt=""
                       fill
                       sizes="96px"
