@@ -3,7 +3,12 @@ import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { StatusPanel } from '@/components/ui/status-panel'
-import { characterEntryKey } from '@/server/selection'
+import {
+  characterEntryKey,
+  type EntryCampaignChoice,
+  type EntryPortableCharacterChoice,
+  type EntryWorldCharacterChoice,
+} from '@/server/selection'
 import { CharacterChoiceCard } from './_components/character-choice-card'
 import { PortableCharacterChoiceCard } from './_components/portable-character-choice-card'
 import { loadSelectionPageData } from './_lib/load-selection-page-data'
@@ -12,6 +17,28 @@ import styles from './select.module.css'
 interface SelectPageProps {
   searchParams: Promise<{ show?: string | string[] }>
 }
+
+type SelectionPageData = Awaited<ReturnType<typeof loadSelectionPageData>>
+type EntryPreference = SelectionPageData['entryPreferences'][number]
+
+interface WorldCharacterEntry {
+  kind: 'world'
+  key: string
+  character: EntryWorldCharacterChoice
+  campaign: EntryCampaignChoice | null
+  preference: EntryPreference | undefined
+  createdAt: Date
+}
+
+interface PortableCharacterEntry {
+  kind: 'portable'
+  key: string
+  character: EntryPortableCharacterChoice
+  preference: undefined
+  createdAt: Date
+}
+
+type CharacterEntry = WorldCharacterEntry | PortableCharacterEntry
 
 export default async function SelectPage({ searchParams }: SelectPageProps) {
   const [
@@ -23,8 +50,8 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
     entryPreferences.map((preference) => [preference.entryKey, preference]),
   )
 
-  const characterEntries = [
-    ...selection.characters.flatMap((character) =>
+  const characterEntries: CharacterEntry[] = [
+    ...selection.characters.flatMap<WorldCharacterEntry>((character) =>
       character.campaigns.length > 0
         ? character.campaigns.map((campaign) => {
             const key = characterEntryKey(character.id, campaign.id)
@@ -51,8 +78,8 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
             ]
           })(),
     ),
-    ...selection.portableCharacters.map((character) => ({
-      kind: 'portable' as const,
+    ...selection.portableCharacters.map<PortableCharacterEntry>((character) => ({
+      kind: 'portable',
       key: `portable-${character.id}`,
       character,
       preference: undefined,
