@@ -1,28 +1,35 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { uiAssets } from '@/lib/ui-assets'
-import type { EntryWorldCharacterChoice } from '@/server/selection'
+import type {
+  EntryCampaignChoice,
+  EntryWorldCharacterChoice,
+} from '@/server/selection'
 import styles from '../select.module.css'
 
 export function CharacterChoiceCard({
   character,
+  campaign,
   eager = false,
 }: {
   character: EntryWorldCharacterChoice
+  campaign: EntryCampaignChoice | null
   eager?: boolean
 }) {
-  const campaignLabel =
-    character.campaigns.length === 0
-      ? 'World character'
-      : character.campaigns.length === 1
-        ? character.campaigns[0].name
-        : `${character.campaigns.length} campaigns`
+  const destination = campaign
+    ? `/world/${character.worldId}/campaign/${campaign.id}?character=${character.id}`
+    : `/character/${character.id}`
+  const contextLabel = campaign?.name ?? 'No campaign'
 
   return (
     <Link
       className={styles.characterCard}
-      href={`/select/character/${character.id}`}
-      aria-label={`Enter as ${character.name} in ${character.worldName}`}
+      href={destination}
+      aria-label={
+        campaign
+          ? `Enter ${campaign.name} as ${character.name} in ${character.worldName}`
+          : `Open ${character.name} in ${character.worldName}`
+      }
     >
       <Image
         className={styles.characterImage}
@@ -35,8 +42,12 @@ export function CharacterChoiceCard({
       <span className={styles.characterShade} aria-hidden="true" />
       <span className={styles.characterCopy}>
         <strong>{character.name}</strong>
-        <span>{character.worldName}</span>
-        <span className={styles.characterMeta}>{campaignLabel}</span>
+        <span>
+          {character.worldName} — {contextLabel}
+        </span>
+        <span className={styles.characterMeta}>
+          {campaign ? 'Campaign entry' : 'World character'}
+        </span>
       </span>
     </Link>
   )
