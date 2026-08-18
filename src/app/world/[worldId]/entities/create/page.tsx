@@ -27,6 +27,9 @@ export default async function CreateWorldEntityPage({
   const workspace = await getWorldEntityWorkspace(worldId, user.id, campaignId)
   if (!workspace) notFound()
   const query = campaignId ? `?campaign=${campaignId}` : ''
+  const selectableEntityTypes = workspace.entityTypes.filter(
+    (type) => type.scope === 'BUILT_IN' || (type.usageCount ?? 0) > 0,
+  )
 
   return (
     <AuthenticatedAppShell
@@ -67,7 +70,7 @@ export default async function CreateWorldEntityPage({
               mode="create"
               worldId={worldId}
               contextCampaignId={campaignId}
-              entityTypes={workspace.entityTypes}
+              entityTypes={selectableEntityTypes}
               entities={workspace.entities}
               relationshipTypes={workspace.relationshipTypes}
               campaigns={workspace.campaigns}
