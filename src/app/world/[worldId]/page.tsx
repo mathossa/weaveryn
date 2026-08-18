@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
+import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { StatusPanel } from '@/components/ui/status-panel'
 import { getWorldOverview } from '@/server/worlds'
 import { ClaimWorldButton } from '../_components/claim-world-button'
@@ -105,23 +106,29 @@ export default async function WorldOverviewPage({
                       campaign.isOwner ||
                       campaign.role === 'GM' ||
                       campaign.role === 'ASSISTANT_GM'
-                    const href =
-                      weaverMode && manageableCampaign
-                        ? `/select/weaver?world=${world.id}&campaign=${campaign.id}`
-                        : `/world/${world.id}/campaign/${campaign.id}`
+                    const trackAsWeaver = weaverMode && manageableCampaign
 
                     return (
-                      <Link
+                      <TrackedEntryLink
                         className={styles.campaign}
                         key={campaign.id}
-                        href={href}
+                        href={`/world/${world.id}/campaign/${campaign.id}${trackAsWeaver ? '?mode=weaver' : ''}`}
+                        tracking={
+                          trackAsWeaver
+                            ? {
+                                kind: 'WEAVER',
+                                worldId: world.id,
+                                campaignId: campaign.id,
+                              }
+                            : undefined
+                        }
                       >
                         <strong>{campaign.name}</strong>
                         <span className={styles.meta}>
                           {campaign.isOwner ? 'Owner · ' : ''}
                           {campaign.role}
                         </span>
-                      </Link>
+                      </TrackedEntryLink>
                     )
                   })}
                 </div>
@@ -129,7 +136,7 @@ export default async function WorldOverviewPage({
               <div className={styles.formActions}>
                 <Link
                   className={styles.secondary}
-                  href={`/world/${world.id}/campaign`}
+                  href={`/world/${world.id}/campaign${weaverMode ? '?mode=weaver' : ''}`}
                 >
                   Browse Campaigns
                 </Link>
