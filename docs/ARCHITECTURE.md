@@ -450,6 +450,7 @@ Ruleset
 ---
 
 ## Application Architecture
+
 Core business rules belong in reusable application/domain services rather than UI components.
 
 Application modules build on shared domain services and authorization rules rather than duplicating business logic.
