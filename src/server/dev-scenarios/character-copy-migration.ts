@@ -275,6 +275,7 @@ async function resetFixture() {
           id: SOURCE_ID,
           worldId: WORLD_ONE_ID,
           worldCharacterId: SOURCE_ID,
+          worldCharacterWorldId: WORLD_ONE_ID,
           type: 'character',
           name: 'Bodwick of Aldorath',
           image: '/images/characters/default-character.webp',
