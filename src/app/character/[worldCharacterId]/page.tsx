@@ -74,6 +74,7 @@ export default async function WorldCharacterPage({
   )
   const profileFields = visibleWorldCharacterProfileFields(character.profile)
   const profileValues = character.profile.values
+  const customDetails = Object.entries(character.customFields)
   const descriptionVisible = profileFields.some((field) => field.key === 'whoIs')
   const detailFields = profileFields.filter((field) => field.key !== 'whoIs')
   const quickFactKeys = ['home', 'personality', 'goals', 'affiliations'] as const
@@ -244,6 +245,30 @@ export default async function WorldCharacterPage({
                     No additional profile fields are currently visible.
                   </p>
                 )}
+
+                {customDetails.length > 0 ? (
+                  <div className={profileStyles.profileAdditionalDetails}>
+                    <div className={profileStyles.profileDetailsHeader}>
+                      <span className={styles.profileKicker}>
+                        Additional details
+                      </span>
+                    </div>
+                    <div className={profileStyles.profileDetailList}>
+                      {customDetails.map(([key, value]) => (
+                        <div className={profileStyles.profileDetailRow} key={key}>
+                          <span className={styles.profileKicker}>{key}</span>
+                          <p>
+                            {typeof value === 'boolean'
+                              ? value
+                                ? 'Yes'
+                                : 'No'
+                              : String(value)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </section>
             </main>
 
@@ -347,6 +372,7 @@ export default async function WorldCharacterPage({
                     worldName={character.world.name}
                     nameOverride={character.nameOverride}
                     profile={character.profile}
+                    customFields={character.customFields}
                     canEditWorldIdentity={character.canEditWorldIdentity}
                     triggerClassName={profileStyles.quickAction}
                     triggerContent={
