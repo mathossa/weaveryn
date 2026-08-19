@@ -42,6 +42,7 @@ describe('Character UI flow', () => {
   afterEach(async () => {
     await prisma.campaignCharacter.deleteMany({ where: { id: { in: ids } } })
     await prisma.campaignMembership.deleteMany({ where: { id: { in: ids } } })
+    await prisma.worldMembership.deleteMany({ where: { id: { in: ids } } })
     await prisma.worldCharacter.deleteMany({ where: { id: { in: ids } } })
     await prisma.character.deleteMany({ where: { id: { in: ids } } })
     await prisma.campaign.deleteMany({ where: { id: { in: ids } } })
