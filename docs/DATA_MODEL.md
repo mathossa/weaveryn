@@ -354,6 +354,7 @@ Relations:
 
 - belongs to one Character
 - belongs to one World while assigned
+- has zero or one linked Character-backed WorldEntity
 - has zero or more CampaignCharacters
 
 World-specific identity, history, relationships, and setting concepts belong here.
@@ -362,10 +363,17 @@ Constraints:
 
 - a Character may have WorldCharacters in multiple Worlds
 - unique `(characterId, worldId)`; one Character has at most one incarnation in a particular World
+- at most one Character-backed WorldEntity may represent a WorldCharacter
+- the linked WorldEntity must belong to the same World as the WorldCharacter
 - `nameOverride`, when present, replaces the portable Character name only for this World incarnation
-- copying to another World creates another WorldCharacter linked to the same portable Character
-- copied World-specific references must be mapped, replaced, or omitted rather than blindly reused across Worlds
+- linked Character entity presentation resolves name from `nameOverride` or `Character.name`, and portrait from `Character.image`
+- generic WorldEntity editing must not independently mutate or delete Character-backed identity fields
+- adding or removing CampaignCharacter participation does not create or delete the WorldCharacter's entity representation
+- copying to another World creates another WorldCharacter linked to the same portable Character and a fresh target-World Character entity
+- copied World-specific references and EntityRelationships are not reused across Worlds automatically
 - migration changes/adapts World placement without changing Character ownership
+- before migration, CampaignCharacter participation must be resolved
+- migration detaches the source Character entity into an independent `Person / NPC` snapshot that keeps its source-World relationships, then creates a fresh Character entity in the target World
 - World deletion must preserve user-owned Character identity
 - historical information should be preserved where practical
 
@@ -438,7 +446,6 @@ RuleDefinition
 ```
 
 The RulesetVersion determines valid types and data structures.
-
 Rule definitions may represent abilities, skills, items, conditions, classes, mechanical species definitions, or other Ruleset concepts without requiring fixed core tables for every game system.
 
 ---
@@ -470,6 +477,7 @@ References must be compatible with the Campaign's active RulesetVersion.
 WorldEntity
 - id
 - worldId
+- worldCharacterId?
 - type
 - name
 - description
@@ -484,6 +492,19 @@ WorldEntity
 ```
 
 World entities may represent locations, organizations, people, items, quests, events, creatures, deities, notes, or custom entity types.
+
+`Character` is a reserved built-in entity type for a WorldEntity linked to a WorldCharacter. Generic non-player people remain `Person / NPC`. A Character-backed WorldEntity is not an independently editable copy of Character identity: while linked, its effective display name resolves from `WorldCharacter.nameOverride` or `Character.name`, and its portrait resolves from `Character.image`.
+
+For Character-backed entities:
+
+- `worldCharacterId` identifies the linked WorldCharacter
+- the WorldEntity and WorldCharacter must belong to the same World
+- a WorldCharacter has at most one linked WorldEntity
+- the entity may be a normal source or target of EntityRelationship
+- Campaign-only visibility may be derived from the WorldCharacter's CampaignCharacter participation
+- visibility through Campaign participation does not grant general World membership or edit rights
+- copying a WorldCharacter creates a fresh Character entity in the target World without copying source relationships
+- migration converts the detached source entity into an independent `Person / NPC` snapshot that retains source-World relationships, then creates a fresh Character entity in the target World
 
 The `data` field stores type-specific structured information that is not inherently a time-dependent World fact.
 
@@ -757,8 +778,7 @@ DiceRoll
 - expression
 - result
 - details
-- visibility
-- createdAt
+- visibility- createdAt
 ```
 
 Dice behavior may be influenced or validated by the Campaign's Ruleset.
@@ -895,7 +915,7 @@ User
 │                        ├── WorldTimeline
 │                        │   └── WorldEvent
 │                        │       └── WorldEventEntity ──► WorldEntity
-│                        ├── WorldCharacter
+│                        ├── WorldCharacter ◄────► Character-backed WorldEntity
 │                        └── Campaign
 │                            ├── WorldTimeline / currentWorldPosition
 │                            ├── CampaignMembership
@@ -908,7 +928,7 @@ User
 ├── owns ─────────────── Campaign
 │
 └── owns ─────────────── Character
-                         └── WorldCharacter
+                         └── WorldCharacter ◄────► WorldEntity
                              └── CampaignCharacter
 
 Ruleset
@@ -948,6 +968,11 @@ Ruleset
 25. Detached archived Campaigns use an immutable World snapshot and do not resolve live World state.
 26. Campaign- or player-targeted visibility must identify the target Campaign or User.
 27. Account deletion resolves owned Worlds, Campaigns, and Characters explicitly before removing the User.
+28. A WorldCharacter has at most one linked Character-backed WorldEntity, and the link must remain within one World.
+29. Character-backed WorldEntity name/image presentation derives from Character/WorldCharacter authority rather than an independently editable duplicate.
+30. Campaign-only access may expose a Character-backed entity only through authorized Campaign participation and does not imply general World access.
+31. Copying a WorldCharacter creates a fresh target-World Character entity and does not copy source-World EntityRelationships automatically.
+32. Migrating a WorldCharacter preserves source-World relationships by converting the detached source entity into an independent `Person / NPC` snapshot before creating a fresh Character entity in the target World.
 
 ---
 
