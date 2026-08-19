@@ -120,9 +120,10 @@ export function LeaveWorldAction({
     setPending(true)
     setError(null)
 
-    const response = await fetch(`/api/v1/world-characters/${worldCharacterId}`, {
-      method: 'DELETE',
-    })
+    const response = await fetch(
+      `/api/v1/world-characters/${worldCharacterId}`,
+      { method: 'DELETE' },
+    )
     if (!response.ok) {
       setError(
         await errorMessage(
