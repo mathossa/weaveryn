@@ -1,8 +1,8 @@
-import { prisma } from '@/lib/prisma'
 import {
   normalizeWorldCharacterProfile,
   type WorldCharacterProfile,
-} from './world-character-profile'
+} from '@/lib/world-character-profile'
+import { prisma } from '@/lib/prisma'
 
 export type CharacterCampaignRole =
   'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR'
