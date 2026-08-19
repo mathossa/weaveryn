@@ -216,8 +216,8 @@ describe('CampaignCharacterService', () => {
     ).resolves.toMatchObject({ sheetData: { gold: 3 }, status: 'ACTIVE' })
   })
 
-  it('allows GMs and Assistant GMs to manage participation, but lets a Character owner only update their own state', async () => {
-    const { service } = harness()
+  it('allows GMs and Assistant GMs to manage participation and lets a Campaign member remove their own Character participation', async () => {
+    const { service, repository } = harness()
     const created = await service.createCampaignCharacter({
       actorUserId: assistantGmId,
       worldCharacterId,
@@ -229,23 +229,20 @@ describe('CampaignCharacterService', () => {
       }),
     ).resolves.toMatchObject({ status: 'READY' })
     await expect(
-      service.createCampaignCharacter({
-        actorUserId: characterOwnerId,
-        worldCharacterId,
-        campaignId: campaignTwoId,
-      }),
-    ).rejects.toMatchObject({ code: 'CAMPAIGN_CHARACTER_PERMISSION_DENIED' })
-    await expect(
-      service.removeCampaignCharacter(created.id, characterOwnerId),
-    ).rejects.toMatchObject({ code: 'CAMPAIGN_CHARACTER_PERMISSION_DENIED' })
-    await expect(
       service.updateCampaignCharacter(created.id, outsiderId, {
         status: 'STOLEN',
       }),
     ).rejects.toMatchObject({ code: 'CAMPAIGN_CHARACTER_PERMISSION_DENIED' })
+    await expect(
+      service.removeCampaignCharacter(created.id, outsiderId),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_CHARACTER_PERMISSION_DENIED' })
+    await expect(
+      service.removeCampaignCharacter(created.id, characterOwnerId),
+    ).resolves.toBeUndefined()
+    expect(repository.records).toEqual([])
   })
 
-  it('requires Campaign access before Character ownership grants state access', async () => {
+  it('requires Campaign access before Character ownership grants state or self-removal access', async () => {
     const { service, repository } = harness()
     const created = await service.createCampaignCharacter({
       actorUserId: gmId,
@@ -261,6 +258,9 @@ describe('CampaignCharacterService', () => {
       service.updateCampaignCharacter(created.id, characterOwnerId, {
         status: 'STOLEN',
       }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_CHARACTER_PERMISSION_DENIED' })
+    await expect(
+      service.removeCampaignCharacter(created.id, characterOwnerId),
     ).rejects.toMatchObject({ code: 'CAMPAIGN_CHARACTER_PERMISSION_DENIED' })
 
     repository.memberships.set(
@@ -282,9 +282,12 @@ describe('CampaignCharacterService', () => {
         status: 'READY',
       }),
     ).resolves.toMatchObject({ status: 'READY' })
+    await expect(
+      service.removeCampaignCharacter(created.id, characterOwnerId),
+    ).resolves.toBeUndefined()
   })
 
-  it('lists only for Campaign managers and removing participation preserves the WorldCharacter and Character identity', async () => {
+  it('lists only for Campaign managers and manager removal preserves the WorldCharacter and Character identity', async () => {
     const { service, repository } = harness()
     const created = await service.createCampaignCharacter({
       actorUserId: gmId,
