@@ -15,10 +15,11 @@ User
 World
 ├── Members
 ├── WorldCharacters
+├── WorldEntities
 └── Campaigns
 
 Character
-└── WorldCharacter
+└── WorldCharacter ↔ WorldEntity
     └── CampaignCharacter
 ```
 
@@ -103,6 +104,10 @@ If an orphaned World has no active Campaigns and no eligible `ADMIN` or `MEMBER`
 World content forms an interconnected domain rather than only a collection of independent pages.
 
 A `WorldEntity` represents the persistent identity of something that exists within a World. World entities may reference other entities through meaningful relationships. Maps and other modules may also reference domain entities.
+
+A playable `WorldCharacter` participates in this same graph through at most one Character-backed `WorldEntity` in the same World. The linked entity uses the reserved built-in `Character` presentation and may participate as a normal source or target of `EntityRelationship`. Its display identity is not an independently editable duplicate: name resolves from `WorldCharacter.nameOverride` or `Character.name`, and portrait resolves from `Character.image`.
+
+Campaign participation does not create additional Character entities. A WorldCharacter participating in multiple Campaigns in the same World still has one World graph identity. Campaign-only users may see a Character-backed entity when that WorldCharacter participates in an authorized Campaign context, without receiving general World membership or World editing rights.
 
 Temporal facts about a WorldEntity must not be modeled as though the entity has one universally current state. Facts that change according to in-world time, such as the destruction of a settlement, the death of a ruler, or a change of ownership, belong to World history.
 
@@ -217,8 +222,9 @@ A Character does not inherently belong to one World.
 `WorldCharacter` represents a Character's incarnation in a particular World.
 
 World-specific identity, history, relationships, and setting concepts belong to this layer.
-
 A Character may have WorldCharacters in multiple Worlds, but has at most one WorldCharacter in a particular World. A WorldCharacter may override the Character's default display name while otherwise inheriting it.
+
+A WorldCharacter has at most one linked Character-backed `WorldEntity`, and that entity must belong to the same World. This graph representation exists so the playable Character can participate in normal World relationships without flattening `Character`, `WorldCharacter`, and `CampaignCharacter` into one record. Generic WorldEntity editing must not independently rename, retype, replace the portrait of, or delete this Character identity.
 
 ### CampaignCharacter
 
@@ -240,11 +246,11 @@ Copying a Character to another World creates another WorldCharacter while preser
 
 The new WorldCharacter remains linked to the same portable Character concept. For example, the Character concept `Bodwick` may have one incarnation in World X and another in World XY. The incarnations may share a name while having different species, cultures, hometowns, relationships, and histories.
 
-World-specific references are not copied blindly. A copy workflow must explicitly map, replace, or omit references that do not exist in the target World.
+A copied WorldCharacter receives a fresh Character-backed WorldEntity in the target World. Source-World `EntityRelationship` rows and other World-specific references are not copied blindly; they must be explicitly mapped, replaced, or omitted when a future workflow supports that.
 
-Migrating a WorldCharacter moves or adapts that incarnation to another World rather than creating a second active incarnation.
+Migrating a WorldCharacter moves the same WorldCharacter identity to another World rather than creating a second active incarnation. Existing CampaignCharacter participation must be resolved before migration.
 
-Migration must not leave invalid Campaign relationships. Historical information should be preserved where practical.
+To preserve source-World continuity, migration first detaches the source Character-backed WorldEntity from the WorldCharacter, snapshots the current authoritative Character/WorldCharacter presentation into it, and converts it into an independent `Person / NPC` WorldEntity. Its existing source-World relationships remain attached to that NPC. The WorldCharacter is then moved to the target World and receives a fresh Character-backed WorldEntity there. Source-World relationships are not copied to the target World.
 
 Only the Character owner, or a user explicitly delegated that authority, may copy or migrate the Character.
 
@@ -393,6 +399,7 @@ Character
 WorldCharacter
 ├── character
 ├── world
+├── worldEntity
 └── campaignCharacters
 
 CampaignCharacter
@@ -434,11 +441,15 @@ Ruleset
 24. Campaign-only World access does not imply World membership or World editing rights.
 25. MVP timeline ordering uses an authoritative numeric position plus a human-readable date label.
 26. Ended or archived Campaigns are detached through an explicit snapshot workflow when their World is deleted.
+27. A WorldCharacter has at most one linked Character-backed WorldEntity, and both must belong to the same World.
+28. Character-backed WorldEntity name/image presentation derives from Character/WorldCharacter authority rather than an independently editable duplicate.
+29. Campaign-only visibility of a Character-backed entity derives from that WorldCharacter's participation in an authorized Campaign and does not grant general World access.
+30. Copying a WorldCharacter creates a fresh target-World Character entity and does not copy source-World relationships automatically.
+31. Migrating a WorldCharacter preserves source-World graph continuity by converting the detached source entity into an independent Person / NPC snapshot with its relationships intact, then creating a fresh Character entity in the target World.
 
 ---
 
 ## Application Architecture
-
 Core business rules belong in reusable application/domain services rather than UI components.
 
 Application modules build on shared domain services and authorization rules rather than duplicating business logic.
