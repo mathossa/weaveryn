@@ -1,3 +1,9 @@
+import {
+  WORLD_CHARACTER_PROFILE_FIELDS,
+  type WorldCharacterProfile,
+  type WorldCharacterProfileFieldKey,
+} from './world-character-profile'
+
 export class CharacterInputError extends Error {
   constructor(message: string) {
     super(message)
@@ -46,6 +52,46 @@ function requiredId(value: unknown, label: string) {
   return value.trim()
 }
 
+function profileInput(value: unknown): WorldCharacterProfile {
+  const profile = objectInput(value)
+  const valuesInput = objectInput(profile.values ?? {})
+  const values: WorldCharacterProfile['values'] = {}
+
+  for (const field of WORLD_CHARACTER_PROFILE_FIELDS) {
+    const fieldValue = valuesInput[field.key]
+    if (fieldValue === undefined || fieldValue === null) continue
+    if (typeof fieldValue !== 'string') {
+      throw new CharacterInputError(`${field.label} must be text.`)
+    }
+    const normalized = fieldValue.trim()
+    if (normalized.length > 2000) {
+      throw new CharacterInputError(
+        `${field.label} must be 2000 characters or fewer.`,
+      )
+    }
+    if (normalized) values[field.key] = normalized
+  }
+
+  const knownKeys = new Set<WorldCharacterProfileFieldKey>(
+    WORLD_CHARACTER_PROFILE_FIELDS.map((field) => field.key),
+  )
+  const hiddenInput = profile.hiddenFields ?? []
+  if (!Array.isArray(hiddenInput)) {
+    throw new CharacterInputError('Hidden Character profile fields must be a list.')
+  }
+  const hiddenFields = hiddenInput.map((key) => {
+    if (
+      typeof key !== 'string' ||
+      !knownKeys.has(key as WorldCharacterProfileFieldKey)
+    ) {
+      throw new CharacterInputError('Unknown Character profile field.')
+    }
+    return key as WorldCharacterProfileFieldKey
+  })
+
+  return { values, hiddenFields: [...new Set(hiddenFields)] }
+}
+
 export function parseCreateCharacterInput(value: unknown) {
   const input = objectInput(value)
   return { name: requiredName(input.name) }
@@ -66,7 +112,14 @@ export function parseCreateWorldCharacterInput(value: unknown) {
 
 export function parseUpdateWorldCharacterInput(value: unknown) {
   const input = objectInput(value)
-  return { nameOverride: optionalNameOverride(input.nameOverride) }
+  return {
+    ...(Object.hasOwn(input, 'nameOverride')
+      ? { nameOverride: optionalNameOverride(input.nameOverride) }
+      : {}),
+    ...(Object.hasOwn(input, 'profile')
+      ? { profile: profileInput(input.profile) }
+      : {}),
+  }
 }
 
 export function parseAttachCampaignCharacterInput(value: unknown) {
