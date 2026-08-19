@@ -57,9 +57,16 @@ async function assertOwned() {
     }),
     prisma.worldEntity.findMany({
       where: { id: { in: [SOURCE_ID, COPY_ID, MOONBLADE_ID] } },
-      select: { id: true, worldId: true, description: true },
+      select: {
+        id: true,
+        worldId: true,
+        worldCharacterId: true,
+        createdById: true,
+        description: true,
+      },
     }),
   ])
+
   for (const world of worlds) {
     if (
       world.description !== metadata.fixtureNamespace ||
@@ -70,6 +77,7 @@ async function assertOwned() {
       )
     }
   }
+
   if (
     character &&
     (character.ownerUserId !== OWNER_ID ||
@@ -78,6 +86,7 @@ async function assertOwned() {
   ) {
     throw new FixtureOwnershipError('Character fixture is not scenario-owned.')
   }
+
   if (
     campaign &&
     (campaign.description !== metadata.fixtureNamespace ||
@@ -86,11 +95,18 @@ async function assertOwned() {
   ) {
     throw new FixtureOwnershipError('Campaign fixture is not scenario-owned.')
   }
+
   for (const entity of entities) {
-    if (
-      entity.description !== metadata.fixtureNamespace ||
-      ![WORLD_ONE_ID, WORLD_TWO_ID, WORLD_THREE_ID].includes(entity.worldId)
-    ) {
+    const isServiceCreatedCopy =
+      entity.id === COPY_ID &&
+      entity.worldId === WORLD_TWO_ID &&
+      entity.worldCharacterId === COPY_ID &&
+      entity.createdById === OWNER_ID
+    const isMarkedFixtureEntity =
+      entity.description === metadata.fixtureNamespace &&
+      [WORLD_ONE_ID, WORLD_TWO_ID, WORLD_THREE_ID].includes(entity.worldId)
+
+    if (!isServiceCreatedCopy && !isMarkedFixtureEntity) {
       throw new FixtureOwnershipError(
         `WorldEntity ${entity.id} is not scenario-owned.`,
       )
@@ -105,6 +121,7 @@ async function readState(): Promise<CharacterCopyMigrationState | null> {
     select: { id: true, ownerUserId: true, name: true },
   })
   if (!character) return null
+
   const [worlds, worldCharacters, participations, entities, relationships] =
     await Promise.all([
       prisma.world.findMany({
@@ -149,6 +166,7 @@ async function readState(): Promise<CharacterCopyMigrationState | null> {
         orderBy: { id: 'asc' },
       }),
     ])
+
   return {
     character,
     worlds,
@@ -178,6 +196,7 @@ async function resetFixture() {
         description: metadata.fixtureNamespace,
       },
     })
+
     await tx.user.upsert({
       where: { id: OWNER_ID },
       create: {
@@ -330,6 +349,7 @@ async function execute(
       false,
     )
   }
+
   try {
     if (action.action === 'copy') {
       await characters(COPY_ID).copyWorldCharacter({
@@ -345,6 +365,7 @@ async function execute(
         true,
       )
     }
+
     if (action.action === 'try-duplicate-copy') {
       await characters().copyWorldCharacter({
         actorUserId: OWNER_ID,
@@ -353,6 +374,7 @@ async function execute(
       })
       return result(action.action, 'Unexpectedly created duplicate.', false)
     }
+
     if (action.action === 'try-migrate-with-participation') {
       await characters().migrateWorldCharacter({
         actorUserId: OWNER_ID,
@@ -365,6 +387,7 @@ async function execute(
         false,
       )
     }
+
     if (action.action === 'resolve-participation') {
       await campaignCharacters().removeCampaignCharacter(
         PARTICIPATION_ID,
@@ -376,6 +399,7 @@ async function execute(
         true,
       )
     }
+
     await characters().migrateWorldCharacter({
       actorUserId: OWNER_ID,
       worldCharacterId: SOURCE_ID,
@@ -423,14 +447,13 @@ async function runAll(): Promise<DevScenarioActionResult> {
           entity.worldCharacterId === COPY_ID &&
           entity.type === 'character',
       ) &&
-      !afterCopy.relationships.some(
-        (relationship) =>
-          afterCopy.entities.some(
-            (entity) =>
-              entity.worldId === WORLD_TWO_ID &&
-              (relationship.sourceEntityId === entity.id ||
-                relationship.targetEntityId === entity.id),
-          ),
+      !afterCopy.relationships.some((relationship) =>
+        afterCopy.entities.some(
+          (entity) =>
+            entity.worldId === WORLD_TWO_ID &&
+            (relationship.sourceEntityId === entity.id ||
+              relationship.targetEntityId === entity.id),
+        ),
       )
         ? 'passed'
         : 'failed',
@@ -539,6 +562,7 @@ async function cleanup(): Promise<DevScenarioActionResult> {
       },
     })
   })
+
   return {
     ok: true,
     message: 'Removed only Issue #19/#117 scenario records.',
