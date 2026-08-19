@@ -135,16 +135,17 @@ model World {
 }
 
 model WorldEntity {
-  id               String  @id @default(uuid()) @db.Uuid
-  worldId          String  @db.Uuid
-  worldCharacterId String? @db.Uuid
-  type             String
-  name             String
-  description      String?
-  image            String?
-  imageFocusX      Int     @default(50)
-  imageFocusY      Int     @default(50)
-  data             Json    @default("{}")
+  id                    String  @id @default(uuid()) @db.Uuid
+  worldId               String  @db.Uuid
+  worldCharacterId      String? @db.Uuid
+  worldCharacterWorldId String? @db.Uuid
+  type                  String
+  name                  String
+  description           String?
+  image                 String?
+  imageFocusX           Int     @default(50)
+  imageFocusY           Int     @default(50)
+  data                  Json    @default("{}")
 
   createdById String? @db.Uuid
 
@@ -153,7 +154,7 @@ model WorldEntity {
   visibilityUserId     String?         @db.Uuid
 
   world              World           @relation(fields: [worldId], references: [id], onDelete: Cascade)
-  worldCharacter     WorldCharacter? @relation("WorldCharacterEntity", fields: [worldCharacterId, worldId], references: [id, worldId], onDelete: Cascade, onUpdate: Restrict)
+  worldCharacter     WorldCharacter? @relation("WorldCharacterEntity", fields: [worldCharacterId, worldCharacterWorldId], references: [id, worldId], onDelete: Cascade, onUpdate: Restrict)
   createdBy          User?           @relation("WorldEntityCreator", fields: [createdById], references: [id], onDelete: SetNull)
   visibilityCampaign Campaign?       @relation("WorldEntityVisibilityCampaign", fields: [visibilityCampaignId], references: [id], onDelete: SetNull)
   visibilityUser     User?           @relation("WorldEntityVisibilityUser", fields: [visibilityUserId], references: [id], onDelete: SetNull)
@@ -166,6 +167,7 @@ model WorldEntity {
 
   @@unique([worldCharacterId])
   @@index([worldId])
+  @@index([worldCharacterWorldId])
   @@index([createdById])
   @@index([visibilityCampaignId])
   @@index([visibilityUserId])
