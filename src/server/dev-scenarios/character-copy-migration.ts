@@ -131,7 +131,12 @@ async function readState(): Promise<CharacterCopyMigrationState | null> {
       }),
       prisma.worldCharacter.findMany({
         where: { characterId: CHARACTER_ID },
-        select: { id: true, worldId: true, nameOverride: true, worldData: true },
+        select: {
+          id: true,
+          worldId: true,
+          nameOverride: true,
+          worldData: true,
+        },
         orderBy: { id: 'asc' },
       }),
       prisma.campaignCharacter.findMany({
@@ -439,7 +444,8 @@ async function runAll(): Promise<DevScenarioActionResult> {
   const afterCopy = await readState()
   checks.push({
     id: 'copy',
-    title: 'Copy creates a separate Character entity without World relationships',
+    title:
+      'Copy creates a separate Character entity without World relationships',
     status:
       copy.ok &&
       afterCopy?.entities.some(

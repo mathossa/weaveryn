@@ -173,10 +173,7 @@ export class PrismaCharacterRepository implements CharacterRepository {
     )
   }
 
-  async createWorldCharacterEntity(
-    worldCharacterId: string,
-    entityId: string,
-  ) {
+  async createWorldCharacterEntity(worldCharacterId: string, entityId: string) {
     const worldCharacter = await this.db.worldCharacter.findUnique({
       where: { id: worldCharacterId },
       include: { character: true },

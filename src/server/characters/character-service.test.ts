@@ -165,10 +165,7 @@ class Repository implements CharacterRepository {
     return this.participations.has(worldCharacterId)
   }
 
-  async createWorldCharacterEntity(
-    worldCharacterId: string,
-    entityId: string,
-  ) {
+  async createWorldCharacterEntity(worldCharacterId: string, entityId: string) {
     const worldCharacter = this.incarnations.find(
       (candidate) => candidate.id === worldCharacterId,
     )

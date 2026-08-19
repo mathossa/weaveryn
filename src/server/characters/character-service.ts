@@ -331,7 +331,10 @@ export class CharacterService {
 
         // The target World gets a fresh graph identity. Source-World
         // relationships are intentionally not copied.
-        await repository.createWorldCharacterEntity(migrated.id, this.createId())
+        await repository.createWorldCharacterEntity(
+          migrated.id,
+          this.createId(),
+        )
         return migrated
       } catch (error) {
         if (error instanceof CharacterRepositoryConflictError) {

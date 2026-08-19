@@ -118,7 +118,10 @@ export default async function WorldEntityDetailPage({
         actions={
           <div className={styles.actions}>
             {ownedCharacterHref ? (
-              <Link className={styles.secondaryButton} href={ownedCharacterHref}>
+              <Link
+                className={styles.secondaryButton}
+                href={ownedCharacterHref}
+              >
                 Open Character
               </Link>
             ) : null}

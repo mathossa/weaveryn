@@ -316,11 +316,11 @@ describe('WorldCharacter entity graph integration', () => {
     })
 
     expect(repository.relationships.has(relationship.id)).toBe(true)
-    await expect(service.listRelationships(worldId, playerAId)).resolves.toEqual([
-      relationship,
-    ])
-    await expect(service.listRelationships(worldId, playerBId)).resolves.toEqual(
-      [],
-    )
+    await expect(
+      service.listRelationships(worldId, playerAId),
+    ).resolves.toEqual([relationship])
+    await expect(
+      service.listRelationships(worldId, playerBId),
+    ).resolves.toEqual([])
   })
 })

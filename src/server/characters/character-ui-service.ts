@@ -1,10 +1,7 @@
 import { prisma } from '@/lib/prisma'
 
 export type CharacterCampaignRole =
-  | 'GM'
-  | 'ASSISTANT_GM'
-  | 'PLAYER'
-  | 'SPECTATOR'
+  'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR'
 
 export interface CharacterWorldIncarnationChoice {
   id: string
