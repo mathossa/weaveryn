@@ -95,7 +95,7 @@ export interface CharacterRepository extends WorldAuthorizationRepository {
     worldCharacterId: string,
     entityId: string,
   ): Promise<void>
-  detachWorldCharacterEntityToNpc(worldCharacterId: string): Promise<void>
+  preserveOrRemoveWorldCharacterEntity(worldCharacterId: string): Promise<void>
   deleteWorldCharacterForOwner(
     worldCharacterId: string,
     ownerUserId: string,
