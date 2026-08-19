@@ -12,6 +12,12 @@ export const WORLD_CHARACTER_PROFILE_FIELDS = [
 export type WorldCharacterProfileFieldKey =
   (typeof WORLD_CHARACTER_PROFILE_FIELDS)[number]['key']
 
+export type WorldCharacterCustomFieldValue = string | number | boolean
+export type WorldCharacterCustomFields = Record<
+  string,
+  WorldCharacterCustomFieldValue
+>
+
 export interface WorldCharacterProfile {
   values: Partial<Record<WorldCharacterProfileFieldKey, string>>
   hiddenFields: WorldCharacterProfileFieldKey[]
@@ -20,11 +26,21 @@ export interface WorldCharacterProfile {
 const PROFILE_KEYS = new Set<WorldCharacterProfileFieldKey>(
   WORLD_CHARACTER_PROFILE_FIELDS.map((field) => field.key),
 )
+const PROFILE_FIELDS_BY_LABEL = new Map(
+  WORLD_CHARACTER_PROFILE_FIELDS.map((field) => [field.label, field] as const),
+)
 
 function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : null
+}
+
+function customFieldValue(value: unknown): WorldCharacterCustomFieldValue | null {
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'boolean') return value
+  return null
 }
 
 export function normalizeWorldCharacterProfile(
@@ -53,6 +69,23 @@ export function normalizeWorldCharacterProfile(
   return { values, hiddenFields: [...new Set(hiddenFields)] }
 }
 
+export function normalizeWorldCharacterCustomFields(
+  value: unknown,
+): WorldCharacterCustomFields {
+  const container = record(value)
+  const fields = record(container?.customFields)
+  if (!fields) return {}
+
+  const normalized: WorldCharacterCustomFields = {}
+  for (const [key, value] of Object.entries(fields)) {
+    const normalizedKey = key.trim()
+    const normalizedValue = customFieldValue(value)
+    if (!normalizedKey || normalizedValue === null) continue
+    normalized[normalizedKey] = normalizedValue
+  }
+  return normalized
+}
+
 export function mergeWorldCharacterProfile(
   worldData: unknown,
   profile: WorldCharacterProfile,
@@ -63,6 +96,64 @@ export function mergeWorldCharacterProfile(
     profile: {
       values: profile.values,
       hiddenFields: profile.hiddenFields,
+    },
+  }
+}
+
+export function mergeWorldCharacterCustomFields(
+  worldData: unknown,
+  customFields: WorldCharacterCustomFields,
+) {
+  const current = record(worldData) ?? {}
+  return {
+    ...current,
+    customFields,
+  }
+}
+
+export function adoptWorldEntityIntoWorldCharacterData(
+  worldData: unknown,
+  description: string | null,
+  entityData: unknown,
+) {
+  const current = record(worldData) ?? {}
+  const currentProfile = normalizeWorldCharacterProfile(worldData)
+  const currentCustomFields = normalizeWorldCharacterCustomFields(worldData)
+  const entityRecord = record(entityData) ?? {}
+  const importedProfileValues: WorldCharacterProfile['values'] = {}
+  const importedCustomFields: WorldCharacterCustomFields = {}
+
+  for (const [key, value] of Object.entries(entityRecord)) {
+    const profileField = PROFILE_FIELDS_BY_LABEL.get(key)
+    if (profileField) {
+      const text = customFieldValue(value)
+      if (text !== null && String(text).trim()) {
+        importedProfileValues[profileField.key] = String(text).trim()
+      }
+      continue
+    }
+
+    const normalizedValue = customFieldValue(value)
+    if (normalizedValue !== null) {
+      importedCustomFields[key] = normalizedValue
+    }
+  }
+
+  const npcDescription = description?.trim()
+  if (npcDescription) importedProfileValues.whoIs = npcDescription
+
+  return {
+    ...current,
+    profile: {
+      values: {
+        ...importedProfileValues,
+        ...currentProfile.values,
+      },
+      hiddenFields: currentProfile.hiddenFields,
+    },
+    customFields: {
+      ...importedCustomFields,
+      ...currentCustomFields,
     },
   }
 }
