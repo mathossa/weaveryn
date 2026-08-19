@@ -23,7 +23,6 @@ export interface WorldEntityRecord extends VisibilityRecord {
   imageFocusY?: number
   data: unknown
   worldCharacterId?: string | null
-  worldCharacterOwnerUserId?: string | null
   worldCharacterCampaignIds?: string[]
   createdAt: Date
   updatedAt: Date
