@@ -229,12 +229,48 @@ export class PrismaCharacterRepository implements CharacterRepository {
       throw new Error(`WorldCharacter ${worldCharacterId} was not found.`)
     }
 
+    const continuityEntity = await this.db.worldEntity.findUnique({
+      where: {
+        worldId_originCharacterId: {
+          worldId: worldCharacter.worldId,
+          originCharacterId: worldCharacter.characterId,
+        },
+      },
+    })
+
+    if (continuityEntity) {
+      if (
+        continuityEntity.worldCharacterId &&
+        continuityEntity.worldCharacterId !== worldCharacter.id
+      ) {
+        throw new CharacterRepositoryConflictError()
+      }
+
+      await this.db.worldEntity.update({
+        where: { id: continuityEntity.id },
+        data: {
+          worldCharacterId: worldCharacter.id,
+          worldCharacterWorldId: worldCharacter.worldId,
+          originCharacterId: worldCharacter.characterId,
+          type: 'character',
+          name: resolvedWorldCharacterName(worldCharacter),
+          image: worldCharacter.character.image,
+          createdById: worldCharacter.character.ownerUserId,
+          visibilityScope: 'WORLD',
+          visibilityCampaignId: null,
+          visibilityUserId: null,
+        },
+      })
+      return
+    }
+
     await this.db.worldEntity.create({
       data: {
         id: entityId,
         worldId: worldCharacter.worldId,
         worldCharacterId: worldCharacter.id,
         worldCharacterWorldId: worldCharacter.worldId,
+        originCharacterId: worldCharacter.characterId,
         type: 'character',
         name: resolvedWorldCharacterName(worldCharacter),
         image: worldCharacter.character.image,
@@ -288,6 +324,7 @@ export class PrismaCharacterRepository implements CharacterRepository {
       data: {
         worldCharacterId: null,
         worldCharacterWorldId: null,
+        originCharacterId: worldCharacter.characterId,
         type: 'person',
         name: resolvedWorldCharacterName(worldCharacter),
         image: worldCharacter.character.image,
