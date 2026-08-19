@@ -1,6 +1,6 @@
 # WorldCharacter entity graph integration
 
-Issue: #117
+Issues: #117, #124
 
 ## Purpose
 
@@ -99,6 +99,10 @@ One WorldCharacter participating in multiple Campaigns remains one World identit
 
 Deleting a Campaign therefore removes Campaign-specific participation/state without deleting the WorldCharacter graph identity.
 
+A Character owner who still has access to a Campaign may voluntarily remove their own `CampaignCharacter` participation. Campaign owners, GMs, and Assistant GMs retain their existing management authority over participation. A normal player cannot remove another user's Character participation.
+
+Leaving Character participation is deliberately separate from leaving Campaign membership. Removing a `CampaignCharacter` does not remove `CampaignMembership`, `WorldCharacter`, the portable `Character`, the linked Character-backed `WorldEntity`, or its World relationships.
+
 ## Copying to another World
 
 Copy preserves the portable Character while creating a separate WorldCharacter in the target World.
@@ -163,7 +167,10 @@ The application-level WorldCharacter removal path follows the same preservation 
 - active CampaignCharacter participation blocks removal;
 - the linked Character entity is detached and converted to an NPC snapshot;
 - its World relationships remain;
-- the WorldCharacter is then removed.
+- the WorldCharacter is then removed;
+- the portable Character remains owned by the user and can later receive another WorldCharacter in a different or newly accessible World.
+
+The production Character overview exposes this as an explicit `Leave World` action. It is disabled while any CampaignCharacter participation remains, including participation that may no longer be visible through the current user's Campaign access. The backend performs the same authoritative check before mutation.
 
 The database link uses cascading deletion as a containment safety rule so deleting an entire World can still clean up its World-owned entity graph. Normal Character/WorldCharacter lifecycle operations must use the application service so the deliberate NPC preservation behavior occurs before deletion.
 
@@ -189,11 +196,16 @@ Other users do not receive access to another player's editable Character route m
 
 The WorldCharacter overview links back to its WorldEntity/relationships when the graph representation exists.
 
+The same overview owns the Character-facing lifecycle controls:
+
+- each accessible Campaign participation provides `Leave Campaign` with an explicit confirmation that Campaign membership and World identity remain;
+- the WorldCharacter section provides `Leave World` with an explicit confirmation of the NPC snapshot behavior;
+- `Leave World` is unavailable until all Campaign participation has been resolved;
+- successful World removal returns the user to the surviving portable Character rather than a now-invalid WorldCharacter route.
+
 ## Verification
 
-The existing `/dev/character-copy-migration` scenario is extended for #117 rather than creating duplicate test infrastructure.
-
-It verifies:
+The existing `/dev/character-copy-migration` scenario remains the graph continuity scenario for #117. It verifies:
 
 - copy creates a separate Character-backed entity;
 - source relationships are not copied;
@@ -203,4 +215,6 @@ It verifies:
 - source relationships remain attached to that NPC;
 - the target World receives a fresh Character-backed entity.
 
-Unit coverage also verifies reserved Character type handling, Character-backed entity protection, relationship participation, and Campaign-only visibility behavior.
+The existing `/dev/campaign-characters` scenario is extended for #124. It verifies that a Character owner can remove their own Campaign participation while Campaign membership, portable identity, WorldCharacter identity, and other Campaign participation remain intact.
+
+Unit coverage verifies that another normal Player cannot remove someone else's CampaignCharacter, managers retain removal authority, Character ownership without Campaign access is insufficient, WorldCharacter removal is blocked while Campaign participation remains, and successful WorldCharacter removal detaches the source entity into an NPC while preserving relationships.
