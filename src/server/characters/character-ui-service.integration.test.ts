@@ -163,7 +163,7 @@ describe('Character UI flow', () => {
     })
   })
 
-  it('removes an unused Character entity on World leave but preserves referenced history as an NPC', async () => {
+  it('removes an unused Character entity on World leave, preserves referenced history as an NPC, and reclaims it on rejoin', async () => {
     const player = await createUser('leave-world')
     const gm = await createUser('leave-world-gm')
     const worldId = id()
@@ -219,9 +219,10 @@ describe('Character UI flow', () => {
         createdById: gm.id,
       },
     })
+    const relationshipId = id()
     await prisma.entityRelationship.create({
       data: {
-        id: id(),
+        id: relationshipId,
         worldId,
         sourceEntityId: referencedWorldCharacter.id,
         targetEntityId: locationId,
@@ -238,12 +239,58 @@ describe('Character UI flow', () => {
     await expect(
       prisma.worldEntity.findUnique({
         where: { id: referencedWorldCharacter.id },
-        select: { type: true, worldCharacterId: true, name: true },
+        select: {
+          type: true,
+          worldCharacterId: true,
+          originCharacterId: true,
+          name: true,
+        },
       }),
     ).resolves.toEqual({
       type: 'person',
       worldCharacterId: null,
+      originCharacterId: referencedCharacter.id,
       name: 'Remembered Hero',
+    })
+
+    const rejoinedWorldCharacter = await characterService.createWorldCharacter({
+      actorUserId: player.id,
+      characterId: referencedCharacter.id,
+      worldId,
+    })
+    ids.push(rejoinedWorldCharacter.id)
+
+    expect(rejoinedWorldCharacter.id).not.toBe(referencedWorldCharacter.id)
+    await expect(
+      prisma.worldEntity.findMany({
+        where: {
+          worldId,
+          originCharacterId: referencedCharacter.id,
+        },
+        select: {
+          id: true,
+          type: true,
+          worldCharacterId: true,
+          originCharacterId: true,
+        },
+      }),
+    ).resolves.toEqual([
+      {
+        id: referencedWorldCharacter.id,
+        type: 'character',
+        worldCharacterId: rejoinedWorldCharacter.id,
+        originCharacterId: referencedCharacter.id,
+      },
+    ])
+
+    await expect(
+      prisma.entityRelationship.findUnique({
+        where: { id: relationshipId },
+        select: { sourceEntityId: true, targetEntityId: true },
+      }),
+    ).resolves.toEqual({
+      sourceEntityId: referencedWorldCharacter.id,
+      targetEntityId: locationId,
     })
   })
 })
