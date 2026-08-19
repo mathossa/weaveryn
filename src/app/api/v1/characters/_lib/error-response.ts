@@ -41,6 +41,8 @@ export function characterApiErrorResponse(error: unknown) {
     return jsonError(error.code, error.message, status)
   }
 
+  console.error('Unexpected Character API failure.', error)
+
   return jsonError(
     'CHARACTER_OPERATION_FAILED',
     'Character operation failed.',
