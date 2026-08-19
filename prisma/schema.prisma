@@ -39,6 +39,11 @@ enum EntryPreferenceKind {
   WEAVER
 }
 
+enum MembershipInvitationKind {
+  WORLD
+  CAMPAIGN
+}
+
 model User {
   id              String  @id @default(uuid()) @db.Uuid
   email           String  @unique
@@ -59,6 +64,8 @@ model User {
   playerVisibleEntityRelationships EntityRelationship[] @relation("EntityRelationshipVisibilityUser")
   createdWorldEntityTypes          WorldEntityType[]    @relation("WorldEntityTypeCreator")
   entryPreferences                 EntryPreference[]
+  createdMembershipInvitations     MembershipInvitation[] @relation("MembershipInvitationCreator")
+  acceptedMembershipInvitations    MembershipInvitation[] @relation("MembershipInvitationAcceptor")
   authSessions                     AuthSession[]
   authAccounts                     AuthAccount[]
 
@@ -119,14 +126,15 @@ model World {
   ownerId String? @db.Uuid
   owner   User?   @relation("WorldOwner", fields: [ownerId], references: [id], onDelete: SetNull)
 
-  memberships         WorldMembership[]
-  timelines           WorldTimeline[]
-  campaigns           Campaign[]
-  characters          WorldCharacter[]
-  entities            WorldEntity[]
-  entityRelationships EntityRelationship[]
-  entityTypes         WorldEntityType[]
-  entryPreferences    EntryPreference[]
+  memberships          WorldMembership[]
+  membershipInvitations MembershipInvitation[]
+  timelines            WorldTimeline[]
+  campaigns            Campaign[]
+  characters           WorldCharacter[]
+  entities             WorldEntity[]
+  entityRelationships  EntityRelationship[]
+  entityTypes          WorldEntityType[]
+  entryPreferences     EntryPreference[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -325,6 +333,7 @@ model Campaign {
   status                CampaignStatus @default(ACTIVE)
 
   memberships                CampaignMembership[]
+  membershipInvitations      MembershipInvitation[]
   campaignCharacters         CampaignCharacter[]
   visibleWorldEntities       WorldEntity[]        @relation("WorldEntityVisibilityCampaign")
   visibleEntityRelationships EntityRelationship[] @relation("EntityRelationshipVisibilityCampaign")
@@ -355,6 +364,35 @@ model CampaignMembership {
 
   @@unique([campaignId, userId])
   @@index([userId])
+}
+
+model MembershipInvitation {
+  id           String                   @id @default(uuid()) @db.Uuid
+  kind         MembershipInvitationKind
+  tokenHash    String                   @unique
+  worldId      String?                  @db.Uuid
+  campaignId   String?                  @db.Uuid
+  worldRole    WorldRole?
+  campaignRole CampaignRole?
+  createdById  String                   @db.Uuid
+  acceptedById String?                  @db.Uuid
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  revokedAt    DateTime?
+
+  world      World?    @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  createdBy  User      @relation("MembershipInvitationCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  acceptedBy User?     @relation("MembershipInvitationAcceptor", fields: [acceptedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([worldId, expiresAt])
+  @@index([campaignId, expiresAt])
+  @@index([createdById])
+  @@index([acceptedById])
+  @@index([expiresAt])
 }
 
 model CampaignCharacter {
