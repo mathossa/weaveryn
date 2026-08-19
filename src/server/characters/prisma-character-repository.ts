@@ -47,7 +47,11 @@ function hasMeaningfulWorldCharacterData(value: unknown) {
   if (!source) return false
   const profile = normalizeWorldCharacterProfile(value)
   if (Object.values(profile.values).some(Boolean)) return true
-  return Object.keys(source).some((key) => key !== 'profile')
+  const customFields = normalizeWorldCharacterCustomFields(value)
+  if (Object.keys(customFields).length > 0) return true
+  return Object.keys(source).some(
+    (key) => key !== 'profile' && key !== 'customFields',
+  )
 }
 
 function snapshotWorldCharacterData(
