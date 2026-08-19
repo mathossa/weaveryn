@@ -1,4 +1,8 @@
 import { Prisma, type PrismaClient } from '@/generated/prisma/client'
+import {
+  normalizeWorldCharacterProfile,
+  WORLD_CHARACTER_PROFILE_FIELDS,
+} from '@/lib/world-character-profile'
 import type { WorldMembershipRecord } from '../worlds/world-membership-repository'
 import {
   CharacterRepositoryConflictError,
@@ -23,11 +27,47 @@ function resolvedWorldCharacterName(value: {
   return value.nameOverride?.trim() || value.character.name
 }
 
+function jsonRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null
+}
+
 function hasMeaningfulEntityData(value: Prisma.JsonValue) {
   if (value === null) return false
   if (Array.isArray(value)) return value.length > 0
   if (typeof value === 'object') return Object.keys(value).length > 0
   return true
+}
+
+function hasMeaningfulWorldCharacterData(value: unknown) {
+  const source = jsonRecord(value)
+  if (!source) return false
+  const profile = normalizeWorldCharacterProfile(value)
+  if (Object.values(profile.values).some(Boolean)) return true
+  return Object.keys(source).some((key) => key !== 'profile')
+}
+
+function snapshotWorldCharacterData(
+  entityData: Prisma.JsonValue,
+  worldData: unknown,
+): Prisma.InputJsonValue {
+  const entityRecord = jsonRecord(entityData) ?? {}
+  const worldRecord = jsonRecord(worldData) ?? {}
+  const { profile: _profile, ...otherWorldData } = worldRecord
+  const profile = normalizeWorldCharacterProfile(worldData)
+  const profileSnapshot = Object.fromEntries(
+    WORLD_CHARACTER_PROFILE_FIELDS.flatMap((field) => {
+      const value = profile.values[field.key]
+      return value ? [[field.label, value]] : []
+    }),
+  )
+
+  return {
+    ...otherWorldData,
+    ...entityRecord,
+    ...profileSnapshot,
+  } as Prisma.InputJsonValue
 }
 
 export class PrismaCharacterRepository implements CharacterRepository {
@@ -228,9 +268,13 @@ export class PrismaCharacterRepository implements CharacterRepository {
     if (!worldCharacter?.worldEntity) return
 
     const entity = worldCharacter.worldEntity
+    const hasWorldCharacterStory = hasMeaningfulWorldCharacterData(
+      worldCharacter.worldData,
+    )
     const hasWorldContinuity =
       Boolean(entity.description?.trim()) ||
       hasMeaningfulEntityData(entity.data) ||
+      hasWorldCharacterStory ||
       entity._count.sourceRelationships > 0 ||
       entity._count.targetRelationships > 0
 
@@ -247,6 +291,9 @@ export class PrismaCharacterRepository implements CharacterRepository {
         type: 'person',
         name: resolvedWorldCharacterName(worldCharacter),
         image: worldCharacter.character.image,
+        data: hasWorldCharacterStory
+          ? snapshotWorldCharacterData(entity.data, worldCharacter.worldData)
+          : (entity.data as Prisma.InputJsonValue),
         visibilityScope: 'WORLD',
         visibilityCampaignId: null,
         visibilityUserId: null,
