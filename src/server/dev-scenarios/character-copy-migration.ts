@@ -32,7 +32,9 @@ const CAMPAIGN_ID = '19000000-0000-4000-8000-0000000000d1'
 const CHARACTER_ID = '19000000-0000-4000-8000-0000000000e1'
 const SOURCE_ID = '19000000-0000-4000-8000-0000000000e2'
 const COPY_ID = '19000000-0000-4000-8000-0000000000e3'
+const MOONBLADE_ID = '19000000-0000-4000-8000-0000000000e4'
 const PARTICIPATION_ID = '19000000-0000-4000-8000-0000000000f1'
+const RELATIONSHIP_ID = '19000000-0000-4000-8000-0000000000f2'
 
 const characters = (id = randomUUID()) =>
   new CharacterService(new PrismaCharacterRepository(prisma), () => id)
@@ -40,7 +42,7 @@ const campaignCharacters = () =>
   new CampaignCharacterService(new PrismaCampaignCharacterRepository(prisma))
 
 async function assertOwned() {
-  const [worlds, character, campaign] = await Promise.all([
+  const [worlds, character, campaign, entities] = await Promise.all([
     prisma.world.findMany({
       where: { id: { in: [WORLD_ONE_ID, WORLD_TWO_ID, WORLD_THREE_ID] } },
       select: { id: true, description: true, ownerId: true },
@@ -53,30 +55,47 @@ async function assertOwned() {
       where: { id: CAMPAIGN_ID },
       select: { description: true, ownerId: true, worldId: true },
     }),
+    prisma.worldEntity.findMany({
+      where: { id: { in: [SOURCE_ID, COPY_ID, MOONBLADE_ID] } },
+      select: { id: true, worldId: true, description: true },
+    }),
   ])
   for (const world of worlds) {
     if (
       world.description !== metadata.fixtureNamespace ||
       world.ownerId !== OWNER_ID
-    )
+    ) {
       throw new FixtureOwnershipError(
         `World ${world.id} is not scenario-owned.`,
       )
+    }
   }
   if (
     character &&
     (character.ownerUserId !== OWNER_ID ||
       (character.coreData as { marker?: string } | null)?.marker !==
         metadata.fixtureNamespace)
-  )
+  ) {
     throw new FixtureOwnershipError('Character fixture is not scenario-owned.')
+  }
   if (
     campaign &&
     (campaign.description !== metadata.fixtureNamespace ||
       campaign.ownerId !== OWNER_ID ||
       campaign.worldId !== WORLD_ONE_ID)
-  )
+  ) {
     throw new FixtureOwnershipError('Campaign fixture is not scenario-owned.')
+  }
+  for (const entity of entities) {
+    if (
+      entity.description !== metadata.fixtureNamespace ||
+      ![WORLD_ONE_ID, WORLD_TWO_ID, WORLD_THREE_ID].includes(entity.worldId)
+    ) {
+      throw new FixtureOwnershipError(
+        `WorldEntity ${entity.id} is not scenario-owned.`,
+      )
+    }
+  }
 }
 
 async function readState(): Promise<CharacterCopyMigrationState | null> {
@@ -86,24 +105,58 @@ async function readState(): Promise<CharacterCopyMigrationState | null> {
     select: { id: true, ownerUserId: true, name: true },
   })
   if (!character) return null
-  const [worlds, worldCharacters, participations] = await Promise.all([
-    prisma.world.findMany({
-      where: { id: { in: [WORLD_ONE_ID, WORLD_TWO_ID, WORLD_THREE_ID] } },
-      select: { id: true, name: true },
-      orderBy: { id: 'asc' },
-    }),
-    prisma.worldCharacter.findMany({
-      where: { characterId: CHARACTER_ID },
-      select: { id: true, worldId: true, nameOverride: true, worldData: true },
-      orderBy: { id: 'asc' },
-    }),
-    prisma.campaignCharacter.findMany({
-      where: { worldCharacter: { characterId: CHARACTER_ID } },
-      select: { id: true, worldCharacterId: true, campaignId: true },
-      orderBy: { id: 'asc' },
-    }),
-  ])
-  return { character, worlds, worldCharacters, participations }
+  const [worlds, worldCharacters, participations, entities, relationships] =
+    await Promise.all([
+      prisma.world.findMany({
+        where: { id: { in: [WORLD_ONE_ID, WORLD_TWO_ID, WORLD_THREE_ID] } },
+        select: { id: true, name: true },
+        orderBy: { id: 'asc' },
+      }),
+      prisma.worldCharacter.findMany({
+        where: { characterId: CHARACTER_ID },
+        select: { id: true, worldId: true, nameOverride: true, worldData: true },
+        orderBy: { id: 'asc' },
+      }),
+      prisma.campaignCharacter.findMany({
+        where: { worldCharacter: { characterId: CHARACTER_ID } },
+        select: { id: true, worldCharacterId: true, campaignId: true },
+        orderBy: { id: 'asc' },
+      }),
+      prisma.worldEntity.findMany({
+        where: {
+          worldId: { in: [WORLD_ONE_ID, WORLD_TWO_ID, WORLD_THREE_ID] },
+        },
+        select: {
+          id: true,
+          worldId: true,
+          worldCharacterId: true,
+          type: true,
+          name: true,
+        },
+        orderBy: { id: 'asc' },
+      }),
+      prisma.entityRelationship.findMany({
+        where: {
+          worldId: { in: [WORLD_ONE_ID, WORLD_TWO_ID, WORLD_THREE_ID] },
+        },
+        select: {
+          id: true,
+          worldId: true,
+          sourceEntityId: true,
+          targetEntityId: true,
+          relationshipType: true,
+        },
+        orderBy: { id: 'asc' },
+      }),
+    ])
+  return {
+    character,
+    worlds,
+    worldCharacters,
+    participations,
+    entities,
+    relationships,
+  }
 }
 
 async function resetFixture() {
@@ -184,6 +237,7 @@ async function resetFixture() {
         id: CHARACTER_ID,
         ownerUserId: OWNER_ID,
         name: 'Bodwick',
+        image: '/images/characters/default-character.webp',
         coreData: { marker: metadata.fixtureNamespace },
       },
     })
@@ -194,6 +248,44 @@ async function resetFixture() {
         worldId: WORLD_ONE_ID,
         nameOverride: 'Bodwick of Aldorath',
         worldData: { culture: 'Aldoran', marker: metadata.fixtureNamespace },
+      },
+    })
+    await tx.worldEntity.createMany({
+      data: [
+        {
+          id: SOURCE_ID,
+          worldId: WORLD_ONE_ID,
+          worldCharacterId: SOURCE_ID,
+          type: 'character',
+          name: 'Bodwick of Aldorath',
+          image: '/images/characters/default-character.webp',
+          description: metadata.fixtureNamespace,
+          data: { marker: metadata.fixtureNamespace },
+          createdById: OWNER_ID,
+          visibilityScope: 'WORLD',
+        },
+        {
+          id: MOONBLADE_ID,
+          worldId: WORLD_ONE_ID,
+          type: 'item',
+          name: 'Moonblade',
+          description: metadata.fixtureNamespace,
+          data: { marker: metadata.fixtureNamespace },
+          createdById: OWNER_ID,
+          visibilityScope: 'WORLD',
+        },
+      ],
+    })
+    await tx.entityRelationship.create({
+      data: {
+        id: RELATIONSHIP_ID,
+        worldId: WORLD_ONE_ID,
+        sourceEntityId: SOURCE_ID,
+        targetEntityId: MOONBLADE_ID,
+        relationshipType: 'OWNS',
+        metadata: { marker: metadata.fixtureNamespace },
+        createdById: OWNER_ID,
+        visibilityScope: 'WORLD',
       },
     })
     await tx.campaignCharacter.create({
@@ -219,7 +311,7 @@ function result(
     activity: {
       action,
       actor: 'Character owner and World admin',
-      target: 'Issue #19 fixture',
+      target: 'Issue #19/#117 fixture',
       expected: 'Registered service behavior',
       actual,
       status: ok ? 'passed' : 'failed',
@@ -231,12 +323,13 @@ function result(
 async function execute(
   action: CharacterCopyMigrationAction,
 ): Promise<DevScenarioActionResult> {
-  if (!(await readState()))
+  if (!(await readState())) {
     return result(
       action.action,
       'Reset the deterministic fixture first.',
       false,
     )
+  }
   try {
     if (action.action === 'copy') {
       await characters(COPY_ID).copyWorldCharacter({
@@ -248,7 +341,7 @@ async function execute(
       })
       return result(
         action.action,
-        'Copied with explicit Veyran data; Campaign participation was not copied.',
+        'Copied with a fresh Character entity in Veyra; Campaign participation and Aldorath relationships were not copied.',
         true,
       )
     }
@@ -291,7 +384,7 @@ async function execute(
     })
     return result(
       action.action,
-      'Migrated the same WorldCharacter to Nareth after participation was resolved.',
+      'Migrated the same WorldCharacter to Nareth; the Aldorath entity remained as an NPC with its relationships.',
       true,
     )
   } catch (error) {
@@ -301,13 +394,14 @@ async function execute(
         error.code === 'WORLD_CHARACTER_ALREADY_EXISTS') ||
         (action.action === 'try-migrate-with-participation' &&
           error.code === 'WORLD_CHARACTER_HAS_CAMPAIGN_PARTICIPATION'))
-    )
+    ) {
       return result(
         action.action,
         `Rejected with ${error.code}.`,
         true,
         error.code,
       )
+    }
     throw error
   }
 }
@@ -315,13 +409,34 @@ async function execute(
 async function runAll(): Promise<DevScenarioActionResult> {
   await resetFixture()
   const checks: DevAcceptanceCheck[] = []
+
   const copy = await execute({ action: 'copy' })
+  const afterCopy = await readState()
   checks.push({
     id: 'copy',
-    title: 'Copy preserves portable identity without Campaign participation',
-    status: copy.ok ? 'passed' : 'failed',
+    title: 'Copy creates a separate Character entity without World relationships',
+    status:
+      copy.ok &&
+      afterCopy?.entities.some(
+        (entity) =>
+          entity.worldId === WORLD_TWO_ID &&
+          entity.worldCharacterId === COPY_ID &&
+          entity.type === 'character',
+      ) &&
+      !afterCopy.relationships.some(
+        (relationship) =>
+          afterCopy.entities.some(
+            (entity) =>
+              entity.worldId === WORLD_TWO_ID &&
+              (relationship.sourceEntityId === entity.id ||
+                relationship.targetEntityId === entity.id),
+          ),
+      )
+        ? 'passed'
+        : 'failed',
     detail: copy.message,
   })
+
   const duplicate = await execute({ action: 'try-duplicate-copy' })
   checks.push({
     id: 'duplicate',
@@ -330,10 +445,11 @@ async function runAll(): Promise<DevScenarioActionResult> {
     detail: duplicate.message,
     domainErrorCode: duplicate.activity?.domainErrorCode,
   })
+
   const blocked = await execute({ action: 'try-migrate-with-participation' })
   checks.push({
     id: 'blocked-migration',
-    title: 'Campaign participation blocks migration without changes',
+    title: 'Campaign participation blocks migration without graph changes',
     status:
       blocked.ok &&
       (await readState())?.worldCharacters.some(
@@ -344,12 +460,24 @@ async function runAll(): Promise<DevScenarioActionResult> {
     detail: blocked.message,
     domainErrorCode: blocked.activity?.domainErrorCode,
   })
+
   await execute({ action: 'resolve-participation' })
   const migration = await execute({ action: 'migrate' })
   const after = await readState()
+  const sourceNpc = after?.entities.find((entity) => entity.id === SOURCE_ID)
+  const targetCharacterEntity = after?.entities.find(
+    (entity) =>
+      entity.worldId === WORLD_THREE_ID &&
+      entity.worldCharacterId === SOURCE_ID &&
+      entity.type === 'character',
+  )
+  const preservedRelationship = after?.relationships.find(
+    (relationship) => relationship.id === RELATIONSHIP_ID,
+  )
+
   checks.push({
     id: 'safe-migration',
-    title: 'Migration preserves identity after participation is resolved',
+    title: 'Migration preserves portable and WorldCharacter identity',
     status:
       migration.ok &&
       after?.character?.ownerUserId === OWNER_ID &&
@@ -361,9 +489,32 @@ async function runAll(): Promise<DevScenarioActionResult> {
         : 'failed',
     detail: migration.message,
   })
+  checks.push({
+    id: 'source-graph-continuity',
+    title: 'Source Character entity becomes an NPC and keeps its relationships',
+    status:
+      sourceNpc?.worldId === WORLD_ONE_ID &&
+      sourceNpc.worldCharacterId === null &&
+      sourceNpc.type === 'person' &&
+      sourceNpc.name === 'Bodwick of Aldorath' &&
+      preservedRelationship?.sourceEntityId === SOURCE_ID &&
+      preservedRelationship.targetEntityId === MOONBLADE_ID
+        ? 'passed'
+        : 'failed',
+    detail:
+      'The Aldorath graph keeps Bodwick as a Person / NPC snapshot still connected to Moonblade.',
+  })
+  checks.push({
+    id: 'target-graph-identity',
+    title: 'Target World gets one fresh Character-backed entity',
+    status: targetCharacterEntity ? 'passed' : 'failed',
+    detail:
+      'Nareth contains the migrated WorldCharacter as a fresh Character entity without copying Aldorath relationships.',
+  })
+
   return {
     ok: checks.every((check) => check.status === 'passed'),
-    message: 'Executed Issue #19 acceptance checks.',
+    message: 'Executed Issue #19/#117 copy, migration, and graph checks.',
     checks,
   }
 }
@@ -390,10 +541,10 @@ async function cleanup(): Promise<DevScenarioActionResult> {
   })
   return {
     ok: true,
-    message: 'Removed only Issue #19 scenario records.',
+    message: 'Removed only Issue #19/#117 scenario records.',
     cleanup: {
       deleted: [
-        'Scenario Worlds, Campaign, Character, WorldCharacters, and participation',
+        'Scenario Worlds, Campaign, Character, WorldCharacters, graph entities, relationships, and participation',
       ],
       retained: ['Fixture user retained'],
     },
@@ -408,7 +559,7 @@ export const characterCopyMigrationScenario: DevScenario<
   readState,
   reset: async () => {
     await resetFixture()
-    return { ok: true, message: 'Reset Issue #19 fixture.' }
+    return { ok: true, message: 'Reset Issue #19/#117 fixture.' }
   },
   cleanup,
   runAll,
