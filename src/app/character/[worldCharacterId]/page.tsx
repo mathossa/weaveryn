@@ -6,6 +6,10 @@ import { withCharacterContext } from '@/lib/campaign-context'
 import { getWorldCharacterOverview } from '@/server/characters'
 import { AttachCampaignButton } from '../_components/attach-campaign-button'
 import { CharacterForm } from '../_components/character-form'
+import {
+  LeaveCampaignAction,
+  LeaveWorldAction,
+} from '../_components/character-lifecycle-actions'
 import { CharacterPortrait } from '../_components/character-portrait'
 import { WorldCharacterForm } from '../_components/world-character-form'
 import { loadCharacterPageUser } from '../_lib/load-character-user'
@@ -174,6 +178,22 @@ export default async function WorldCharacterPage({
                   </Link>
                 </div>
               ) : null}
+              <div className={styles.dangerZone}>
+                <div>
+                  <strong>World lifecycle</strong>
+                  <p className={styles.meta}>
+                    Removing this WorldCharacter does not delete your portable
+                    Character. Its current World entity remains behind as a
+                    normal Person / NPC with its existing relationships.
+                  </p>
+                </div>
+                <LeaveWorldAction
+                  worldCharacterId={character.id}
+                  portableCharacterId={character.character.id}
+                  worldName={character.world.name}
+                  hasCampaignParticipation={character.hasCampaignParticipation}
+                />
+              </div>
             </section>
           </div>
 
@@ -187,9 +207,8 @@ export default async function WorldCharacterPage({
             ) : (
               <div className={styles.list}>
                 {character.participations.map((participation) => (
-                  <Link
-                    className={styles.listItem}
-                    href={`/world/${character.world.id}/campaign/${participation.campaign.id}?character=${character.id}`}
+                  <div
+                    className={`${styles.listItem} ${styles.participationItem}`}
                     key={participation.id}
                   >
                     <span className={styles.listCopy}>
@@ -198,8 +217,19 @@ export default async function WorldCharacterPage({
                         {participation.campaign.role} · {participation.status}
                       </span>
                     </span>
-                    <span>Enter →</span>
-                  </Link>
+                    <div className={styles.participationActions}>
+                      <Link
+                        className={styles.secondary}
+                        href={`/world/${character.world.id}/campaign/${participation.campaign.id}?character=${character.id}`}
+                      >
+                        Enter →
+                      </Link>
+                      <LeaveCampaignAction
+                        campaignCharacterId={participation.id}
+                        campaignName={participation.campaign.name}
+                      />
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
