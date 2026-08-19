@@ -446,6 +446,7 @@ RuleDefinition
 ```
 
 The RulesetVersion determines valid types and data structures.
+
 Rule definitions may represent abilities, skills, items, conditions, classes, mechanical species definitions, or other Ruleset concepts without requiring fixed core tables for every game system.
 
 ---
@@ -778,7 +779,8 @@ DiceRoll
 - expression
 - result
 - details
-- visibility- createdAt
+- visibility
+- createdAt
 ```
 
 Dice behavior may be influenced or validated by the Campaign's Ruleset.
