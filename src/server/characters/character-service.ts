@@ -229,7 +229,7 @@ export class CharacterService {
         throw worldCharacterHasCampaignParticipation(current.id)
       }
 
-      await repository.detachWorldCharacterEntityToNpc(current.id)
+      await repository.preserveOrRemoveWorldCharacterEntity(current.id)
       if (
         !(await repository.deleteWorldCharacterForOwner(
           current.id,
@@ -309,9 +309,10 @@ export class CharacterService {
       }
 
       try {
-        // Preserve the old World graph by leaving the source entity and all of
-        // its relationships behind as a normal NPC snapshot.
-        await repository.detachWorldCharacterEntityToNpc(source.id)
+        // Preserve source-World continuity only when the Character entity has
+        // meaningful World content or references. Otherwise remove the unused
+        // graph node before moving the WorldCharacter.
+        await repository.preserveOrRemoveWorldCharacterEntity(source.id)
 
         const migrated = await repository.moveWorldCharacterForOwner(
           source.id,
