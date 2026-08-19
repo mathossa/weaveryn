@@ -19,6 +19,20 @@ export interface CharacterCopyMigrationState {
     worldCharacterId: string
     campaignId: string
   }>
+  entities: Array<{
+    id: string
+    worldId: string
+    worldCharacterId: string | null
+    type: string
+    name: string
+  }>
+  relationships: Array<{
+    id: string
+    worldId: string
+    sourceEntityId: string
+    targetEntityId: string
+    relationshipType: string
+  }>
 }
 
 const actions = new Set<CharacterCopyMigrationAction['action']>([

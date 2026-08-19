@@ -10,6 +10,7 @@ export interface CharacterRecord {
   createdAt: Date
   updatedAt: Date
 }
+
 export interface WorldCharacterRecord {
   id: string
   characterId: string
@@ -20,6 +21,7 @@ export interface WorldCharacterRecord {
   createdAt: Date
   updatedAt: Date
 }
+
 export interface CreateCharacterRecordInput {
   id: string
   ownerUserId: string
@@ -28,12 +30,14 @@ export interface CreateCharacterRecordInput {
   coreData?: unknown
   status?: string
 }
+
 export interface UpdateCharacterRecordInput {
   name?: string
   image?: string | null
   coreData?: unknown
   status?: string
 }
+
 export interface CreateWorldCharacterRecordInput {
   id: string
   characterId: string
@@ -42,12 +46,15 @@ export interface CreateWorldCharacterRecordInput {
   worldData?: unknown
   status?: string
 }
+
 export interface UpdateWorldCharacterRecordInput {
   nameOverride?: string | null
   worldData?: unknown
   status?: string
 }
+
 export class CharacterRepositoryConflictError extends Error {}
+
 export interface CharacterRepository extends WorldAuthorizationRepository {
   runInTransaction<T>(
     operation: (repository: CharacterRepository) => Promise<T>,
@@ -84,6 +91,15 @@ export interface CharacterRepository extends WorldAuthorizationRepository {
     userId: string,
   ): Promise<boolean>
   hasCampaignCharacterParticipation(worldCharacterId: string): Promise<boolean>
+  createWorldCharacterEntity(
+    worldCharacterId: string,
+    entityId: string,
+  ): Promise<void>
+  detachWorldCharacterEntityToNpc(worldCharacterId: string): Promise<void>
+  deleteWorldCharacterForOwner(
+    worldCharacterId: string,
+    ownerUserId: string,
+  ): Promise<boolean>
   moveWorldCharacterForOwner(
     worldCharacterId: string,
     ownerUserId: string,

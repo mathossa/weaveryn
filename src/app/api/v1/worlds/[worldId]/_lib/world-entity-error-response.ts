@@ -23,7 +23,8 @@ export function worldEntityApiErrorResponse(error: unknown) {
       error.code === 'ENTITY_RELATIONSHIP_NOT_FOUND' ||
       error.code === 'WORLD_ENTITY_TYPE_NOT_FOUND'
         ? 404
-        : error.code === 'WORLD_ENTITY_TYPE_IN_USE'
+        : error.code === 'WORLD_ENTITY_TYPE_IN_USE' ||
+            error.code === 'WORLD_ENTITY_CHARACTER_MANAGED'
           ? 409
           : 400
     return jsonError(error.code, error.message, status)

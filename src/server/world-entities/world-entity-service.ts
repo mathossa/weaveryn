@@ -8,6 +8,8 @@ import {
 import {
   entityRelationshipCrossWorld,
   entityRelationshipNotFound,
+  worldEntityCharacterManaged,
+  worldEntityCharacterTypeReserved,
   worldEntityNotFound,
   worldEntityTypeScopeInvalid,
   worldEntityVisibilityInvalid,
@@ -25,6 +27,7 @@ import type {
 import { PrismaWorldEntityRepository } from './prisma-world-entity-repository'
 
 export const BUILT_IN_WORLD_ENTITY_TYPES = [
+  { value: 'character', label: 'Character' },
   { value: 'person', label: 'Person / NPC' },
   { value: 'location', label: 'Location' },
   { value: 'organization', label: 'Faction / Organization' },
@@ -114,6 +117,11 @@ function normalizeTypeName(value: string) {
   return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('en-US')
 }
 
+function isCharacterType(value: string) {
+  const normalized = normalizeTypeName(value)
+  return normalized === 'character'
+}
+
 function isBuiltInType(value: string) {
   const normalized = normalizeTypeName(value)
   return BUILT_IN_WORLD_ENTITY_TYPES.some(
@@ -124,6 +132,17 @@ function isBuiltInType(value: string) {
 }
 
 function canViewRecord(record: VisibilityRecord, context: VisibilityContext) {
+  if ('worldCharacterId' in record && record.worldCharacterId) {
+    const entity = record as WorldEntityRecord
+    return (
+      context.isWorldOwner ||
+      context.hasWorldMembership ||
+      (entity.worldCharacterCampaignIds ?? []).some((campaignId) =>
+        context.campaigns.has(campaignId),
+      )
+    )
+  }
+
   switch (record.visibilityScope) {
     case 'WORLD':
       return context.isWorldOwner || context.hasWorldMembership
@@ -401,6 +420,8 @@ export class WorldEntityService {
         WORLD_PERMISSIONS.EDIT_CONTENT,
       )
 
+      if (isCharacterType(input.type)) throw worldEntityCharacterTypeReserved()
+
       if (input.contextCampaignId) {
         await this.assertCampaignContext(
           repository,
@@ -493,6 +514,19 @@ export class WorldEntityService {
         throw worldEntityNotFound(entityId)
       }
 
+      if (current.worldCharacterId) {
+        if (
+          input.type !== undefined ||
+          input.name !== undefined ||
+          input.image !== undefined ||
+          input.visibility !== undefined
+        ) {
+          throw worldEntityCharacterManaged(entityId)
+        }
+      } else if (input.type !== undefined && isCharacterType(input.type)) {
+        throw worldEntityCharacterTypeReserved()
+      }
+
       if (input.contextCampaignId) {
         await this.assertCampaignContext(
           repository,
@@ -543,6 +577,9 @@ export class WorldEntityService {
       const current = await repository.findEntity(worldId, entityId)
       if (!current || !canViewRecord(current, context)) {
         throw worldEntityNotFound(entityId)
+      }
+      if (current.worldCharacterId) {
+        throw worldEntityCharacterManaged(entityId)
       }
       if (!(await repository.deleteEntity(worldId, entityId))) {
         throw worldEntityNotFound(entityId)

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
+import { withCharacterContext } from '@/lib/campaign-context'
 import { getWorldCharacterOverview } from '@/server/characters'
 import { AttachCampaignButton } from '../_components/attach-campaign-button'
 import { CharacterForm } from '../_components/character-form'
@@ -37,6 +38,14 @@ export default async function WorldCharacterPage({
   const targetCampaign = targetCampaignId
     ? character.availableCampaigns.find(
         (campaign) => campaign.id === targetCampaignId,
+      )
+    : undefined
+  const worldEntityHref = character.worldEntityId
+    ? withCharacterContext(
+        `/world/${character.world.id}/entities/${character.worldEntityId}${
+          targetCampaignId ? `?campaign=${targetCampaignId}` : ''
+        }`,
+        character.id,
       )
     : undefined
 
@@ -75,6 +84,11 @@ export default async function WorldCharacterPage({
             >
               Portable Character
             </Link>
+            {worldEntityHref ? (
+              <Link className={styles.secondary} href={worldEntityHref}>
+                World Entity & Connections
+              </Link>
+            ) : null}
             <Link
               className={styles.secondary}
               href={`/world/${character.world.id}`}
@@ -153,6 +167,13 @@ export default async function WorldCharacterPage({
               ) : (
                 <p>This World identity is currently read-only.</p>
               )}
+              {worldEntityHref ? (
+                <div className={styles.actions}>
+                  <Link className={styles.secondary} href={worldEntityHref}>
+                    View World relationships
+                  </Link>
+                </div>
+              ) : null}
             </section>
           </div>
 

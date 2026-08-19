@@ -23,6 +23,15 @@ const worldCharacterOneId = '17000000-0000-4000-8000-000000000021'
 const worldCharacterTwoId = '17000000-0000-4000-8000-000000000022'
 const now = new Date('2026-08-15T00:00:00.000Z')
 
+interface CharacterEntityRecord {
+  id: string
+  worldId: string
+  worldCharacterId: string | null
+  type: 'character' | 'person'
+  name: string
+  image: string | null
+}
+
 class Repository implements CharacterRepository {
   worlds = new Map([
     [worldOneId, { id: worldOneId, ownerId }],
@@ -36,14 +45,22 @@ class Repository implements CharacterRepository {
   characters: CharacterRecord[] = []
   incarnations: WorldCharacterRecord[] = []
   participations = new Set<string>()
+  entities = new Map<string, CharacterEntityRecord>()
+  relationships = new Map<
+    string,
+    { sourceEntityId: string; targetEntityId: string }
+  >()
+
   runInTransaction<T>(
     operation: (repository: CharacterRepository) => Promise<T>,
   ): Promise<T> {
     return operation(this)
   }
+
   async findWorldById(id: string) {
     return this.worlds.get(id) ?? null
   }
+
   async findMembership(worldId: string, userId: string) {
     const role = this.memberships.get(`${worldId}:${userId}`)
     return role
@@ -57,6 +74,7 @@ class Repository implements CharacterRepository {
         }
       : null
   }
+
   async createCharacter(input: CreateCharacterRecordInput) {
     const result: CharacterRecord = {
       id: input.id,
@@ -71,15 +89,18 @@ class Repository implements CharacterRepository {
     this.characters.push(result)
     return result
   }
+
   async findCharacterForOwner(id: string, userId: string) {
     return (
       this.characters.find((c) => c.id === id && c.ownerUserId === userId) ??
       null
     )
   }
+
   async listCharactersForOwner(userId: string) {
     return this.characters.filter((c) => c.ownerUserId === userId)
   }
+
   async updateCharacterForOwner(
     id: string,
     userId: string,
@@ -90,14 +111,16 @@ class Repository implements CharacterRepository {
       ? Object.assign(character, input, { updatedAt: now })
       : null
   }
+
   async createWorldCharacter(input: CreateWorldCharacterRecordInput) {
     if (
       this.incarnations.some(
         (wc) =>
           wc.characterId === input.characterId && wc.worldId === input.worldId,
       )
-    )
+    ) {
       throw new CharacterRepositoryConflictError()
+    }
     const result: WorldCharacterRecord = {
       id: input.id,
       characterId: input.characterId,
@@ -111,17 +134,20 @@ class Repository implements CharacterRepository {
     this.incarnations.push(result)
     return result
   }
+
   async findWorldCharacterForOwner(id: string, userId: string) {
     const wc = this.incarnations.find((candidate) => candidate.id === id)
     return wc && (await this.findCharacterForOwner(wc.characterId, userId))
       ? wc
       : null
   }
-  async listWorldCharactersForOwner(characterId: string, userId: string) {
-    return (await this.findCharacterForOwner(characterId, userId))
-      ? this.incarnations.filter((wc) => wc.characterId === characterId)
+
+  async listWorldCharactersForOwner(characterIdValue: string, userId: string) {
+    return (await this.findCharacterForOwner(characterIdValue, userId))
+      ? this.incarnations.filter((wc) => wc.characterId === characterIdValue)
       : []
   }
+
   async updateWorldCharacterForOwner(
     id: string,
     userId: string,
@@ -130,12 +156,62 @@ class Repository implements CharacterRepository {
     const wc = await this.findWorldCharacterForOwner(id, userId)
     return wc ? Object.assign(wc, input, { updatedAt: now }) : null
   }
+
   async hasCampaignMembershipInWorld(worldId: string, userId: string) {
     return this.campaignWorldMemberships.has(`${worldId}:${userId}`)
   }
+
   async hasCampaignCharacterParticipation(worldCharacterId: string) {
     return this.participations.has(worldCharacterId)
   }
+
+  async createWorldCharacterEntity(worldCharacterId: string, entityId: string) {
+    const worldCharacter = this.incarnations.find(
+      (candidate) => candidate.id === worldCharacterId,
+    )
+    if (!worldCharacter) throw new Error('WorldCharacter not found')
+    const character = this.characters.find(
+      (candidate) => candidate.id === worldCharacter.characterId,
+    )
+    if (!character) throw new Error('Character not found')
+    this.entities.set(entityId, {
+      id: entityId,
+      worldId: worldCharacter.worldId,
+      worldCharacterId: worldCharacter.id,
+      type: 'character',
+      name: worldCharacter.nameOverride?.trim() || character.name,
+      image: character.image,
+    })
+  }
+
+  async detachWorldCharacterEntityToNpc(worldCharacterId: string) {
+    const worldCharacter = this.incarnations.find(
+      (candidate) => candidate.id === worldCharacterId,
+    )
+    if (!worldCharacter) return
+    const character = this.characters.find(
+      (candidate) => candidate.id === worldCharacter.characterId,
+    )
+    const entity = [...this.entities.values()].find(
+      (candidate) => candidate.worldCharacterId === worldCharacterId,
+    )
+    if (!character || !entity) return
+    Object.assign(entity, {
+      worldCharacterId: null,
+      type: 'person' as const,
+      name: worldCharacter.nameOverride?.trim() || character.name,
+      image: character.image,
+    })
+  }
+
+  async deleteWorldCharacterForOwner(id: string, userId: string) {
+    const worldCharacter = await this.findWorldCharacterForOwner(id, userId)
+    if (!worldCharacter) return false
+    const index = this.incarnations.indexOf(worldCharacter)
+    this.incarnations.splice(index, 1)
+    return true
+  }
+
   async moveWorldCharacterForOwner(
     id: string,
     userId: string,
@@ -151,8 +227,9 @@ class Repository implements CharacterRepository {
           candidate.characterId === worldCharacter.characterId &&
           candidate.worldId === targetWorldId,
       )
-    )
+    ) {
       throw new CharacterRepositoryConflictError()
+    }
     return Object.assign(worldCharacter, input, {
       worldId: targetWorldId,
       updatedAt: now,
@@ -194,8 +271,8 @@ describe('CharacterService', () => {
     })
   })
 
-  it('creates separate World-specific incarnations in multiple Worlds without changing Character data', async () => {
-    const { service } = harness()
+  it('creates separate World-specific incarnations and graph entities in multiple Worlds without changing Character data', async () => {
+    const { repository, service } = harness()
     const character = await service.createCharacter({
       ownerUserId: ownerId,
       name: 'Bodwick',
@@ -223,6 +300,18 @@ describe('CharacterService', () => {
       coreData: { concept: 'portable' },
     })
     expect(second.nameOverride).toBeNull()
+    expect(repository.entities.get(first.id)).toMatchObject({
+      worldId: worldOneId,
+      worldCharacterId: first.id,
+      type: 'character',
+      name: 'Bodwick of Aldorath',
+    })
+    expect(repository.entities.get(second.id)).toMatchObject({
+      worldId: worldTwoId,
+      worldCharacterId: second.id,
+      type: 'character',
+      name: 'Bodwick',
+    })
   })
 
   it('requires the Character owner and World edit permission for incarnations and updates', async () => {
@@ -318,7 +407,7 @@ describe('CharacterService', () => {
     ).rejects.toMatchObject({ code: 'WORLD_CHARACTER_ALREADY_EXISTS' })
   })
 
-  it('copies an incarnation without duplicating portable identity, World data, or Campaign participation', async () => {
+  it('copies an incarnation without duplicating portable identity, World data, Campaign participation, or World relationships', async () => {
     const { repository, service } = harness()
     const character = await service.createCharacter({
       ownerUserId: ownerId,
@@ -332,6 +421,10 @@ describe('CharacterService', () => {
       worldData: { culture: 'Aldoran' },
     })
     repository.participations.add(source.id)
+    repository.relationships.set('source-relation', {
+      sourceEntityId: source.id,
+      targetEntityId: 'source-world-target',
+    })
 
     const copy = await service.copyWorldCharacter({
       actorUserId: ownerId,
@@ -356,6 +449,16 @@ describe('CharacterService', () => {
     expect(repository.characters).toHaveLength(1)
     expect(repository.characters[0]?.ownerUserId).toBe(ownerId)
     expect(repository.participations.has(copy.id)).toBe(false)
+    expect(repository.entities.get(copy.id)).toMatchObject({
+      worldCharacterId: copy.id,
+      worldId: worldTwoId,
+      type: 'character',
+    })
+    expect(
+      [...repository.relationships.values()].some(
+        (relationship) => relationship.sourceEntityId === copy.id,
+      ),
+    ).toBe(false)
   })
 
   it('rejects duplicate and unauthorized copy targets', async () => {
@@ -390,19 +493,26 @@ describe('CharacterService', () => {
     ).rejects.toMatchObject({ code: 'WORLD_PERMISSION_DENIED' })
   })
 
-  it('migrates the same incarnation only after Campaign participation is resolved', async () => {
+  it('migrates only after Campaign participation is resolved, preserves the source graph as an NPC, and creates a fresh target Character entity', async () => {
     const { repository, service } = harness()
     const character = await service.createCharacter({
       ownerUserId: ownerId,
       name: 'Bodwick',
+      image: '/bodwick.webp',
     })
     const source = await service.createWorldCharacter({
       actorUserId: ownerId,
       characterId: character.id,
       worldId: worldOneId,
+      nameOverride: 'Bodwick of Aldorath',
       worldData: { culture: 'Aldoran' },
     })
+    repository.relationships.set('source-relation', {
+      sourceEntityId: source.id,
+      targetEntityId: 'moonblade',
+    })
     repository.participations.add(source.id)
+
     await expect(
       service.migrateWorldCharacter({
         actorUserId: ownerId,
@@ -413,7 +523,10 @@ describe('CharacterService', () => {
       code: 'WORLD_CHARACTER_HAS_CAMPAIGN_PARTICIPATION',
     })
     expect(source.worldId).toBe(worldOneId)
-    expect(repository.characters[0]?.ownerUserId).toBe(ownerId)
+    expect(repository.entities.get(source.id)).toMatchObject({
+      worldCharacterId: source.id,
+      type: 'character',
+    })
 
     repository.participations.delete(source.id)
     const migrated = await service.migrateWorldCharacter({
@@ -422,6 +535,7 @@ describe('CharacterService', () => {
       targetWorldId: worldTwoId,
       worldData: { culture: 'Veyran' },
     })
+
     expect(migrated).toMatchObject({
       id: source.id,
       characterId: character.id,
@@ -429,6 +543,51 @@ describe('CharacterService', () => {
       worldData: { culture: 'Veyran' },
     })
     expect(repository.characters[0]?.ownerUserId).toBe(ownerId)
+    expect(repository.entities.get(source.id)).toMatchObject({
+      worldId: worldOneId,
+      worldCharacterId: null,
+      type: 'person',
+      name: 'Bodwick of Aldorath',
+      image: '/bodwick.webp',
+    })
+    expect(repository.relationships.get('source-relation')).toEqual({
+      sourceEntityId: source.id,
+      targetEntityId: 'moonblade',
+    })
+    expect(repository.entities.get(worldCharacterTwoId)).toMatchObject({
+      worldId: worldTwoId,
+      worldCharacterId: source.id,
+      type: 'character',
+    })
+  })
+
+  it('detaches a WorldCharacter entity into an NPC before removing the WorldCharacter', async () => {
+    const { repository, service } = harness()
+    const character = await service.createCharacter({
+      ownerUserId: ownerId,
+      name: 'Bodwick',
+    })
+    const worldCharacter = await service.createWorldCharacter({
+      actorUserId: ownerId,
+      characterId: character.id,
+      worldId: worldOneId,
+      nameOverride: 'Bodwick of Aldorath',
+    })
+    repository.relationships.set('source-relation', {
+      sourceEntityId: worldCharacter.id,
+      targetEntityId: 'silver-hand',
+    })
+
+    await service.deleteWorldCharacter(worldCharacter.id, ownerId)
+
+    expect(repository.incarnations).toHaveLength(0)
+    expect(repository.entities.get(worldCharacter.id)).toMatchObject({
+      worldId: worldOneId,
+      worldCharacterId: null,
+      type: 'person',
+      name: 'Bodwick of Aldorath',
+    })
+    expect(repository.relationships.has('source-relation')).toBe(true)
   })
 
   it('enforces both source and target World authorization for migration', async () => {

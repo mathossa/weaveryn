@@ -6,6 +6,8 @@ export type WorldEntityDomainErrorCode =
   | 'WORLD_ENTITY_TYPE_SCOPE_INVALID'
   | 'WORLD_ENTITY_TYPE_NOT_FOUND'
   | 'WORLD_ENTITY_TYPE_IN_USE'
+  | 'WORLD_ENTITY_CHARACTER_TYPE_RESERVED'
+  | 'WORLD_ENTITY_CHARACTER_MANAGED'
 
 export class WorldEntityDomainError extends Error {
   constructor(
@@ -57,5 +59,19 @@ export function worldEntityTypeInUse(name: string, count: number) {
   return new WorldEntityDomainError(
     'WORLD_ENTITY_TYPE_IN_USE',
     `${name} cannot be deleted while ${count} ${count === 1 ? 'entity uses' : 'entities use'} this type.`,
+  )
+}
+
+export function worldEntityCharacterTypeReserved() {
+  return new WorldEntityDomainError(
+    'WORLD_ENTITY_CHARACTER_TYPE_RESERVED',
+    'Character is a reserved entity type created from a WorldCharacter.',
+  )
+}
+
+export function worldEntityCharacterManaged(entityId: string) {
+  return new WorldEntityDomainError(
+    'WORLD_ENTITY_CHARACTER_MANAGED',
+    `World Entity ${entityId} is backed by a WorldCharacter. Edit or remove its Character identity through the Character workflow.`,
   )
 }

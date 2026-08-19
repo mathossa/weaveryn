@@ -16,11 +16,19 @@ const toCharacter = (value: CharacterRecord): CharacterRecord => value
 const toWorldCharacter = (value: WorldCharacterRecord): WorldCharacterRecord =>
   value
 
+function resolvedWorldCharacterName(value: {
+  nameOverride: string | null
+  character: { name: string }
+}) {
+  return value.nameOverride?.trim() || value.character.name
+}
+
 export class PrismaCharacterRepository implements CharacterRepository {
   constructor(
     private readonly root: PrismaClient,
     private readonly db: Db = root,
   ) {}
+
   runInTransaction<T>(
     operation: (repository: CharacterRepository) => Promise<T>,
   ): Promise<T> {
@@ -28,12 +36,14 @@ export class PrismaCharacterRepository implements CharacterRepository {
       operation(new PrismaCharacterRepository(this.root, tx)),
     )
   }
+
   findWorldById(worldId: string) {
     return this.db.world.findUnique({
       where: { id: worldId },
       select: { id: true, ownerId: true },
     })
   }
+
   findMembership(
     worldId: string,
     userId: string,
@@ -42,6 +52,7 @@ export class PrismaCharacterRepository implements CharacterRepository {
       where: { worldId_userId: { worldId, userId } },
     })
   }
+
   async createCharacter(input: CreateCharacterRecordInput) {
     return toCharacter(
       await this.db.character.create({
@@ -52,11 +63,13 @@ export class PrismaCharacterRepository implements CharacterRepository {
       }),
     )
   }
+
   findCharacterForOwner(characterId: string, ownerUserId: string) {
     return this.db.character
       .findFirst({ where: { id: characterId, ownerUserId } })
-      .then((v) => (v ? toCharacter(v) : null))
+      .then((value) => (value ? toCharacter(value) : null))
   }
+
   async listCharactersForOwner(ownerUserId: string) {
     return (
       await this.db.character.findMany({
@@ -65,6 +78,7 @@ export class PrismaCharacterRepository implements CharacterRepository {
       })
     ).map(toCharacter)
   }
+
   async updateCharacterForOwner(
     characterId: string,
     ownerUserId: string,
@@ -85,6 +99,7 @@ export class PrismaCharacterRepository implements CharacterRepository {
         )
       : null
   }
+
   async createWorldCharacter(input: CreateWorldCharacterRecordInput) {
     try {
       return toWorldCharacter(
@@ -99,16 +114,19 @@ export class PrismaCharacterRepository implements CharacterRepository {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
-      )
+      ) {
         throw new CharacterRepositoryConflictError()
+      }
       throw error
     }
   }
+
   findWorldCharacterForOwner(id: string, ownerUserId: string) {
     return this.db.worldCharacter
       .findFirst({ where: { id, character: { ownerUserId } } })
-      .then((v) => (v ? toWorldCharacter(v) : null))
+      .then((value) => (value ? toWorldCharacter(value) : null))
   }
+
   async listWorldCharactersForOwner(characterId: string, ownerUserId: string) {
     return (
       await this.db.worldCharacter.findMany({
@@ -117,6 +135,7 @@ export class PrismaCharacterRepository implements CharacterRepository {
       })
     ).map(toWorldCharacter)
   }
+
   async updateWorldCharacterForOwner(
     id: string,
     ownerUserId: string,
@@ -135,6 +154,7 @@ export class PrismaCharacterRepository implements CharacterRepository {
         )
       : null
   }
+
   async hasCampaignMembershipInWorld(worldId: string, userId: string) {
     return (
       (await this.db.campaign.count({
@@ -145,12 +165,71 @@ export class PrismaCharacterRepository implements CharacterRepository {
       })) > 0
     )
   }
+
   async hasCampaignCharacterParticipation(worldCharacterId: string) {
     return (
       (await this.db.campaignCharacter.count({ where: { worldCharacterId } })) >
       0
     )
   }
+
+  async createWorldCharacterEntity(worldCharacterId: string, entityId: string) {
+    const worldCharacter = await this.db.worldCharacter.findUnique({
+      where: { id: worldCharacterId },
+      include: { character: true },
+    })
+    if (!worldCharacter) {
+      throw new Error(`WorldCharacter ${worldCharacterId} was not found.`)
+    }
+
+    await this.db.worldEntity.create({
+      data: {
+        id: entityId,
+        worldId: worldCharacter.worldId,
+        worldCharacterId: worldCharacter.id,
+        worldCharacterWorldId: worldCharacter.worldId,
+        type: 'character',
+        name: resolvedWorldCharacterName(worldCharacter),
+        image: worldCharacter.character.image,
+        data: {},
+        createdById: worldCharacter.character.ownerUserId,
+        visibilityScope: 'WORLD',
+      },
+    })
+  }
+
+  async detachWorldCharacterEntityToNpc(worldCharacterId: string) {
+    const worldCharacter = await this.db.worldCharacter.findUnique({
+      where: { id: worldCharacterId },
+      include: {
+        character: true,
+        worldEntity: { select: { id: true } },
+      },
+    })
+    if (!worldCharacter?.worldEntity) return
+
+    await this.db.worldEntity.update({
+      where: { id: worldCharacter.worldEntity.id },
+      data: {
+        worldCharacterId: null,
+        worldCharacterWorldId: null,
+        type: 'person',
+        name: resolvedWorldCharacterName(worldCharacter),
+        image: worldCharacter.character.image,
+        visibilityScope: 'WORLD',
+        visibilityCampaignId: null,
+        visibilityUserId: null,
+      },
+    })
+  }
+
+  async deleteWorldCharacterForOwner(id: string, ownerUserId: string) {
+    const result = await this.db.worldCharacter.deleteMany({
+      where: { id, character: { ownerUserId } },
+    })
+    return result.count === 1
+  }
+
   async moveWorldCharacterForOwner(
     id: string,
     ownerUserId: string,
@@ -175,8 +254,9 @@ export class PrismaCharacterRepository implements CharacterRepository {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
-      )
+      ) {
         throw new CharacterRepositoryConflictError()
+      }
       throw error
     }
   }
