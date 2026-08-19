@@ -31,6 +31,32 @@ describe('character input', () => {
     })
   })
 
+  it('accepts simple typed Character additional details', () => {
+    expect(
+      parseUpdateWorldCharacterInput({
+        customFields: {
+          ' Former occupation ': '  Blacksmith  ',
+          Reputation: 4,
+          Wanted: false,
+        },
+      }),
+    ).toEqual({
+      customFields: {
+        'Former occupation': 'Blacksmith',
+        Reputation: 4,
+        Wanted: false,
+      },
+    })
+  })
+
+  it('rejects structured Character additional details', () => {
+    expect(() =>
+      parseUpdateWorldCharacterInput({
+        customFields: { Secret: { nested: true } },
+      }),
+    ).toThrow('Secret must be text, a number, or true/false.')
+  })
+
   it('requires a Campaign id before participation is attached', () => {
     expect(() => parseAttachCampaignCharacterInput({ campaignId: '' })).toThrow(
       'Campaign is required.',
