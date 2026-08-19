@@ -98,13 +98,20 @@
 .field label {
   font-weight: 700;
 }
-.field input {
+.field input,
+.profileEditorField textarea {
   width: 100%;
+  box-sizing: border-box;
   border: 1px solid var(--ui-control-border);
   border-radius: var(--ui-radius-control);
   background: var(--ui-control-surface);
   color: var(--ui-text);
   padding: 0.75rem;
+  font: inherit;
+}
+.profileEditorField textarea {
+  resize: vertical;
+  line-height: 1.45;
 }
 .actions {
   display: flex;
@@ -262,7 +269,7 @@
 }
 .profileGrid {
   display: grid;
-  grid-template-columns: minmax(15rem, 0.8fr) minmax(22rem, 1.35fr) minmax(18rem, 0.95fr);
+  grid-template-columns: minmax(15rem, 0.8fr) minmax(25rem, 1.45fr) minmax(19rem, 0.95fr);
   align-items: start;
   gap: 1rem;
 }
@@ -285,7 +292,11 @@
 }
 .profileOverview {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.35rem;
+}
+.profileOverview h2 {
+  overflow-wrap: anywhere;
+  font-size: 1.2rem;
 }
 .profileSectionHeading {
   display: flex;
@@ -333,40 +344,91 @@
   background: color-mix(in srgb, var(--ui-accent) 14%, transparent);
   color: var(--ui-accent);
 }
-.profileFactList,
-.profileDefinitionGrid {
-  display: grid;
-  gap: 0;
-  margin: 0;
+.profileStoryCard,
+.profileStoryMiniCard,
+.profileConnectionsCard,
+.profileCampaignPanel,
+.profileQuickFacts,
+.profileQuickActions {
+  align-content: start;
 }
-.profileFactList > div,
-.profileDefinitionGrid > div {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 0.75rem;
-  padding: 0.65rem 0;
-  border-top: 1px solid var(--ui-control-border);
+.profileStoryCard {
+  min-height: 11rem;
 }
-.profileFactList dt,
-.profileDefinitionGrid dt {
+.profileStoryCard h2 {
+  font-size: 1.35rem;
+}
+.profileStoryText,
+.profileStoryMiniCard p {
   color: var(--ui-text-muted);
+  line-height: 1.6;
 }
-.profileFactList dd,
-.profileDefinitionGrid dd {
-  min-width: 0;
-  margin: 0;
+.profileStoryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.profileStoryMiniCard {
+  min-height: 8.5rem;
+}
+.profileConnectionsCard {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+.profileConnectionsCard > div {
+  display: grid;
+  gap: 0.25rem;
+}
+.profileCampaignArtwork {
+  position: relative;
+  min-height: 11rem;
+  overflow: hidden;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+.profileCampaignArtwork img {
+  object-fit: cover;
+}
+.profileCampaignArtwork::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.8), rgb(0 0 0 / 0.05) 70%);
+}
+.profileCampaignArtworkOverlay {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.9rem;
+  color: white;
+}
+.profileCampaignArtworkOverlay strong {
   overflow-wrap: anywhere;
-  text-align: right;
 }
-.profileEdit {
-  border-top: 1px solid var(--ui-control-border);
-  padding-top: 0.8rem;
+.profileCampaignArtworkOverlay span {
+  font-size: 0.78rem;
+  opacity: 0.85;
 }
-.profileEdit > summary {
+.profileCampaignPanel > .button {
+  width: 100%;
+  box-sizing: border-box;
+}
+.profileSwitchCampaign,
+.profileParticipationManager {
+  min-width: 0;
+}
+.profileSwitchCampaign > summary,
+.profileParticipationManager > summary {
   display: inline-flex;
   align-items: center;
-  min-height: 2.5rem;
-  padding: 0.55rem 0.8rem;
+  justify-content: center;
+  min-height: 2.35rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid var(--ui-control-border);
   border-radius: var(--ui-radius-control);
   background: var(--ui-control-surface);
@@ -375,101 +437,180 @@
   cursor: pointer;
   list-style: none;
 }
-.profileEdit > summary::-webkit-details-marker {
+.profileSwitchCampaign > summary::-webkit-details-marker,
+.profileParticipationManager > summary::-webkit-details-marker {
   display: none;
 }
-.profileEdit[open] > summary {
-  margin-bottom: 0.9rem;
+.profileSwitchCampaign[open] > summary,
+.profileParticipationManager[open] > summary {
+  margin-bottom: 0.7rem;
 }
-.profileFeatureCard {
-  align-content: start;
+.profileSwitchList,
+.profileParticipationBody,
+.profileParticipationGroup {
+  display: grid;
+  gap: 0.6rem;
 }
-.profileFeatureCard > p {
+.profileSwitchList {
+  padding: 0.65rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+.profileSwitchList a {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.5rem;
+  border-radius: var(--ui-radius-control);
+  color: inherit;
+  text-decoration: none;
+}
+.profileSwitchList a:hover {
+  background: var(--ui-panel-strong);
+}
+.profileParticipationManager {
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--ui-control-border);
+}
+.profileParticipationBody {
+  padding-top: 0.2rem;
+}
+.profileParticipationGroup {
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--ui-control-border);
+}
+.profileParticipationGroup:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+.profileParticipationRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.65rem;
+  padding: 0.65rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+.profileParticipationRow > span {
+  display: grid;
+  min-width: 0;
+  gap: 0.1rem;
+}
+.profileParticipationRow .lifecycleAction {
+  width: auto;
+}
+.profileQuickFacts .profileFactList {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+.profileFactList > div {
+  display: grid;
+  grid-template-columns: minmax(7rem, 0.8fr) minmax(0, 1.2fr);
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--ui-control-border);
+}
+.profileFactList dt {
   color: var(--ui-text-muted);
-  line-height: 1.55;
 }
-.profileCampaignPanel,
-.profileQuickFacts,
-.profileLifecyclePanel {
-  align-content: start;
+.profileFactList dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
 }
-.profileCampaignList {
+.profileQuickActions {
+  gap: 0.65rem;
+}
+.profileNavigation {
   display: grid;
-  gap: 0.7rem;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
 }
-.profileCampaignCard {
+.profileNavigation > * {
+  width: 100%;
+  box-sizing: border-box;
+}
+.profileEditor {
   display: grid;
-  gap: 0.8rem;
+  gap: 1rem;
+}
+.profileEditorGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+.profileEditorField {
+  display: grid;
+  min-width: 0;
+  gap: 0.4rem;
+}
+.profileEditorField:first-child {
+  grid-column: 1 / -1;
+}
+.profileEditorFieldHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.profileEditorFieldHeading > label:first-child {
+  font-weight: 700;
+}
+.profileVisibilityToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--ui-text-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.profileModalBackdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 0.72);
+}
+.profileModal {
+  display: grid;
+  width: min(58rem, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-panel-strong);
+  box-shadow: 0 1.5rem 5rem rgb(0 0 0 / 0.45);
+}
+.profileModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--ui-control-border);
+}
+.profileModalHeader > div,
+.profileModalSection {
+  display: grid;
+  gap: 0.55rem;
+}
+.profileModalSection {
   padding: 0.85rem;
   border: 1px solid var(--ui-control-border);
   border-radius: var(--ui-radius-control);
   background: var(--ui-control-surface);
 }
-.profileCampaignHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-.profileCampaignHeader > div {
-  display: grid;
-  min-width: 0;
-  gap: 0.15rem;
-}
-.profileCampaignHeader strong {
-  overflow-wrap: anywhere;
-}
-.profileCampaignActions {
-  display: grid;
-  gap: 0.55rem;
-}
-.profileCampaignActions > *,
-.profileCampaignActions .lifecycleAction {
-  width: 100%;
-}
-.profileCampaignActions .button,
-.profileCampaignActions .dangerSecondary {
-  width: 100%;
-}
-.profileJoinBlock {
-  display: grid;
-  gap: 0.7rem;
-  padding-top: 0.9rem;
-  border-top: 1px solid var(--ui-control-border);
-}
-.profileJoinRow {
-  display: grid;
-  gap: 0.65rem;
-  padding: 0.75rem;
-  border: 1px solid var(--ui-control-border);
-  border-radius: var(--ui-radius-control);
-  background: var(--ui-control-surface);
-}
-.profileJoinRow > span {
-  display: grid;
-  gap: 0.15rem;
-}
-.profileNavigation {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.6rem;
-}
-.profileNavigation > * {
-  width: 100%;
-}
-.profileLifecyclePanel {
-  border-color: color-mix(in srgb, var(--ui-danger) 35%, var(--ui-border));
-}
-.profileLifecyclePanel > div:first-child {
-  display: grid;
-  gap: 0.35rem;
-}
-.profileLifecyclePanel .lifecycleAction {
-  width: 100%;
-}
 @media (max-width: 1180px) {
   .profileGrid {
-    grid-template-columns: minmax(14rem, 0.8fr) minmax(20rem, 1.2fr);
+    grid-template-columns: minmax(14rem, 0.75fr) minmax(22rem, 1.25fr);
   }
   .profileSidebar {
     grid-column: 1 / -1;
@@ -491,6 +632,16 @@
   }
   .profileSidebar {
     grid-column: auto;
+  }
+  .profileStoryGrid,
+  .profileEditorGrid {
+    grid-template-columns: 1fr;
+  }
+  .profileEditorField:first-child {
+    grid-column: auto;
+  }
+  .profileConnectionsCard {
+    grid-template-columns: 1fr;
   }
   .lifecycleAction {
     width: 100%;
@@ -520,10 +671,8 @@
     width: 100%;
   }
   .profileSectionHeading,
-  .profileCampaignHeader {
+  .profileModalHeader {
     align-items: stretch;
-  }
-  .profileSectionHeading {
     flex-direction: column;
   }
   .profileTag,
@@ -531,15 +680,14 @@
     align-self: flex-start;
   }
   .profileFactList > div,
-  .profileDefinitionGrid > div {
+  .profileParticipationRow {
     grid-template-columns: 1fr;
-    gap: 0.2rem;
+    gap: 0.35rem;
   }
-  .profileFactList dd,
-  .profileDefinitionGrid dd {
+  .profileFactList dd {
     text-align: left;
   }
-  .profileNavigation {
-    grid-template-columns: 1fr;
+  .profileParticipationRow .lifecycleAction {
+    width: 100%;
   }
 }
