@@ -233,6 +233,8 @@ describe('CampaignCharacterService', () => {
         status: 'STOLEN',
       }),
     ).rejects.toMatchObject({ code: 'CAMPAIGN_CHARACTER_PERMISSION_DENIED' })
+
+    repository.memberships.set(`${campaignOneId}:${outsiderId}`, 'PLAYER')
     await expect(
       service.removeCampaignCharacter(created.id, outsiderId),
     ).rejects.toMatchObject({ code: 'CAMPAIGN_CHARACTER_PERMISSION_DENIED' })
