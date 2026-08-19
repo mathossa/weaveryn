@@ -98,13 +98,20 @@
 .field label {
   font-weight: 700;
 }
-.field input {
+.field input,
+.profileEditorField textarea {
   width: 100%;
+  box-sizing: border-box;
   border: 1px solid var(--ui-control-border);
   border-radius: var(--ui-radius-control);
   background: var(--ui-control-surface);
   color: var(--ui-text);
   padding: 0.75rem;
+  font: inherit;
+}
+.profileEditorField textarea {
+  resize: vertical;
+  line-height: 1.45;
 }
 .actions {
   display: flex;
@@ -112,10 +119,13 @@
   gap: 0.7rem;
 }
 .button,
-.secondary {
+.secondary,
+.dangerButton,
+.dangerSecondary {
   min-height: 2.65rem;
   padding: 0.6rem 0.9rem;
   border-radius: var(--ui-radius-control);
+  font: inherit;
   font-weight: 700;
   cursor: pointer;
 }
@@ -137,9 +147,28 @@
   color: var(--ui-text);
   text-decoration: none;
 }
-.button:disabled {
+.dangerButton,
+.dangerSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.dangerButton {
+  border: 1px solid var(--ui-danger);
+  background: var(--ui-danger);
+  color: var(--ui-accent-ink);
+}
+.dangerSecondary {
+  border: 1px solid var(--ui-danger);
+  background: transparent;
+  color: var(--ui-danger);
+}
+.button:disabled,
+.secondary:disabled,
+.dangerButton:disabled,
+.dangerSecondary:disabled {
   opacity: 0.55;
-  cursor: wait;
+  cursor: not-allowed;
 }
 .list {
   display: grid;
@@ -160,6 +189,54 @@
 .listCopy {
   display: grid;
   gap: 0.2rem;
+}
+.participationItem {
+  align-items: flex-start;
+}
+.participationActions {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+.lifecycleAction {
+  display: grid;
+  width: min(22rem, 100%);
+  min-width: 0;
+  gap: 0.45rem;
+  justify-items: stretch;
+}
+.dangerZone {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, 22rem);
+  align-items: start;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ui-control-border);
+}
+.dangerZone > * {
+  min-width: 0;
+}
+.dangerZone > div:first-child {
+  display: grid;
+  gap: 0.35rem;
+}
+.dangerConfirm {
+  display: grid;
+  width: min(30rem, 100%);
+  min-width: 0;
+  gap: 0.65rem;
+  padding: 0.8rem;
+  border: 1px solid var(--ui-danger);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+.dangerConfirm p {
+  color: var(--ui-text-muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 .meta {
   min-width: 0;
@@ -187,12 +264,391 @@
 .errorPage > .panel {
   width: min(36rem, 100%);
 }
+.characterProfile {
+  min-width: 0;
+}
+.profileGrid {
+  display: grid;
+  grid-template-columns: minmax(15rem, 0.8fr) minmax(25rem, 1.45fr) minmax(
+      19rem,
+      0.95fr
+    );
+  align-items: start;
+  gap: 1rem;
+}
+.profilePortraitColumn,
+.profileMainColumn,
+.profileSidebar {
+  display: grid;
+  min-width: 0;
+  gap: 1rem;
+}
+.profilePortraitPanel {
+  position: sticky;
+  top: 1rem;
+  align-content: start;
+}
+.profilePortraitPanel .portrait {
+  width: 100%;
+  max-width: none;
+  aspect-ratio: 4 / 5;
+}
+.profileOverview {
+  display: grid;
+  gap: 0.35rem;
+}
+.profileOverview h2 {
+  overflow-wrap: anywhere;
+  font-size: 1.2rem;
+}
+.profileSectionHeading {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.profileSectionHeading > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+.profileSectionHeading h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 1.1rem;
+}
+.profileKicker {
+  color: var(--ui-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.profileTag,
+.profileActiveTag {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.8rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.profileTag {
+  border: 1px solid var(--ui-control-border);
+  background: var(--ui-control-surface);
+  color: var(--ui-text-muted);
+}
+.profileActiveTag {
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--ui-accent) 14%, transparent);
+  color: var(--ui-accent);
+}
+.profileStoryCard,
+.profileStoryMiniCard,
+.profileConnectionsCard,
+.profileCampaignPanel,
+.profileQuickFacts,
+.profileQuickActions {
+  align-content: start;
+}
+.profileStoryCard {
+  min-height: 11rem;
+}
+.profileStoryCard h2 {
+  font-size: 1.35rem;
+}
+.profileStoryText,
+.profileStoryMiniCard p {
+  color: var(--ui-text-muted);
+  line-height: 1.6;
+}
+.profileStoryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.profileStoryMiniCard {
+  min-height: 8.5rem;
+}
+.profileConnectionsCard {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+.profileConnectionsCard > div {
+  display: grid;
+  gap: 0.25rem;
+}
+.profileCampaignArtwork {
+  position: relative;
+  min-height: 11rem;
+  overflow: hidden;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+.profileCampaignArtwork img {
+  object-fit: cover;
+}
+.profileCampaignArtwork::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.8), rgb(0 0 0 / 0.05) 70%);
+}
+.profileCampaignArtworkOverlay {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.9rem;
+  color: white;
+}
+.profileCampaignArtworkOverlay strong {
+  overflow-wrap: anywhere;
+}
+.profileCampaignArtworkOverlay span {
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+.profileCampaignPanel > .button {
+  width: 100%;
+  box-sizing: border-box;
+}
+.profileSwitchCampaign,
+.profileParticipationManager {
+  min-width: 0;
+}
+.profileSwitchCampaign > summary,
+.profileParticipationManager > summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.35rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.profileSwitchCampaign > summary::-webkit-details-marker,
+.profileParticipationManager > summary::-webkit-details-marker {
+  display: none;
+}
+.profileSwitchCampaign[open] > summary,
+.profileParticipationManager[open] > summary {
+  margin-bottom: 0.7rem;
+}
+.profileSwitchList,
+.profileParticipationBody,
+.profileParticipationGroup {
+  display: grid;
+  gap: 0.6rem;
+}
+.profileSwitchList {
+  padding: 0.65rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+.profileSwitchList a {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.5rem;
+  border-radius: var(--ui-radius-control);
+  color: inherit;
+  text-decoration: none;
+}
+.profileSwitchList a:hover {
+  background: var(--ui-panel-strong);
+}
+.profileParticipationManager {
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--ui-control-border);
+}
+.profileParticipationBody {
+  padding-top: 0.2rem;
+}
+.profileParticipationGroup {
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--ui-control-border);
+}
+.profileParticipationGroup:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+.profileParticipationRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.65rem;
+  padding: 0.65rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+.profileParticipationRow > span {
+  display: grid;
+  min-width: 0;
+  gap: 0.1rem;
+}
+.profileParticipationRow .lifecycleAction {
+  width: auto;
+}
+.profileQuickFacts .profileFactList {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+.profileFactList > div {
+  display: grid;
+  grid-template-columns: minmax(7rem, 0.8fr) minmax(0, 1.2fr);
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--ui-control-border);
+}
+.profileFactList dt {
+  color: var(--ui-text-muted);
+}
+.profileFactList dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+.profileQuickActions {
+  gap: 0.65rem;
+}
+.profileNavigation {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+}
+.profileNavigation > * {
+  width: 100%;
+  box-sizing: border-box;
+}
+.profileEditor {
+  display: grid;
+  gap: 1rem;
+}
+.profileEditorGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+.profileEditorField {
+  display: grid;
+  min-width: 0;
+  gap: 0.4rem;
+}
+.profileEditorField:first-child {
+  grid-column: 1 / -1;
+}
+.profileEditorFieldHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.profileEditorFieldHeading > label:first-child {
+  font-weight: 700;
+}
+.profileVisibilityToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--ui-text-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.profileModalBackdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 0.72);
+}
+.profileModal {
+  display: grid;
+  width: min(58rem, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-panel-strong);
+  box-shadow: 0 1.5rem 5rem rgb(0 0 0 / 0.45);
+}
+.profileModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--ui-control-border);
+}
+.profileModalHeader > div,
+.profileModalSection {
+  display: grid;
+  gap: 0.55rem;
+}
+.profileModalSection {
+  padding: 0.85rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+@media (max-width: 1180px) {
+  .profileGrid {
+    grid-template-columns: minmax(14rem, 0.75fr) minmax(22rem, 1.25fr);
+  }
+  .profileSidebar {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .profilePortraitPanel {
+    position: static;
+  }
+}
 @media (max-width: 900px) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .identityGrid {
+  .identityGrid,
+  .dangerZone,
+  .profileGrid,
+  .profileSidebar {
     grid-template-columns: 1fr;
+  }
+  .profileSidebar {
+    grid-column: auto;
+  }
+  .profileStoryGrid,
+  .profileEditorGrid {
+    grid-template-columns: 1fr;
+  }
+  .profileEditorField:first-child {
+    grid-column: auto;
+  }
+  .profileConnectionsCard {
+    grid-template-columns: 1fr;
+  }
+  .lifecycleAction {
+    width: 100%;
+    justify-items: stretch;
   }
 }
 @media (max-width: 640px) {
@@ -200,8 +656,41 @@
     grid-template-columns: 1fr;
   }
   .actions,
-  .listItem {
+  .listItem,
+  .dangerZone {
     display: grid;
     grid-template-columns: 1fr;
+  }
+  .participationActions,
+  .lifecycleAction {
+    display: grid;
+    width: 100%;
+    justify-items: stretch;
+  }
+  .participationActions > *,
+  .lifecycleAction > *,
+  .dangerConfirm,
+  .dangerConfirm .actions > * {
+    width: 100%;
+  }
+  .profileSectionHeading,
+  .profileModalHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .profileTag,
+  .profileActiveTag {
+    align-self: flex-start;
+  }
+  .profileFactList > div,
+  .profileParticipationRow {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+  .profileFactList dd {
+    text-align: left;
+  }
+  .profileParticipationRow .lifecycleAction {
+    width: 100%;
   }
 }

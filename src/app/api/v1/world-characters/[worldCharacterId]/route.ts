@@ -1,4 +1,8 @@
 import { NextResponse } from 'next/server'
+import {
+  mergeWorldCharacterCustomFields,
+  mergeWorldCharacterProfile,
+} from '@/lib/world-character-profile'
 import { requireAuthenticatedUser } from '@/server/auth'
 import {
   characterService,
@@ -47,12 +51,44 @@ export async function PATCH(request: Request, context: RouteContext) {
       requireAuthenticatedUser(request.headers),
       request.json().then(parseUpdateWorldCharacterInput),
     ])
+
+    const hasWorldDataUpdate =
+      input.profile !== undefined || input.customFields !== undefined
+    const current = hasWorldDataUpdate
+      ? await characterService.loadWorldCharacter(worldCharacterId, user.id)
+      : null
+    let worldData = current?.worldData
+    if (input.profile) {
+      worldData = mergeWorldCharacterProfile(worldData, input.profile)
+    }
+    if (input.customFields) {
+      worldData = mergeWorldCharacterCustomFields(worldData, input.customFields)
+    }
+
     const worldCharacter = await characterService.updateWorldCharacter(
       worldCharacterId,
       user.id,
-      { nameOverride: input.nameOverride },
+      {
+        ...(input.nameOverride !== undefined
+          ? { nameOverride: input.nameOverride }
+          : {}),
+        ...(hasWorldDataUpdate && current ? { worldData } : {}),
+      },
     )
     return NextResponse.json({ worldCharacter })
+  } catch (error) {
+    return characterApiErrorResponse(error)
+  }
+}
+
+export async function DELETE(request: Request, context: RouteContext) {
+  try {
+    const [{ worldCharacterId }, user] = await Promise.all([
+      context.params,
+      requireAuthenticatedUser(request.headers),
+    ])
+    await characterService.deleteWorldCharacter(worldCharacterId, user.id)
+    return new Response(null, { status: 204 })
   } catch (error) {
     return characterApiErrorResponse(error)
   }

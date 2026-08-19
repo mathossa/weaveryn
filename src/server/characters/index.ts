@@ -1,3 +1,4 @@
+export * from '@/lib/world-character-profile'
 export * from './character-errors'
 export * from './character-input'
 export * from './character-repository'

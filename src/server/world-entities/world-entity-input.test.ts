@@ -9,6 +9,7 @@ const campaignId = '20000000-0000-4000-8000-000000000001'
 const userId = '20000000-0000-4000-8000-000000000002'
 const sourceId = '20000000-0000-4000-8000-000000000003'
 const targetId = '20000000-0000-4000-8000-000000000004'
+const canonicalDatabaseUuid = '20000000-0000-0000-0000-000000000005'
 
 describe('World entity input parsing', () => {
   it('accepts simple structured fields, image focus, initial relationships, and MVP visibility', () => {
@@ -101,6 +102,20 @@ describe('World entity input parsing', () => {
       label: 'Guild headquarters',
       contextCampaignId: undefined,
       visibility: undefined,
+    })
+  })
+
+  it('accepts canonical UUID values that PostgreSQL accepts for entity IDs', () => {
+    expect(
+      parseCreateEntityRelationshipInput({
+        sourceEntityId: sourceId,
+        targetEntityId: canonicalDatabaseUuid,
+        relationshipType: 'KNOWS',
+      }),
+    ).toMatchObject({
+      sourceEntityId: sourceId,
+      targetEntityId: canonicalDatabaseUuid,
+      relationshipType: 'KNOWS',
     })
   })
 })

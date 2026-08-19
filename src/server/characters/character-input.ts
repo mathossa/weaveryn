@@ -1,3 +1,11 @@
+import {
+  WORLD_CHARACTER_PROFILE_FIELDS,
+  type WorldCharacterCustomFields,
+  type WorldCharacterCustomFieldValue,
+  type WorldCharacterProfile,
+  type WorldCharacterProfileFieldKey,
+} from '@/lib/world-character-profile'
+
 export class CharacterInputError extends Error {
   constructor(message: string) {
     super(message)
@@ -46,6 +54,99 @@ function requiredId(value: unknown, label: string) {
   return value.trim()
 }
 
+function profileInput(value: unknown): WorldCharacterProfile {
+  const profile = objectInput(value)
+  const valuesInput = objectInput(profile.values ?? {})
+  const values: WorldCharacterProfile['values'] = {}
+
+  for (const field of WORLD_CHARACTER_PROFILE_FIELDS) {
+    const fieldValue = valuesInput[field.key]
+    if (fieldValue === undefined || fieldValue === null) continue
+    if (typeof fieldValue !== 'string') {
+      throw new CharacterInputError(`${field.label} must be text.`)
+    }
+    const normalized = fieldValue.trim()
+    if (normalized.length > 2000) {
+      throw new CharacterInputError(
+        `${field.label} must be 2000 characters or fewer.`,
+      )
+    }
+    if (normalized) values[field.key] = normalized
+  }
+
+  const knownKeys = new Set<WorldCharacterProfileFieldKey>(
+    WORLD_CHARACTER_PROFILE_FIELDS.map((field) => field.key),
+  )
+  const hiddenInput = profile.hiddenFields ?? []
+  if (!Array.isArray(hiddenInput)) {
+    throw new CharacterInputError(
+      'Hidden Character profile fields must be a list.',
+    )
+  }
+  const hiddenFields = hiddenInput.map((key) => {
+    if (
+      typeof key !== 'string' ||
+      !knownKeys.has(key as WorldCharacterProfileFieldKey)
+    ) {
+      throw new CharacterInputError('Unknown Character profile field.')
+    }
+    return key as WorldCharacterProfileFieldKey
+  })
+
+  return { values, hiddenFields: [...new Set(hiddenFields)] }
+}
+
+function customFieldValue(
+  value: unknown,
+  label: string,
+): WorldCharacterCustomFieldValue | null {
+  if (typeof value === 'string') {
+    const normalized = value.trim()
+    if (normalized.length > 2000) {
+      throw new CharacterInputError(
+        `${label} must be 2000 characters or fewer.`,
+      )
+    }
+    return normalized || null
+  }
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      throw new CharacterInputError(`${label} must be a finite number.`)
+    }
+    return value
+  }
+  if (typeof value === 'boolean') return value
+  throw new CharacterInputError(
+    `${label} must be text, a number, or true/false.`,
+  )
+}
+
+function customFieldsInput(value: unknown): WorldCharacterCustomFields {
+  const fields = objectInput(value)
+  if (Object.keys(fields).length > 50) {
+    throw new CharacterInputError(
+      'A Character may have at most 50 additional details.',
+    )
+  }
+
+  const normalized: WorldCharacterCustomFields = {}
+  for (const [rawKey, rawValue] of Object.entries(fields)) {
+    const key = rawKey.trim()
+    if (!key) continue
+    if (key.length > 80) {
+      throw new CharacterInputError(
+        'Additional detail names must be 80 characters or fewer.',
+      )
+    }
+    if (Object.hasOwn(normalized, key)) {
+      throw new CharacterInputError(`Duplicate additional detail: ${key}.`)
+    }
+    const fieldValue = customFieldValue(rawValue, key)
+    if (fieldValue !== null) normalized[key] = fieldValue
+  }
+  return normalized
+}
+
 export function parseCreateCharacterInput(value: unknown) {
   const input = objectInput(value)
   return { name: requiredName(input.name) }
@@ -66,7 +167,17 @@ export function parseCreateWorldCharacterInput(value: unknown) {
 
 export function parseUpdateWorldCharacterInput(value: unknown) {
   const input = objectInput(value)
-  return { nameOverride: optionalNameOverride(input.nameOverride) }
+  return {
+    ...(Object.hasOwn(input, 'nameOverride')
+      ? { nameOverride: optionalNameOverride(input.nameOverride) }
+      : {}),
+    ...(Object.hasOwn(input, 'profile')
+      ? { profile: profileInput(input.profile) }
+      : {}),
+    ...(Object.hasOwn(input, 'customFields')
+      ? { customFields: customFieldsInput(input.customFields) }
+      : {}),
+  }
 }
 
 export function parseAttachCampaignCharacterInput(value: unknown) {

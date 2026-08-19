@@ -7,8 +7,12 @@ import type {
 } from './world-entity-service'
 import type { StructuredData, VisibilityScope } from './world-entity-repository'
 
+// PostgreSQL's uuid type accepts the full canonical 8-4-4-4-12 hexadecimal
+// form regardless of RFC version/variant bits. Keep API validation aligned with
+// the database so deterministic/backfilled entity IDs are not rejected merely
+// because they are not version 1-5 UUIDs.
 const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const VISIBILITY_SCOPES = new Set<VisibilityScope>([
   'WORLD',
   'CAMPAIGN',

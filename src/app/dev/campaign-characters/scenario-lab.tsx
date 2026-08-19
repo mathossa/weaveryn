@@ -41,7 +41,7 @@ const actions: Array<{
   },
   {
     action: 'remove-first-participation',
-    label: 'Remove first participation only',
+    label: 'Character owner leaves first Campaign',
   },
 ]
 
@@ -76,11 +76,13 @@ export function CampaignCharactersLab() {
     <main className="dev-page">
       <ScenarioNavigation issueNumbers={metadata.issueNumbers} />
       <header>
-        <span>Development only · Issue #18</span>
+        <span>Development only · Issues #18 and #124</span>
         <h1>CampaignCharacter participation and state</h1>
         <p>
           Observe one WorldCharacter joining multiple Campaigns in its World,
-          with independent generic state and service-enforced authorization.
+          with independent generic state, service-enforced authorization, and
+          Character-owner self-removal that leaves Campaign membership and World
+          identity intact.
         </p>
       </header>
       <ScenarioLifecycleControls

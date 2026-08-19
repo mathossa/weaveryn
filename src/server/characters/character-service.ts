@@ -309,8 +309,9 @@ export class CharacterService {
       }
 
       try {
-        // Preserve the old World graph by leaving the source entity and all of
-        // its relationships behind as a normal NPC snapshot.
+        // The repository preserves source-World continuity when the graph node
+        // has meaningful World content/references, otherwise it removes the
+        // unused Character entity before the WorldCharacter moves.
         await repository.detachWorldCharacterEntityToNpc(source.id)
 
         const migrated = await repository.moveWorldCharacterForOwner(
@@ -329,8 +330,8 @@ export class CharacterService {
         )
         if (!migrated) throw worldCharacterNotFound(source.id)
 
-        // The target World gets a fresh graph identity. Source-World
-        // relationships are intentionally not copied.
+        // The target World gets or reclaims one graph identity. Source-World
+        // relationships are intentionally not copied to a different entity.
         await repository.createWorldCharacterEntity(
           migrated.id,
           this.createId(),

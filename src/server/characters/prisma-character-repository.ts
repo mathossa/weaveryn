@@ -1,4 +1,10 @@
 import { Prisma, type PrismaClient } from '@/generated/prisma/client'
+import {
+  adoptWorldEntityIntoWorldCharacterData,
+  normalizeWorldCharacterCustomFields,
+  normalizeWorldCharacterProfile,
+  WORLD_CHARACTER_PROFILE_FIELDS,
+} from '@/lib/world-character-profile'
 import type { WorldMembershipRecord } from '../worlds/world-membership-repository'
 import {
   CharacterRepositoryConflictError,
@@ -21,6 +27,56 @@ function resolvedWorldCharacterName(value: {
   character: { name: string }
 }) {
   return value.nameOverride?.trim() || value.character.name
+}
+
+function jsonRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null
+}
+
+function hasMeaningfulEntityData(value: Prisma.JsonValue) {
+  if (value === null) return false
+  if (Array.isArray(value)) return value.length > 0
+  if (typeof value === 'object') return Object.keys(value).length > 0
+  return true
+}
+
+function hasMeaningfulWorldCharacterData(value: unknown) {
+  const source = jsonRecord(value)
+  if (!source) return false
+  const profile = normalizeWorldCharacterProfile(value)
+  if (Object.values(profile.values).some(Boolean)) return true
+  const customFields = normalizeWorldCharacterCustomFields(value)
+  if (Object.keys(customFields).length > 0) return true
+  return Object.keys(source).some(
+    (key) => key !== 'profile' && key !== 'customFields',
+  )
+}
+
+function snapshotWorldCharacterData(
+  entityData: Prisma.JsonValue,
+  worldData: unknown,
+): Prisma.InputJsonValue {
+  const entityRecord = jsonRecord(entityData) ?? {}
+  const otherWorldData = { ...(jsonRecord(worldData) ?? {}) }
+  delete otherWorldData.profile
+  delete otherWorldData.customFields
+
+  const profile = normalizeWorldCharacterProfile(worldData)
+  const customFields = normalizeWorldCharacterCustomFields(worldData)
+  const profileSnapshot: Record<string, string> = {}
+  for (const field of WORLD_CHARACTER_PROFILE_FIELDS) {
+    const value = profile.values[field.key]
+    if (value) profileSnapshot[field.label] = value
+  }
+
+  return {
+    ...otherWorldData,
+    ...entityRecord,
+    ...customFields,
+    ...profileSnapshot,
+  } as Prisma.InputJsonValue
 }
 
 export class PrismaCharacterRepository implements CharacterRepository {
@@ -182,12 +238,66 @@ export class PrismaCharacterRepository implements CharacterRepository {
       throw new Error(`WorldCharacter ${worldCharacterId} was not found.`)
     }
 
+    const continuityEntities = await this.db.worldEntity.findMany({
+      where: {
+        worldId: worldCharacter.worldId,
+        originCharacterId: worldCharacter.characterId,
+      },
+      orderBy: { createdAt: 'asc' },
+      take: 2,
+    })
+    if (continuityEntities.length > 1) {
+      throw new CharacterRepositoryConflictError()
+    }
+    const continuityEntity = continuityEntities[0]
+
+    if (continuityEntity) {
+      if (
+        continuityEntity.worldCharacterId &&
+        continuityEntity.worldCharacterId !== worldCharacter.id
+      ) {
+        throw new CharacterRepositoryConflictError()
+      }
+
+      const adoptedWorldData = adoptWorldEntityIntoWorldCharacterData(
+        worldCharacter.worldData,
+        continuityEntity.description,
+        continuityEntity.data,
+      )
+
+      await Promise.all([
+        this.db.worldCharacter.update({
+          where: { id: worldCharacter.id },
+          data: { worldData: adoptedWorldData as Prisma.InputJsonValue },
+        }),
+        this.db.worldEntity.update({
+          where: { id: continuityEntity.id },
+          data: {
+            worldCharacterId: worldCharacter.id,
+            worldCharacterWorldId: worldCharacter.worldId,
+            originCharacterId: worldCharacter.characterId,
+            type: 'character',
+            name: resolvedWorldCharacterName(worldCharacter),
+            description: null,
+            image: worldCharacter.character.image,
+            data: {},
+            createdById: worldCharacter.character.ownerUserId,
+            visibilityScope: 'WORLD',
+            visibilityCampaignId: null,
+            visibilityUserId: null,
+          },
+        }),
+      ])
+      return
+    }
+
     await this.db.worldEntity.create({
       data: {
         id: entityId,
         worldId: worldCharacter.worldId,
         worldCharacterId: worldCharacter.id,
         worldCharacterWorldId: worldCharacter.worldId,
+        originCharacterId: worldCharacter.characterId,
         type: 'character',
         name: resolvedWorldCharacterName(worldCharacter),
         image: worldCharacter.character.image,
@@ -203,19 +313,51 @@ export class PrismaCharacterRepository implements CharacterRepository {
       where: { id: worldCharacterId },
       include: {
         character: true,
-        worldEntity: { select: { id: true } },
+        worldEntity: {
+          select: {
+            id: true,
+            description: true,
+            data: true,
+            _count: {
+              select: {
+                sourceRelationships: true,
+                targetRelationships: true,
+              },
+            },
+          },
+        },
       },
     })
     if (!worldCharacter?.worldEntity) return
 
+    const entity = worldCharacter.worldEntity
+    const hasWorldCharacterStory = hasMeaningfulWorldCharacterData(
+      worldCharacter.worldData,
+    )
+    const hasWorldContinuity =
+      Boolean(entity.description?.trim()) ||
+      hasMeaningfulEntityData(entity.data) ||
+      hasWorldCharacterStory ||
+      entity._count.sourceRelationships > 0 ||
+      entity._count.targetRelationships > 0
+
+    if (!hasWorldContinuity) {
+      await this.db.worldEntity.delete({ where: { id: entity.id } })
+      return
+    }
+
     await this.db.worldEntity.update({
-      where: { id: worldCharacter.worldEntity.id },
+      where: { id: entity.id },
       data: {
         worldCharacterId: null,
         worldCharacterWorldId: null,
+        originCharacterId: worldCharacter.characterId,
         type: 'person',
         name: resolvedWorldCharacterName(worldCharacter),
         image: worldCharacter.character.image,
+        data: hasWorldCharacterStory
+          ? snapshotWorldCharacterData(entity.data, worldCharacter.worldData)
+          : (entity.data as Prisma.InputJsonValue),
         visibilityScope: 'WORLD',
         visibilityCampaignId: null,
         visibilityUserId: null,

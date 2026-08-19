@@ -162,9 +162,13 @@ export class CampaignCharacterService {
     actorUserId: string,
   ): Promise<void> {
     return this.repository.runInTransaction(async (repository) => {
-      const value = await repository.findCampaignCharacter(id)
+      const value = await repository.findCampaignCharacterWithOwner(id)
       if (!value) throw campaignCharacterNotFound(id)
-      await this.assertManager(repository, actorUserId, value.campaignId)
+      if (
+        !(await this.canRemoveParticipation(repository, actorUserId, value))
+      ) {
+        throw campaignCharacterPermissionDenied(value.campaignId, actorUserId)
+      }
       if (!(await repository.deleteCampaignCharacter(id))) {
         throw campaignCharacterNotFound(id)
       }
@@ -196,6 +200,19 @@ export class CampaignCharacterService {
       userId,
     )
     return membership?.role === 'PLAYER'
+  }
+
+  private async canRemoveParticipation(
+    repository: CampaignCharacterRepository,
+    userId: string,
+    value: CampaignCharacterRecord & { ownerUserId: string },
+  ) {
+    if (await this.isManager(repository, userId, value.campaignId)) return true
+    if (value.ownerUserId !== userId) return false
+    return (
+      (await repository.findCampaignMembership(value.campaignId, userId)) !==
+      null
+    )
   }
 
   private async assertManager(

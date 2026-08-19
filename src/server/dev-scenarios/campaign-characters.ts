@@ -345,7 +345,7 @@ function activity(
     message: actual,
     activity: {
       action,
-      actor: 'Registered Issue #18 actor',
+      actor: 'Registered Issue #18/#124 actor',
       target: 'CampaignCharacter fixture',
       expected: 'Registered service behavior',
       actual,
@@ -446,10 +446,10 @@ async function execute(
           'Create the first participation first.',
           'failed',
         )
-      await service().removeCampaignCharacter(first.id, ASSISTANT_ID)
+      await service().removeCampaignCharacter(first.id, OWNER_ID)
       return activity(
         action.action,
-        'Assistant GM removed participation only.',
+        'Character owner left their own Campaign participation only.',
         'passed',
       )
     }
@@ -578,21 +578,36 @@ async function runAll(): Promise<DevScenarioActionResult> {
       'The fixture still has exactly its two valid same-World participations.',
   })
   await execute({ action: 'remove-first-participation' })
-  const afterRemoval = await readState()
+  const [afterRemoval, remainingMembership] = await Promise.all([
+    readState(),
+    prisma.campaignMembership.findUnique({
+      where: {
+        campaignId_userId: {
+          campaignId: FIRST_CAMPAIGN_ID,
+          userId: OWNER_ID,
+        },
+      },
+      select: { role: true },
+    }),
+  ])
   checks.push({
-    id: 'removal-preserves-identity',
-    title: 'Removing participation preserves WorldCharacter and Character',
+    id: 'owner-self-removal-preserves-membership-and-identity',
+    title:
+      'Character owner can leave Campaign participation without leaving the Campaign or World',
     status:
       afterRemoval?.worldCharacter?.id === WORLD_CHARACTER_ID &&
       afterRemoval.character?.id === CHARACTER_ID &&
-      afterRemoval.participations.length === 1
+      afterRemoval.participations.length === 1 &&
+      afterRemoval.participations[0]?.campaignId === SECOND_CAMPAIGN_ID &&
+      remainingMembership?.role === 'PLAYER'
         ? 'passed'
         : 'failed',
-    detail: 'Only the selected CampaignCharacter was deleted.',
+    detail:
+      'Only the selected CampaignCharacter was deleted; Campaign membership, WorldCharacter, portable Character, and the other Campaign participation remain.',
   })
   return {
     ok: checks.every((check) => check.status === 'passed'),
-    message: 'Executed Issue #18 acceptance checks.',
+    message: 'Executed Issue #18/#124 acceptance checks.',
     checks,
   }
 }
@@ -628,7 +643,7 @@ async function cleanup(): Promise<DevScenarioActionResult> {
   })
   return {
     ok: true,
-    message: 'Removed only Issue #18 scenario records.',
+    message: 'Removed only Issue #18/#124 scenario records.',
     cleanup: {
       deleted: [
         'Scenario CampaignCharacters, Campaigns, WorldCharacter, Character, and Worlds',
@@ -646,7 +661,7 @@ export const campaignCharactersScenario: DevScenario<
   readState,
   reset: async () => {
     await resetFixture()
-    return { ok: true, message: 'Reset Issue #18 fixture.' }
+    return { ok: true, message: 'Reset Issue #18/#124 fixture.' }
   },
   cleanup,
   runAll,

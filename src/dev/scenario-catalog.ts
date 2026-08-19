@@ -49,9 +49,9 @@ export const devScenarioCatalog = [
     title: 'CampaignCharacter participation and state',
     domain: 'Campaigns',
     purpose:
-      'Exercise same-World Character participation, independent Campaign state, authorization, and participation-only removal through the real CampaignCharacter service.',
+      'Exercise same-World Character participation, independent Campaign state, authorization, Character-owner self-removal, and participation-only removal through the real CampaignCharacter service.',
     href: '/dev/campaign-characters',
-    issueNumbers: [18],
+    issueNumbers: [18, 124],
     prerequisites: [
       'Dedicated development database',
       'Applied Prisma migrations',
