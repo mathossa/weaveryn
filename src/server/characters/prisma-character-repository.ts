@@ -261,7 +261,7 @@ export class PrismaCharacterRepository implements CharacterRepository {
         continuityEntity.data,
       )
 
-      const [updatedWorldCharacter] = await Promise.all([
+      await Promise.all([
         this.db.worldCharacter.update({
           where: { id: worldCharacter.id },
           data: { worldData: adoptedWorldData as Prisma.InputJsonValue },
@@ -284,7 +284,7 @@ export class PrismaCharacterRepository implements CharacterRepository {
           },
         }),
       ])
-      return toWorldCharacter(updatedWorldCharacter)
+      return
     }
 
     await this.db.worldEntity.create({
@@ -302,7 +302,6 @@ export class PrismaCharacterRepository implements CharacterRepository {
         visibilityScope: 'WORLD',
       },
     })
-    return toWorldCharacter(worldCharacter)
   }
 
   async detachWorldCharacterEntityToNpc(worldCharacterId: string) {
