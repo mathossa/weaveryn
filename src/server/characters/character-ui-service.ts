@@ -1,5 +1,7 @@
 import {
+  normalizeWorldCharacterCustomFields,
   normalizeWorldCharacterProfile,
+  type WorldCharacterCustomFields,
   type WorldCharacterProfile,
 } from '@/lib/world-character-profile'
 import { prisma } from '@/lib/prisma'
@@ -53,6 +55,7 @@ export interface WorldCharacterOverview {
   canEditWorldIdentity: boolean
   hasCampaignParticipation: boolean
   profile: WorldCharacterProfile
+  customFields: WorldCharacterCustomFields
   recentCampaignId: string | null
   participations: WorldCharacterCampaignParticipation[]
   availableCampaigns: WorldCharacterCampaignOption[]
@@ -318,6 +321,7 @@ export async function getWorldCharacterOverview(
     canEditWorldIdentity,
     hasCampaignParticipation: worldCharacter._count.campaignCharacters > 0,
     profile: normalizeWorldCharacterProfile(worldCharacter.worldData),
+    customFields: normalizeWorldCharacterCustomFields(worldCharacter.worldData),
     recentCampaignId: worldCharacter.entryPreferences[0]?.campaignId ?? null,
     participations: worldCharacter.campaignCharacters.map((participation) => ({
       id: participation.id,
