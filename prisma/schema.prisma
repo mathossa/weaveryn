@@ -139,6 +139,7 @@ model WorldEntity {
   worldId               String  @db.Uuid
   worldCharacterId      String? @db.Uuid
   worldCharacterWorldId String? @db.Uuid
+  originCharacterId     String? @db.Uuid
   type                  String
   name                  String
   description           String?
@@ -155,6 +156,7 @@ model WorldEntity {
 
   world              World           @relation(fields: [worldId], references: [id], onDelete: Cascade)
   worldCharacter     WorldCharacter? @relation("WorldCharacterEntity", fields: [worldCharacterId, worldCharacterWorldId], references: [id, worldId], onDelete: Cascade, onUpdate: Restrict)
+  originCharacter    Character?      @relation("WorldEntityOriginCharacter", fields: [originCharacterId], references: [id], onDelete: SetNull)
   createdBy          User?           @relation("WorldEntityCreator", fields: [createdById], references: [id], onDelete: SetNull)
   visibilityCampaign Campaign?       @relation("WorldEntityVisibilityCampaign", fields: [visibilityCampaignId], references: [id], onDelete: SetNull)
   visibilityUser     User?           @relation("WorldEntityVisibilityUser", fields: [visibilityUserId], references: [id], onDelete: SetNull)
@@ -166,8 +168,10 @@ model WorldEntity {
   updatedAt DateTime @updatedAt
 
   @@unique([worldCharacterId, worldCharacterWorldId])
+  @@unique([worldId, originCharacterId])
   @@index([worldId])
   @@index([worldCharacterWorldId])
+  @@index([originCharacterId])
   @@index([createdById])
   @@index([visibilityCampaignId])
   @@index([visibilityUserId])
@@ -238,8 +242,9 @@ model Character {
   coreData    Json?
   status      String  @default("ACTIVE")
 
-  owner           User             @relation("CharacterOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
-  worldCharacters WorldCharacter[]
+  owner                   User          @relation("CharacterOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
+  worldCharacters         WorldCharacter[]
+  worldEntityContinuities WorldEntity[] @relation("WorldEntityOriginCharacter")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
