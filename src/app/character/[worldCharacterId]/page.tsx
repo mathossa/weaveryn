@@ -26,6 +26,21 @@ interface WorldCharacterPageProps {
   searchParams: Promise<{ campaign?: string | string[] }>
 }
 
+function summarizeQuickFact(value: string | undefined) {
+  if (!value) return undefined
+
+  const normalized = value.replace(/\s+/g, ' ').trim()
+  if (!normalized) return undefined
+
+  const sentenceMatch = normalized.match(/^.*?[.!?](?:\s|$)/)
+  const firstSentence = (sentenceMatch?.[0] ?? normalized).replace(/[.!?]+$/, '')
+  const words = firstSentence.split(' ')
+  const summary =
+    words.length > 10 ? `${words.slice(0, 10).join(' ')}…` : firstSentence
+
+  return summary.length > 80 ? `${summary.slice(0, 77).trimEnd()}…` : summary
+}
+
 export default async function WorldCharacterPage({
   params,
   searchParams,
@@ -67,7 +82,7 @@ export default async function WorldCharacterPage({
       key,
       label:
         profileFields.find((field) => field.key === key)?.label ?? '',
-      value: profileValues[key],
+      value: summarizeQuickFact(profileValues[key]),
     }))
     .filter((fact) => fact.label && fact.value)
 
@@ -214,7 +229,10 @@ export default async function WorldCharacterPage({
                 {detailFields.length > 0 ? (
                   <div className={profileStyles.profileDetailList}>
                     {detailFields.map((field) => (
-                      <div className={profileStyles.profileDetailRow} key={field.key}>
+                      <div
+                        className={profileStyles.profileDetailRow}
+                        key={field.key}
+                      >
                         <span className={styles.profileKicker}>{field.label}</span>
                         <p>{profileValues[field.key] || 'Not added yet.'}</p>
                       </div>
