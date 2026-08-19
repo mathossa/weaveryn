@@ -183,8 +183,9 @@ export default async function WorldCharacterPage({
                   <strong>World lifecycle</strong>
                   <p className={styles.meta}>
                     Removing this WorldCharacter does not delete your portable
-                    Character. Its current World entity remains behind as a
-                    normal Person / NPC with its existing relationships.
+                    Character. An unused World entity is removed too; one with
+                    World relationships or stored World content remains as a
+                    normal Person / NPC.
                   </p>
                 </div>
                 <LeaveWorldAction
