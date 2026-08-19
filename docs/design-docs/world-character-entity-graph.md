@@ -26,7 +26,7 @@ Character
 
 A WorldCharacter has at most one linked WorldEntity.
 
-The linked WorldEntity and WorldCharacter must belong to the same World. This is enforced by the database through the compound `(worldCharacterId, worldId)` relationship.
+The linked WorldEntity and WorldCharacter must belong to the same World. The database enforces this with a composite foreign key from `(worldCharacterId, worldCharacterWorldId)` to `WorldCharacter(id, worldId)` plus a check that the internal `worldCharacterWorldId` always equals the WorldEntity's real `worldId` whenever a Character link exists. The extra field is an integrity key, not a second source of World ownership.
 
 The same WorldCharacter may participate in multiple Campaigns in that World without creating more WorldEntity rows.
 
