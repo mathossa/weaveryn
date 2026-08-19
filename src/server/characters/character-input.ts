@@ -2,7 +2,7 @@ import {
   WORLD_CHARACTER_PROFILE_FIELDS,
   type WorldCharacterProfile,
   type WorldCharacterProfileFieldKey,
-} from './world-character-profile'
+} from '@/lib/world-character-profile'
 
 export class CharacterInputError extends Error {
   constructor(message: string) {
