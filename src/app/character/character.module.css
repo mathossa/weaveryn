@@ -112,10 +112,13 @@
   gap: 0.7rem;
 }
 .button,
-.secondary {
+.secondary,
+.dangerButton,
+.dangerSecondary {
   min-height: 2.65rem;
   padding: 0.6rem 0.9rem;
   border-radius: var(--ui-radius-control);
+  font: inherit;
   font-weight: 700;
   cursor: pointer;
 }
@@ -137,9 +140,28 @@
   color: var(--ui-text);
   text-decoration: none;
 }
-.button:disabled {
+.dangerButton,
+.dangerSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.dangerButton {
+  border: 1px solid var(--ui-danger);
+  background: var(--ui-danger);
+  color: var(--ui-accent-ink);
+}
+.dangerSecondary {
+  border: 1px solid var(--ui-danger);
+  background: transparent;
+  color: var(--ui-danger);
+}
+.button:disabled,
+.secondary:disabled,
+.dangerButton:disabled,
+.dangerSecondary:disabled {
   opacity: 0.55;
-  cursor: wait;
+  cursor: not-allowed;
 }
 .list {
   display: grid;
@@ -160,6 +182,50 @@
 .listCopy {
   display: grid;
   gap: 0.2rem;
+}
+.participationItem {
+  align-items: flex-start;
+}
+.participationActions {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+.lifecycleAction {
+  display: grid;
+  min-width: 0;
+  gap: 0.45rem;
+  justify-items: end;
+}
+.dangerZone {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ui-control-border);
+}
+.dangerZone > div:first-child {
+  display: grid;
+  gap: 0.35rem;
+}
+.dangerConfirm {
+  display: grid;
+  width: min(30rem, 100%);
+  min-width: 0;
+  gap: 0.65rem;
+  padding: 0.8rem;
+  border: 1px solid var(--ui-danger);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+.dangerConfirm p {
+  color: var(--ui-text-muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 .meta {
   min-width: 0;
@@ -200,8 +266,21 @@
     grid-template-columns: 1fr;
   }
   .actions,
-  .listItem {
+  .listItem,
+  .dangerZone {
     display: grid;
     grid-template-columns: 1fr;
+  }
+  .participationActions,
+  .lifecycleAction {
+    display: grid;
+    width: 100%;
+    justify-items: stretch;
+  }
+  .participationActions > *,
+  .lifecycleAction > *,
+  .dangerConfirm,
+  .dangerConfirm .actions > * {
+    width: 100%;
   }
 }
