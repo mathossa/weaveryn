@@ -6,6 +6,7 @@ import type {
   MembershipInvitationCampaignTarget,
   MembershipInvitationRecord,
   MembershipInvitationRepository,
+  MembershipInvitationTransactionContext,
   MembershipInvitationUnitOfWork,
   MembershipInvitationWorldTarget,
 } from './membership-invitation-repository'
@@ -181,7 +182,7 @@ export class PrismaMembershipInvitationUnitOfWork
   constructor(private readonly client: PrismaClient) {}
 
   runInTransaction<T>(
-    operation: Parameters<MembershipInvitationUnitOfWork['runInTransaction']>[0],
+    operation: (context: MembershipInvitationTransactionContext) => Promise<T>,
   ): Promise<T> {
     return this.client.$transaction((transaction) =>
       operation({
@@ -195,6 +196,6 @@ export class PrismaMembershipInvitationUnitOfWork
           transaction,
         ),
       }),
-    ) as Promise<T>
+    )
   }
 }
