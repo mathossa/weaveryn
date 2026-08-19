@@ -1,7 +1,6 @@
 export type CharacterCopyMigrationAction =
   | { action: 'copy' }
   | { action: 'try-duplicate-copy' }
-  | { action: 'leave-copy-world' }
   | { action: 'try-migrate-with-participation' }
   | { action: 'resolve-participation' }
   | { action: 'migrate' }
@@ -39,7 +38,6 @@ export interface CharacterCopyMigrationState {
 const actions = new Set<CharacterCopyMigrationAction['action']>([
   'copy',
   'try-duplicate-copy',
-  'leave-copy-world',
   'try-migrate-with-participation',
   'resolve-participation',
   'migrate',
