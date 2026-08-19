@@ -105,8 +105,8 @@ model AuthVerification {
   identifier String
   value      String
   expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([identifier])
 }
@@ -168,10 +168,10 @@ model WorldEntity {
   updatedAt DateTime @updatedAt
 
   @@unique([worldCharacterId, worldCharacterWorldId])
-  @@unique([worldId, originCharacterId])
   @@index([worldId])
   @@index([worldCharacterWorldId])
   @@index([originCharacterId])
+  @@index([worldId, originCharacterId])
   @@index([createdById])
   @@index([visibilityCampaignId])
   @@index([visibilityUserId])
