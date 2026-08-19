@@ -9,6 +9,7 @@ import {
   type WorldCharacterProfile,
   type WorldCharacterProfileFieldKey,
 } from '@/lib/world-character-profile'
+import editorStyles from './character-profile-editor.module.css'
 import styles from '../character.module.css'
 
 type FieldKind = 'text' | 'number' | 'boolean'
@@ -158,8 +159,8 @@ export function CharacterProfileEditor({
         })}
       </div>
 
-      <div className={styles.profileEditorDivider} />
-      <div className={styles.profileEditorSectionHeading}>
+      <div className={editorStyles.divider} />
+      <div className={editorStyles.sectionHeading}>
         <div>
           <h4>Additional details</h4>
           <p className={styles.meta}>
@@ -179,9 +180,9 @@ export function CharacterProfileEditor({
       {details.length === 0 ? (
         <p className={styles.meta}>No additional details yet.</p>
       ) : (
-        <div className={styles.customFieldEditorList}>
+        <div className={editorStyles.list}>
           {details.map((detail) => (
-            <div className={styles.customFieldEditorRow} key={detail.id}>
+            <div className={editorStyles.row} key={detail.id}>
               <label className={styles.field}>
                 <span>Name</span>
                 <input
