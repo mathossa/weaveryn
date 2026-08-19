@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
-import { mergeWorldCharacterProfile } from '@/lib/world-character-profile'
+import {
+  mergeWorldCharacterCustomFields,
+  mergeWorldCharacterProfile,
+} from '@/lib/world-character-profile'
 import { requireAuthenticatedUser } from '@/server/auth'
 import {
   characterService,
@@ -49,9 +52,18 @@ export async function PATCH(request: Request, context: RouteContext) {
       request.json().then(parseUpdateWorldCharacterInput),
     ])
 
-    const current = input.profile
+    const hasWorldDataUpdate =
+      input.profile !== undefined || input.customFields !== undefined
+    const current = hasWorldDataUpdate
       ? await characterService.loadWorldCharacter(worldCharacterId, user.id)
       : null
+    let worldData = current?.worldData
+    if (input.profile) {
+      worldData = mergeWorldCharacterProfile(worldData, input.profile)
+    }
+    if (input.customFields) {
+      worldData = mergeWorldCharacterCustomFields(worldData, input.customFields)
+    }
 
     const worldCharacter = await characterService.updateWorldCharacter(
       worldCharacterId,
@@ -60,14 +72,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         ...(input.nameOverride !== undefined
           ? { nameOverride: input.nameOverride }
           : {}),
-        ...(input.profile && current
-          ? {
-              worldData: mergeWorldCharacterProfile(
-                current.worldData,
-                input.profile,
-              ),
-            }
-          : {}),
+        ...(hasWorldDataUpdate && current ? { worldData } : {}),
       },
     )
     return NextResponse.json({ worldCharacter })
