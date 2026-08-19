@@ -31,12 +31,12 @@ export const devScenarioCatalog = [
   },
   {
     id: 'character-copy-migration',
-    title: 'WorldCharacter copy and migration',
+    title: 'WorldCharacter copy, migration, and entity graph',
     domain: 'Characters',
     purpose:
-      'Exercise explicit target data, duplicate protection, Campaign participation blocking, and safe migration through the real Character service.',
+      'Exercise explicit target data, duplicate protection, Campaign participation blocking, Character-backed WorldEntity creation, relationship-safe source NPC preservation, and migration through the real Character service.',
     href: '/dev/character-copy-migration',
-    issueNumbers: [19],
+    issueNumbers: [19, 117],
     prerequisites: [
       'Dedicated development database',
       'Applied Prisma migrations',
