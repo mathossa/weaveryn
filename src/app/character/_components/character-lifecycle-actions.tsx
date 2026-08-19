@@ -186,9 +186,10 @@ export function LeaveWorldAction({
     >
       <strong>Remove this Character from {worldName}?</strong>
       <p>
-        Your portable Character remains yours. The WorldCharacter is removed,
-        while its current World entity becomes an independent Person / NPC
-        snapshot and keeps its existing World relationships.
+        Your portable Character remains yours. If its World entity has no World
+        relationships or other stored World content, that unused entity is
+        removed. If the World still references it, it remains as an independent
+        Person / NPC snapshot and is no longer a playable Character.
       </p>
       <div className={styles.actions}>
         <button
