@@ -1,4 +1,8 @@
 import { prisma } from '@/lib/prisma'
+import {
+  normalizeWorldCharacterProfile,
+  type WorldCharacterProfile,
+} from './world-character-profile'
 
 export type CharacterCampaignRole =
   'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR'
@@ -48,6 +52,8 @@ export interface WorldCharacterOverview {
   world: { id: string; name: string }
   canEditWorldIdentity: boolean
   hasCampaignParticipation: boolean
+  profile: WorldCharacterProfile
+  recentCampaignId: string | null
   participations: WorldCharacterCampaignParticipation[]
   availableCampaigns: WorldCharacterCampaignOption[]
 }
@@ -197,10 +203,21 @@ export async function getWorldCharacterOverview(
     select: {
       id: true,
       nameOverride: true,
+      worldData: true,
       status: true,
       worldEntity: { select: { id: true } },
       character: { select: { id: true, name: true, image: true } },
       _count: { select: { campaignCharacters: true } },
+      entryPreferences: {
+        where: {
+          userId,
+          campaignId: { not: null },
+          lastUsedAt: { not: null },
+        },
+        select: { campaignId: true },
+        orderBy: { lastUsedAt: 'desc' },
+        take: 1,
+      },
       world: {
         select: {
           id: true,
@@ -300,6 +317,8 @@ export async function getWorldCharacterOverview(
     },
     canEditWorldIdentity,
     hasCampaignParticipation: worldCharacter._count.campaignCharacters > 0,
+    profile: normalizeWorldCharacterProfile(worldCharacter.worldData),
+    recentCampaignId: worldCharacter.entryPreferences[0]?.campaignId ?? null,
     participations: worldCharacter.campaignCharacters.map((participation) => ({
       id: participation.id,
       status: participation.status,
