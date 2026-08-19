@@ -23,6 +23,13 @@ function resolvedWorldCharacterName(value: {
   return value.nameOverride?.trim() || value.character.name
 }
 
+function hasMeaningfulEntityData(value: Prisma.JsonValue) {
+  if (value === null) return false
+  if (Array.isArray(value)) return value.length > 0
+  if (typeof value === 'object') return Object.keys(value).length > 0
+  return true
+}
+
 export class PrismaCharacterRepository implements CharacterRepository {
   constructor(
     private readonly root: PrismaClient,
@@ -198,18 +205,42 @@ export class PrismaCharacterRepository implements CharacterRepository {
     })
   }
 
-  async detachWorldCharacterEntityToNpc(worldCharacterId: string) {
+  async preserveOrRemoveWorldCharacterEntity(worldCharacterId: string) {
     const worldCharacter = await this.db.worldCharacter.findUnique({
       where: { id: worldCharacterId },
       include: {
         character: true,
-        worldEntity: { select: { id: true } },
+        worldEntity: {
+          select: {
+            id: true,
+            description: true,
+            data: true,
+            _count: {
+              select: {
+                sourceRelationships: true,
+                targetRelationships: true,
+              },
+            },
+          },
+        },
       },
     })
     if (!worldCharacter?.worldEntity) return
 
+    const entity = worldCharacter.worldEntity
+    const hasWorldContinuity =
+      Boolean(entity.description?.trim()) ||
+      hasMeaningfulEntityData(entity.data) ||
+      entity._count.sourceRelationships > 0 ||
+      entity._count.targetRelationships > 0
+
+    if (!hasWorldContinuity) {
+      await this.db.worldEntity.delete({ where: { id: entity.id } })
+      return
+    }
+
     await this.db.worldEntity.update({
-      where: { id: worldCharacter.worldEntity.id },
+      where: { id: entity.id },
       data: {
         worldCharacterId: null,
         worldCharacterWorldId: null,
