@@ -53,5 +53,5 @@ ALTER TABLE "WorldEntity"
 ADD CONSTRAINT "WorldEntity_worldCharacterId_worldId_fkey"
 FOREIGN KEY ("worldCharacterId", "worldId")
 REFERENCES "WorldCharacter"("id", "worldId")
-ON DELETE RESTRICT
+ON DELETE CASCADE
 ON UPDATE RESTRICT;
