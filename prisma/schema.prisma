@@ -48,19 +48,19 @@ model User {
   image           String?
   isInstanceAdmin Boolean @default(false)
 
-  ownedWorlds                          World[]              @relation("WorldOwner")
-  ownedCampaigns                       Campaign[]           @relation("CampaignOwner")
-  ownedCharacters                      Character[]          @relation("CharacterOwner")
-  worldMemberships                     WorldMembership[]
-  campaignMemberships                  CampaignMembership[]
-  createdWorldEntities                 WorldEntity[]        @relation("WorldEntityCreator")
-  playerVisibleWorldEntities           WorldEntity[]        @relation("WorldEntityVisibilityUser")
-  createdEntityRelationships           EntityRelationship[] @relation("EntityRelationshipCreator")
-  playerVisibleEntityRelationships     EntityRelationship[] @relation("EntityRelationshipVisibilityUser")
-  createdWorldEntityTypes              WorldEntityType[]    @relation("WorldEntityTypeCreator")
-  entryPreferences                     EntryPreference[]
-  authSessions                         AuthSession[]
-  authAccounts                         AuthAccount[]
+  ownedWorlds                      World[]              @relation("WorldOwner")
+  ownedCampaigns                   Campaign[]           @relation("CampaignOwner")
+  ownedCharacters                  Character[]          @relation("CharacterOwner")
+  worldMemberships                 WorldMembership[]
+  campaignMemberships              CampaignMembership[]
+  createdWorldEntities             WorldEntity[]        @relation("WorldEntityCreator")
+  playerVisibleWorldEntities       WorldEntity[]        @relation("WorldEntityVisibilityUser")
+  createdEntityRelationships       EntityRelationship[] @relation("EntityRelationshipCreator")
+  playerVisibleEntityRelationships EntityRelationship[] @relation("EntityRelationshipVisibilityUser")
+  createdWorldEntityTypes          WorldEntityType[]    @relation("WorldEntityTypeCreator")
+  entryPreferences                 EntryPreference[]
+  authSessions                     AuthSession[]
+  authAccounts                     AuthAccount[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -106,7 +106,7 @@ model AuthVerification {
   value      String
   expiresAt  DateTime
   createdAt  DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt  DateTime @updatedAt
 
   @@index([identifier])
 }
@@ -153,7 +153,7 @@ model WorldEntity {
   visibilityUserId     String?         @db.Uuid
 
   world              World           @relation(fields: [worldId], references: [id], onDelete: Cascade)
-  worldCharacter     WorldCharacter? @relation("WorldCharacterEntity", fields: [worldCharacterId, worldId], references: [id, worldId], onDelete: Restrict, onUpdate: Restrict)
+  worldCharacter     WorldCharacter? @relation("WorldCharacterEntity", fields: [worldCharacterId, worldId], references: [id, worldId], onDelete: Cascade, onUpdate: Restrict)
   createdBy          User?           @relation("WorldEntityCreator", fields: [createdById], references: [id], onDelete: SetNull)
   visibilityCampaign Campaign?       @relation("WorldEntityVisibilityCampaign", fields: [visibilityCampaignId], references: [id], onDelete: SetNull)
   visibilityUser     User?           @relation("WorldEntityVisibilityUser", fields: [visibilityUserId], references: [id], onDelete: SetNull)
