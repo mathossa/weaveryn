@@ -136,6 +136,7 @@ export default async function WorldCharacterPage({
                   worldId={character.world.id}
                   campaignId={campaign.id}
                   campaignName={campaign.name}
+                  label="Join"
                 />
               </div>
             ))}
