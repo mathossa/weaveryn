@@ -53,15 +53,15 @@ function snapshotWorldCharacterData(
   worldData: unknown,
 ): Prisma.InputJsonValue {
   const entityRecord = jsonRecord(entityData) ?? {}
-  const worldRecord = jsonRecord(worldData) ?? {}
-  const { profile: _profile, ...otherWorldData } = worldRecord
+  const otherWorldData = { ...(jsonRecord(worldData) ?? {}) }
+  delete otherWorldData.profile
+
   const profile = normalizeWorldCharacterProfile(worldData)
-  const profileSnapshot = Object.fromEntries(
-    WORLD_CHARACTER_PROFILE_FIELDS.flatMap((field) => {
-      const value = profile.values[field.key]
-      return value ? [[field.label, value]] : []
-    }),
-  )
+  const profileSnapshot: Record<string, string> = {}
+  for (const field of WORLD_CHARACTER_PROFILE_FIELDS) {
+    const value = profile.values[field.key]
+    if (value) profileSnapshot[field.label] = value
+  }
 
   return {
     ...otherWorldData,
