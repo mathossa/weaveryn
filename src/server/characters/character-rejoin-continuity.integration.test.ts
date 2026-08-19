@@ -103,7 +103,10 @@ describe('Character rejoin continuity', () => {
       },
     })
 
-    await characterService.deleteWorldCharacter(firstWorldCharacter.id, player.id)
+    await characterService.deleteWorldCharacter(
+      firstWorldCharacter.id,
+      player.id,
+    )
 
     await prisma.worldEntity.update({
       where: { id: firstWorldCharacter.id },
@@ -125,10 +128,11 @@ describe('Character rejoin continuity', () => {
     })
     ids.push(rejoinedWorldCharacter.id)
 
-    const persistedWorldCharacter = await prisma.worldCharacter.findUniqueOrThrow({
-      where: { id: rejoinedWorldCharacter.id },
-      select: { worldData: true },
-    })
+    const persistedWorldCharacter =
+      await prisma.worldCharacter.findUniqueOrThrow({
+        where: { id: rejoinedWorldCharacter.id },
+        select: { worldData: true },
+      })
     expect(persistedWorldCharacter.worldData).toMatchObject({
       profile: {
         values: {

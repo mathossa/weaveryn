@@ -269,7 +269,10 @@
 }
 .profileGrid {
   display: grid;
-  grid-template-columns: minmax(15rem, 0.8fr) minmax(25rem, 1.45fr) minmax(19rem, 0.95fr);
+  grid-template-columns: minmax(15rem, 0.8fr) minmax(25rem, 1.45fr) minmax(
+      19rem,
+      0.95fr
+    );
   align-items: start;
   gap: 1rem;
 }

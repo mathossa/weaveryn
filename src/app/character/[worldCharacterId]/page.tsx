@@ -33,7 +33,10 @@ function summarizeQuickFact(value: string | undefined) {
   if (!normalized) return undefined
 
   const sentenceMatch = normalized.match(/^.*?[.!?](?:\s|$)/)
-  const firstSentence = (sentenceMatch?.[0] ?? normalized).replace(/[.!?]+$/, '')
+  const firstSentence = (sentenceMatch?.[0] ?? normalized).replace(
+    /[.!?]+$/,
+    '',
+  )
   const words = firstSentence.split(' ')
   const summary =
     words.length > 10 ? `${words.slice(0, 10).join(' ')}…` : firstSentence
@@ -75,14 +78,20 @@ export default async function WorldCharacterPage({
   const profileFields = visibleWorldCharacterProfileFields(character.profile)
   const profileValues = character.profile.values
   const customDetails = Object.entries(character.customFields)
-  const descriptionVisible = profileFields.some((field) => field.key === 'whoIs')
+  const descriptionVisible = profileFields.some(
+    (field) => field.key === 'whoIs',
+  )
   const detailFields = profileFields.filter((field) => field.key !== 'whoIs')
-  const quickFactKeys = ['home', 'personality', 'goals', 'affiliations'] as const
+  const quickFactKeys = [
+    'home',
+    'personality',
+    'goals',
+    'affiliations',
+  ] as const
   const quickFacts = quickFactKeys
     .map((key) => ({
       key,
-      label:
-        profileFields.find((field) => field.key === key)?.label ?? '',
+      label: profileFields.find((field) => field.key === key)?.label ?? '',
       value: summarizeQuickFact(profileValues[key]),
     }))
     .filter((fact) => fact.label && fact.value)
@@ -147,8 +156,8 @@ export default async function WorldCharacterPage({
         <div className={profileStyles.participationGroup}>
           <strong>World placement</strong>
           <p className={styles.meta}>
-            Remove this Character from {character.world.name} only after Campaign
-            participation has been resolved.
+            Remove this Character from {character.world.name} only after
+            Campaign participation has been resolved.
           </p>
           <LeaveWorldAction
             worldCharacterId={character.id}
@@ -235,7 +244,9 @@ export default async function WorldCharacterPage({
                         className={profileStyles.profileDetailRow}
                         key={field.key}
                       >
-                        <span className={styles.profileKicker}>{field.label}</span>
+                        <span className={styles.profileKicker}>
+                          {field.label}
+                        </span>
                         <p>{profileValues[field.key] || 'Not added yet.'}</p>
                       </div>
                     ))}
@@ -255,7 +266,10 @@ export default async function WorldCharacterPage({
                     </div>
                     <div className={profileStyles.profileDetailList}>
                       {customDetails.map(([key, value]) => (
-                        <div className={profileStyles.profileDetailRow} key={key}>
+                        <div
+                          className={profileStyles.profileDetailRow}
+                          key={key}
+                        >
                           <span className={styles.profileKicker}>{key}</span>
                           <p>
                             {typeof value === 'boolean'
@@ -355,7 +369,8 @@ export default async function WorldCharacterPage({
                   </dl>
                 ) : (
                   <p className={styles.meta}>
-                    Add profile details to build this Character&apos;s quick facts.
+                    Add profile details to build this Character&apos;s quick
+                    facts.
                   </p>
                 )}
               </section>

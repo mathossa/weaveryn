@@ -164,7 +164,9 @@ export class CampaignCharacterService {
     return this.repository.runInTransaction(async (repository) => {
       const value = await repository.findCampaignCharacterWithOwner(id)
       if (!value) throw campaignCharacterNotFound(id)
-      if (!(await this.canRemoveParticipation(repository, actorUserId, value))) {
+      if (
+        !(await this.canRemoveParticipation(repository, actorUserId, value))
+      ) {
         throw campaignCharacterPermissionDenied(value.campaignId, actorUserId)
       }
       if (!(await repository.deleteCampaignCharacter(id))) {

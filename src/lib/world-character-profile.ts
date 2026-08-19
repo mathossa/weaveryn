@@ -31,7 +31,9 @@ const PROFILE_KEYS = new Set<WorldCharacterProfileFieldKey>(
 )
 const PROFILE_FIELDS_BY_LABEL: ReadonlyMap<string, WorldCharacterProfileField> =
   new Map(
-    WORLD_CHARACTER_PROFILE_FIELDS.map((field) => [field.label, field] as const),
+    WORLD_CHARACTER_PROFILE_FIELDS.map(
+      (field) => [field.label, field] as const,
+    ),
   )
 
 function record(value: unknown): Record<string, unknown> | null {
@@ -40,7 +42,9 @@ function record(value: unknown): Record<string, unknown> | null {
     : null
 }
 
-function customFieldValue(value: unknown): WorldCharacterCustomFieldValue | null {
+function customFieldValue(
+  value: unknown,
+): WorldCharacterCustomFieldValue | null {
   if (typeof value === 'string') return value
   if (typeof value === 'number' && Number.isFinite(value)) return value
   if (typeof value === 'boolean') return value
@@ -166,5 +170,7 @@ export function visibleWorldCharacterProfileFields(
   profile: WorldCharacterProfile,
 ) {
   const hidden = new Set(profile.hiddenFields)
-  return WORLD_CHARACTER_PROFILE_FIELDS.filter((field) => !hidden.has(field.key))
+  return WORLD_CHARACTER_PROFILE_FIELDS.filter(
+    (field) => !hidden.has(field.key),
+  )
 }

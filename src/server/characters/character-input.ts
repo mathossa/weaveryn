@@ -79,7 +79,9 @@ function profileInput(value: unknown): WorldCharacterProfile {
   )
   const hiddenInput = profile.hiddenFields ?? []
   if (!Array.isArray(hiddenInput)) {
-    throw new CharacterInputError('Hidden Character profile fields must be a list.')
+    throw new CharacterInputError(
+      'Hidden Character profile fields must be a list.',
+    )
   }
   const hiddenFields = hiddenInput.map((key) => {
     if (

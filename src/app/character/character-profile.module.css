@@ -1,6 +1,9 @@
 .profileGrid {
   display: grid;
-  grid-template-columns: minmax(15rem, 0.8fr) minmax(25rem, 1.45fr) minmax(19rem, 0.95fr);
+  grid-template-columns: minmax(15rem, 0.8fr) minmax(25rem, 1.45fr) minmax(
+      19rem,
+      0.95fr
+    );
   align-items: start;
   gap: 1rem;
 }
@@ -378,7 +381,8 @@
   place-items: center;
   align-content: center;
   gap: 0.35rem;
-  border: 1px solid color-mix(in srgb, var(--ui-accent) 38%, var(--ui-control-border));
+  border: 1px solid
+    color-mix(in srgb, var(--ui-accent) 38%, var(--ui-control-border));
   border-radius: 0.65rem;
   padding: 0.55rem 0.35rem;
   background: color-mix(in srgb, var(--ui-control-surface) 88%, transparent);
@@ -399,7 +403,11 @@
 
 .quickAction:hover {
   border-color: var(--ui-accent);
-  background: color-mix(in srgb, var(--ui-accent) 10%, var(--ui-control-surface));
+  background: color-mix(
+    in srgb,
+    var(--ui-accent) 10%,
+    var(--ui-control-surface)
+  );
   color: var(--ui-accent-hover);
 }
 

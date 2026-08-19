@@ -99,14 +99,17 @@ export function CharacterProfileEditor({
       ]),
     )
 
-    const response = await fetch(`/api/v1/world-characters/${worldCharacterId}`, {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        profile: { values, hiddenFields: [...hiddenFields] },
-        customFields: structuredCustomFields(),
-      }),
-    })
+    const response = await fetch(
+      `/api/v1/world-characters/${worldCharacterId}`,
+      {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          profile: { values, hiddenFields: [...hiddenFields] },
+          customFields: structuredCustomFields(),
+        }),
+      },
+    )
 
     if (!response.ok) {
       const result = await response.json().catch(() => null)
@@ -171,7 +174,9 @@ export function CharacterProfileEditor({
         <button
           className={styles.secondary}
           type="button"
-          onClick={() => setDetails((current) => [...current, makeCustomField()])}
+          onClick={() =>
+            setDetails((current) => [...current, makeCustomField()])
+          }
         >
           Add field
         </button>
