@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
-import type { WorldCharacterProfile } from '@/lib/world-character-profile'
+import type {
+  WorldCharacterCustomFields,
+  WorldCharacterProfile,
+} from '@/lib/world-character-profile'
 import { CharacterForm } from './character-form'
 import { CharacterProfileEditor } from './character-profile-editor'
 import { WorldCharacterForm } from './world-character-form'
@@ -14,6 +17,7 @@ export function CharacterEditDialog({
   worldName,
   nameOverride,
   profile,
+  customFields,
   canEditWorldIdentity,
   triggerClassName,
   triggerContent,
@@ -24,6 +28,7 @@ export function CharacterEditDialog({
   worldName: string
   nameOverride: string | null
   profile: WorldCharacterProfile
+  customFields: WorldCharacterCustomFields
   canEditWorldIdentity: boolean
   triggerClassName?: string
   triggerContent?: ReactNode
@@ -98,6 +103,7 @@ export function CharacterEditDialog({
               <CharacterProfileEditor
                 worldCharacterId={worldCharacterId}
                 profile={profile}
+                customFields={customFields}
               />
             </div>
           </section>
