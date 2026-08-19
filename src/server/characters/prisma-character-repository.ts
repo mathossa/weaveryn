@@ -205,7 +205,7 @@ export class PrismaCharacterRepository implements CharacterRepository {
     })
   }
 
-  async preserveOrRemoveWorldCharacterEntity(worldCharacterId: string) {
+  async detachWorldCharacterEntityToNpc(worldCharacterId: string) {
     const worldCharacter = await this.db.worldCharacter.findUnique({
       where: { id: worldCharacterId },
       include: {
