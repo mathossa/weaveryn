@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import type { CampaignRole } from '../campaigns/campaign-role'
-import type { WorldMembershipRecord } from '../worlds/world-membership-repository'
 import { WorldEntityService } from './world-entity-service'
 import type {
   CampaignVisibilityAccessRecord,
@@ -104,10 +103,7 @@ class Repository implements WorldEntityRepository {
     return requestedWorldId === worldId ? { id: worldId, ownerId } : null
   }
 
-  async findMembership(
-    _worldId: string,
-    _userId: string,
-  ): Promise<WorldMembershipRecord | null> {
+  async findMembership() {
     return null
   }
 
