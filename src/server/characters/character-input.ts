@@ -1,5 +1,7 @@
 import {
   WORLD_CHARACTER_PROFILE_FIELDS,
+  type WorldCharacterCustomFields,
+  type WorldCharacterCustomFieldValue,
   type WorldCharacterProfile,
   type WorldCharacterProfileFieldKey,
 } from '@/lib/world-character-profile'
@@ -92,6 +94,57 @@ function profileInput(value: unknown): WorldCharacterProfile {
   return { values, hiddenFields: [...new Set(hiddenFields)] }
 }
 
+function customFieldValue(
+  value: unknown,
+  label: string,
+): WorldCharacterCustomFieldValue | null {
+  if (typeof value === 'string') {
+    const normalized = value.trim()
+    if (normalized.length > 2000) {
+      throw new CharacterInputError(
+        `${label} must be 2000 characters or fewer.`,
+      )
+    }
+    return normalized || null
+  }
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      throw new CharacterInputError(`${label} must be a finite number.`)
+    }
+    return value
+  }
+  if (typeof value === 'boolean') return value
+  throw new CharacterInputError(
+    `${label} must be text, a number, or true/false.`,
+  )
+}
+
+function customFieldsInput(value: unknown): WorldCharacterCustomFields {
+  const fields = objectInput(value)
+  if (Object.keys(fields).length > 50) {
+    throw new CharacterInputError(
+      'A Character may have at most 50 additional details.',
+    )
+  }
+
+  const normalized: WorldCharacterCustomFields = {}
+  for (const [rawKey, rawValue] of Object.entries(fields)) {
+    const key = rawKey.trim()
+    if (!key) continue
+    if (key.length > 80) {
+      throw new CharacterInputError(
+        'Additional detail names must be 80 characters or fewer.',
+      )
+    }
+    if (Object.hasOwn(normalized, key)) {
+      throw new CharacterInputError(`Duplicate additional detail: ${key}.`)
+    }
+    const fieldValue = customFieldValue(rawValue, key)
+    if (fieldValue !== null) normalized[key] = fieldValue
+  }
+  return normalized
+}
+
 export function parseCreateCharacterInput(value: unknown) {
   const input = objectInput(value)
   return { name: requiredName(input.name) }
@@ -118,6 +171,9 @@ export function parseUpdateWorldCharacterInput(value: unknown) {
       : {}),
     ...(Object.hasOwn(input, 'profile')
       ? { profile: profileInput(input.profile) }
+      : {}),
+    ...(Object.hasOwn(input, 'customFields')
+      ? { customFields: customFieldsInput(input.customFields) }
       : {}),
   }
 }
