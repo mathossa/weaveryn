@@ -11,11 +11,11 @@ FROM "WorldCharacter" AS world_character
 WHERE entity."worldCharacterId" = world_character."id"
   AND entity."worldCharacterWorldId" = world_character."worldId";
 
-CREATE UNIQUE INDEX "WorldEntity_worldId_originCharacterId_key"
-ON "WorldEntity"("worldId", "originCharacterId");
-
 CREATE INDEX "WorldEntity_originCharacterId_idx"
 ON "WorldEntity"("originCharacterId");
+
+CREATE INDEX "WorldEntity_worldId_originCharacterId_idx"
+ON "WorldEntity"("worldId", "originCharacterId");
 
 ALTER TABLE "WorldEntity"
 ADD CONSTRAINT "WorldEntity_originCharacterId_fkey"
