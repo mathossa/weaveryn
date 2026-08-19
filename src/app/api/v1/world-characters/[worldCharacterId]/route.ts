@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
+import { mergeWorldCharacterProfile } from '@/lib/world-character-profile'
 import { requireAuthenticatedUser } from '@/server/auth'
 import {
   characterService,
   getWorldCharacterOverview,
-  mergeWorldCharacterProfile,
   parseUpdateWorldCharacterInput,
 } from '@/server/characters'
 import { characterApiErrorResponse } from '../../characters/_lib/error-response'
@@ -61,7 +61,12 @@ export async function PATCH(request: Request, context: RouteContext) {
           ? { nameOverride: input.nameOverride }
           : {}),
         ...(input.profile && current
-          ? { worldData: mergeWorldCharacterProfile(current.worldData, input.profile) }
+          ? {
+              worldData: mergeWorldCharacterProfile(
+                current.worldData,
+                input.profile,
+              ),
+            }
           : {}),
       },
     )
