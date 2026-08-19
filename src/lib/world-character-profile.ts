@@ -12,6 +12,9 @@ export const WORLD_CHARACTER_PROFILE_FIELDS = [
 export type WorldCharacterProfileFieldKey =
   (typeof WORLD_CHARACTER_PROFILE_FIELDS)[number]['key']
 
+type WorldCharacterProfileField =
+  (typeof WORLD_CHARACTER_PROFILE_FIELDS)[number]
+
 export type WorldCharacterCustomFieldValue = string | number | boolean
 export type WorldCharacterCustomFields = Record<
   string,
@@ -26,9 +29,10 @@ export interface WorldCharacterProfile {
 const PROFILE_KEYS = new Set<WorldCharacterProfileFieldKey>(
   WORLD_CHARACTER_PROFILE_FIELDS.map((field) => field.key),
 )
-const PROFILE_FIELDS_BY_LABEL = new Map(
-  WORLD_CHARACTER_PROFILE_FIELDS.map((field) => [field.label, field] as const),
-)
+const PROFILE_FIELDS_BY_LABEL: ReadonlyMap<string, WorldCharacterProfileField> =
+  new Map(
+    WORLD_CHARACTER_PROFILE_FIELDS.map((field) => [field.label, field] as const),
+  )
 
 function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
