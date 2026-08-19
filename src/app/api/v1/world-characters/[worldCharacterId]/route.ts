@@ -3,6 +3,7 @@ import { requireAuthenticatedUser } from '@/server/auth'
 import {
   characterService,
   getWorldCharacterOverview,
+  mergeWorldCharacterProfile,
   parseUpdateWorldCharacterInput,
 } from '@/server/characters'
 import { characterApiErrorResponse } from '../../characters/_lib/error-response'
@@ -47,10 +48,22 @@ export async function PATCH(request: Request, context: RouteContext) {
       requireAuthenticatedUser(request.headers),
       request.json().then(parseUpdateWorldCharacterInput),
     ])
+
+    const current = input.profile
+      ? await characterService.loadWorldCharacter(worldCharacterId, user.id)
+      : null
+
     const worldCharacter = await characterService.updateWorldCharacter(
       worldCharacterId,
       user.id,
-      { nameOverride: input.nameOverride },
+      {
+        ...(input.nameOverride !== undefined
+          ? { nameOverride: input.nameOverride }
+          : {}),
+        ...(input.profile && current
+          ? { worldData: mergeWorldCharacterProfile(current.worldData, input.profile) }
+          : {}),
+      },
     )
     return NextResponse.json({ worldCharacter })
   } catch (error) {
