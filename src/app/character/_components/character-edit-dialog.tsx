@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { WorldCharacterProfile } from '@/server/characters/world-character-profile'
+import type { WorldCharacterProfile } from '@/lib/world-character-profile'
 import { CharacterForm } from './character-form'
 import { CharacterProfileEditor } from './character-profile-editor'
 import { WorldCharacterForm } from './world-character-form'
