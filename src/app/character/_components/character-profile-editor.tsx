@@ -6,7 +6,7 @@ import {
   WORLD_CHARACTER_PROFILE_FIELDS,
   type WorldCharacterProfile,
   type WorldCharacterProfileFieldKey,
-} from '@/server/characters/world-character-profile'
+} from '@/lib/world-character-profile'
 import styles from '../character.module.css'
 
 export function CharacterProfileEditor({
