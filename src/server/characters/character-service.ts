@@ -156,11 +156,10 @@ export class CharacterService {
           nameOverride: input.nameOverride,
           worldData: input.worldData,
         })
-        await repository.createWorldCharacterEntity(
+        return repository.createWorldCharacterEntity(
           worldCharacter.id,
           worldCharacter.id,
         )
-        return worldCharacter
       } catch (error) {
         if (error instanceof CharacterRepositoryConflictError) {
           throw worldCharacterAlreadyExists(input.characterId, input.worldId)
@@ -268,8 +267,7 @@ export class CharacterService {
           worldData: input.worldData,
           status: input.status,
         })
-        await repository.createWorldCharacterEntity(copy.id, copy.id)
-        return copy
+        return repository.createWorldCharacterEntity(copy.id, copy.id)
       } catch (error) {
         if (error instanceof CharacterRepositoryConflictError) {
           throw worldCharacterAlreadyExists(
@@ -330,13 +328,12 @@ export class CharacterService {
         )
         if (!migrated) throw worldCharacterNotFound(source.id)
 
-        // The target World gets a fresh graph identity. Source-World
-        // relationships are intentionally not copied.
-        await repository.createWorldCharacterEntity(
+        // The target World gets or reclaims one graph identity. Source-World
+        // relationships are intentionally not copied to a different entity.
+        return repository.createWorldCharacterEntity(
           migrated.id,
           this.createId(),
         )
-        return migrated
       } catch (error) {
         if (error instanceof CharacterRepositoryConflictError) {
           throw worldCharacterAlreadyExists(
