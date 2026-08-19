@@ -165,7 +165,7 @@ model WorldEntity {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([worldCharacterId])
+  @@unique([worldCharacterId, worldCharacterWorldId])
   @@index([worldId])
   @@index([worldCharacterWorldId])
   @@index([createdById])
