@@ -44,6 +44,18 @@ export default async function WorldCharacterPage({
         (campaign) => campaign.id === targetCampaignId,
       )
     : undefined
+  const participations = [
+    ...(targetParticipation ? [targetParticipation] : []),
+    ...character.participations.filter(
+      (participation) => participation.id !== targetParticipation?.id,
+    ),
+  ]
+  const availableCampaigns = [
+    ...(targetCampaign ? [targetCampaign] : []),
+    ...character.availableCampaigns.filter(
+      (campaign) => campaign.id !== targetCampaign?.id,
+    ),
+  ]
   const worldEntityHref = character.worldEntityId
     ? withCharacterContext(
         `/world/${character.world.id}/entities/${character.worldEntityId}${
@@ -78,114 +90,256 @@ export default async function WorldCharacterPage({
       <AppPage
         eyebrow={character.world.name}
         title={character.displayName}
-        description="Portable identity, World identity, and Campaign participation remain separate layers."
+        description={`Manage ${character.displayName}'s portable identity, World presence, and Campaign participation.`}
         wide
-        actions={
-          <div className={styles.actions}>
-            <Link
-              className={styles.secondary}
-              href={`/character/portable/${character.character.id}`}
-            >
-              Portable Character
-            </Link>
-            {worldEntityHref ? (
-              <Link className={styles.secondary} href={worldEntityHref}>
-                World Entity & Connections
-              </Link>
-            ) : null}
-            <Link
-              className={styles.secondary}
-              href={`/world/${character.world.id}`}
-            >
-              Open World
-            </Link>
-          </div>
-        }
       >
-        <div className={styles.stack}>
-          {targetCampaignId ? (
-            <section className={styles.panel}>
-              <h2>Campaign entry</h2>
-              {targetParticipation ? (
-                <div className={styles.actions}>
-                  <Link
-                    className={styles.button}
-                    href={`/world/${character.world.id}/campaign/${targetParticipation.campaign.id}?character=${character.id}`}
-                  >
-                    Enter {targetParticipation.campaign.name}
-                  </Link>
-                </div>
-              ) : targetCampaign ? (
-                <>
-                  <p>
-                    You are a {targetCampaign.role} member of this Campaign.
-                    Attach this WorldCharacter to participate.
-                  </p>
-                  <AttachCampaignButton
-                    worldCharacterId={character.id}
-                    worldId={character.world.id}
-                    campaignId={targetCampaign.id}
-                    campaignName={targetCampaign.name}
-                  />
-                </>
-              ) : (
-                <p className={styles.meta}>
-                  This Campaign is not available for Character participation.
-                </p>
-              )}
-            </section>
-          ) : null}
-
-          <div className={styles.identityGrid}>
-            <section className={styles.panel}>
-              <h2>Portable Character</h2>
-              <CharacterPortrait
-                image={character.character.image}
-                name={character.character.name}
-              />
-              <p className={styles.meta}>
-                This name and portrait belong to the portable Character and can
-                follow it between Worlds.
-              </p>
-              <CharacterForm
-                mode="edit"
-                characterId={character.character.id}
-                initialName={character.character.name}
-              />
-            </section>
-
-            <section className={styles.panel}>
-              <h2>WorldCharacter</h2>
-              <p>
-                <strong>World:</strong> {character.world.name}
-              </p>
-              <p className={styles.meta}>
-                A World-specific name overrides the portable name only in this
-                World.
-              </p>
-              {character.canEditWorldIdentity ? (
-                <WorldCharacterForm
-                  worldCharacterId={character.id}
-                  initialNameOverride={character.nameOverride}
+        <div className={styles.characterProfile}>
+          <div className={styles.profileGrid}>
+            <aside className={styles.profilePortraitColumn}>
+              <section className={`${styles.panel} ${styles.profilePortraitPanel}`}>
+                <CharacterPortrait
+                  image={character.character.image}
+                  name={character.character.name}
                 />
-              ) : (
-                <p>This World identity is currently read-only.</p>
-              )}
-              {worldEntityHref ? (
-                <div className={styles.actions}>
-                  <Link className={styles.secondary} href={worldEntityHref}>
-                    View World relationships
+
+                <div className={styles.profileOverview}>
+                  <div className={styles.profileSectionHeading}>
+                    <div>
+                      <span className={styles.profileKicker}>Character identity</span>
+                      <h2>{character.character.name}</h2>
+                    </div>
+                    <span className={styles.profileTag}>Portable</span>
+                  </div>
+                  <p className={styles.meta}>
+                    This identity belongs to you and can be used in another World.
+                  </p>
+                  <dl className={styles.profileFactList}>
+                    <div>
+                      <dt>World identity</dt>
+                      <dd>{character.displayName}</dd>
+                    </div>
+                    <div>
+                      <dt>World</dt>
+                      <dd>{character.world.name}</dd>
+                    </div>
+                    <div>
+                      <dt>Status</dt>
+                      <dd>{character.status}</dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <details className={styles.profileEdit}>
+                  <summary>Edit portable identity</summary>
+                  <CharacterForm
+                    mode="edit"
+                    characterId={character.character.id}
+                    initialName={character.character.name}
+                  />
+                </details>
+              </section>
+            </aside>
+
+            <main className={styles.profileMainColumn}>
+              <section className={`${styles.panel} ${styles.profileFeatureCard}`}>
+                <div className={styles.profileSectionHeading}>
+                  <div>
+                    <span className={styles.profileKicker}>World identity</span>
+                    <h2>{character.displayName}</h2>
+                  </div>
+                  <span className={styles.profileTag}>{character.world.name}</span>
+                </div>
+                <p>
+                  This is the Character as they exist in {character.world.name}.
+                  A World-specific name can differ from the portable Character
+                  without changing that portable identity.
+                </p>
+
+                <dl className={styles.profileDefinitionGrid}>
+                  <div>
+                    <dt>Portable name</dt>
+                    <dd>{character.character.name}</dd>
+                  </div>
+                  <div>
+                    <dt>World-specific name</dt>
+                    <dd>
+                      {character.nameOverride?.trim() || 'Uses portable name'}
+                    </dd>
+                  </div>
+                </dl>
+
+                {character.canEditWorldIdentity ? (
+                  <details className={styles.profileEdit}>
+                    <summary>Edit World identity</summary>
+                    <WorldCharacterForm
+                      worldCharacterId={character.id}
+                      initialNameOverride={character.nameOverride}
+                    />
+                  </details>
+                ) : (
+                  <p className={styles.meta}>
+                    This World identity is currently read-only.
+                  </p>
+                )}
+              </section>
+
+              <section className={`${styles.panel} ${styles.profileFeatureCard}`}>
+                <div className={styles.profileSectionHeading}>
+                  <div>
+                    <span className={styles.profileKicker}>World presence</span>
+                    <h2>Connections & story</h2>
+                  </div>
+                  <span className={styles.profileTag}>World graph</span>
+                </div>
+                <p>
+                  Relationships, factions, homes, people, places, and other
+                  World-specific story connections belong to this Character's
+                  World presence.
+                </p>
+                {worldEntityHref ? (
+                  <div className={styles.actions}>
+                    <Link className={styles.secondary} href={worldEntityHref}>
+                      Open World connections
+                    </Link>
+                  </div>
+                ) : (
+                  <p className={styles.meta}>
+                    No linked World entity is currently available.
+                  </p>
+                )}
+              </section>
+            </main>
+
+            <aside className={styles.profileSidebar}>
+              <section className={`${styles.panel} ${styles.profileCampaignPanel}`}>
+                <div className={styles.profileSectionHeading}>
+                  <div>
+                    <span className={styles.profileKicker}>Campaigns</span>
+                    <h2>Participation</h2>
+                  </div>
+                  {participations.length > 0 ? (
+                    <span className={styles.profileTag}>
+                      {participations.length} active
+                    </span>
+                  ) : null}
+                </div>
+
+                {participations.length === 0 ? (
+                  <p className={styles.meta}>
+                    This WorldCharacter is not currently participating in an
+                    accessible Campaign.
+                  </p>
+                ) : (
+                  <div className={styles.profileCampaignList}>
+                    {participations.map((participation) => (
+                      <article
+                        className={styles.profileCampaignCard}
+                        key={participation.id}
+                      >
+                        <div className={styles.profileCampaignHeader}>
+                          <div>
+                            <strong>{participation.campaign.name}</strong>
+                            <span className={styles.meta}>
+                              {participation.campaign.role} · {participation.status}
+                            </span>
+                          </div>
+                          {participation.campaign.id === targetCampaignId ? (
+                            <span className={styles.profileActiveTag}>Current</span>
+                          ) : null}
+                        </div>
+                        <div className={styles.profileCampaignActions}>
+                          <Link
+                            className={styles.button}
+                            href={`/world/${character.world.id}/campaign/${participation.campaign.id}?character=${character.id}`}
+                          >
+                            Enter Campaign
+                          </Link>
+                          <LeaveCampaignAction
+                            campaignCharacterId={participation.id}
+                            campaignName={participation.campaign.name}
+                          />
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+
+                {availableCampaigns.length > 0 ? (
+                  <div className={styles.profileJoinBlock}>
+                    <strong>Join another Campaign</strong>
+                    <p className={styles.meta}>
+                      Campaign membership comes first. Then attach this
+                      WorldCharacter to participate.
+                    </p>
+                    <div className={styles.profileCampaignList}>
+                      {availableCampaigns.map((campaign) => (
+                        <div className={styles.profileJoinRow} key={campaign.id}>
+                          <span>
+                            <strong>{campaign.name}</strong>
+                            <span className={styles.meta}>{campaign.role}</span>
+                          </span>
+                          <AttachCampaignButton
+                            worldCharacterId={character.id}
+                            worldId={character.world.id}
+                            campaignId={campaign.id}
+                            campaignName={campaign.name}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </section>
+
+              <section className={`${styles.panel} ${styles.profileQuickFacts}`}>
+                <div className={styles.profileSectionHeading}>
+                  <div>
+                    <span className={styles.profileKicker}>Quick facts</span>
+                    <h2>Character context</h2>
+                  </div>
+                </div>
+                <dl className={styles.profileFactList}>
+                  <div>
+                    <dt>Portable Character</dt>
+                    <dd>{character.character.name}</dd>
+                  </div>
+                  <div>
+                    <dt>WorldCharacter</dt>
+                    <dd>{character.displayName}</dd>
+                  </div>
+                  <div>
+                    <dt>World</dt>
+                    <dd>{character.world.name}</dd>
+                  </div>
+                  <div>
+                    <dt>Campaigns</dt>
+                    <dd>{participations.length}</dd>
+                  </div>
+                </dl>
+                <div className={styles.profileNavigation}>
+                  <Link
+                    className={styles.secondary}
+                    href={`/character/portable/${character.character.id}`}
+                  >
+                    Portable Character
+                  </Link>
+                  <Link
+                    className={styles.secondary}
+                    href={`/world/${character.world.id}`}
+                  >
+                    Open World
                   </Link>
                 </div>
-              ) : null}
-              <div className={styles.dangerZone}>
+              </section>
+
+              <section className={`${styles.panel} ${styles.profileLifecyclePanel}`}>
                 <div>
-                  <strong>World lifecycle</strong>
+                  <span className={styles.profileKicker}>World lifecycle</span>
+                  <h2>Leave {character.world.name}</h2>
                   <p className={styles.meta}>
-                    Removing this WorldCharacter does not delete your portable
-                    Character. An unused World entity is removed too; one with
-                    World relationships or stored World content remains as a
-                    normal Person / NPC.
+                    Your portable Character remains yours. An unused World entity
+                    is removed; one with World relationships or stored World
+                    content remains behind as a normal Person / NPC.
                   </p>
                 </div>
                 <LeaveWorldAction
@@ -194,74 +348,9 @@ export default async function WorldCharacterPage({
                   worldName={character.world.name}
                   hasCampaignParticipation={character.hasCampaignParticipation}
                 />
-              </div>
-            </section>
+              </section>
+            </aside>
           </div>
-
-          <section className={styles.panel}>
-            <h2>Campaign participation</h2>
-            {character.participations.length === 0 ? (
-              <p>
-                This WorldCharacter does not participate in an accessible
-                Campaign yet.
-              </p>
-            ) : (
-              <div className={styles.list}>
-                {character.participations.map((participation) => (
-                  <div
-                    className={`${styles.listItem} ${styles.participationItem}`}
-                    key={participation.id}
-                  >
-                    <span className={styles.listCopy}>
-                      <strong>{participation.campaign.name}</strong>
-                      <span className={styles.meta}>
-                        {participation.campaign.role} · {participation.status}
-                      </span>
-                    </span>
-                    <div className={styles.participationActions}>
-                      <Link
-                        className={styles.secondary}
-                        href={`/world/${character.world.id}/campaign/${participation.campaign.id}?character=${character.id}`}
-                      >
-                        Enter →
-                      </Link>
-                      <LeaveCampaignAction
-                        campaignCharacterId={participation.id}
-                        campaignName={participation.campaign.name}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {character.availableCampaigns.length > 0 ? (
-            <section className={styles.panel}>
-              <h2>Join another Campaign</h2>
-              <p className={styles.meta}>
-                Campaign membership comes first. Players can then attach their
-                own WorldCharacter; GM and Assistant GM management permissions
-                remain unchanged.
-              </p>
-              <div className={styles.list}>
-                {character.availableCampaigns.map((campaign) => (
-                  <div className={styles.listItem} key={campaign.id}>
-                    <span className={styles.listCopy}>
-                      <strong>{campaign.name}</strong>
-                      <span className={styles.meta}>{campaign.role}</span>
-                    </span>
-                    <AttachCampaignButton
-                      worldCharacterId={character.id}
-                      worldId={character.world.id}
-                      campaignId={campaign.id}
-                      campaignName={campaign.name}
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
         </div>
       </AppPage>
     </AuthenticatedAppShell>
