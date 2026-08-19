@@ -73,6 +73,12 @@
   line-height: 1.55;
 }
 
+.profileAdditionalDetails {
+  margin-top: 0.35rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ui-border);
+}
+
 .profileCampaignPanel,
 .quickFactsPanel,
 .quickActionsPanel {
