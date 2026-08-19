@@ -196,17 +196,21 @@
 }
 .lifecycleAction {
   display: grid;
+  width: min(22rem, 100%);
   min-width: 0;
   gap: 0.45rem;
-  justify-items: end;
+  justify-items: stretch;
 }
 .dangerZone {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, 22rem);
   align-items: start;
   gap: 1rem;
   padding-top: 1rem;
   border-top: 1px solid var(--ui-control-border);
+}
+.dangerZone > * {
+  min-width: 0;
 }
 .dangerZone > div:first-child {
   display: grid;
@@ -257,8 +261,13 @@
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .identityGrid {
+  .identityGrid,
+  .dangerZone {
     grid-template-columns: 1fr;
+  }
+  .lifecycleAction {
+    width: 100%;
+    justify-items: stretch;
   }
 }
 @media (max-width: 640px) {
