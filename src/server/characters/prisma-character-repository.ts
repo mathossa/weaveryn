@@ -190,6 +190,7 @@ export class PrismaCharacterRepository implements CharacterRepository {
         id: entityId,
         worldId: worldCharacter.worldId,
         worldCharacterId: worldCharacter.id,
+        worldCharacterWorldId: worldCharacter.worldId,
         type: 'character',
         name: resolvedWorldCharacterName(worldCharacter),
         image: worldCharacter.character.image,
@@ -214,6 +215,7 @@ export class PrismaCharacterRepository implements CharacterRepository {
       where: { id: worldCharacter.worldEntity.id },
       data: {
         worldCharacterId: null,
+        worldCharacterWorldId: null,
         type: 'person',
         name: resolvedWorldCharacterName(worldCharacter),
         image: worldCharacter.character.image,
