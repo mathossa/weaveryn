@@ -229,14 +229,18 @@ export class PrismaCharacterRepository implements CharacterRepository {
       throw new Error(`WorldCharacter ${worldCharacterId} was not found.`)
     }
 
-    const continuityEntity = await this.db.worldEntity.findUnique({
+    const continuityEntities = await this.db.worldEntity.findMany({
       where: {
-        worldId_originCharacterId: {
-          worldId: worldCharacter.worldId,
-          originCharacterId: worldCharacter.characterId,
-        },
+        worldId: worldCharacter.worldId,
+        originCharacterId: worldCharacter.characterId,
       },
+      orderBy: { createdAt: 'asc' },
+      take: 2,
     })
+    if (continuityEntities.length > 1) {
+      throw new CharacterRepositoryConflictError()
+    }
+    const continuityEntity = continuityEntities[0]
 
     if (continuityEntity) {
       if (
