@@ -57,3 +57,16 @@ export async function PATCH(request: Request, context: RouteContext) {
     return characterApiErrorResponse(error)
   }
 }
+
+export async function DELETE(request: Request, context: RouteContext) {
+  try {
+    const [{ worldCharacterId }, user] = await Promise.all([
+      context.params,
+      requireAuthenticatedUser(request.headers),
+    ])
+    await characterService.deleteWorldCharacter(worldCharacterId, user.id)
+    return new Response(null, { status: 204 })
+  } catch (error) {
+    return characterApiErrorResponse(error)
+  }
+}
