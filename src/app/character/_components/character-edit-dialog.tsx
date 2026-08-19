@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { WorldCharacterProfile } from '@/lib/world-character-profile'
 import { CharacterForm } from './character-form'
 import { CharacterProfileEditor } from './character-profile-editor'
@@ -15,6 +15,8 @@ export function CharacterEditDialog({
   nameOverride,
   profile,
   canEditWorldIdentity,
+  triggerClassName,
+  triggerContent,
 }: {
   characterId: string
   characterName: string
@@ -23,17 +25,19 @@ export function CharacterEditDialog({
   nameOverride: string | null
   profile: WorldCharacterProfile
   canEditWorldIdentity: boolean
+  triggerClassName?: string
+  triggerContent?: ReactNode
 }) {
   const [open, setOpen] = useState(false)
 
   return (
     <>
       <button
-        className={styles.secondary}
+        className={triggerClassName ?? styles.secondary}
         type="button"
         onClick={() => setOpen(true)}
       >
-        Edit character
+        {triggerContent ?? 'Edit character'}
       </button>
       {open ? (
         <div
