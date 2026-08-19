@@ -66,7 +66,11 @@ export function LeaveCampaignAction({
   }
 
   return (
-    <div className={styles.dangerConfirm} role="group" aria-label="Leave Campaign confirmation">
+    <div
+      className={styles.dangerConfirm}
+      role="group"
+      aria-label="Leave Campaign confirmation"
+    >
       <strong>Leave {campaignName}?</strong>
       <p>
         This removes this Character&apos;s Campaign participation only. Your
@@ -120,7 +124,12 @@ export function LeaveWorldAction({
       method: 'DELETE',
     })
     if (!response.ok) {
-      setError(await errorMessage(response, 'Could not remove this Character from the World.'))
+      setError(
+        await errorMessage(
+          response,
+          'Could not remove this Character from the World.',
+        ),
+      )
       setPending(false)
       return
     }
@@ -135,13 +144,15 @@ export function LeaveWorldAction({
           className={styles.dangerSecondary}
           type="button"
           disabled
-          title="Leave every Campaign with this WorldCharacter first."
+          title="Campaign participation must be resolved first."
         >
           Leave World
         </button>
         <p className={styles.meta}>
-          Leave every Campaign with this WorldCharacter before removing it from
-          {` ${worldName}`}.
+          This WorldCharacter still participates in a Campaign. Leave the
+          Campaigns you can access first; a Campaign manager may need to resolve
+          any participation you can no longer access before you can leave{' '}
+          {worldName}.
         </p>
       </div>
     )
@@ -167,7 +178,11 @@ export function LeaveWorldAction({
   }
 
   return (
-    <div className={styles.dangerConfirm} role="group" aria-label="Leave World confirmation">
+    <div
+      className={styles.dangerConfirm}
+      role="group"
+      aria-label="Leave World confirmation"
+    >
       <strong>Remove this Character from {worldName}?</strong>
       <p>
         Your portable Character remains yours. The WorldCharacter is removed,
