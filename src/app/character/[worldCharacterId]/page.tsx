@@ -16,7 +16,9 @@ import {
   LeaveWorldAction,
 } from '../_components/character-lifecycle-actions'
 import { CharacterPortrait } from '../_components/character-portrait'
+import { CharacterProfileIcon } from '../_components/character-profile-icon'
 import { loadCharacterPageUser } from '../_lib/load-character-user'
+import profileStyles from '../character-profile.module.css'
 import styles from '../character.module.css'
 
 interface WorldCharacterPageProps {
@@ -57,6 +59,8 @@ export default async function WorldCharacterPage({
   )
   const profileFields = visibleWorldCharacterProfileFields(character.profile)
   const profileValues = character.profile.values
+  const descriptionVisible = profileFields.some((field) => field.key === 'whoIs')
+  const detailFields = profileFields.filter((field) => field.key !== 'whoIs')
   const quickFactKeys = ['home', 'personality', 'goals', 'affiliations'] as const
   const quickFacts = quickFactKeys
     .map((key) => ({
@@ -75,6 +79,70 @@ export default async function WorldCharacterPage({
         character.id,
       )
     : undefined
+
+  const participationManager = (
+    <details className={profileStyles.participationManager}>
+      <summary>Manage participation</summary>
+      <div className={profileStyles.participationBody}>
+        {character.participations.length > 0 ? (
+          <div className={profileStyles.participationGroup}>
+            <strong>Current Campaigns</strong>
+            {character.participations.map((participation) => (
+              <div
+                className={profileStyles.participationRow}
+                key={participation.id}
+              >
+                <span>
+                  <strong>{participation.campaign.name}</strong>
+                  <span className={styles.meta}>
+                    {participation.campaign.role}
+                  </span>
+                </span>
+                <LeaveCampaignAction
+                  campaignCharacterId={participation.id}
+                  campaignName={participation.campaign.name}
+                />
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {character.availableCampaigns.length > 0 ? (
+          <div className={profileStyles.participationGroup}>
+            <strong>Available Campaigns</strong>
+            {character.availableCampaigns.map((campaign) => (
+              <div className={profileStyles.participationRow} key={campaign.id}>
+                <span>
+                  <strong>{campaign.name}</strong>
+                  <span className={styles.meta}>{campaign.role}</span>
+                </span>
+                <AttachCampaignButton
+                  worldCharacterId={character.id}
+                  worldId={character.world.id}
+                  campaignId={campaign.id}
+                  campaignName={campaign.name}
+                />
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        <div className={profileStyles.participationGroup}>
+          <strong>World placement</strong>
+          <p className={styles.meta}>
+            Remove this Character from {character.world.name} only after Campaign
+            participation has been resolved.
+          </p>
+          <LeaveWorldAction
+            worldCharacterId={character.id}
+            portableCharacterId={character.character.id}
+            worldName={character.world.name}
+            hasCampaignParticipation={character.hasCampaignParticipation}
+          />
+        </div>
+      </div>
+    </details>
+  )
 
   return (
     <AuthenticatedAppShell
@@ -109,210 +177,131 @@ export default async function WorldCharacterPage({
         wide
       >
         <div className={styles.characterProfile}>
-          <div className={styles.profileGrid}>
-            <aside className={styles.profilePortraitColumn}>
-              <section className={`${styles.panel} ${styles.profilePortraitPanel}`}>
-                <CharacterPortrait
-                  image={character.character.image}
-                  name={character.character.name}
-                />
-                <div className={styles.profileOverview}>
+          <div className={profileStyles.profileGrid}>
+            <aside className={profileStyles.profilePortraitColumn}>
+              <section
+                className={`${styles.panel} ${profileStyles.profileIdentityPanel}`}
+              >
+                <div className={profileStyles.profilePortraitFrame}>
+                  <CharacterPortrait
+                    image={character.character.image}
+                    name={character.character.name}
+                  />
+                </div>
+                <div className={profileStyles.profileIdentityCopy}>
                   <span className={styles.profileKicker}>Character</span>
                   <h2>{character.displayName}</h2>
-                  <p className={styles.meta}>
-                    A Character with a place in {character.world.name}.
-                  </p>
+                  {descriptionVisible ? (
+                    <>
+                      <div className={profileStyles.identityDivider} />
+                      <p className={profileStyles.identityDescription}>
+                        {profileValues.whoIs ||
+                          'No description has been added yet.'}
+                      </p>
+                    </>
+                  ) : null}
                 </div>
               </section>
             </aside>
 
-            <main className={styles.profileMainColumn}>
-              {profileFields.some((field) => field.key === 'whoIs') ? (
-                <section className={`${styles.panel} ${styles.profileStoryCard}`}>
-                  <span className={styles.profileKicker}>Who are they?</span>
-                  <h2>{character.displayName}</h2>
-                  <p className={styles.profileStoryText}>
-                    {profileValues.whoIs || 'No description has been added yet.'}
-                  </p>
-                </section>
-              ) : null}
-
-              <div className={styles.profileStoryGrid}>
-                {profileFields
-                  .filter((field) => field.key !== 'whoIs')
-                  .map((field) => (
-                    <section
-                      className={`${styles.panel} ${styles.profileStoryMiniCard}`}
-                      key={field.key}
-                    >
-                      <span className={styles.profileKicker}>{field.label}</span>
-                      <p>
-                        {profileValues[field.key] || 'Not added yet.'}
-                      </p>
-                    </section>
-                  ))}
-              </div>
-
-              {worldEntityHref ? (
-                <section className={`${styles.panel} ${styles.profileConnectionsCard}`}>
-                  <div>
-                    <span className={styles.profileKicker}>World connections</span>
-                    <h2>People, places & relationships</h2>
-                    <p className={styles.meta}>
-                      Explore this Character&apos;s connections in {character.world.name}.
-                    </p>
+            <main className={profileStyles.profileMainColumn}>
+              <section
+                className={`${styles.panel} ${profileStyles.profileDetailsPanel}`}
+              >
+                <div className={profileStyles.profileDetailsHeader}>
+                  <span className={styles.profileKicker}>Profile</span>
+                </div>
+                {detailFields.length > 0 ? (
+                  <div className={profileStyles.profileDetailList}>
+                    {detailFields.map((field) => (
+                      <div className={profileStyles.profileDetailRow} key={field.key}>
+                        <span className={styles.profileKicker}>{field.label}</span>
+                        <p>{profileValues[field.key] || 'Not added yet.'}</p>
+                      </div>
+                    ))}
                   </div>
-                  <Link className={styles.secondary} href={worldEntityHref}>
-                    View connections
-                  </Link>
-                </section>
-              ) : null}
+                ) : (
+                  <p className={styles.meta}>
+                    No additional profile fields are currently visible.
+                  </p>
+                )}
+              </section>
             </main>
 
-            <aside className={styles.profileSidebar}>
-              <section className={`${styles.panel} ${styles.profileCampaignPanel}`}>
-                <div className={styles.profileSectionHeading}>
-                  <div>
-                    <span className={styles.profileKicker}>Current Campaign</span>
-                    <h2>
-                      {activeParticipation
-                        ? activeParticipation.campaign.name
-                        : 'No active Campaign'}
-                    </h2>
-                  </div>
-                  {activeParticipation ? (
-                    <span className={styles.profileTag}>
-                      {activeParticipation.status}
-                    </span>
-                  ) : null}
-                </div>
-
+            <aside className={profileStyles.profileSidebar}>
+              <section
+                className={`${styles.panel} ${profileStyles.profileCampaignPanel}`}
+              >
+                <span className={styles.profileKicker}>Current Campaign</span>
                 {activeParticipation ? (
-                  <>
-                    <div className={styles.profileCampaignArtwork}>
+                  <div className={profileStyles.campaignArtwork}>
+                    <div className={profileStyles.campaignArtworkImage}>
                       <Image
                         src={uiAssets.fallbacks.campaign}
                         alt=""
                         fill
                         sizes="(max-width: 900px) 100vw, 24rem"
                       />
-                      <div className={styles.profileCampaignArtworkOverlay}>
-                        <strong>{activeParticipation.campaign.name}</strong>
-                        <span>
-                          {activeParticipation.campaign.role} ·{' '}
-                          {activeParticipation.campaign.status}
-                        </span>
-                      </div>
+                    </div>
+                    <div className={profileStyles.campaignArtworkCopy}>
+                      <strong>{activeParticipation.campaign.name}</strong>
+                      <span>
+                        {activeParticipation.campaign.role} ·{' '}
+                        {activeParticipation.campaign.status}
+                      </span>
                     </div>
                     <Link
-                      className={styles.button}
+                      className={profileStyles.campaignEnter}
                       href={`/world/${character.world.id}/campaign/${activeParticipation.campaign.id}?character=${character.id}`}
                     >
-                      Enter Campaign
+                      Enter
                     </Link>
-                    {otherParticipations.length > 0 ? (
-                      <details className={styles.profileSwitchCampaign}>
-                        <summary>Switch Campaign</summary>
-                        <div className={styles.profileSwitchList}>
-                          {otherParticipations.map((participation) => (
-                            <Link
-                              key={participation.id}
-                              href={`/character/${character.id}?campaign=${participation.campaign.id}`}
-                            >
-                              <strong>{participation.campaign.name}</strong>
-                              <span className={styles.meta}>
-                                {participation.campaign.role}
-                              </span>
-                            </Link>
-                          ))}
+                    <details className={profileStyles.campaignMenu}>
+                      <summary aria-label="Campaign options">⋯</summary>
+                      <div className={profileStyles.campaignMenuPopover}>
+                        {otherParticipations.length > 0 ? (
+                          <div className={profileStyles.menuSection}>
+                            <span className={styles.profileKicker}>
+                              Switch Campaign
+                            </span>
+                            <div className={profileStyles.switchCampaignList}>
+                              {otherParticipations.map((participation) => (
+                                <Link
+                                  key={participation.id}
+                                  href={`/character/${character.id}?campaign=${participation.campaign.id}`}
+                                >
+                                  <strong>{participation.campaign.name}</strong>
+                                  <span className={styles.meta}>
+                                    {participation.campaign.role}
+                                  </span>
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+                        <div className={profileStyles.menuSection}>
+                          {participationManager}
                         </div>
-                      </details>
-                    ) : null}
-                  </>
-                ) : (
-                  <p className={styles.meta}>
-                    This Character is not currently participating in an accessible
-                    Campaign.
-                  </p>
-                )}
-
-                <details className={styles.profileParticipationManager}>
-                  <summary>Manage participation</summary>
-                  <div className={styles.profileParticipationBody}>
-                    {character.participations.length > 0 ? (
-                      <div className={styles.profileParticipationGroup}>
-                        <strong>Current Campaigns</strong>
-                        {character.participations.map((participation) => (
-                          <div
-                            className={styles.profileParticipationRow}
-                            key={participation.id}
-                          >
-                            <span>
-                              <strong>{participation.campaign.name}</strong>
-                              <span className={styles.meta}>
-                                {participation.campaign.role}
-                              </span>
-                            </span>
-                            <LeaveCampaignAction
-                              campaignCharacterId={participation.id}
-                              campaignName={participation.campaign.name}
-                            />
-                          </div>
-                        ))}
                       </div>
-                    ) : null}
-
-                    {character.availableCampaigns.length > 0 ? (
-                      <div className={styles.profileParticipationGroup}>
-                        <strong>Available Campaigns</strong>
-                        {character.availableCampaigns.map((campaign) => (
-                          <div
-                            className={styles.profileParticipationRow}
-                            key={campaign.id}
-                          >
-                            <span>
-                              <strong>{campaign.name}</strong>
-                              <span className={styles.meta}>{campaign.role}</span>
-                            </span>
-                            <AttachCampaignButton
-                              worldCharacterId={character.id}
-                              worldId={character.world.id}
-                              campaignId={campaign.id}
-                              campaignName={campaign.name}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
-
-                    <div className={styles.profileParticipationGroup}>
-                      <strong>World placement</strong>
-                      <p className={styles.meta}>
-                        Remove this Character from {character.world.name} only
-                        after Campaign participation has been resolved.
-                      </p>
-                      <LeaveWorldAction
-                        worldCharacterId={character.id}
-                        portableCharacterId={character.character.id}
-                        worldName={character.world.name}
-                        hasCampaignParticipation={
-                          character.hasCampaignParticipation
-                        }
-                      />
-                    </div>
+                    </details>
                   </div>
-                </details>
+                ) : (
+                  <div className={profileStyles.emptyCampaign}>
+                    <p className={styles.meta}>
+                      This Character is not currently participating in an
+                      accessible Campaign.
+                    </p>
+                    {participationManager}
+                  </div>
+                )}
               </section>
 
-              <section className={`${styles.panel} ${styles.profileQuickFacts}`}>
-                <div className={styles.profileSectionHeading}>
-                  <div>
-                    <span className={styles.profileKicker}>Quick facts</span>
-                    <h2>About {character.displayName}</h2>
-                  </div>
-                </div>
+              <section
+                className={`${styles.panel} ${profileStyles.quickFactsPanel}`}
+              >
+                <span className={styles.profileKicker}>Quick facts</span>
                 {quickFacts.length > 0 ? (
-                  <dl className={styles.profileFactList}>
+                  <dl className={profileStyles.factList}>
                     {quickFacts.map((fact) => (
                       <div key={fact.key}>
                         <dt>{fact.label}</dt>
@@ -327,10 +316,11 @@ export default async function WorldCharacterPage({
                 )}
               </section>
 
-              <section className={`${styles.panel} ${styles.profileQuickActions}`}>
+              <section
+                className={`${styles.panel} ${profileStyles.quickActionsPanel}`}
+              >
                 <span className={styles.profileKicker}>Quick actions</span>
-                <h2>Manage Character</h2>
-                <div className={styles.profileNavigation}>
+                <div className={profileStyles.quickActionGrid}>
                   <CharacterEditDialog
                     characterId={character.character.id}
                     characterName={character.character.name}
@@ -339,12 +329,29 @@ export default async function WorldCharacterPage({
                     nameOverride={character.nameOverride}
                     profile={character.profile}
                     canEditWorldIdentity={character.canEditWorldIdentity}
+                    triggerClassName={profileStyles.quickAction}
+                    triggerContent={
+                      <>
+                        <CharacterProfileIcon name="edit" />
+                        <span>Edit</span>
+                      </>
+                    }
                   />
+                  {worldEntityHref ? (
+                    <Link
+                      className={profileStyles.quickAction}
+                      href={worldEntityHref}
+                    >
+                      <CharacterProfileIcon name="connections" />
+                      <span>Connections</span>
+                    </Link>
+                  ) : null}
                   <Link
-                    className={styles.secondary}
+                    className={profileStyles.quickAction}
                     href={`/world/${character.world.id}`}
                   >
-                    Open World
+                    <CharacterProfileIcon name="world" />
+                    <span>World</span>
                   </Link>
                 </div>
               </section>
