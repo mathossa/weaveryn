@@ -37,6 +37,10 @@ export interface CampaignMembershipRepository {
     userId: string,
     role: CampaignRole,
   ): Promise<CampaignMembershipRecord | null>
+  hasActiveCampaignCharacterForUser(
+    campaignId: string,
+    userId: string,
+  ): Promise<boolean>
   deleteCampaignMembership(campaignId: string, userId: string): Promise<boolean>
 }
 
