@@ -37,7 +37,7 @@ export interface CampaignMembershipRepository {
     userId: string,
     role: CampaignRole,
   ): Promise<CampaignMembershipRecord | null>
-  hasActiveCampaignCharacterForUser(
+  hasActiveCampaignCharacterForUser?(
     campaignId: string,
     userId: string,
   ): Promise<boolean>
