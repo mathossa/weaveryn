@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireAuthenticatedUser } from '@/server/auth'
-import { type WorldRole, worldMembershipService } from '@/server/worlds'
+import type { WorldRole } from '@/server/worlds'
+import { worldMembershipService } from '@/server/worlds/world-membership-service'
 import { membershipErrorResponse } from '../../../../memberships/_lib/membership-response'
 
 export const runtime = 'nodejs'
