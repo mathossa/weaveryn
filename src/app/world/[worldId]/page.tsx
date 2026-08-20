@@ -3,8 +3,10 @@ import { notFound } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
+import { MembershipInviteManager } from '@/components/invitations/membership-invite-manager'
 import { StatusPanel } from '@/components/ui/status-panel'
-import { getWorldOverview } from '@/server/worlds'
+import { membershipInvitationService } from '@/server/invitations'
+import { getWorldOverview, WORLD_ROLES } from '@/server/worlds'
 import { ClaimWorldButton } from '../_components/claim-world-button'
 import { WorldForm } from '../_components/world-form'
 import { loadWorldPageUser } from '../_lib/load-world-user'
@@ -34,6 +36,13 @@ export default async function WorldOverviewPage({
   ])
   const world = await getWorldOverview(worldId, user.id)
   if (!world) notFound()
+
+  const worldInvitations = world.canManageMembers
+    ? await membershipInvitationService.listWorldInvitations({
+        actorUserId: user.id,
+        worldId: world.id,
+      })
+    : []
   const weaverMode = query.mode === 'weaver'
 
   return (
@@ -168,6 +177,25 @@ export default async function WorldOverviewPage({
               </div>
             </section>
           </div>
+
+          {world.canManageMembers ? (
+            <section className={styles.panel}>
+              <h2>World membership</h2>
+              <p className={styles.meta}>
+                Create a single-use link to invite someone into this World.
+              </p>
+              <MembershipInviteManager
+                endpoint={`/api/v1/worlds/${world.id}/invitations`}
+                roles={WORLD_ROLES}
+                targetKind="World"
+                initialInvitations={worldInvitations.map((invitation) => ({
+                  id: invitation.id,
+                  role: invitation.role,
+                  expiresAt: invitation.expiresAt.toISOString(),
+                }))}
+              />
+            </section>
+          ) : null}
 
           {world.canEditBasicInfo ? (
             <section className={styles.panel}>
