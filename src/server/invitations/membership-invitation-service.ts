@@ -5,6 +5,7 @@ import {
 } from '../campaigns/campaign-membership-service'
 import { assertCampaignRole, type CampaignRole } from '../campaigns/campaign-role'
 import { WorldMembershipService } from '../worlds/world-membership-service'
+import { WorldMembershipRepositoryConflictError } from '../worlds/world-membership-repository'
 import {
   WORLD_PERMISSIONS,
   WorldAuthorizationService,
@@ -21,6 +22,7 @@ import {
 } from './membership-invitation-errors'
 import type {
   MembershipInvitationRecord,
+  MembershipInvitationTransactionContext,
   MembershipInvitationUnitOfWork,
 } from './membership-invitation-repository'
 
@@ -142,6 +144,30 @@ function invitationView(
   }
 
   throw invitationTargetUnavailable()
+}
+
+async function ensureThreadwatcherWorldAccess(
+  context: MembershipInvitationTransactionContext,
+  worldId: string,
+  userId: string,
+) {
+  const [world, membership] = await Promise.all([
+    context.worldMemberships.findWorldById(worldId),
+    context.worldMemberships.findMembership(worldId, userId),
+  ])
+  if (!world) throw invitationTargetUnavailable()
+  if (world.ownerId === userId || membership) return
+
+  try {
+    await context.worldMemberships.createMembership({
+      worldId,
+      userId,
+      role: 'VIEWER',
+    })
+  } catch (error) {
+    if (error instanceof WorldMembershipRepositoryConflictError) return
+    throw error
+  }
 }
 
 export class MembershipInvitationService {
@@ -415,6 +441,13 @@ export class MembershipInvitationService {
           userId: input.userId,
           role: invitation.campaignRole,
         })
+        if (invitation.campaignRole === 'SPECTATOR') {
+          await ensureThreadwatcherWorldAccess(
+            context,
+            invitation.campaign.world.id,
+            input.userId,
+          )
+        }
         return {
           kind: 'CAMPAIGN',
           worldId: invitation.campaign.world.id,
