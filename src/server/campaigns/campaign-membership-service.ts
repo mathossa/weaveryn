@@ -1,6 +1,7 @@
 import {
   campaignMembershipAlreadyExists,
   campaignMembershipForbidden,
+  campaignMembershipHasActiveCharacter,
   campaignMembershipNotFound,
   campaignOwnerMustBeGm,
   campaignNotFound,
@@ -115,6 +116,17 @@ export class CampaignMembershipService {
     )
     if (campaign.ownerId === input.userId) {
       throw campaignOwnerMustBeGm(input.campaignId, input.userId)
+    }
+    if (
+      await this.repository.hasActiveCampaignCharacterForUser(
+        input.campaignId,
+        input.userId,
+      )
+    ) {
+      throw campaignMembershipHasActiveCharacter(
+        input.campaignId,
+        input.userId,
+      )
     }
     if (
       !(await this.repository.deleteCampaignMembership(
