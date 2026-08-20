@@ -18,6 +18,10 @@ import styles from './login-form.module.css'
 type AuthMode = 'sign-in' | 'register'
 type Feedback = { tone: 'error' | 'success'; message: string } | null
 
+interface LoginFormProps {
+  returnTo?: string
+}
+
 function failureMessage(mode: AuthMode, status: number) {
   if (mode === 'sign-in' && (status === 400 || status === 401)) {
     return 'Email or password is incorrect.'
@@ -32,7 +36,7 @@ function failureMessage(mode: AuthMode, status: number) {
     : 'Unable to create the account right now. Please try again.'
 }
 
-export function LoginForm() {
+export function LoginForm({ returnTo = '/select' }: LoginFormProps) {
   const router = useRouter()
   const [mode, setMode] = useState<AuthMode>('sign-in')
   const [displayName, setDisplayName] = useState('')
@@ -126,7 +130,7 @@ export function LoginForm() {
         return
       }
 
-      router.replace('/select')
+      router.replace(returnTo)
       router.refresh()
     } catch {
       setFeedback({
