@@ -11,6 +11,7 @@ import {
 } from '../worlds/world-permissions'
 import { assertWorldRole, type WorldRole } from '../worlds/world-role'
 import {
+  invitationAlreadyMember,
   invitationAlreadyUsed,
   invitationExpired,
   invitationInvalidToken,
@@ -338,6 +339,28 @@ export class MembershipInvitationService {
       )
       if (!invitation) throw invitationNotFound()
       assertInvitationActive(invitation, now)
+
+      if (invitation.kind === 'WORLD' && invitation.worldId) {
+        const [world, membership] = await Promise.all([
+          context.worldMemberships.findWorldById(invitation.worldId),
+          context.worldMemberships.findMembership(
+            invitation.worldId,
+            input.userId,
+          ),
+        ])
+        if (world?.ownerId === input.userId || membership) {
+          throw invitationAlreadyMember()
+        }
+      } else if (invitation.kind === 'CAMPAIGN' && invitation.campaignId) {
+        if (
+          await context.campaignMemberships.findCampaignMembership(
+            invitation.campaignId,
+            input.userId,
+          )
+        ) {
+          throw invitationAlreadyMember()
+        }
+      }
 
       if (
         !(await context.invitations.claimInvitation(
