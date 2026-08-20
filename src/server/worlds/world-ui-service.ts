@@ -1,4 +1,5 @@
 import { prisma } from '../../lib/prisma'
+import { hasWorldPermission, WORLD_PERMISSIONS } from './world-permissions'
 
 export type WorldAccessKind =
   'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER' | 'CAMPAIGN_ONLY'
@@ -201,7 +202,16 @@ export async function getWorldOverview(
   const hasFullWorldAccess = accessKind !== 'CAMPAIGN_ONLY'
   const canEditBasicInfo = accessKind === 'OWNER' || accessKind === 'ADMIN'
   const canManageMembers = accessKind === 'OWNER' || accessKind === 'ADMIN'
-  const canCreateCampaign = accessKind === 'OWNER' || accessKind === 'ADMIN'
+  const canCreateCampaign = hasWorldPermission(
+    {
+      worldId,
+      ownerId: world.ownerId,
+      userId,
+      isOwner: accessKind === 'OWNER',
+      role: membershipRole,
+    },
+    WORLD_PERMISSIONS.CREATE_CAMPAIGN,
+  )
 
   const [ownsActiveCampaign, preferences, membershipCount, entityCount] =
     await Promise.all([

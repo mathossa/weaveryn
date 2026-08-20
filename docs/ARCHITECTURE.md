@@ -45,7 +45,7 @@ Initial World roles:
 - `MEMBER`
 - `VIEWER`
 
-Campaign creation is permitted to the World owner and World administrators. Other World membership roles do not grant this permission by default.
+Campaign creation is permitted to the World owner, World administrators, and World `MEMBER`s (Threadwalkers). A Campaign created by a Threadwalker is independently owned by that creator, who receives the Campaign `GM` role. World `VIEWER`s (Threadwatchers) and Campaign-only users cannot create Campaigns in the World.
 
 #### Ownership Transfer
 

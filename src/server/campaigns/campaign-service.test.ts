@@ -228,13 +228,21 @@ describe('CampaignService', () => {
     expect(campaign.ownerId).not.toBe(ownerId)
   })
 
-  it.each([
-    ['MEMBER', memberId],
-    ['non-member', outsiderId],
-  ])('rejects Campaign creation by a %s', async (_, creatorId) => {
+  it('allows a World MEMBER to create and independently own a Campaign', async () => {
+    const { repository, service } = createHarness()
+    const campaign = await service.createCampaign(createInput(memberId))
+
+    expect(campaign.ownerId).toBe(memberId)
+    expect(campaign.ownerId).not.toBe(ownerId)
+    expect(repository.campaignMemberships).toEqual([
+      expect.objectContaining({ campaignId, userId: memberId, role: 'GM' }),
+    ])
+  })
+
+  it('rejects Campaign creation by a non-member', async () => {
     const { repository, service } = createHarness()
     await expect(
-      service.createCampaign(createInput(creatorId)),
+      service.createCampaign(createInput(outsiderId)),
     ).rejects.toMatchObject({
       code: 'WORLD_PERMISSION_DENIED',
     } satisfies Partial<WorldDomainError>)

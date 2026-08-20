@@ -154,9 +154,9 @@ export const devScenarioCatalog = [
     title: 'Campaign foundation',
     domain: 'Campaigns',
     purpose:
-      'Exercise Campaign creation, loading, updating, World authorization, main-timeline context, and independent ownership through the real Campaign service.',
+      'Exercise Campaign creation by World owners, Admins, and Threadwalkers, plus loading, updating, World authorization, main-timeline context, and independent ownership through the real Campaign service.',
     href: '/dev/campaign-foundation',
-    issueNumbers: [15],
+    issueNumbers: [15, 53],
     prerequisites: [
       'Dedicated development database',
       'Applied Prisma migrations',

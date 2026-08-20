@@ -13,7 +13,7 @@ import {
   campaignService,
   PrismaCampaignRepository,
 } from '@/server/campaigns'
-import { MAIN_WORLD_TIMELINE_NAME, WorldDomainError } from '@/server/worlds'
+import { MAIN_WORLD_TIMELINE_NAME } from '@/server/worlds'
 import { FixtureOwnershipError } from './fixture-safety'
 import {
   assertWorldFixtureOwned,
@@ -32,7 +32,7 @@ const WORLD_ADMIN_ID = '15000000-0000-4000-8000-00000000000b'
 const WORLD_MEMBER_ID = '15000000-0000-4000-8000-00000000000c'
 const OWNER_CAMPAIGN_ID = '15000000-0000-4000-8000-000000000010'
 const ADMIN_CAMPAIGN_ID = '15000000-0000-4000-8000-000000000011'
-const DENIED_CAMPAIGN_ID = '15000000-0000-4000-8000-000000000012'
+const MEMBER_CAMPAIGN_ID = '15000000-0000-4000-8000-000000000012'
 const WORLD_NAME = 'Aldorath Campaign Laboratory'
 const OWNER_CAMPAIGN_NAME = 'The Crownless Road'
 const ADMIN_CAMPAIGN_NAME = 'Ashes of Aldorath'
@@ -45,7 +45,7 @@ const UPDATED_DATE_LABEL = '20 Emberwane, 812'
 const campaignIds = [
   OWNER_CAMPAIGN_ID,
   ADMIN_CAMPAIGN_ID,
-  DENIED_CAMPAIGN_ID,
+  MEMBER_CAMPAIGN_ID,
 ] as const
 
 const fixture: WorldFixtureDefinition = {
@@ -95,8 +95,8 @@ function actorDetails(actor: CampaignCreateActor) {
   return {
     id: WORLD_MEMBER_ID,
     name: 'Mira (World Member)',
-    campaignId: DENIED_CAMPAIGN_ID,
-    campaignName: 'A Campaign That Must Not Exist',
+    campaignId: MEMBER_CAMPAIGN_ID,
+    campaignName: "The Threadwalker's Tale",
   }
 }
 
@@ -116,7 +116,7 @@ async function assertCampaignFixturesOwned(
   const expectedOwners = new Map([
     [OWNER_CAMPAIGN_ID, WORLD_OWNER_ID],
     [ADMIN_CAMPAIGN_ID, WORLD_ADMIN_ID],
-    [DENIED_CAMPAIGN_ID, WORLD_MEMBER_ID],
+    [MEMBER_CAMPAIGN_ID, WORLD_MEMBER_ID],
   ])
 
   for (const campaign of campaigns) {
@@ -190,7 +190,7 @@ async function readState(): Promise<CampaignFoundationState | null> {
   const expectedOwners = new Map([
     [OWNER_CAMPAIGN_ID, WORLD_OWNER_ID],
     [ADMIN_CAMPAIGN_ID, WORLD_ADMIN_ID],
-    [DENIED_CAMPAIGN_ID, WORLD_MEMBER_ID],
+    [MEMBER_CAMPAIGN_ID, WORLD_MEMBER_ID],
   ])
 
   for (const campaign of campaigns) {
@@ -334,35 +334,23 @@ async function runAcceptanceChecks() {
   })
 
   await resetFixture()
-  let memberErrorCode: string | null = null
-  try {
-    await createCampaignFor('WORLD_MEMBER')
-  } catch (error) {
-    if (
-      error instanceof WorldDomainError &&
-      error.code === 'WORLD_PERMISSION_DENIED'
-    ) {
-      memberErrorCode = error.code
-    } else {
-      throw error
-    }
-  }
-  const afterMemberAttempt = await readState()
+  const memberCampaign = await createCampaignFor('WORLD_MEMBER')
   const memberCreationPassed =
-    memberErrorCode === 'WORLD_PERMISSION_DENIED' &&
-    afterMemberAttempt?.campaigns.length === 0
+    memberCampaign.ownerId === WORLD_MEMBER_ID &&
+    memberCampaign.worldId === WORLD_ID &&
+    memberCampaign.status === 'ACTIVE'
   checks.push({
-    id: 'member-create-denied',
-    title: 'World Member cannot create a Campaign',
+    id: 'world-member-create',
+    title:
+      'World Member (Threadwalker) creates and independently owns a Campaign',
     status: memberCreationPassed ? 'passed' : 'failed',
-    actor: 'Mira (World Member)',
+    actor: 'Mira (World Member / Threadwalker)',
     target: WORLD_NAME,
-    expected: 'WORLD_PERMISSION_DENIED and no Campaign record',
-    actual: `${memberErrorCode ?? 'no domain error'}; ${afterMemberAttempt?.campaigns.length ?? 'unknown'} Campaigns`,
-    domainErrorCode: memberErrorCode,
+    expected: `ACTIVE Campaign owned by ${WORLD_MEMBER_ID}`,
+    actual: `${memberCampaign.status}; owner ${memberCampaign.ownerId}`,
     detail: memberCreationPassed
-      ? 'The World permission boundary failed closed before persistence.'
-      : 'The rejection or database state differed from the expectation.',
+      ? 'The real Campaign service grants Threadwalkers creation permission while keeping Campaign ownership independent.'
+      : 'The Campaign was not created with the expected independent ownership.',
   })
 
   await resetFixture()
@@ -585,29 +573,6 @@ export const campaignFoundationScenario: DevScenario<
       action && typeof action === 'object'
         ? (action as Record<string, unknown>)
         : null
-
-    if (
-      error instanceof WorldDomainError &&
-      error.code === 'WORLD_PERMISSION_DENIED'
-    ) {
-      const expectedRejection =
-        request?.action === 'create-campaign' &&
-        request.actor === 'WORLD_MEMBER'
-      return {
-        code: error.code,
-        message: error.message,
-        status: 403,
-        activity: {
-          action: 'create-campaign',
-          actor: 'Mira (World Member)',
-          target: WORLD_NAME,
-          expected: 'WORLD_PERMISSION_DENIED',
-          actual: error.code,
-          domainErrorCode: error.code,
-          status: expectedRejection ? 'passed' : 'failed',
-        },
-      }
-    }
 
     if (
       error instanceof CampaignDomainError &&

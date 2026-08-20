@@ -34,7 +34,14 @@ describe('World permissions', () => {
         WORLD_PERMISSIONS.CREATE_CAMPAIGN,
       ],
     ],
-    ['MEMBER', [WORLD_PERMISSIONS.VIEW_WORLD, WORLD_PERMISSIONS.EDIT_CONTENT]],
+    [
+      'MEMBER',
+      [
+        WORLD_PERMISSIONS.VIEW_WORLD,
+        WORLD_PERMISSIONS.EDIT_CONTENT,
+        WORLD_PERMISSIONS.CREATE_CAMPAIGN,
+      ],
+    ],
     ['VIEWER', [WORLD_PERMISSIONS.VIEW_WORLD]],
   ])('grants only the documented permissions to %s', (role, granted) => {
     for (const permission of permissions) {
@@ -42,6 +49,21 @@ describe('World permissions', () => {
         granted.includes(permission),
       )
     }
+  })
+
+  it('lets a World MEMBER create Campaigns without granting member management', () => {
+    expect(
+      hasWorldPermission(access('MEMBER'), WORLD_PERMISSIONS.CREATE_CAMPAIGN),
+    ).toBe(true)
+    expect(
+      hasWorldPermission(access('MEMBER'), WORLD_PERMISSIONS.MANAGE_MEMBERS),
+    ).toBe(false)
+  })
+
+  it('keeps World VIEWER Campaign creation read-only', () => {
+    expect(
+      hasWorldPermission(access('VIEWER'), WORLD_PERMISSIONS.CREATE_CAMPAIGN),
+    ).toBe(false)
   })
 
   it('does not grant World permissions to a non-member', () => {
