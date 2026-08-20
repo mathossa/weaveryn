@@ -14,6 +14,13 @@ export interface ChooseEntityEntryState {
     worldName: string
     campaigns: { id: string; name: string }[]
   } | null
+  threadwatcher: {
+    worldId: string
+    worldName: string
+    worldAccessKind: string
+    canThreadwatch: boolean
+    campaigns: { id: string; name: string; role: string }[]
+  } | null
   preferences: ChooseEntityEntryPreferenceState[]
 }
 
