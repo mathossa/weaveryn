@@ -28,6 +28,11 @@ function statusMessage(status: MembershipInvitationStatus) {
   return null
 }
 
+function roleLabel(role: string) {
+  if (role === 'SPECTATOR') return 'Witness'
+  return role.replaceAll('_', ' ')
+}
+
 export default async function InvitePage({ params }: InvitePageProps) {
   const [{ token }, user] = await Promise.all([
     params,
@@ -87,9 +92,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
               ) : null}
               <div className={styles.row}>
                 <span className={styles.label}>Role</span>
-                <span className={styles.value}>
-                  {invitation.role.replaceAll('_', ' ')}
-                </span>
+                <span className={styles.value}>{roleLabel(invitation.role)}</span>
               </div>
               <div className={styles.row}>
                 <span className={styles.label}>Expires</span>
