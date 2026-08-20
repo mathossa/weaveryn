@@ -2,6 +2,12 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import {
+  campaignRoleLabel,
+  worldRoleLabel,
+  type CampaignRoleCode,
+  type WorldRoleCode,
+} from '@/lib/role-labels'
 import styles from './membership-manager.module.css'
 
 export interface ManagedMembershipView {
@@ -21,9 +27,10 @@ interface MembershipManagerProps {
 
 type Feedback = { tone: 'error' | 'success'; message: string } | null
 
-function roleLabel(role: string) {
-  if (role === 'SPECTATOR') return 'Witness'
-  return role.replaceAll('_', ' ')
+function roleLabel(role: string, targetKind: 'World' | 'Campaign') {
+  return targetKind === 'Campaign'
+    ? campaignRoleLabel(role as CampaignRoleCode)
+    : worldRoleLabel(role as WorldRoleCode)
 }
 
 export function MembershipManager({
@@ -75,7 +82,7 @@ export function MembershipManager({
       )
       setFeedback({
         tone: 'success',
-        message: `${member.displayName ?? `@${member.username}`} is now ${roleLabel(nextRole)}.`,
+        message: `${member.displayName ?? `@${member.username}`} is now ${roleLabel(nextRole, targetKind)}.`,
       })
     } catch {
       setFeedback({
@@ -105,11 +112,12 @@ export function MembershipManager({
         `${endpoint}/${encodeURIComponent(member.userId)}`,
         { method: 'DELETE', credentials: 'same-origin' },
       )
-      const body = response.status === 204
-        ? null
-        : ((await response.json().catch(() => null)) as {
-            error?: { message?: string }
-          } | null)
+      const body =
+        response.status === 204
+          ? null
+          : ((await response.json().catch(() => null)) as {
+              error?: { message?: string }
+            } | null)
 
       if (!response.ok) {
         setFeedback({
@@ -166,7 +174,8 @@ export function MembershipManager({
                     <span className={styles.note}>
                       {activeCharacterCount} active Campaign Character
                       {activeCharacterCount === 1 ? '' : 's'} — remove participation
-                      before removing this membership or changing it to Witness.
+                      before removing this membership or changing it to
+                      Threadwatcher.
                     </span>
                   ) : null}
                 </div>
@@ -188,7 +197,7 @@ export function MembershipManager({
                         member.role !== 'SPECTATOR'
                       }
                     >
-                      {roleLabel(role)}
+                      {roleLabel(role, targetKind)}
                     </option>
                   ))}
                 </select>
