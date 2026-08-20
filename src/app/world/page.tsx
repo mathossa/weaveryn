@@ -13,7 +13,7 @@ const accessLabels = {
   ADMIN: 'Admin',
   MEMBER: 'Member',
   VIEWER: 'Viewer',
-  CAMPAIGN_ONLY: 'Campaign access',
+  CAMPAIGN_ONLY: 'Campaign-only access',
 } as const
 
 interface WorldSelectionPageProps {
