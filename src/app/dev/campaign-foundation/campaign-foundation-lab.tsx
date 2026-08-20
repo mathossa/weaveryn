@@ -19,6 +19,7 @@ import styles from './campaign-foundation.module.css'
 const metadata = requireDevScenarioMetadata('campaign-foundation')
 const ownerCampaignId = '15000000-0000-4000-8000-000000000010'
 const adminCampaignId = '15000000-0000-4000-8000-000000000011'
+const memberCampaignId = '15000000-0000-4000-8000-000000000012'
 
 export function CampaignFoundationLab() {
   const [createActor, setCreateActor] =
@@ -35,7 +36,7 @@ export function CampaignFoundationLab() {
       ? ownerCampaignId
       : createActor === 'WORLD_ADMIN'
         ? adminCampaignId
-        : null
+        : memberCampaignId
   const selectedCampaignExists = state?.campaigns.some(
     (campaign) => campaign.id === selectedCampaignId,
   )
@@ -53,7 +54,7 @@ export function CampaignFoundationLab() {
           <h1>Campaign foundation laboratory</h1>
           <p>
             Create a playable Campaign inside a persisted World, confirm that
-            World owner and Admin permissions authorize creation, and observe
+            World owner, Admin, and Threadwalker permissions authorize creation, and observe
             that the creator—not the World owner—holds Campaign authority.
           </p>
         </header>
@@ -93,8 +94,8 @@ export function CampaignFoundationLab() {
             <span>Real create service</span>
             <h2 id="create-title">Create a Campaign</h2>
             <p>
-              Owner and Admin succeed. Member receives{' '}
-              <code>WORLD_PERMISSION_DENIED</code> and no row is written.
+              Owner, Admin, and World Member (Threadwalker) all create their own
+              Campaign. Threadwatchers and Campaign-only users remain unauthorized.
             </p>
             <label htmlFor="campaign-create-actor">Acting user</label>
             <select
@@ -108,7 +109,7 @@ export function CampaignFoundationLab() {
               <option value="WORLD_OWNER">Wren · World owner</option>
               <option value="WORLD_ADMIN">Ada · World Admin</option>
               <option value="WORLD_MEMBER">
-                Mira · World Member (should fail)
+                Mira · World Member / Threadwalker
               </option>
             </select>
             <button
