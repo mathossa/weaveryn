@@ -8,6 +8,7 @@ import {
   MembershipInvitationDomainError,
   membershipInvitationService,
   type MembershipInvitationStatus,
+  type MembershipInvitationView,
 } from '@/server/invitations'
 import { InviteAcceptButton } from './invite-accept-button'
 import styles from '../invite.module.css'
@@ -33,7 +34,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
     getAuthenticatedUser(new Headers(await headers())),
   ])
 
-  let invitation
+  let invitation: MembershipInvitationView | undefined
   let unavailableMessage: string | null = null
   try {
     invitation = await membershipInvitationService.previewInvitation(token)
