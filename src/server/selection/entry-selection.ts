@@ -62,13 +62,24 @@ export async function getEntrySelection(
         world: {
           OR: [
             { ownerId: userId },
-            { memberships: { some: { userId } } },
+            {
+              memberships: {
+                some: { userId, role: { in: ['ADMIN', 'MEMBER'] } },
+              },
+            },
             {
               campaigns: {
                 some: {
                   OR: [
                     { ownerId: userId },
-                    { memberships: { some: { userId } } },
+                    {
+                      memberships: {
+                        some: {
+                          userId,
+                          role: { in: ['GM', 'ASSISTANT_GM', 'PLAYER'] },
+                        },
+                      },
+                    },
                   ],
                 },
               },
@@ -100,7 +111,14 @@ export async function getEntrySelection(
               status: 'ACTIVE',
               OR: [
                 { ownerId: userId },
-                { memberships: { some: { userId } } },
+                {
+                  memberships: {
+                    some: {
+                      userId,
+                      role: { in: ['GM', 'ASSISTANT_GM', 'PLAYER'] },
+                    },
+                  },
+                },
               ],
             },
           },
