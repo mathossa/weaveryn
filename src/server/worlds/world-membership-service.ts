@@ -1,3 +1,4 @@
+import { prisma } from '../../lib/prisma'
 import {
   userNotFound,
   worldMembershipAlreadyExists,
@@ -10,6 +11,7 @@ import {
   type WorldMembershipRecord,
   type WorldMembershipRepository,
 } from './world-membership-repository'
+import { PrismaWorldMembershipRepository } from './prisma-world-membership-repository'
 import {
   WORLD_PERMISSIONS,
   WorldAuthorizationService,
@@ -150,3 +152,7 @@ export class WorldMembershipService {
     }
   }
 }
+
+export const worldMembershipService = new WorldMembershipService(
+  new PrismaWorldMembershipRepository(prisma),
+)
