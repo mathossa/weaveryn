@@ -6,6 +6,7 @@ import {
   getCampaignOverview,
   type CampaignRole,
 } from '@/server/campaigns'
+import { worldMembershipService } from '@/server/worlds/world-membership-service'
 
 export const runtime = 'nodejs'
 
@@ -36,12 +37,16 @@ export async function PATCH(request: Request, context: RouteContext) {
     const routeError = await assertRouteCampaign(worldId, campaignId, actor.id)
     if (routeError) return routeError
 
+    const role = body.role as CampaignRole
     const membership = await campaignMembershipService.changeMemberRole({
       actorUserId: actor.id,
       campaignId,
       userId,
-      role: body.role as CampaignRole,
+      role,
     })
+    if (role === 'SPECTATOR') {
+      await worldMembershipService.ensureViewerAccess(userId, worldId)
+    }
     return NextResponse.json({ membership })
   } catch (error) {
     return membershipErrorResponse(error)
