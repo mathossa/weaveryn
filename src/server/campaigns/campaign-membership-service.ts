@@ -47,6 +47,19 @@ export async function assertCampaignMembershipManager(
 export class CampaignMembershipService {
   constructor(private readonly repository: CampaignMembershipRepository) {}
 
+  private hasActiveCampaignCharacterForUser(
+    campaignId: string,
+    userId: string,
+  ) {
+    const check = this.repository.hasActiveCampaignCharacterForUser
+    if (!check) {
+      throw new Error(
+        'Campaign membership repository cannot verify active Character participation.',
+      )
+    }
+    return check.call(this.repository, campaignId, userId)
+  }
+
   async addMember(
     input: AddCampaignMemberInput,
   ): Promise<CampaignMembershipRecord> {
@@ -100,7 +113,7 @@ export class CampaignMembershipService {
     }
     if (
       input.role === 'SPECTATOR' &&
-      (await this.repository.hasActiveCampaignCharacterForUser(
+      (await this.hasActiveCampaignCharacterForUser(
         input.campaignId,
         input.userId,
       ))
@@ -130,7 +143,7 @@ export class CampaignMembershipService {
       throw campaignOwnerMustBeGm(input.campaignId, input.userId)
     }
     if (
-      await this.repository.hasActiveCampaignCharacterForUser(
+      await this.hasActiveCampaignCharacterForUser(
         input.campaignId,
         input.userId,
       )
