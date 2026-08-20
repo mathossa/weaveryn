@@ -209,6 +209,9 @@ export async function getEntrySelection(
       (character) => !selectedCharacterIds.has(character.id),
     ),
     campaignMemberships: campaignMemberships.flatMap((membership) => {
+      if (membership.role !== 'PLAYER' && membership.role !== 'SPECTATOR') {
+        return []
+      }
       const campaign = membership.campaign
       if (!campaign.world) return []
       if (
