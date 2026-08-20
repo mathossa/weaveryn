@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { getEntrySelection } from './entry-selection'
 
 export const WEAVER_ENTRY_KEY = 'weaver'
+export const WEAVER_CAMPAIGN_ENTRY_KEY_PREFIX = 'weaver-campaign'
 
 export type EntryPreferenceErrorCode =
   'ENTRY_PREFERENCE_NOT_AVAILABLE' | 'ENTRY_PREFERENCE_INVALID'
@@ -69,6 +70,10 @@ export function characterEntryKey(
   campaignId?: string | null,
 ) {
   return `character:${worldCharacterId}:${campaignId ?? 'world'}`
+}
+
+export function weaverCampaignEntryKey(worldId: string, campaignId: string) {
+  return `${WEAVER_CAMPAIGN_ENTRY_KEY_PREFIX}:${worldId}:${campaignId}`
 }
 
 export async function listEntryPreferences(userId: string) {
@@ -184,6 +189,44 @@ export async function setCharacterEntryPinned(input: {
   })
 }
 
+export async function setWeaverCampaignEntryPinned(input: {
+  userId: string
+  worldId: string
+  campaignId: string
+  pinned: boolean
+}) {
+  const campaign = await findManageableWeaverCampaign(
+    input.userId,
+    input.worldId,
+    input.campaignId,
+  )
+  if (!campaign) {
+    throw new EntryPreferenceDomainError(
+      'ENTRY_PREFERENCE_NOT_AVAILABLE',
+      'Weaver Campaign is not available.',
+    )
+  }
+
+  const entryKey = weaverCampaignEntryKey(input.worldId, input.campaignId)
+  return prisma.entryPreference.upsert({
+    where: {
+      userId_entryKey: {
+        userId: input.userId,
+        entryKey,
+      },
+    },
+    create: {
+      userId: input.userId,
+      entryKey,
+      kind: 'WEAVER',
+      worldId: input.worldId,
+      campaignId: input.campaignId,
+      pinned: input.pinned,
+    },
+    update: { pinned: input.pinned },
+  })
+}
+
 export async function recordCharacterEntryUse(input: {
   userId: string
   worldCharacterId: string
@@ -250,7 +293,7 @@ export async function recordWeaverEntryUse(input: {
   }
 
   const lastUsedAt = new Date()
-  return prisma.entryPreference.upsert({
+  const resumePreference = prisma.entryPreference.upsert({
     where: {
       userId_entryKey: {
         userId: input.userId,
@@ -271,6 +314,32 @@ export async function recordWeaverEntryUse(input: {
       lastUsedAt,
     },
   })
+
+  if (!campaignId) return resumePreference
+
+  const campaignPreference = prisma.entryPreference.upsert({
+    where: {
+      userId_entryKey: {
+        userId: input.userId,
+        entryKey: weaverCampaignEntryKey(input.worldId, campaignId),
+      },
+    },
+    create: {
+      userId: input.userId,
+      entryKey: weaverCampaignEntryKey(input.worldId, campaignId),
+      kind: 'WEAVER',
+      worldId: input.worldId,
+      campaignId,
+      lastUsedAt,
+    },
+    update: { lastUsedAt },
+  })
+
+  const [preference] = await prisma.$transaction([
+    resumePreference,
+    campaignPreference,
+  ])
+  return preference
 }
 
 export async function getWeaverResume(userId: string) {

@@ -17,6 +17,9 @@ export interface WorldOverviewCampaign {
   name: string
   role: 'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR'
   isOwner: boolean
+  pinned: boolean
+  lastUsedAt: Date | null
+  updatedAt: Date
 }
 
 export interface WorldOverview {
@@ -30,6 +33,8 @@ export interface WorldOverview {
   canCreateCampaign: boolean
   canClaimOwnership: boolean
   hasFullWorldAccess: boolean
+  memberCount: number
+  entityCount: number | null
   campaigns: WorldOverviewCampaign[]
 }
 
@@ -168,6 +173,7 @@ export async function getWorldOverview(
           id: true,
           name: true,
           ownerId: true,
+          updatedAt: true,
           memberships: {
             where: { userId },
             select: { role: true },
@@ -196,15 +202,85 @@ export async function getWorldOverview(
   const canEditBasicInfo = accessKind === 'OWNER' || accessKind === 'ADMIN'
   const canManageMembers = accessKind === 'OWNER' || accessKind === 'ADMIN'
   const canCreateCampaign = accessKind === 'OWNER' || accessKind === 'ADMIN'
-  const ownsActiveCampaign = await prisma.campaign.findFirst({
-    where: { worldId, ownerId: userId, status: 'ACTIVE' },
-    select: { id: true },
-  })
+
+  const [ownsActiveCampaign, preferences, membershipCount, entityCount] =
+    await Promise.all([
+      prisma.campaign.findFirst({
+        where: { worldId, ownerId: userId, status: 'ACTIVE' },
+        select: { id: true },
+      }),
+      prisma.entryPreference.findMany({
+        where: {
+          userId,
+          kind: 'WEAVER',
+          worldId,
+          campaignId: { not: null },
+        },
+        select: {
+          entryKey: true,
+          campaignId: true,
+          pinned: true,
+          lastUsedAt: true,
+        },
+      }),
+      prisma.worldMembership.count({ where: { worldId } }),
+      hasFullWorldAccess
+        ? prisma.worldEntity.count({ where: { worldId } })
+        : Promise.resolve(null),
+    ])
+
   const canClaimOwnership =
     world.ownerId === null &&
     (membershipRole === 'ADMIN' ||
       (world._count.memberships === 0 &&
         (membershipRole === 'MEMBER' || Boolean(ownsActiveCampaign))))
+
+  const specificPreferences = new Map(
+    preferences
+      .filter(
+        (preference) =>
+          preference.campaignId &&
+          preference.entryKey.startsWith('weaver-campaign:'),
+      )
+      .map((preference) => [preference.campaignId as string, preference]),
+  )
+  const resumePreference = preferences.find(
+    (preference) => preference.entryKey === 'weaver',
+  )
+
+  const campaigns = world.campaigns
+    .map((campaign) => {
+      const preference = specificPreferences.get(campaign.id)
+      const resumeFallback =
+        !preference && resumePreference?.campaignId === campaign.id
+          ? resumePreference
+          : null
+
+      return {
+        id: campaign.id,
+        name: campaign.name,
+        role: campaignRole({
+          ownerId: campaign.ownerId,
+          userId,
+          membershipRole: campaign.memberships[0]?.role ?? null,
+        }),
+        isOwner: campaign.ownerId === userId,
+        pinned: preference?.pinned ?? false,
+        lastUsedAt:
+          preference?.lastUsedAt ?? resumeFallback?.lastUsedAt ?? null,
+        updatedAt: campaign.updatedAt,
+      }
+    })
+    .sort((left, right) => {
+      if (left.pinned !== right.pinned) return left.pinned ? -1 : 1
+      const leftRecent = left.lastUsedAt?.getTime() ?? 0
+      const rightRecent = right.lastUsedAt?.getTime() ?? 0
+      if (leftRecent !== rightRecent) return rightRecent - leftRecent
+      const updatedDifference =
+        right.updatedAt.getTime() - left.updatedAt.getTime()
+      if (updatedDifference !== 0) return updatedDifference
+      return left.id.localeCompare(right.id)
+    })
 
   return {
     id: world.id,
@@ -217,15 +293,8 @@ export async function getWorldOverview(
     canCreateCampaign,
     canClaimOwnership,
     hasFullWorldAccess,
-    campaigns: world.campaigns.map((campaign) => ({
-      id: campaign.id,
-      name: campaign.name,
-      role: campaignRole({
-        ownerId: campaign.ownerId,
-        userId,
-        membershipRole: campaign.memberships[0]?.role ?? null,
-      }),
-      isOwner: campaign.ownerId === userId,
-    })),
+    memberCount: membershipCount + (world.ownerId ? 1 : 0),
+    entityCount,
+    campaigns,
   }
 }
