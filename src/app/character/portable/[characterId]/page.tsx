@@ -41,6 +41,8 @@ export default async function PortableCharacterPage({
   const targetWorld = targetWorldId
     ? character.availableWorlds.find((world) => world.id === targetWorldId)
     : undefined
+  const incarnationCount =
+    character.worldCharacters.length + character.unavailableWorldCharacters.length
 
   return (
     <AuthenticatedAppShell
@@ -85,8 +87,8 @@ export default async function PortableCharacterPage({
                 />
               ) : (
                 <p className={styles.meta}>
-                  This World is not currently available for a new incarnation of
-                  this Character.
+                  This World is not currently available for a playable
+                  incarnation of this Character.
                 </p>
               )}
             </section>
@@ -113,7 +115,7 @@ export default async function PortableCharacterPage({
 
             <section className={styles.panel}>
               <h2>World incarnations</h2>
-              {character.worldCharacters.length === 0 ? (
+              {incarnationCount === 0 ? (
                 <p>This Character is not part of a World yet.</p>
               ) : (
                 <div className={styles.list}>
@@ -132,6 +134,17 @@ export default async function PortableCharacterPage({
                       <span>Open →</span>
                     </Link>
                   ))}
+                  {character.unavailableWorldCharacters.map((incarnation) => (
+                    <div className={styles.listItem} key={incarnation.id}>
+                      <span className={styles.listCopy}>
+                        <strong>{incarnation.name}</strong>
+                        <span className={styles.meta}>
+                          {incarnation.world.name} · stored World incarnation
+                        </span>
+                      </span>
+                      <span className={styles.meta}>Access unavailable</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </section>
@@ -142,6 +155,8 @@ export default async function PortableCharacterPage({
             <p className={styles.meta}>
               Creating a WorldCharacter does not change the portable Character.
               The same Character can have one distinct incarnation per World.
+              Spectator-only Campaign access does not create a playable World
+              incarnation.
             </p>
             {character.availableWorlds.length === 0 ? (
               <p>No additional authorized Worlds are available right now.</p>
