@@ -1,0 +1,45 @@
+.form {
+  display: grid;
+  gap: 0.9rem;
+  max-width: 44rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  padding: 1rem;
+  background: var(--ui-panel-strong);
+}
+
+.field {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--ui-text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.input {
+  width: 100%;
+  min-height: 2.8rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  padding: 0.65rem 0.8rem;
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  font: inherit;
+  outline: none;
+}
+
+.input:focus-visible {
+  border-color: var(--ui-accent);
+  box-shadow: var(--ui-focus-ring);
+}
+
+.error {
+  margin: 0;
+  color: var(--ui-danger);
+  font-size: 0.82rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+}
