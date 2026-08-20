@@ -291,7 +291,9 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                   </span>
                   <span className={styles.weaverCopy}>
                     <strong>Join as Threadwatcher</strong>
-                    <span>Choose a World, then a Campaign you can observe.</span>
+                    <span>
+                      Choose a World, then a Campaign you can observe.
+                    </span>
                   </span>
                   <span className={styles.weaverArrow} aria-hidden="true">
                     →

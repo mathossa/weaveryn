@@ -74,7 +74,10 @@ export default async function CampaignSelectionPage({
             }
             action={
               threadwatcherMode ? (
-                <Link className={styles.secondary} href="/world?mode=threadwatcher">
+                <Link
+                  className={styles.secondary}
+                  href="/world?mode=threadwatcher"
+                >
                   Change World
                 </Link>
               ) : selection.canCreateCampaign ? (

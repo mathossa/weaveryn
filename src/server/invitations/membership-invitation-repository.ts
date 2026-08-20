@@ -90,8 +90,6 @@ export interface MembershipInvitationTransactionContext {
 
 export interface MembershipInvitationUnitOfWork {
   runInTransaction<T>(
-    operation: (
-      context: MembershipInvitationTransactionContext,
-    ) => Promise<T>,
+    operation: (context: MembershipInvitationTransactionContext) => Promise<T>,
   ): Promise<T>
 }

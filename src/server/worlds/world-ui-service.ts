@@ -1,11 +1,7 @@
 import { prisma } from '../../lib/prisma'
 
 export type WorldAccessKind =
-  | 'OWNER'
-  | 'ADMIN'
-  | 'MEMBER'
-  | 'VIEWER'
-  | 'CAMPAIGN_ONLY'
+  'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER' | 'CAMPAIGN_ONLY'
 
 export interface WorldNavigationChoice {
   id: string
@@ -129,9 +125,7 @@ export async function listWorldNavigationChoices(
       canWeave:
         accessKind === 'OWNER' ||
         accessKind === 'ADMIN' ||
-        campaignRoles.some(
-          (role) => role === 'GM' || role === 'ASSISTANT_GM',
-        ),
+        campaignRoles.some((role) => role === 'GM' || role === 'ASSISTANT_GM'),
       canThreadwatch: campaignRoles.includes('SPECTATOR'),
     }
   })

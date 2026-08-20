@@ -80,11 +80,7 @@ class FakeWorldMembershipRepository implements WorldMembershipRepository {
     return Promise.resolve(record)
   }
 
-  updateMembershipRole(
-    targetWorldId: string,
-    userId: string,
-    role: WorldRole,
-  ) {
+  updateMembershipRole(targetWorldId: string, userId: string, role: WorldRole) {
     const key = this.key(targetWorldId, userId)
     const current = this.memberships.get(key)
     if (!current) return Promise.resolve(null)
@@ -94,7 +90,9 @@ class FakeWorldMembershipRepository implements WorldMembershipRepository {
   }
 
   deleteMembership(targetWorldId: string, userId: string) {
-    return Promise.resolve(this.memberships.delete(this.key(targetWorldId, userId)))
+    return Promise.resolve(
+      this.memberships.delete(this.key(targetWorldId, userId)),
+    )
   }
 }
 
@@ -284,7 +282,9 @@ class FakeUnitOfWork implements MembershipInvitationUnitOfWork {
   async runInTransaction<T>(
     operation: (context: MembershipInvitationTransactionContext) => Promise<T>,
   ) {
-    const invitationSnapshot = clone([...this.invitations.invitations.entries()])
+    const invitationSnapshot = clone([
+      ...this.invitations.invitations.entries(),
+    ])
     const worldMembershipSnapshot = clone([
       ...this.worldMemberships.memberships.entries(),
     ])
@@ -525,7 +525,9 @@ describe('MembershipInvitationService', () => {
 
   it('rejects revoked and expired invitations', async () => {
     const revokedState = fixture()
-    const created = await service(revokedState.unitOfWork).createWorldInvitation({
+    const created = await service(
+      revokedState.unitOfWork,
+    ).createWorldInvitation({
       actorUserId: ownerId,
       worldId,
       role: 'MEMBER',
@@ -549,7 +551,11 @@ describe('MembershipInvitationService', () => {
     })
     const afterExpiry = new Date('2026-08-28T00:00:00.000Z')
     await expect(
-      service(expiredState.unitOfWork, tokenC, () => afterExpiry).acceptInvitation({
+      service(
+        expiredState.unitOfWork,
+        tokenC,
+        () => afterExpiry,
+      ).acceptInvitation({
         userId: inviteeId,
         token: tokenA,
       }),

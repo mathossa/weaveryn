@@ -49,7 +49,10 @@ export async function listCampaignMembershipsForManagement(
   const characterCountByUser = new Map<string, number>()
   for (const campaignCharacter of activeCampaignCharacters) {
     const userId = campaignCharacter.worldCharacter.character.ownerUserId
-    characterCountByUser.set(userId, (characterCountByUser.get(userId) ?? 0) + 1)
+    characterCountByUser.set(
+      userId,
+      (characterCountByUser.get(userId) ?? 0) + 1,
+    )
   }
 
   return campaign.memberships

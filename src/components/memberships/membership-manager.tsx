@@ -173,9 +173,9 @@ export function MembershipManager({
                   {activeCharacterCount > 0 ? (
                     <span className={styles.note}>
                       {activeCharacterCount} active Campaign Character
-                      {activeCharacterCount === 1 ? '' : 's'} — remove participation
-                      before removing this membership or changing it to
-                      Threadwatcher.
+                      {activeCharacterCount === 1 ? '' : 's'} — remove
+                      participation before removing this membership or changing
+                      it to Threadwatcher.
                     </span>
                   ) : null}
                 </div>

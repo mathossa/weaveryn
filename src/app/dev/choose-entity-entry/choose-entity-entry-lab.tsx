@@ -100,8 +100,8 @@ export function ChooseEntityEntryLab() {
             <article>
               <strong>{state.threadwatcher.worldName}</strong>
               <span>
-                World access: {state.threadwatcher.worldAccessKind} · selectable:{' '}
-                {String(state.threadwatcher.canThreadwatch)}
+                World access: {state.threadwatcher.worldAccessKind} ·
+                selectable: {String(state.threadwatcher.canThreadwatch)}
               </span>
               <span>
                 Campaigns:{' '}

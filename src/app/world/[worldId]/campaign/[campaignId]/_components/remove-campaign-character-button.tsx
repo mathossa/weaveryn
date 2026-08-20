@@ -34,11 +34,12 @@ export function RemoveCampaignCharacterButton({
         `/api/v1/campaign-characters/${encodeURIComponent(campaignCharacterId)}`,
         { method: 'DELETE', credentials: 'same-origin' },
       )
-      const body = response.status === 204
-        ? null
-        : ((await response.json().catch(() => null)) as {
-            error?: { message?: string }
-          } | null)
+      const body =
+        response.status === 204
+          ? null
+          : ((await response.json().catch(() => null)) as {
+              error?: { message?: string }
+            } | null)
 
       if (!response.ok) {
         setError(body?.error?.message ?? 'Unable to remove this participation.')

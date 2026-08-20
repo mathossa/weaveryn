@@ -118,10 +118,7 @@ export class CampaignMembershipService {
         input.userId,
       ))
     ) {
-      throw campaignMembershipHasActiveCharacter(
-        input.campaignId,
-        input.userId,
-      )
+      throw campaignMembershipHasActiveCharacter(input.campaignId, input.userId)
     }
     const membership = await this.repository.updateCampaignMembershipRole(
       input.campaignId,
@@ -148,10 +145,7 @@ export class CampaignMembershipService {
         input.userId,
       )
     ) {
-      throw campaignMembershipHasActiveCharacter(
-        input.campaignId,
-        input.userId,
-      )
+      throw campaignMembershipHasActiveCharacter(input.campaignId, input.userId)
     }
     if (
       !(await this.repository.deleteCampaignMembership(

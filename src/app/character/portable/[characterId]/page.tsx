@@ -142,8 +142,8 @@ export default async function PortableCharacterPage({
             <p className={styles.meta}>
               Creating a WorldCharacter does not change the portable Character.
               The same Character can have one distinct incarnation per World.
-              Threadwatcher-only Campaign access does not create a playable World
-              incarnation.
+              Threadwatcher-only Campaign access does not create a playable
+              World incarnation.
             </p>
             {character.availableWorlds.length === 0 ? (
               <p>No additional authorized Worlds are available right now.</p>

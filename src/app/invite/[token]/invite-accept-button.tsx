@@ -21,9 +21,7 @@ interface AcceptedCampaignInvitation {
   role: 'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR'
 }
 
-type AcceptedInvitation =
-  | AcceptedWorldInvitation
-  | AcceptedCampaignInvitation
+type AcceptedInvitation = AcceptedWorldInvitation | AcceptedCampaignInvitation
 
 type Feedback = { message: string } | null
 
@@ -79,7 +77,8 @@ export function InviteAcceptButton({ token }: InviteAcceptButtonProps) {
       router.refresh()
     } catch {
       setFeedback({
-        message: 'Unable to accept this invitation right now. Please try again.',
+        message:
+          'Unable to accept this invitation right now. Please try again.',
       })
     } finally {
       setBusy(false)

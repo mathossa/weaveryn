@@ -3,7 +3,10 @@ import {
   CampaignMembershipService,
   assertCampaignMembershipManager,
 } from '../campaigns/campaign-membership-service'
-import { assertCampaignRole, type CampaignRole } from '../campaigns/campaign-role'
+import {
+  assertCampaignRole,
+  type CampaignRole,
+} from '../campaigns/campaign-role'
 import { WorldMembershipService } from '../worlds/world-membership-service'
 import {
   WORLD_PERMISSIONS,
@@ -30,10 +33,7 @@ const INVITATION_LIFETIME_MS =
   MEMBERSHIP_INVITATION_LIFETIME_DAYS * 24 * 60 * 60 * 1000
 
 export type MembershipInvitationStatus =
-  | 'ACTIVE'
-  | 'ACCEPTED'
-  | 'REVOKED'
-  | 'EXPIRED'
+  'ACTIVE' | 'ACCEPTED' | 'REVOKED' | 'EXPIRED'
 
 export interface MembershipInvitationView {
   id: string
@@ -107,11 +107,7 @@ function invitationView(
   invitation: MembershipInvitationRecord,
   now: Date,
 ): MembershipInvitationView {
-  if (
-    invitation.kind === 'WORLD' &&
-    invitation.world &&
-    invitation.worldRole
-  ) {
+  if (invitation.kind === 'WORLD' && invitation.world && invitation.worldRole) {
     return {
       id: invitation.id,
       kind: 'WORLD',
@@ -148,8 +144,7 @@ export class MembershipInvitationService {
   constructor(
     private readonly unitOfWork: MembershipInvitationUnitOfWork,
     private readonly clock: MembershipInvitationClock = () => new Date(),
-    private readonly tokenFactory: MembershipInvitationTokenFactory =
-      generateInvitationToken,
+    private readonly tokenFactory: MembershipInvitationTokenFactory = generateInvitationToken,
   ) {}
 
   async createWorldInvitation(input: {
@@ -162,29 +157,31 @@ export class MembershipInvitationService {
     const now = this.clock()
     const expiresAt = new Date(now.getTime() + INVITATION_LIFETIME_MS)
 
-    const invitation = await this.unitOfWork.runInTransaction(async (context) => {
-      const authorization = new WorldAuthorizationService(
-        context.worldMemberships,
-      )
-      await authorization.assertPermission(
-        input.actorUserId,
-        input.worldId,
-        WORLD_PERMISSIONS.MANAGE_MEMBERS,
-      )
+    const invitation = await this.unitOfWork.runInTransaction(
+      async (context) => {
+        const authorization = new WorldAuthorizationService(
+          context.worldMemberships,
+        )
+        await authorization.assertPermission(
+          input.actorUserId,
+          input.worldId,
+          WORLD_PERMISSIONS.MANAGE_MEMBERS,
+        )
 
-      if (!(await context.invitations.findWorldTarget(input.worldId))) {
-        throw invitationTargetUnavailable()
-      }
+        if (!(await context.invitations.findWorldTarget(input.worldId))) {
+          throw invitationTargetUnavailable()
+        }
 
-      return context.invitations.createInvitation({
-        kind: 'WORLD',
-        tokenHash: hashMembershipInvitationToken(token),
-        worldId: input.worldId,
-        worldRole: input.role,
-        createdById: input.actorUserId,
-        expiresAt,
-      })
-    })
+        return context.invitations.createInvitation({
+          kind: 'WORLD',
+          tokenHash: hashMembershipInvitationToken(token),
+          worldId: input.worldId,
+          worldRole: input.role,
+          createdById: input.actorUserId,
+          expiresAt,
+        })
+      },
+    )
 
     return { token, invitation: invitationView(invitation, now) }
   }
@@ -199,28 +196,30 @@ export class MembershipInvitationService {
     const now = this.clock()
     const expiresAt = new Date(now.getTime() + INVITATION_LIFETIME_MS)
 
-    const invitation = await this.unitOfWork.runInTransaction(async (context) => {
-      await assertCampaignMembershipManager(
-        context.campaignMemberships,
-        input.actorUserId,
-        input.campaignId,
-      )
-      const campaign = await context.invitations.findCampaignTarget(
-        input.campaignId,
-      )
-      if (!campaign || campaign.status !== 'ACTIVE' || !campaign.world) {
-        throw invitationTargetUnavailable()
-      }
+    const invitation = await this.unitOfWork.runInTransaction(
+      async (context) => {
+        await assertCampaignMembershipManager(
+          context.campaignMemberships,
+          input.actorUserId,
+          input.campaignId,
+        )
+        const campaign = await context.invitations.findCampaignTarget(
+          input.campaignId,
+        )
+        if (!campaign || campaign.status !== 'ACTIVE' || !campaign.world) {
+          throw invitationTargetUnavailable()
+        }
 
-      return context.invitations.createInvitation({
-        kind: 'CAMPAIGN',
-        tokenHash: hashMembershipInvitationToken(token),
-        campaignId: input.campaignId,
-        campaignRole: input.role,
-        createdById: input.actorUserId,
-        expiresAt,
-      })
-    })
+        return context.invitations.createInvitation({
+          kind: 'CAMPAIGN',
+          tokenHash: hashMembershipInvitationToken(token),
+          campaignId: input.campaignId,
+          campaignRole: input.role,
+          createdById: input.actorUserId,
+          expiresAt,
+        })
+      },
+    )
 
     return { token, invitation: invitationView(invitation, now) }
   }
@@ -268,7 +267,9 @@ export class MembershipInvitationService {
     })
   }
 
-  async previewInvitation(tokenInput: unknown): Promise<MembershipInvitationView> {
+  async previewInvitation(
+    tokenInput: unknown,
+  ): Promise<MembershipInvitationView> {
     const token = normalizeMembershipInvitationToken(tokenInput)
     const now = this.clock()
     return this.unitOfWork.runInTransaction(async (context) => {

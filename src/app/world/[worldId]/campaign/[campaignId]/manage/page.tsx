@@ -244,7 +244,9 @@ export default async function CampaignManagePage({
                         {' · '}
                         {character.owner.displayName ??
                           `@${character.owner.username}`}
-                        {character.ownedByCurrentUser ? ' · your Character' : ''}
+                        {character.ownedByCurrentUser
+                          ? ' · your Character'
+                          : ''}
                       </span>
                     </div>
                     <RemoveCampaignCharacterButton

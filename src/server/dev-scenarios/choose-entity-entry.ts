@@ -41,8 +41,7 @@ const CAMPAIGN_CHARACTER_TWO_ID = '51000000-0000-4000-8000-000000000041'
 const MEMBERSHIP_ONE_ID = '51000000-0000-4000-8000-000000000050'
 const MEMBERSHIP_TWO_ID = '51000000-0000-4000-8000-000000000051'
 const THREADWATCHER_MEMBERSHIP_ID = '51000000-0000-4000-8000-000000000052'
-const THREADWATCHER_WORLD_MEMBERSHIP_ID =
-  '51000000-0000-4000-8000-000000000053'
+const THREADWATCHER_WORLD_MEMBERSHIP_ID = '51000000-0000-4000-8000-000000000053'
 
 const fixture: WorldFixtureDefinition = {
   worldId: WORLD_ID,
@@ -86,11 +85,7 @@ async function deleteScenarioDependants(transaction: Prisma.TransactionClient) {
   await transaction.campaignMembership.deleteMany({
     where: {
       id: {
-        in: [
-          MEMBERSHIP_ONE_ID,
-          MEMBERSHIP_TWO_ID,
-          THREADWATCHER_MEMBERSHIP_ID,
-        ],
+        in: [MEMBERSHIP_ONE_ID, MEMBERSHIP_TWO_ID, THREADWATCHER_MEMBERSHIP_ID],
       },
     },
   })

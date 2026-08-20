@@ -80,7 +80,8 @@ export default async function InvitePage({ params }: InvitePageProps) {
                 {invitation.targetName}
               </h1>
               <p className={styles.copy}>
-                Review the destination and role before accepting this invitation.
+                Review the destination and role before accepting this
+                invitation.
               </p>
             </div>
 

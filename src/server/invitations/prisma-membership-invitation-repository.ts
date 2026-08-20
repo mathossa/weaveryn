@@ -62,9 +62,7 @@ const invitationSelection = {
   },
 } as const
 
-export class PrismaMembershipInvitationRepository
-  implements MembershipInvitationRepository
-{
+export class PrismaMembershipInvitationRepository implements MembershipInvitationRepository {
   constructor(private readonly client: InvitationDatabaseClient) {}
 
   async createInvitation(input: CreateMembershipInvitationInput) {
@@ -176,9 +174,7 @@ export class PrismaMembershipInvitationRepository
   }
 }
 
-export class PrismaMembershipInvitationUnitOfWork
-  implements MembershipInvitationUnitOfWork
-{
+export class PrismaMembershipInvitationUnitOfWork implements MembershipInvitationUnitOfWork {
   constructor(private readonly client: PrismaClient) {}
 
   runInTransaction<T>(

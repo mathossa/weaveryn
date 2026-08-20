@@ -24,9 +24,7 @@ interface MembershipInviteManagerProps {
   initialInvitations: ManagedInvitation[]
 }
 
-type Feedback =
-  | { tone: 'error' | 'success'; message: string }
-  | null
+type Feedback = { tone: 'error' | 'success'; message: string } | null
 
 function roleLabel(role: string, targetKind: 'World' | 'Campaign') {
   return targetKind === 'Campaign'
@@ -188,7 +186,10 @@ export function MembershipInviteManager({
       removeInactiveInvitation(invitationId)
       setFeedback({ tone: 'success', message: 'Invitation revoked.' })
     } catch {
-      setFeedback({ tone: 'error', message: 'Unable to revoke this invitation.' })
+      setFeedback({
+        tone: 'error',
+        message: 'Unable to revoke this invitation.',
+      })
     } finally {
       setRevokingId(null)
     }
@@ -236,9 +237,7 @@ export function MembershipInviteManager({
 
       {feedback ? (
         <p
-          className={
-            feedback.tone === 'error' ? styles.error : styles.success
-          }
+          className={feedback.tone === 'error' ? styles.error : styles.success}
           role={feedback.tone === 'error' ? 'alert' : 'status'}
           aria-live="polite"
         >

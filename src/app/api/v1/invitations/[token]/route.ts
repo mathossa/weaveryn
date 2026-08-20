@@ -12,7 +12,8 @@ interface RouteContext {
 export async function GET(_request: Request, context: RouteContext) {
   try {
     const { token } = await context.params
-    const invitation = await membershipInvitationService.previewInvitation(token)
+    const invitation =
+      await membershipInvitationService.previewInvitation(token)
     return NextResponse.json({ invitation })
   } catch (error) {
     return invitationErrorResponse(error)

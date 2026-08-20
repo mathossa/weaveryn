@@ -65,12 +65,13 @@ export default async function CampaignOverviewPage({
               (right.lastUsedAt?.getTime() ?? 0) -
               (left.lastUsedAt?.getTime() ?? 0),
           )[0]
-  const preferredWorldCharacterId = explicitWeaverMode || explicitThreadwatcherMode
-    ? undefined
-    : (requestedWorldCharacterId ??
-      (latestCampaignPreference?.kind === 'CHARACTER'
-        ? (latestCampaignPreference.worldCharacterId ?? undefined)
-        : undefined))
+  const preferredWorldCharacterId =
+    explicitWeaverMode || explicitThreadwatcherMode
+      ? undefined
+      : (requestedWorldCharacterId ??
+        (latestCampaignPreference?.kind === 'CHARACTER'
+          ? (latestCampaignPreference.worldCharacterId ?? undefined)
+          : undefined))
   const selectedCharacter = preferredWorldCharacterId
     ? campaign.characters.find(
         (character) =>
