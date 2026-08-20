@@ -48,6 +48,13 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
     entryPreferences.map((preference) => [preference.entryKey, preference]),
   )
 
+  const playerCampaigns = selection.campaignMemberships.filter(
+    (campaign) => campaign.role === 'PLAYER',
+  )
+  const spectatorCampaigns = selection.campaignMemberships.filter(
+    (campaign) => campaign.role === 'SPECTATOR',
+  )
+
   const characterEntries: CharacterEntry[] = [
     ...selection.characters.flatMap<WorldCharacterEntry>((character) =>
       character.campaigns.length > 0
@@ -106,6 +113,8 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
     ? characterEntries
     : characterEntries.slice(0, 3)
   const eagerCharacterCount = showAll ? 6 : 3
+  const hasCharacterSection =
+    characterEntries.length > 0 || playerCampaigns.length > 0
   const hasAnyEntry =
     characterEntries.length > 0 ||
     selection.campaignMemberships.length > 0 ||
@@ -137,19 +146,32 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
       : weaverResume.world.name
     : null
 
+  const witnessHref =
+    spectatorCampaigns.length === 1
+      ? `/world/${spectatorCampaigns[0].worldId}/campaign/${spectatorCampaigns[0].id}`
+      : spectatorCampaigns.length > 1
+        ? '/select/witness'
+        : '/select/join'
+  const witnessDescription =
+    spectatorCampaigns.length === 1
+      ? `${spectatorCampaigns[0].worldName} — ${spectatorCampaigns[0].name}`
+      : spectatorCampaigns.length > 1
+        ? `${spectatorCampaigns.length} Campaigns available to observe.`
+        : 'Use a Spectator invitation to observe a Campaign.'
+
   return (
     <AuthenticatedAppShell user={user}>
       <AppPage
         eyebrow="Signed in"
         title="Choose Entity"
-        description="Enter directly through a Character or Campaign membership, or join as Weaver to manage Worlds and Campaigns."
+        description="Enter through a Character, manage the weave as Weaver, or observe a Campaign as Witness."
         wide
         bounded={showAll}
       >
         <div
           className={`${styles.stack} ${showAll ? styles.expandedStack : ''}`}
         >
-          {characterEntries.length > 0 ? (
+          {hasCharacterSection ? (
             <section
               className={`${styles.section} ${showAll ? styles.expandedCharacterSection : ''}`}
               aria-labelledby="recent-characters"
@@ -162,41 +184,62 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                       : 'Pinned and recent character entries'}
                   </h2>
                   <p>
-                    Each Campaign is a direct entry for that WorldCharacter. A
-                    WorldCharacter without a Campaign opens in its World
-                    context.
+                    Choose a Character directly. Campaigns that still need one
+                    stay close to your Character choices.
                   </p>
                 </div>
               </div>
 
-              <div className={showAll ? styles.characterViewport : undefined}>
-                <div
-                  className={`${styles.characterGrid} ${showAll ? styles.expandedCharacterGrid : ''}`}
-                >
-                  {visibleCharacters.map((entry, index) =>
-                    entry.kind === 'world' ? (
-                      <CharacterChoiceCard
-                        key={entry.key}
-                        character={entry.character}
-                        campaign={entry.campaign}
-                        pinned={entry.preference?.pinned ?? false}
-                        highlighted={
-                          latestUsedAt > 0 &&
-                          entry.preference?.lastUsedAt?.getTime() ===
-                            latestUsedAt
-                        }
-                        eager={index < eagerCharacterCount}
-                      />
-                    ) : (
-                      <PortableCharacterChoiceCard
-                        key={entry.key}
-                        character={entry.character}
-                        eager={index < eagerCharacterCount}
-                      />
-                    ),
-                  )}
+              {playerCampaigns.length > 0 ? (
+                <div className={styles.pendingCampaigns}>
+                  <span>Waiting for a Character</span>
+                  {playerCampaigns.map((campaign) => (
+                    <Link
+                      className={styles.pendingCampaignLink}
+                      href={`/character?world=${campaign.worldId}&campaign=${campaign.id}`}
+                      key={campaign.id}
+                    >
+                      {campaign.name} →
+                    </Link>
+                  ))}
                 </div>
-              </div>
+              ) : null}
+
+              {characterEntries.length > 0 ? (
+                <div className={showAll ? styles.characterViewport : undefined}>
+                  <div
+                    className={`${styles.characterGrid} ${showAll ? styles.expandedCharacterGrid : ''}`}
+                  >
+                    {visibleCharacters.map((entry, index) =>
+                      entry.kind === 'world' ? (
+                        <CharacterChoiceCard
+                          key={entry.key}
+                          character={entry.character}
+                          campaign={entry.campaign}
+                          pinned={entry.preference?.pinned ?? false}
+                          highlighted={
+                            latestUsedAt > 0 &&
+                            entry.preference?.lastUsedAt?.getTime() ===
+                              latestUsedAt
+                          }
+                          eager={index < eagerCharacterCount}
+                        />
+                      ) : (
+                        <PortableCharacterChoiceCard
+                          key={entry.key}
+                          character={entry.character}
+                          eager={index < eagerCharacterCount}
+                        />
+                      ),
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <p className={styles.muted}>
+                  No Character entries yet. Choose a Campaign above or create a
+                  Character below.
+                </p>
+              )}
 
               {characterEntries.length > 3 ? (
                 <div className={styles.moreRow}>
@@ -211,88 +254,72 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
             </section>
           ) : null}
 
-          {selection.campaignMemberships.length > 0 ? (
-            <section className={styles.section} aria-labelledby="campaign-memberships">
-              <div className={styles.sectionHeader}>
-                <div>
-                  <h2 id="campaign-memberships">Campaign memberships</h2>
-                  <p>
-                    Campaigns where you currently have no active Character entry.
-                  </p>
-                </div>
-              </div>
-              <div className={styles.actions}>
-                {selection.campaignMemberships.map((campaign) => (
-                  <Link
-                    className={styles.actionLink}
-                    href={
-                      campaign.role === 'PLAYER'
-                        ? `/character?world=${campaign.worldId}&campaign=${campaign.id}`
-                        : `/world/${campaign.worldId}/campaign/${campaign.id}`
-                    }
-                    key={`${campaign.id}:${campaign.role}`}
-                  >
-                    <strong>{campaign.name}</strong>
-                    <span>
-                      {campaign.worldName} · {campaign.role}
-                      {campaign.role === 'PLAYER'
-                        ? ' · choose or attach a Character'
-                        : ' · enter Campaign'}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          <section className={styles.section} aria-labelledby="weaver-entry">
+          <section className={styles.section} aria-labelledby="role-entry">
             <div className={styles.sectionHeader}>
               <div>
-                <h2 id="weaver-entry">Weaver</h2>
-                <p>Enter through the game-master side of Weaveryn.</p>
+                <h2 id="role-entry">Enter another role</h2>
+                <p>Manage the weave, or observe without taking a Character.</p>
               </div>
             </div>
-            <div
-              className={`${styles.weaverCard} ${weaverHighlighted ? styles.resumeEntry : ''}`}
-            >
-              <Link
-                className={styles.weaverMainAction}
-                href="/world?mode=weaver"
-              >
-                <span className={styles.weaverGlyph} aria-hidden="true">
-                  ✦
-                </span>
-                <span className={styles.weaverCopy}>
-                  <strong>Join as Weaver</strong>
-                  <span>
-                    {weaverResumeLabel
-                      ? `Last managed: ${weaverResumeLabel}`
-                      : 'Choose a World, then continue to Campaign management.'}
-                  </span>
-                </span>
-                <span className={styles.weaverArrow} aria-hidden="true">
-                  →
-                </span>
-              </Link>
 
-              {weaverResumeHref ? (
-                <TrackedEntryLink
-                  className={styles.weaverContinue}
-                  href={weaverResumeHref}
-                  tracking={weaverResumeTracking}
+            <div className={styles.roleGrid}>
+              <div
+                className={`${styles.weaverCard} ${weaverHighlighted ? styles.resumeEntry : ''}`}
+              >
+                <Link
+                  className={styles.weaverMainAction}
+                  href="/world?mode=weaver"
                 >
-                  Continue
-                </TrackedEntryLink>
-              ) : null}
+                  <span className={styles.weaverGlyph} aria-hidden="true">
+                    ✦
+                  </span>
+                  <span className={styles.weaverCopy}>
+                    <strong>Join as Weaver</strong>
+                    <span>
+                      {weaverResumeLabel
+                        ? `Last managed: ${weaverResumeLabel}`
+                        : 'Choose a World, then continue to Campaign management.'}
+                    </span>
+                  </span>
+                  <span className={styles.weaverArrow} aria-hidden="true">
+                    →
+                  </span>
+                </Link>
+
+                {weaverResumeHref ? (
+                  <TrackedEntryLink
+                    className={styles.weaverContinue}
+                    href={weaverResumeHref}
+                    tracking={weaverResumeTracking}
+                  >
+                    Continue
+                  </TrackedEntryLink>
+                ) : null}
+              </div>
+
+              <div className={styles.weaverCard}>
+                <Link className={styles.weaverMainAction} href={witnessHref}>
+                  <span className={styles.weaverGlyph} aria-hidden="true">
+                    ◉
+                  </span>
+                  <span className={styles.weaverCopy}>
+                    <strong>Join as Witness</strong>
+                    <span>{witnessDescription}</span>
+                  </span>
+                  <span className={styles.weaverArrow} aria-hidden="true">
+                    →
+                  </span>
+                </Link>
+              </div>
             </div>
           </section>
 
           {!hasAnyEntry ? (
             <StatusPanel tone="empty" title="Your weave is ready to begin">
               <p>
-                You do not have a Character, Campaign membership, or manageable
-                World yet. Create a Character, join an invite, or enter as Weaver
-                to begin a World.
+                You do not have a Character, Campaign role, or manageable World
+                yet. Create a Character, join an invite, or enter as Weaver to
+                begin a World.
               </p>
             </StatusPanel>
           ) : null}
