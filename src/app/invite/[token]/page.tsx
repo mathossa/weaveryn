@@ -3,6 +3,12 @@ import Link from 'next/link'
 import { headers } from 'next/headers'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { AuthShell } from '@/components/ui/auth-shell'
+import {
+  campaignRoleLabel,
+  worldRoleLabel,
+  type CampaignRoleCode,
+  type WorldRoleCode,
+} from '@/lib/role-labels'
 import { getAuthenticatedUser } from '@/server/auth'
 import {
   MembershipInvitationDomainError,
@@ -28,9 +34,10 @@ function statusMessage(status: MembershipInvitationStatus) {
   return null
 }
 
-function roleLabel(role: string) {
-  if (role === 'SPECTATOR') return 'Witness'
-  return role.replaceAll('_', ' ')
+function invitationRoleLabel(invitation: MembershipInvitationView) {
+  return invitation.kind === 'CAMPAIGN'
+    ? campaignRoleLabel(invitation.role as CampaignRoleCode)
+    : worldRoleLabel(invitation.role as WorldRoleCode)
 }
 
 export default async function InvitePage({ params }: InvitePageProps) {
@@ -92,7 +99,9 @@ export default async function InvitePage({ params }: InvitePageProps) {
               ) : null}
               <div className={styles.row}>
                 <span className={styles.label}>Role</span>
-                <span className={styles.value}>{roleLabel(invitation.role)}</span>
+                <span className={styles.value}>
+                  {invitationRoleLabel(invitation)}
+                </span>
               </div>
               <div className={styles.row}>
                 <span className={styles.label}>Expires</span>
