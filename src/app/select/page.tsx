@@ -51,10 +51,6 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
   const playerCampaigns = selection.campaignMemberships.filter(
     (campaign) => campaign.role === 'PLAYER',
   )
-  const spectatorCampaigns = selection.campaignMemberships.filter(
-    (campaign) => campaign.role === 'SPECTATOR',
-  )
-  const primaryWitnessCampaign = spectatorCampaigns[0]
 
   const characterEntries: CharacterEntry[] = [
     ...selection.characters.flatMap<WorldCharacterEntry>((character) =>
@@ -147,25 +143,12 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
       : weaverResume.world.name
     : null
 
-  const witnessHref =
-    spectatorCampaigns.length === 1 && primaryWitnessCampaign
-      ? `/world/${primaryWitnessCampaign.worldId}/campaign/${primaryWitnessCampaign.id}`
-      : spectatorCampaigns.length > 1
-        ? '/select/witness'
-        : '/select/join'
-  const witnessDescription =
-    spectatorCampaigns.length === 1 && primaryWitnessCampaign
-      ? `${primaryWitnessCampaign.worldName} — ${primaryWitnessCampaign.name}`
-      : spectatorCampaigns.length > 1
-        ? `${spectatorCampaigns.length} Campaigns available to observe.`
-        : 'Use a Witness invitation to observe a Campaign.'
-
   return (
     <AuthenticatedAppShell user={user}>
       <AppPage
         eyebrow="Signed in"
         title="Choose Entity"
-        description="Enter through a Character, manage the weave as Weaver, or observe a Campaign as Witness."
+        description="Enter through a Character, manage the weave as Weaver, or observe a Campaign as Threadwatcher."
         wide
         bounded={showAll}
       >
@@ -299,13 +282,16 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
               </div>
 
               <div className={styles.weaverCard}>
-                <Link className={styles.weaverMainAction} href={witnessHref}>
+                <Link
+                  className={styles.weaverMainAction}
+                  href="/world?mode=threadwatcher"
+                >
                   <span className={styles.weaverGlyph} aria-hidden="true">
                     ◉
                   </span>
                   <span className={styles.weaverCopy}>
-                    <strong>Join as Witness</strong>
-                    <span>{witnessDescription}</span>
+                    <strong>Join as Threadwatcher</strong>
+                    <span>Choose a World, then a Campaign you can observe.</span>
                   </span>
                   <span className={styles.weaverArrow} aria-hidden="true">
                     →
