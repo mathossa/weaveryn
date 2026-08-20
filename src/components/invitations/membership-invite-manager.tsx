@@ -3,6 +3,12 @@
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
+import {
+  campaignRoleLabel,
+  worldRoleLabel,
+  type CampaignRoleCode,
+  type WorldRoleCode,
+} from '@/lib/role-labels'
 import styles from './membership-invite-manager.module.css'
 
 export interface ManagedInvitation {
@@ -22,9 +28,10 @@ type Feedback =
   | { tone: 'error' | 'success'; message: string }
   | null
 
-function roleLabel(role: string) {
-  if (role === 'SPECTATOR') return 'Witness'
-  return role.replaceAll('_', ' ')
+function roleLabel(role: string, targetKind: 'World' | 'Campaign') {
+  return targetKind === 'Campaign'
+    ? campaignRoleLabel(role as CampaignRoleCode)
+    : worldRoleLabel(role as WorldRoleCode)
 }
 
 function expiresLabel(value: string) {
@@ -54,8 +61,12 @@ export function MembershipInviteManager({
   const [feedback, setFeedback] = useState<Feedback>(null)
 
   const roleOptions = useMemo(
-    () => roles.map((value) => ({ value, label: roleLabel(value) })),
-    [roles],
+    () =>
+      roles.map((value) => ({
+        value,
+        label: roleLabel(value, targetKind),
+      })),
+    [roles, targetKind],
   )
 
   function removeInactiveInvitation(invitationId: string) {
@@ -251,7 +262,7 @@ export function MembershipInviteManager({
             {invitations.map((invitation) => (
               <div className={styles.invitation} key={invitation.id}>
                 <div>
-                  <strong>{roleLabel(invitation.role)}</strong>
+                  <strong>{roleLabel(invitation.role, targetKind)}</strong>
                   <span>Expires {expiresLabel(invitation.expiresAt)}</span>
                 </div>
                 <Button
