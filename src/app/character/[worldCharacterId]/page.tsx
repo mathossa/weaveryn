@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { withCharacterContext } from '@/lib/campaign-context'
+import { campaignRoleLabel } from '@/lib/role-labels'
 import { uiAssets } from '@/lib/ui-assets'
 import {
   getWorldCharacterOverview,
@@ -120,7 +121,7 @@ export default async function WorldCharacterPage({
                 <span>
                   <strong>{participation.campaign.name}</strong>
                   <span className={styles.meta}>
-                    {participation.campaign.role}
+                    {campaignRoleLabel(participation.campaign.role)}
                   </span>
                 </span>
                 <LeaveCampaignAction
@@ -139,7 +140,9 @@ export default async function WorldCharacterPage({
               <div className={profileStyles.participationRow} key={campaign.id}>
                 <span>
                   <strong>{campaign.name}</strong>
-                  <span className={styles.meta}>{campaign.role}</span>
+                  <span className={styles.meta}>
+                    {campaignRoleLabel(campaign.role)}
+                  </span>
                 </span>
                 <AttachCampaignButton
                   worldCharacterId={character.id}
@@ -304,7 +307,7 @@ export default async function WorldCharacterPage({
                     <div className={profileStyles.campaignArtworkCopy}>
                       <strong>{activeParticipation.campaign.name}</strong>
                       <span>
-                        {activeParticipation.campaign.role} ·{' '}
+                        {campaignRoleLabel(activeParticipation.campaign.role)} ·{' '}
                         {activeParticipation.campaign.status}
                       </span>
                     </div>
@@ -330,7 +333,9 @@ export default async function WorldCharacterPage({
                                 >
                                   <strong>{participation.campaign.name}</strong>
                                   <span className={styles.meta}>
-                                    {participation.campaign.role}
+                                    {campaignRoleLabel(
+                                      participation.campaign.role,
+                                    )}
                                   </span>
                                 </Link>
                               ))}
