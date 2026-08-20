@@ -107,7 +107,9 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
     : characterEntries.slice(0, 3)
   const eagerCharacterCount = showAll ? 6 : 3
   const hasAnyEntry =
-    characterEntries.length > 0 || selection.weaverWorlds.length > 0
+    characterEntries.length > 0 ||
+    selection.campaignMemberships.length > 0 ||
+    selection.weaverWorlds.length > 0
 
   const weaverResumeHref = weaverResume?.campaign
     ? `/world/${weaverResume.world.id}/campaign/${weaverResume.campaign.id}?mode=weaver`
@@ -140,7 +142,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
       <AppPage
         eyebrow="Signed in"
         title="Choose Entity"
-        description="Enter directly through a character and Campaign, or join as Weaver to manage Worlds and Campaigns."
+        description="Enter directly through a Character or Campaign membership, or join as Weaver to manage Worlds and Campaigns."
         wide
         bounded={showAll}
       >
@@ -209,6 +211,40 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
             </section>
           ) : null}
 
+          {selection.campaignMemberships.length > 0 ? (
+            <section className={styles.section} aria-labelledby="campaign-memberships">
+              <div className={styles.sectionHeader}>
+                <div>
+                  <h2 id="campaign-memberships">Campaign memberships</h2>
+                  <p>
+                    Campaigns where you currently have no active Character entry.
+                  </p>
+                </div>
+              </div>
+              <div className={styles.actions}>
+                {selection.campaignMemberships.map((campaign) => (
+                  <Link
+                    className={styles.actionLink}
+                    href={
+                      campaign.role === 'PLAYER'
+                        ? `/character?world=${campaign.worldId}&campaign=${campaign.id}`
+                        : `/world/${campaign.worldId}/campaign/${campaign.id}`
+                    }
+                    key={`${campaign.id}:${campaign.role}`}
+                  >
+                    <strong>{campaign.name}</strong>
+                    <span>
+                      {campaign.worldName} · {campaign.role}
+                      {campaign.role === 'PLAYER'
+                        ? ' · choose or attach a Character'
+                        : ' · enter Campaign'}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           <section className={styles.section} aria-labelledby="weaver-entry">
             <div className={styles.sectionHeader}>
               <div>
@@ -254,8 +290,9 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
           {!hasAnyEntry ? (
             <StatusPanel tone="empty" title="Your weave is ready to begin">
               <p>
-                You do not have a Character or manageable World yet. Create a
-                Character, join an invite, or enter as Weaver to begin a World.
+                You do not have a Character, Campaign membership, or manageable
+                World yet. Create a Character, join an invite, or enter as Weaver
+                to begin a World.
               </p>
             </StatusPanel>
           ) : null}
