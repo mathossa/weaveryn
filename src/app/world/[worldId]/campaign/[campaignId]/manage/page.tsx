@@ -5,6 +5,8 @@ import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { MembershipInviteManager } from '@/components/invitations/membership-invite-manager'
 import { MembershipManager } from '@/components/memberships/membership-manager'
+import { RoleHelp } from '@/components/memberships/role-help'
+import { campaignRoleLabel } from '@/lib/role-labels'
 import { requireAuthenticatedUser } from '@/server/auth'
 import {
   CAMPAIGN_ROLES,
@@ -120,6 +122,7 @@ export default async function CampaignManagePage({
       : `/world/${worldId}/campaign/${campaign.id}`
 
   const ownerLabel = campaign.owner.displayName ?? `@${campaign.owner.username}`
+  const roleLabel = campaignRoleLabel(campaign.role)
 
   return (
     <AuthenticatedAppShell
@@ -171,7 +174,7 @@ export default async function CampaignManagePage({
                 {campaign.isOwner ? ' (you)' : ''}
               </p>
               <p>
-                <strong>Your role:</strong> {campaign.role}
+                <strong>Your role:</strong> {roleLabel}
               </p>
               <p>
                 <strong>Status:</strong> {campaign.status}
@@ -204,9 +207,9 @@ export default async function CampaignManagePage({
               <h2>General Campaign settings</h2>
               {!campaign.canEditName ? (
                 <div className={styles.notice}>
-                  As {campaign.role}, you can update shared Campaign information
-                  and World time. Renaming and ownership/lifecycle management
-                  remain owner-only.
+                  As {roleLabel}, you can update shared Campaign information and
+                  World time. Renaming and ownership/lifecycle management remain
+                  owner-only.
                 </div>
               ) : null}
               <CampaignForm
@@ -259,9 +262,11 @@ export default async function CampaignManagePage({
               <h2>Campaign membership</h2>
               <p className={styles.meta}>
                 Promote, demote, or remove existing members, or create a
-                single-use invitation. Campaign membership never creates a World
-                membership automatically.
+                single-use invitation. A Threadwatcher also receives read-only
+                access to the host World, but only sees Campaigns they actually
+                belong to.
               </p>
+              <RoleHelp targetKind="Campaign" />
               <h3>Members</h3>
               <MembershipManager
                 endpoint={`/api/v1/worlds/${worldId}/campaigns/${campaign.id}/members`}
