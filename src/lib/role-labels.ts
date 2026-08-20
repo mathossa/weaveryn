@@ -65,7 +65,7 @@ export const WORLD_ROLE_HELP = [
   {
     label: 'Threadwalker',
     description:
-      'A normal World member who can participate in and edit World content.',
+      'A normal World member who can participate in and edit World content, and create their own Campaigns in the World.',
   },
   {
     label: 'Threadwatcher',
