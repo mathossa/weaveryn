@@ -182,6 +182,25 @@ describe('CampaignMembershipService', () => {
     ).resolves.not.toBeNull()
   })
 
+  it('blocks changing an active participant to Spectator', async () => {
+    repository.setActiveCharacter(PLAYER_ID, true)
+
+    await expect(
+      service.changeMemberRole({
+        actorUserId: OWNER_ID,
+        campaignId: CAMPAIGN_ID,
+        userId: PLAYER_ID,
+        role: 'SPECTATOR',
+      }),
+    ).rejects.toMatchObject({
+      code: 'CAMPAIGN_MEMBERSHIP_HAS_ACTIVE_CHARACTER',
+    })
+
+    await expect(
+      repository.findCampaignMembership(CAMPAIGN_ID, PLAYER_ID),
+    ).resolves.toMatchObject({ role: 'PLAYER' })
+  })
+
   it.each([GM_ID, ASSISTANT_ID, PLAYER_ID, SPECTATOR_ID, OUTSIDER_ID])(
     'rejects membership management by a non-owner (%s)',
     async (actorUserId) => {
