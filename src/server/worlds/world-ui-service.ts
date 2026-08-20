@@ -90,23 +90,20 @@ export async function listWorldNavigationChoices(
               memberships: {
                 some: {
                   userId,
-                  role: { in: ['GM', 'ASSISTANT_GM'] },
+                  role: { in: ['GM', 'ASSISTANT_GM', 'SPECTATOR'] },
                 },
               },
             },
           ],
         },
-        select: { id: true },
-        take: 1,
-      },
-      threadwatchCampaigns: {
-        where: {
+        select: {
+          ownerId: true,
           memberships: {
-            some: { userId, role: 'SPECTATOR' },
+            where: { userId },
+            select: { role: true },
+            take: 1,
           },
         },
-        select: { id: true },
-        take: 1,
       },
     },
     orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
@@ -118,6 +115,11 @@ export async function listWorldNavigationChoices(
       userId,
       membershipRole: world.memberships[0]?.role ?? null,
     })
+    const campaignRoles = world.campaigns.map((campaign) =>
+      campaign.ownerId === userId
+        ? 'GM'
+        : (campaign.memberships[0]?.role ?? null),
+    )
 
     return {
       id: world.id,
@@ -127,8 +129,10 @@ export async function listWorldNavigationChoices(
       canWeave:
         accessKind === 'OWNER' ||
         accessKind === 'ADMIN' ||
-        world.campaigns.length > 0,
-      canThreadwatch: world.threadwatchCampaigns.length > 0,
+        campaignRoles.some(
+          (role) => role === 'GM' || role === 'ASSISTANT_GM',
+        ),
+      canThreadwatch: campaignRoles.includes('SPECTATOR'),
     }
   })
 }
