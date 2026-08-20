@@ -3,8 +3,10 @@ import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
+import { MembershipInviteManager } from '@/components/invitations/membership-invite-manager'
 import { requireAuthenticatedUser } from '@/server/auth'
-import { getCampaignOverview } from '@/server/campaigns'
+import { CAMPAIGN_ROLES, getCampaignOverview } from '@/server/campaigns'
+import { membershipInvitationService } from '@/server/invitations'
 import { listEntryPreferences } from '@/server/selection'
 import { CampaignForm } from '../../_components/campaign-form'
 import styles from '../../campaign.module.css'
@@ -57,6 +59,13 @@ export default async function CampaignManagePage({
     campaign.canEditName ||
     campaign.canManageMembers
   if (!canManageCampaign) notFound()
+
+  const campaignInvitations = campaign.canManageMembers
+    ? await membershipInvitationService.listCampaignInvitations({
+        actorUserId: user.id,
+        campaignId: campaign.id,
+      })
+    : []
 
   const explicitWeaverMode = query.mode === 'weaver'
   const requestedCharacterId =
@@ -223,9 +232,20 @@ export default async function CampaignManagePage({
           {campaign.canManageMembers ? (
             <section className={styles.panel}>
               <h2>Campaign membership</h2>
-              <p>
-                Invitation and member management will connect here through #108.
+              <p className={styles.meta}>
+                Create a single-use link that grants the selected Campaign role.
+                Campaign invitations do not create World membership.
               </p>
+              <MembershipInviteManager
+                endpoint={`/api/v1/worlds/${worldId}/campaigns/${campaign.id}/invitations`}
+                roles={CAMPAIGN_ROLES}
+                targetKind="Campaign"
+                initialInvitations={campaignInvitations.map((invitation) => ({
+                  id: invitation.id,
+                  role: invitation.role,
+                  expiresAt: invitation.expiresAt.toISOString(),
+                }))}
+              />
             </section>
           ) : null}
         </div>
