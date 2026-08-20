@@ -45,6 +45,9 @@ export function MembershipInviteManager({
   const [invitations, setInvitations] =
     useState<ManagedInvitation[]>(initialInvitations)
   const [generatedLink, setGeneratedLink] = useState<string | null>(null)
+  const [generatedInvitationId, setGeneratedInvitationId] = useState<
+    string | null
+  >(null)
   const [busy, setBusy] = useState(false)
   const [revokingId, setRevokingId] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<Feedback>(null)
@@ -54,6 +57,16 @@ export function MembershipInviteManager({
     [roles],
   )
 
+  function removeInactiveInvitation(invitationId: string) {
+    setInvitations((current) =>
+      current.filter((invitation) => invitation.id !== invitationId),
+    )
+    if (generatedInvitationId === invitationId) {
+      setGeneratedInvitationId(null)
+      setGeneratedLink(null)
+    }
+  }
+
   async function createInvitation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (busy || !role) return
@@ -61,6 +74,7 @@ export function MembershipInviteManager({
     setBusy(true)
     setFeedback(null)
     setGeneratedLink(null)
+    setGeneratedInvitationId(null)
 
     try {
       const response = await fetch(endpoint, {
@@ -88,6 +102,7 @@ export function MembershipInviteManager({
       const createdInvitation = body.invitation
       const invitePath = body.invitePath
       setInvitations((current) => [createdInvitation, ...current])
+      setGeneratedInvitationId(createdInvitation.id)
       setGeneratedLink(new URL(invitePath, window.location.origin).toString())
       setFeedback({
         tone: 'success',
@@ -130,10 +145,27 @@ export function MembershipInviteManager({
         },
       )
       const body = (await response.json().catch(() => null)) as {
-        error?: { message?: string }
+        error?: { code?: string; message?: string }
       } | null
 
       if (!response.ok) {
+        const inactiveCodes = new Set([
+          'INVITATION_ALREADY_USED',
+          'INVITATION_REVOKED',
+          'INVITATION_EXPIRED',
+        ])
+        if (body?.error?.code && inactiveCodes.has(body.error.code)) {
+          removeInactiveInvitation(invitationId)
+          setFeedback({
+            tone: 'success',
+            message:
+              body.error.code === 'INVITATION_ALREADY_USED'
+                ? 'This invitation was already accepted and is no longer active.'
+                : 'This invitation is no longer active.',
+          })
+          return
+        }
+
         setFeedback({
           tone: 'error',
           message: body?.error?.message ?? 'Unable to revoke this invitation.',
@@ -141,9 +173,7 @@ export function MembershipInviteManager({
         return
       }
 
-      setInvitations((current) =>
-        current.filter((invitation) => invitation.id !== invitationId),
-      )
+      removeInactiveInvitation(invitationId)
       setFeedback({ tone: 'success', message: 'Invitation revoked.' })
     } catch {
       setFeedback({ tone: 'error', message: 'Unable to revoke this invitation.' })
