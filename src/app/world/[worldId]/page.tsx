@@ -131,9 +131,7 @@ export default async function WorldOverviewPage({
         ) : null}
 
         <div className={dashboardStyles.dashboardGrid}>
-          <section
-            className={`${styles.hero} ${dashboardStyles.heroArea}`}
-          >
+          <section className={`${styles.hero} ${dashboardStyles.heroArea}`}>
             <Image
               className={styles.heroImage}
               src={uiAssets.fallbacks.world}
@@ -192,9 +190,7 @@ export default async function WorldOverviewPage({
                 <span>
                   <small>Active invites</small>
                   <strong>{activeInviteCount ?? '—'}</strong>
-                  <em>
-                    {activeInviteCount === null ? 'Restricted' : 'Open'}
-                  </em>
+                  <em>{activeInviteCount === null ? 'Restricted' : 'Open'}</em>
                 </span>
               </div>
               <div className={styles.statCard}>
