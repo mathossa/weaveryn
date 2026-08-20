@@ -3,9 +3,19 @@ import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
+import { MembershipInviteManager } from '@/components/invitations/membership-invite-manager'
+import { MembershipManager } from '@/components/memberships/membership-manager'
+import { RoleHelp } from '@/components/memberships/role-help'
+import { campaignRoleLabel } from '@/lib/role-labels'
 import { requireAuthenticatedUser } from '@/server/auth'
-import { getCampaignOverview } from '@/server/campaigns'
+import {
+  CAMPAIGN_ROLES,
+  getCampaignOverview,
+  listCampaignMembershipsForManagement,
+} from '@/server/campaigns'
+import { membershipInvitationService } from '@/server/invitations'
 import { listEntryPreferences } from '@/server/selection'
+import { RemoveCampaignCharacterButton } from '../_components/remove-campaign-character-button'
 import { CampaignForm } from '../../_components/campaign-form'
 import styles from '../../campaign.module.css'
 
@@ -58,6 +68,16 @@ export default async function CampaignManagePage({
     campaign.canManageMembers
   if (!canManageCampaign) notFound()
 
+  const [campaignInvitations, campaignMembers] = campaign.canManageMembers
+    ? await Promise.all([
+        membershipInvitationService.listCampaignInvitations({
+          actorUserId: user.id,
+          campaignId: campaign.id,
+        }),
+        listCampaignMembershipsForManagement(campaign.id, user.id),
+      ])
+    : [[], null]
+
   const explicitWeaverMode = query.mode === 'weaver'
   const requestedCharacterId =
     typeof query.character === 'string' ? query.character : undefined
@@ -102,6 +122,7 @@ export default async function CampaignManagePage({
       : `/world/${worldId}/campaign/${campaign.id}`
 
   const ownerLabel = campaign.owner.displayName ?? `@${campaign.owner.username}`
+  const roleLabel = campaignRoleLabel(campaign.role)
 
   return (
     <AuthenticatedAppShell
@@ -153,7 +174,7 @@ export default async function CampaignManagePage({
                 {campaign.isOwner ? ' (you)' : ''}
               </p>
               <p>
-                <strong>Your role:</strong> {campaign.role}
+                <strong>Your role:</strong> {roleLabel}
               </p>
               <p>
                 <strong>Status:</strong> {campaign.status}
@@ -186,9 +207,9 @@ export default async function CampaignManagePage({
               <h2>General Campaign settings</h2>
               {!campaign.canEditName ? (
                 <div className={styles.notice}>
-                  As {campaign.role}, you can update shared Campaign information
-                  and World time. Renaming and ownership/lifecycle management
-                  remain owner-only.
+                  As {roleLabel}, you can update shared Campaign information and
+                  World time. Renaming and ownership/lifecycle management remain
+                  owner-only.
                 </div>
               ) : null}
               <CampaignForm
@@ -206,14 +227,32 @@ export default async function CampaignManagePage({
 
           <section className={styles.panel}>
             <h2>Campaign Characters</h2>
+            <p className={styles.meta}>
+              Character participation is separate from Campaign membership.
+              Removing participation keeps the portable Character and
+              WorldCharacter intact.
+            </p>
             {campaign.characters.length === 0 ? (
               <p>No active Campaign Characters are attached yet.</p>
             ) : (
               <div className={styles.party}>
                 {campaign.characters.map((character) => (
                   <div className={styles.partyItem} key={character.id}>
-                    <strong>{character.name}</strong>
-                    {character.ownedByCurrentUser ? ' · your Character' : ''}
+                    <div>
+                      <strong>{character.name}</strong>
+                      <span className={styles.meta}>
+                        {' · '}
+                        {character.owner.displayName ??
+                          `@${character.owner.username}`}
+                        {character.ownedByCurrentUser
+                          ? ' · your Character'
+                          : ''}
+                      </span>
+                    </div>
+                    <RemoveCampaignCharacterButton
+                      campaignCharacterId={character.id}
+                      characterName={character.name}
+                    />
                   </div>
                 ))}
               </div>
@@ -223,9 +262,31 @@ export default async function CampaignManagePage({
           {campaign.canManageMembers ? (
             <section className={styles.panel}>
               <h2>Campaign membership</h2>
-              <p>
-                Invitation and member management will connect here through #108.
+              <p className={styles.meta}>
+                Promote, demote, or remove existing members, or create a
+                single-use invitation. A Threadwatcher also receives read-only
+                access to the host World, but only sees Campaigns they actually
+                belong to.
               </p>
+              <RoleHelp targetKind="Campaign" />
+              <h3>Members</h3>
+              <MembershipManager
+                endpoint={`/api/v1/worlds/${worldId}/campaigns/${campaign.id}/members`}
+                roles={CAMPAIGN_ROLES}
+                targetKind="Campaign"
+                initialMembers={campaignMembers ?? []}
+              />
+              <h3>Invite someone</h3>
+              <MembershipInviteManager
+                endpoint={`/api/v1/worlds/${worldId}/campaigns/${campaign.id}/invitations`}
+                roles={CAMPAIGN_ROLES}
+                targetKind="Campaign"
+                initialInvitations={campaignInvitations.map((invitation) => ({
+                  id: invitation.id,
+                  role: invitation.role,
+                  expiresAt: invitation.expiresAt.toISOString(),
+                }))}
+              />
             </section>
           ) : null}
         </div>

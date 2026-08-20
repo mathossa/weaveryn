@@ -8,8 +8,13 @@ import {
   type WorldRole,
 } from './world-membership-repository'
 
+type WorldMembershipDatabaseClient = PrismaClient | Prisma.TransactionClient
+
 export class PrismaWorldMembershipRepository implements WorldMembershipRepository {
-  constructor(private readonly client: PrismaClient) {}
+  constructor(
+    private readonly rootClient: PrismaClient,
+    private readonly client: WorldMembershipDatabaseClient = rootClient,
+  ) {}
 
   findWorldById(worldId: string): Promise<WorldReference | null> {
     return this.client.world.findUnique({

@@ -3,20 +3,21 @@ import { notFound } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
+import { MembershipInviteManager } from '@/components/invitations/membership-invite-manager'
+import { MembershipManager } from '@/components/memberships/membership-manager'
+import { RoleHelp } from '@/components/memberships/role-help'
 import { StatusPanel } from '@/components/ui/status-panel'
-import { getWorldOverview } from '@/server/worlds'
+import { campaignRoleLabel, worldAccessLabel } from '@/lib/role-labels'
+import { membershipInvitationService } from '@/server/invitations'
+import {
+  getWorldOverview,
+  listWorldMembershipsForManagement,
+  WORLD_ROLES,
+} from '@/server/worlds'
 import { ClaimWorldButton } from '../_components/claim-world-button'
 import { WorldForm } from '../_components/world-form'
 import { loadWorldPageUser } from '../_lib/load-world-user'
 import styles from '../world.module.css'
-
-const accessLabels = {
-  OWNER: 'World owner',
-  ADMIN: 'World admin',
-  MEMBER: 'World member',
-  VIEWER: 'World viewer',
-  CAMPAIGN_ONLY: 'Campaign-only World access',
-} as const
 
 interface WorldOverviewPageProps {
   params: Promise<{ worldId: string }>
@@ -34,6 +35,16 @@ export default async function WorldOverviewPage({
   ])
   const world = await getWorldOverview(worldId, user.id)
   if (!world) notFound()
+
+  const [worldInvitations, worldMembers] = world.canManageMembers
+    ? await Promise.all([
+        membershipInvitationService.listWorldInvitations({
+          actorUserId: user.id,
+          worldId: world.id,
+        }),
+        listWorldMembershipsForManagement(world.id, user.id),
+      ])
+    : [[], null]
   const weaverMode = query.mode === 'weaver'
 
   return (
@@ -49,12 +60,12 @@ export default async function WorldOverviewPage({
       }}
     >
       <AppPage
-        eyebrow={accessLabels[world.accessKind]}
+        eyebrow={worldAccessLabel(world.accessKind)}
         title={world.name}
         description={
           world.hasFullWorldAccess
             ? world.description || 'No World description has been added yet.'
-            : 'You can navigate this World through one or more Campaigns. World content is filtered by your Campaign and visibility access.'
+            : 'You have Campaign-only access to this World. This is not a World membership; access exists only because you belong to a Campaign hosted here.'
         }
         wide
         actions={
@@ -69,8 +80,9 @@ export default async function WorldOverviewPage({
         <div className={styles.stack}>
           {world.accessKind === 'CAMPAIGN_ONLY' ? (
             <div className={styles.notice}>
-              Campaign-only access does not grant general World editing or
-              unrestricted World-content access.
+              Campaign-only access does not make you a World member. It grants
+              only the World context needed for your Campaigns, Characters, and
+              content visible through those Campaigns.
             </div>
           ) : null}
 
@@ -126,7 +138,7 @@ export default async function WorldOverviewPage({
                         <strong>{campaign.name}</strong>
                         <span className={styles.meta}>
                           {campaign.isOwner ? 'Owner · ' : ''}
-                          {campaign.role}
+                          {campaignRoleLabel(campaign.role)}
                         </span>
                       </TrackedEntryLink>
                     )
@@ -168,6 +180,35 @@ export default async function WorldOverviewPage({
               </div>
             </section>
           </div>
+
+          {world.canManageMembers ? (
+            <section className={styles.panel}>
+              <h2>World membership</h2>
+              <p className={styles.meta}>
+                Change existing member access or create a single-use invitation.
+                World ownership is managed separately.
+              </p>
+              <RoleHelp targetKind="World" />
+              <h3>Members</h3>
+              <MembershipManager
+                endpoint={`/api/v1/worlds/${world.id}/members`}
+                roles={WORLD_ROLES}
+                targetKind="World"
+                initialMembers={worldMembers ?? []}
+              />
+              <h3>Invite someone</h3>
+              <MembershipInviteManager
+                endpoint={`/api/v1/worlds/${world.id}/invitations`}
+                roles={WORLD_ROLES}
+                targetKind="World"
+                initialInvitations={worldInvitations.map((invitation) => ({
+                  id: invitation.id,
+                  role: invitation.role,
+                  expiresAt: invitation.expiresAt.toISOString(),
+                }))}
+              />
+            </section>
+          ) : null}
 
           {world.canEditBasicInfo ? (
             <section className={styles.panel}>

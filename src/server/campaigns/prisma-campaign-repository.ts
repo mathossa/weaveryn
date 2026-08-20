@@ -254,6 +254,23 @@ export class PrismaCampaignRepository implements CampaignRepository {
     }
   }
 
+  async hasActiveCampaignCharacterForUser(
+    campaignId: string,
+    userId: string,
+  ): Promise<boolean> {
+    const campaignCharacter = await this.client.campaignCharacter.findFirst({
+      where: {
+        campaignId,
+        status: 'ACTIVE',
+        worldCharacter: {
+          character: { ownerUserId: userId },
+        },
+      },
+      select: { id: true },
+    })
+    return campaignCharacter !== null
+  }
+
   async deleteCampaignMembership(campaignId: string, userId: string) {
     const result = await this.client.campaignMembership.deleteMany({
       where: { campaignId, userId },

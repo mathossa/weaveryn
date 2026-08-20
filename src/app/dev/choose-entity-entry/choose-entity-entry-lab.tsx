@@ -31,9 +31,9 @@ export function ChooseEntityEntryLab() {
           <span>Development only · Choose Entity</span>
           <h1>Entry preference scenario</h1>
           <p>
-            Inspect one WorldCharacter in two Campaigns, then exercise the same
-            pin, recent-use, and Weaver-resume services used by the production
-            selection flow.
+            Inspect Character Campaign entries, Weaver resume behavior, and the
+            Threadwatcher World → Campaign selection path through production
+            queries.
           </p>
         </header>
 
@@ -93,6 +93,25 @@ export function ChooseEntityEntryLab() {
             </div>
           </section>
         </div>
+
+        {state?.threadwatcher ? (
+          <section className={styles.preferences}>
+            <h2>Threadwatcher navigation state</h2>
+            <article>
+              <strong>{state.threadwatcher.worldName}</strong>
+              <span>
+                World access: {state.threadwatcher.worldAccessKind} ·
+                selectable: {String(state.threadwatcher.canThreadwatch)}
+              </span>
+              <span>
+                Campaigns:{' '}
+                {state.threadwatcher.campaigns
+                  .map((campaign) => `${campaign.name} (${campaign.role})`)
+                  .join(', ')}
+              </span>
+            </article>
+          </section>
+        ) : null}
 
         {state?.preferences.length ? (
           <section className={styles.preferences}>

@@ -19,6 +19,7 @@ export interface CampaignOverviewCharacter {
   worldCharacterId: string
   name: string
   image: string | null
+  owner: { id: string; username: string; displayName: string | null }
   ownedByCurrentUser: boolean
 }
 
@@ -159,6 +160,9 @@ export async function getCampaignOverview(
                   name: true,
                   image: true,
                   ownerUserId: true,
+                  owner: {
+                    select: { id: true, username: true, displayName: true },
+                  },
                 },
               },
             },
@@ -202,6 +206,7 @@ export async function getCampaignOverview(
         campaignCharacter.worldCharacter.nameOverride ??
         campaignCharacter.worldCharacter.character.name,
       image: campaignCharacter.worldCharacter.character.image,
+      owner: campaignCharacter.worldCharacter.character.owner,
       ownedByCurrentUser:
         campaignCharacter.worldCharacter.character.ownerUserId === userId,
     })),

@@ -1,6 +1,7 @@
 import {
   campaignMembershipAlreadyExists,
   campaignMembershipForbidden,
+  campaignMembershipHasActiveCharacter,
   campaignMembershipNotFound,
   campaignOwnerMustBeGm,
   campaignNotFound,
@@ -30,14 +31,44 @@ export interface RemoveCampaignMemberInput {
   userId: string
 }
 
+export async function assertCampaignMembershipManager(
+  repository: CampaignMembershipRepository,
+  actorUserId: string,
+  campaignId: string,
+) {
+  const campaign = await repository.findCampaignById(campaignId)
+  if (!campaign) throw campaignNotFound(campaignId)
+  if (campaign.ownerId !== actorUserId) {
+    throw campaignMembershipForbidden(campaignId, actorUserId)
+  }
+  return campaign
+}
+
 export class CampaignMembershipService {
   constructor(private readonly repository: CampaignMembershipRepository) {}
+
+  private hasActiveCampaignCharacterForUser(
+    campaignId: string,
+    userId: string,
+  ) {
+    const check = this.repository.hasActiveCampaignCharacterForUser
+    if (!check) {
+      throw new Error(
+        'Campaign membership repository cannot verify active Character participation.',
+      )
+    }
+    return check.call(this.repository, campaignId, userId)
+  }
 
   async addMember(
     input: AddCampaignMemberInput,
   ): Promise<CampaignMembershipRecord> {
     assertCampaignRole(input.role)
-    const campaign = await this.assertOwner(input.actorUserId, input.campaignId)
+    const campaign = await assertCampaignMembershipManager(
+      this.repository,
+      input.actorUserId,
+      input.campaignId,
+    )
 
     if (campaign.ownerId === input.userId && input.role !== 'GM') {
       throw campaignOwnerMustBeGm(input.campaignId, input.userId)
@@ -72,9 +103,22 @@ export class CampaignMembershipService {
     input: ChangeCampaignMemberRoleInput,
   ): Promise<CampaignMembershipRecord> {
     assertCampaignRole(input.role)
-    const campaign = await this.assertOwner(input.actorUserId, input.campaignId)
+    const campaign = await assertCampaignMembershipManager(
+      this.repository,
+      input.actorUserId,
+      input.campaignId,
+    )
     if (campaign.ownerId === input.userId && input.role !== 'GM') {
       throw campaignOwnerMustBeGm(input.campaignId, input.userId)
+    }
+    if (
+      input.role === 'SPECTATOR' &&
+      (await this.hasActiveCampaignCharacterForUser(
+        input.campaignId,
+        input.userId,
+      ))
+    ) {
+      throw campaignMembershipHasActiveCharacter(input.campaignId, input.userId)
     }
     const membership = await this.repository.updateCampaignMembershipRole(
       input.campaignId,
@@ -87,9 +131,21 @@ export class CampaignMembershipService {
   }
 
   async removeMember(input: RemoveCampaignMemberInput): Promise<void> {
-    const campaign = await this.assertOwner(input.actorUserId, input.campaignId)
+    const campaign = await assertCampaignMembershipManager(
+      this.repository,
+      input.actorUserId,
+      input.campaignId,
+    )
     if (campaign.ownerId === input.userId) {
       throw campaignOwnerMustBeGm(input.campaignId, input.userId)
+    }
+    if (
+      await this.hasActiveCampaignCharacterForUser(
+        input.campaignId,
+        input.userId,
+      )
+    ) {
+      throw campaignMembershipHasActiveCharacter(input.campaignId, input.userId)
     }
     if (
       !(await this.repository.deleteCampaignMembership(
@@ -99,15 +155,6 @@ export class CampaignMembershipService {
     ) {
       throw campaignMembershipNotFound(input.campaignId, input.userId)
     }
-  }
-
-  private async assertOwner(actorUserId: string, campaignId: string) {
-    const campaign = await this.repository.findCampaignById(campaignId)
-    if (!campaign) throw campaignNotFound(campaignId)
-    if (campaign.ownerId !== actorUserId) {
-      throw campaignMembershipForbidden(campaignId, actorUserId)
-    }
-    return campaign
   }
 }
 

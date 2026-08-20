@@ -8,6 +8,7 @@ import {
   requestedCharacterContext,
   withCharacterContext,
 } from '@/lib/campaign-context'
+import { campaignRoleLabel } from '@/lib/role-labels'
 import { uiAssets } from '@/lib/ui-assets'
 import { requireAuthenticatedUser } from '@/server/auth'
 import { getCampaignOverview } from '@/server/campaigns'
@@ -49,9 +50,10 @@ export default async function CampaignOverviewPage({
   if (!campaign) notFound()
 
   const explicitWeaverMode = query.mode === 'weaver'
+  const explicitThreadwatcherMode = query.mode === 'threadwatcher'
   const requestedWorldCharacterId = requestedCharacterContext(query.character)
   const latestCampaignPreference =
-    requestedWorldCharacterId || explicitWeaverMode
+    requestedWorldCharacterId || explicitWeaverMode || explicitThreadwatcherMode
       ? undefined
       : entryPreferences
           .filter(
@@ -63,12 +65,13 @@ export default async function CampaignOverviewPage({
               (right.lastUsedAt?.getTime() ?? 0) -
               (left.lastUsedAt?.getTime() ?? 0),
           )[0]
-  const preferredWorldCharacterId = explicitWeaverMode
-    ? undefined
-    : (requestedWorldCharacterId ??
-      (latestCampaignPreference?.kind === 'CHARACTER'
-        ? (latestCampaignPreference.worldCharacterId ?? undefined)
-        : undefined))
+  const preferredWorldCharacterId =
+    explicitWeaverMode || explicitThreadwatcherMode
+      ? undefined
+      : (requestedWorldCharacterId ??
+        (latestCampaignPreference?.kind === 'CHARACTER'
+          ? (latestCampaignPreference.worldCharacterId ?? undefined)
+          : undefined))
   const selectedCharacter = preferredWorldCharacterId
     ? campaign.characters.find(
         (character) =>
@@ -79,10 +82,12 @@ export default async function CampaignOverviewPage({
   const characterContextId = selectedCharacter?.worldCharacterId
   const campaignHref = explicitWeaverMode
     ? `/world/${worldId}/campaign/${campaign.id}?mode=weaver`
-    : withCharacterContext(
-        `/world/${worldId}/campaign/${campaign.id}`,
-        characterContextId,
-      )
+    : explicitThreadwatcherMode
+      ? `/world/${worldId}/campaign/${campaign.id}?mode=threadwatcher`
+      : withCharacterContext(
+          `/world/${worldId}/campaign/${campaign.id}`,
+          characterContextId,
+        )
   const manageCampaignHref = explicitWeaverMode
     ? `/world/${worldId}/campaign/${campaign.id}/manage?mode=weaver`
     : withCharacterContext(
@@ -100,15 +105,18 @@ export default async function CampaignOverviewPage({
     (campaign.isOwner ||
       campaign.role === 'GM' ||
       campaign.role === 'ASSISTANT_GM')
+  const roleLabel = campaignRoleLabel(campaign.role)
 
   const placeholderBase = `/world/${worldId}/campaign/${campaign.id}/placeholder`
   const placeholderHref = (feature: string) =>
     explicitWeaverMode
       ? `${placeholderBase}/${feature}?mode=weaver`
-      : withCharacterContext(
-          `${placeholderBase}/${feature}`,
-          characterContextId,
-        )
+      : explicitThreadwatcherMode
+        ? `${placeholderBase}/${feature}?mode=threadwatcher`
+        : withCharacterContext(
+            `${placeholderBase}/${feature}`,
+            characterContextId,
+          )
   const quickActions: QuickAction[] = [
     { label: 'Add Note', icon: 'note', href: placeholderHref('notes') },
     { label: 'Add Event', icon: 'event', href: placeholderHref('event') },
@@ -136,7 +144,12 @@ export default async function CampaignOverviewPage({
     <AuthenticatedAppShell
       user={user}
       context={{
-        world: { label: campaign.world.name, href: `/world/${worldId}` },
+        world: {
+          label: campaign.world.name,
+          href: explicitThreadwatcherMode
+            ? `/world/${worldId}/campaign?mode=threadwatcher`
+            : `/world/${worldId}`,
+        },
         campaign: {
           label: campaign.name,
           href: campaignHref,
@@ -152,7 +165,7 @@ export default async function CampaignOverviewPage({
       }}
     >
       <AppPage
-        eyebrow={`${campaign.world.name} · ${campaign.isOwner ? 'Campaign owner · GM' : campaign.role}`}
+        eyebrow={`${campaign.world.name} · ${campaign.isOwner ? 'Weaver (Owner)' : roleLabel}`}
         title={campaign.name}
         wide
         bounded
@@ -169,7 +182,7 @@ export default async function CampaignOverviewPage({
             ) : null}
             <Link
               className={styles.secondary}
-              href={`/world/${worldId}/campaign`}
+              href={`/world/${worldId}/campaign${explicitThreadwatcherMode ? '?mode=threadwatcher' : ''}`}
             >
               Change Campaign
             </Link>
@@ -198,7 +211,7 @@ export default async function CampaignOverviewPage({
               </p>
               <div className={styles.dashboardHeroBadges}>
                 <span>{campaign.status}</span>
-                <span>{campaign.role}</span>
+                <span>{roleLabel}</span>
                 <span>{campaign.world.name}</span>
               </div>
             </div>
@@ -457,7 +470,7 @@ export default async function CampaignOverviewPage({
                 <dl className={styles.dashboardStatusGrid}>
                   <div>
                     <dt>Role</dt>
-                    <dd>{campaign.role}</dd>
+                    <dd>{roleLabel}</dd>
                   </div>
                   <div>
                     <dt>Status</dt>
@@ -484,10 +497,16 @@ export default async function CampaignOverviewPage({
             ) : (
               <>
                 <div className={styles.dashboardPanelHeader}>
-                  <h2 id="campaign-quick-view">Your Character</h2>
+                  <h2 id="campaign-quick-view">
+                    {campaign.role === 'SPECTATOR'
+                      ? 'Threadwatcher'
+                      : 'Your Character'}
+                  </h2>
                 </div>
                 <p className={styles.dashboardEmptyCopy}>
-                  You entered this Campaign without an active Character context.
+                  {campaign.role === 'SPECTATOR'
+                    ? 'You are observing this Campaign without an active Character.'
+                    : 'You entered this Campaign without an active Character context.'}
                 </p>
                 {canChooseCharacter ? (
                   <Link

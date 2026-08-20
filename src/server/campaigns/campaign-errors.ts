@@ -5,6 +5,7 @@ export type CampaignDomainErrorCode =
   | 'CAMPAIGN_MEMBERSHIP_NOT_FOUND'
   | 'CAMPAIGN_MEMBERSHIP_ALREADY_EXISTS'
   | 'CAMPAIGN_MEMBERSHIP_FORBIDDEN'
+  | 'CAMPAIGN_MEMBERSHIP_HAS_ACTIVE_CHARACTER'
   | 'CAMPAIGN_OWNER_MUST_BE_GM'
   | 'INVALID_CAMPAIGN_ROLE'
   | 'USER_NOT_FOUND'
@@ -64,6 +65,16 @@ export function campaignMembershipForbidden(
   return new CampaignDomainError(
     'CAMPAIGN_MEMBERSHIP_FORBIDDEN',
     `User ${userId} does not control membership in Campaign ${campaignId}.`,
+  )
+}
+
+export function campaignMembershipHasActiveCharacter(
+  campaignId: string,
+  userId: string,
+) {
+  return new CampaignDomainError(
+    'CAMPAIGN_MEMBERSHIP_HAS_ACTIVE_CHARACTER',
+    `User ${userId} still has active Character participation in Campaign ${campaignId}. Remove that Campaign Character participation before removing the membership.`,
   )
 }
 

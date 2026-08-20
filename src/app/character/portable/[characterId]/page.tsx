@@ -85,8 +85,8 @@ export default async function PortableCharacterPage({
                 />
               ) : (
                 <p className={styles.meta}>
-                  This World is not currently available for a new incarnation of
-                  this Character.
+                  This World is not currently available for a playable
+                  incarnation of this Character.
                 </p>
               )}
             </section>
@@ -114,7 +114,7 @@ export default async function PortableCharacterPage({
             <section className={styles.panel}>
               <h2>World incarnations</h2>
               {character.worldCharacters.length === 0 ? (
-                <p>This Character is not part of a World yet.</p>
+                <p>No currently accessible World incarnations.</p>
               ) : (
                 <div className={styles.list}>
                   {character.worldCharacters.map((incarnation) => (
@@ -142,6 +142,8 @@ export default async function PortableCharacterPage({
             <p className={styles.meta}>
               Creating a WorldCharacter does not change the portable Character.
               The same Character can have one distinct incarnation per World.
+              Threadwatcher-only Campaign access does not create a playable
+              World incarnation.
             </p>
             {character.availableWorlds.length === 0 ? (
               <p>No additional authorized Worlds are available right now.</p>

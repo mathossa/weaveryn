@@ -113,6 +113,27 @@ describe('WorldMembershipService', () => {
     service = new WorldMembershipService(repository)
   })
 
+  it('ensures read-only World access without requiring membership-management authority', async () => {
+    await expect(
+      service.ensureViewerAccess(TARGET_ID, WORLD_ID),
+    ).resolves.toMatchObject({
+      worldId: WORLD_ID,
+      userId: TARGET_ID,
+      role: 'VIEWER',
+    })
+  })
+
+  it('does not downgrade existing World access when ensuring viewer access', async () => {
+    await expect(
+      service.ensureViewerAccess(MEMBER_ID, WORLD_ID),
+    ).resolves.toMatchObject({
+      role: 'MEMBER',
+    })
+    await expect(
+      service.ensureViewerAccess(OWNER_ID, WORLD_ID),
+    ).resolves.toBeNull()
+  })
+
   it.each<WorldRole>(['ADMIN', 'MEMBER', 'VIEWER'])(
     'allows the owner to add a %s membership',
     async (role) => {

@@ -1,0 +1,126 @@
+.card {
+  width: min(34rem, calc(100vw - 2rem));
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+  background:
+    linear-gradient(180deg, rgba(19, 27, 44, 0.84), rgba(7, 11, 20, 0.91)),
+    var(--ui-panel);
+  box-shadow: var(--ui-shadow-panel);
+  backdrop-filter: blur(18px);
+  color: var(--ui-text);
+  display: grid;
+  gap: 1.25rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand svg,
+.brand img {
+  width: 2.8rem;
+  height: 2.8rem;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--ui-accent-hover);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0.35rem 0 0;
+  color: var(--ui-text);
+  font-size: clamp(1.7rem, 5vw, 2.35rem);
+  line-height: 1.05;
+}
+
+.copy {
+  margin: 0.7rem 0 0;
+  color: var(--ui-text-muted);
+  line-height: 1.6;
+}
+
+.summary {
+  display: grid;
+  gap: 0;
+  border-block: 1px solid var(--ui-border);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(7rem, 0.42fr) 1fr;
+  gap: 1rem;
+  padding: 0.85rem 0;
+}
+
+.row + .row {
+  border-top: 1px solid var(--ui-border);
+}
+
+.label {
+  color: var(--ui-text-muted);
+  font-size: 0.85rem;
+}
+
+.value {
+  color: var(--ui-text);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.65rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.link:hover,
+.link:focus-visible {
+  border-color: var(--ui-accent);
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+.status {
+  margin: 0;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-control);
+  padding: 0.85rem 1rem;
+  background: rgba(2, 5, 10, 0.45);
+  color: var(--ui-text-muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 36rem) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+}

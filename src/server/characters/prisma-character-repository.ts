@@ -216,7 +216,17 @@ export class PrismaCharacterRepository implements CharacterRepository {
       (await this.db.campaign.count({
         where: {
           worldId,
-          OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+          OR: [
+            { ownerId: userId },
+            {
+              memberships: {
+                some: {
+                  userId,
+                  role: { in: ['GM', 'ASSISTANT_GM', 'PLAYER'] },
+                },
+              },
+            },
+          ],
         },
       })) > 0
     )

@@ -109,9 +109,9 @@ export const devScenarioCatalog = [
     title: 'Choose Entity entry preferences',
     domain: 'Selection',
     purpose:
-      'Exercise Campaign-specific Character entry cards, per-entry pinning, recent-use tracking, and Weaver resume context through the real selection services.',
+      'Exercise Campaign-specific Character entry cards, per-entry pinning, recent-use tracking, Weaver resume context, and Threadwatcher World → Campaign selection with membership-scoped Campaign visibility through the real selection services.',
     href: '/dev/choose-entity-entry',
-    issueNumbers: [51],
+    issueNumbers: [51, 108],
     prerequisites: [
       'Dedicated development database',
       'Applied Prisma migrations',

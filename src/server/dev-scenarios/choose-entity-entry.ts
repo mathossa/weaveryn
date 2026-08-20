@@ -6,6 +6,7 @@ import type {
   ChooseEntityEntryState,
 } from '@/dev/scenarios/choose-entity-entry'
 import { prisma } from '@/lib/prisma'
+import { getWorldCampaignSelection } from '@/server/campaigns'
 import {
   EntryPreferenceDomainError,
   characterEntryKey,
@@ -16,6 +17,7 @@ import {
   recordWeaverEntryUse,
   setCharacterEntryPinned,
 } from '@/server/selection'
+import { listWorldNavigationChoices } from '@/server/worlds'
 import { FixtureOwnershipError } from './fixture-safety'
 import {
   assertWorldFixtureOwned,
@@ -27,15 +29,19 @@ import {
 const metadata = requireDevScenarioMetadata('choose-entity-entry')
 const WORLD_ID = '51000000-0000-4000-8000-000000000001'
 const OWNER_ID = '51000000-0000-4000-8000-00000000000a'
+const THREADWATCHER_ID = '51000000-0000-4000-8000-00000000000b'
 const CHARACTER_ID = '51000000-0000-4000-8000-000000000010'
 const WORLD_CHARACTER_ID = '51000000-0000-4000-8000-000000000011'
 const TIMELINE_ID = '51000000-0000-4000-8000-000000000020'
 const CAMPAIGN_ONE_ID = '51000000-0000-4000-8000-000000000030'
 const CAMPAIGN_TWO_ID = '51000000-0000-4000-8000-000000000031'
+const THREADWATCHER_CAMPAIGN_ID = '51000000-0000-4000-8000-000000000032'
 const CAMPAIGN_CHARACTER_ONE_ID = '51000000-0000-4000-8000-000000000040'
 const CAMPAIGN_CHARACTER_TWO_ID = '51000000-0000-4000-8000-000000000041'
 const MEMBERSHIP_ONE_ID = '51000000-0000-4000-8000-000000000050'
 const MEMBERSHIP_TWO_ID = '51000000-0000-4000-8000-000000000051'
+const THREADWATCHER_MEMBERSHIP_ID = '51000000-0000-4000-8000-000000000052'
+const THREADWATCHER_WORLD_MEMBERSHIP_ID = '51000000-0000-4000-8000-000000000053'
 
 const fixture: WorldFixtureDefinition = {
   worldId: WORLD_ID,
@@ -47,6 +53,12 @@ const fixture: WorldFixtureDefinition = {
       username: 'choose-entity-entry-owner',
       displayName: 'Cora (Character owner and Weaver)',
     },
+    {
+      id: THREADWATCHER_ID,
+      email: 'dev-choose-entity-threadwatcher@weaveryn.local',
+      username: 'choose-entity-entry-threadwatcher',
+      displayName: 'Wren (Threadwatcher)',
+    },
   ],
 }
 
@@ -56,7 +68,11 @@ async function deleteScenarioDependants(transaction: Prisma.TransactionClient) {
       userId: OWNER_ID,
       OR: [
         { worldCharacterId: WORLD_CHARACTER_ID },
-        { campaignId: { in: [CAMPAIGN_ONE_ID, CAMPAIGN_TWO_ID] } },
+        {
+          campaignId: {
+            in: [CAMPAIGN_ONE_ID, CAMPAIGN_TWO_ID, THREADWATCHER_CAMPAIGN_ID],
+          },
+        },
         { worldId: WORLD_ID },
       ],
     },
@@ -67,10 +83,19 @@ async function deleteScenarioDependants(transaction: Prisma.TransactionClient) {
     },
   })
   await transaction.campaignMembership.deleteMany({
-    where: { id: { in: [MEMBERSHIP_ONE_ID, MEMBERSHIP_TWO_ID] } },
+    where: {
+      id: {
+        in: [MEMBERSHIP_ONE_ID, MEMBERSHIP_TWO_ID, THREADWATCHER_MEMBERSHIP_ID],
+      },
+    },
+  })
+  await transaction.worldMembership.deleteMany({
+    where: { id: THREADWATCHER_WORLD_MEMBERSHIP_ID },
   })
   await transaction.campaign.deleteMany({
-    where: { id: { in: [CAMPAIGN_ONE_ID, CAMPAIGN_TWO_ID] } },
+    where: {
+      id: { in: [CAMPAIGN_ONE_ID, CAMPAIGN_TWO_ID, THREADWATCHER_CAMPAIGN_ID] },
+    },
   })
   await transaction.worldCharacter.deleteMany({
     where: { id: WORLD_CHARACTER_ID },
@@ -137,6 +162,15 @@ async function resetFixture() {
           currentWorldPosition: '2',
           currentWorldDateLabel: 'Day 2',
         },
+        {
+          id: THREADWATCHER_CAMPAIGN_ID,
+          name: 'The Silent Observatory',
+          worldId: WORLD_ID,
+          ownerId: OWNER_ID,
+          timelineId: TIMELINE_ID,
+          currentWorldPosition: '3',
+          currentWorldDateLabel: 'Day 3',
+        },
       ],
     })
     await transaction.campaignMembership.createMany({
@@ -153,7 +187,21 @@ async function resetFixture() {
           userId: OWNER_ID,
           role: 'GM',
         },
+        {
+          id: THREADWATCHER_MEMBERSHIP_ID,
+          campaignId: THREADWATCHER_CAMPAIGN_ID,
+          userId: THREADWATCHER_ID,
+          role: 'SPECTATOR',
+        },
       ],
+    })
+    await transaction.worldMembership.create({
+      data: {
+        id: THREADWATCHER_WORLD_MEMBERSHIP_ID,
+        worldId: WORLD_ID,
+        userId: THREADWATCHER_ID,
+        role: 'VIEWER',
+      },
     })
     await transaction.campaignCharacter.createMany({
       data: [
@@ -184,12 +232,18 @@ async function readState(): Promise<ChooseEntityEntryState | null> {
     )
   }
 
-  const [selection, preferences] = await Promise.all([
-    getEntrySelection(OWNER_ID),
-    listEntryPreferences(OWNER_ID),
-  ])
+  const [selection, preferences, threadwatcherWorlds, threadwatcherCampaigns] =
+    await Promise.all([
+      getEntrySelection(OWNER_ID),
+      listEntryPreferences(OWNER_ID),
+      listWorldNavigationChoices(THREADWATCHER_ID),
+      getWorldCampaignSelection(WORLD_ID, THREADWATCHER_ID),
+    ])
   const character = selection.characters.find(
     (choice) => choice.id === WORLD_CHARACTER_ID,
+  )
+  const threadwatcherWorld = threadwatcherWorlds.find(
+    (choice) => choice.id === WORLD_ID,
   )
 
   return {
@@ -201,6 +255,20 @@ async function readState(): Promise<ChooseEntityEntryState | null> {
           campaigns: character.campaigns,
         }
       : null,
+    threadwatcher:
+      threadwatcherWorld && threadwatcherCampaigns
+        ? {
+            worldId: threadwatcherWorld.id,
+            worldName: threadwatcherWorld.name,
+            worldAccessKind: threadwatcherWorld.accessKind,
+            canThreadwatch: threadwatcherWorld.canThreadwatch,
+            campaigns: threadwatcherCampaigns.campaigns.map((campaign) => ({
+              id: campaign.id,
+              name: campaign.name,
+              role: campaign.role,
+            })),
+          }
+        : null,
     preferences: preferences
       .filter(
         (preference) =>
@@ -280,6 +348,28 @@ async function runAcceptanceChecks() {
       'The production selection query supplies the Campaign contexts used to render separate Choose Entity cards.',
   })
 
+  const threadwatcher = initial?.threadwatcher
+  const threadwatcherPassed =
+    threadwatcher?.worldAccessKind === 'VIEWER' &&
+    threadwatcher.canThreadwatch &&
+    threadwatcher.campaigns.length === 1 &&
+    threadwatcher.campaigns[0]?.id === THREADWATCHER_CAMPAIGN_ID &&
+    threadwatcher.campaigns[0]?.role === 'SPECTATOR'
+  checks.push({
+    id: 'threadwatcher-world-campaign-choice',
+    title: 'Threadwatcher chooses a World before a membership-scoped Campaign',
+    status: threadwatcherPassed ? 'passed' : 'failed',
+    actor: 'Wren (Threadwatcher)',
+    target: 'The Entry Loom — The Silent Observatory',
+    expected:
+      'VIEWER World access with one Threadwatcher Campaign and no unrelated Campaigns',
+    actual: threadwatcher
+      ? `${threadwatcher.worldAccessKind}; ${threadwatcher.campaigns.map(({ name }) => name).join(', ') || 'no Campaigns'}`
+      : 'Threadwatcher entry state missing',
+    detail:
+      'The same production World and Campaign selection queries power Join as Threadwatcher. World VIEWER access does not broaden Campaign visibility beyond explicit membership.',
+  })
+
   await executeAction({ action: 'pin-first-campaign' })
   const afterPin = await readState()
   const pinKey = characterEntryKey(WORLD_CHARACTER_ID, CAMPAIGN_ONE_ID)
@@ -355,7 +445,8 @@ export const chooseEntityEntryScenario: DevScenario<
         action: 'reset',
         actor: 'Development fixture runner',
         target: metadata.fixtureNamespace,
-        expected: 'One WorldCharacter with two Campaigns and no preferences',
+        expected:
+          'Character Campaign entries plus a VIEWER/SPECTATOR Threadwatcher path',
         actual: 'Fixture reset',
         status: 'passed',
       },
