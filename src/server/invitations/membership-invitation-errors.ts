@@ -3,6 +3,7 @@ export type MembershipInvitationErrorCode =
   | 'INVITATION_EXPIRED'
   | 'INVITATION_REVOKED'
   | 'INVITATION_ALREADY_USED'
+  | 'INVITATION_ALREADY_MEMBER'
   | 'INVITATION_TARGET_UNAVAILABLE'
   | 'INVITATION_INVALID_TOKEN'
 
@@ -41,6 +42,13 @@ export function invitationAlreadyUsed() {
   return new MembershipInvitationDomainError(
     'INVITATION_ALREADY_USED',
     'This invitation has already been used.',
+  )
+}
+
+export function invitationAlreadyMember() {
+  return new MembershipInvitationDomainError(
+    'INVITATION_ALREADY_MEMBER',
+    'You already belong to this destination.',
   )
 }
 
