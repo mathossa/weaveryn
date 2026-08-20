@@ -1,0 +1,112 @@
+name: Apply Threadwalker campaign creation patch
+
+on:
+  push:
+    branches:
+      - feat/issue-53-threadwalker-campaign-creation
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/issue-53-threadwalker-campaign-creation
+
+      - name: Apply targeted updates
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new):
+              file = Path(path)
+              text = file.read_text()
+              if old not in text:
+                  raise SystemExit(f"Expected text not found in {path}: {old[:80]!r}")
+              file.write_text(text.replace(old, new))
+
+          replace(
+              'docs/ARCHITECTURE.md',
+              'Campaign creation is permitted to the World owner and World administrators. Other World membership roles do not grant this permission by default.',
+              'Campaign creation is permitted to the World owner, World administrators, and World `MEMBER`s (Threadwalkers). A Campaign created by a Threadwalker is independently owned by that creator, who receives the Campaign `GM` role. World `VIEWER`s (Threadwatchers) and Campaign-only users cannot create Campaigns in the World.'
+          )
+
+          replace(
+              'src/server/campaigns/campaign-service.test.ts',
+              """  it.each([\n    ['MEMBER', memberId],\n    ['non-member', outsiderId],\n  ])('rejects Campaign creation by a %s', async (_, creatorId) => {\n    const { repository, service } = createHarness()\n    await expect(\n      service.createCampaign(createInput(creatorId)),\n    ).rejects.toMatchObject({\n      code: 'WORLD_PERMISSION_DENIED',\n    } satisfies Partial<WorldDomainError>)\n    expect(repository.campaigns).toHaveLength(0)\n  })\n""",
+              """  it('allows a World MEMBER to create and independently own a Campaign', async () => {\n    const { repository, service } = createHarness()\n    const campaign = await service.createCampaign(createInput(memberId))\n\n    expect(campaign.ownerId).toBe(memberId)\n    expect(campaign.ownerId).not.toBe(ownerId)\n    expect(repository.campaignMemberships).toEqual([\n      expect.objectContaining({ campaignId, userId: memberId, role: 'GM' }),\n    ])\n  })\n\n  it('rejects Campaign creation by a non-member', async () => {\n    const { repository, service } = createHarness()\n    await expect(\n      service.createCampaign(createInput(outsiderId)),\n    ).rejects.toMatchObject({\n      code: 'WORLD_PERMISSION_DENIED',\n    } satisfies Partial<WorldDomainError>)\n    expect(repository.campaigns).toHaveLength(0)\n  })\n"""
+          )
+
+          catalog = Path('src/dev/scenario-catalog.ts')
+          text = catalog.read_text()
+          text = text.replace(
+              """    purpose:\n      'Exercise Campaign creation, loading, updating, World authorization, main-timeline context, and independent ownership through the real Campaign service.',\n    href: '/dev/campaign-foundation',\n    issueNumbers: [15],\n""",
+              """    purpose:\n      'Exercise Campaign creation by World owners, Admins, and Threadwalkers, plus loading, updating, World authorization, main-timeline context, and independent ownership through the real Campaign service.',\n    href: '/dev/campaign-foundation',\n    issueNumbers: [15, 53],\n"""
+          )
+          catalog.write_text(text)
+
+          scenario = Path('src/server/dev-scenarios/campaign-foundation.ts')
+          text = scenario.read_text()
+          text = text.replace('DENIED_CAMPAIGN_ID', 'MEMBER_CAMPAIGN_ID')
+          text = text.replace("campaignName: 'A Campaign That Must Not Exist',", "campaignName: \"The Threadwalker's Tale\",")
+          old = """  await resetFixture()\n  let memberErrorCode: string | null = null\n  try {\n    await createCampaignFor('WORLD_MEMBER')\n  } catch (error) {\n    if (\n      error instanceof WorldDomainError &&\n      error.code === 'WORLD_PERMISSION_DENIED'\n    ) {\n      memberErrorCode = error.code\n    } else {\n      throw error\n    }\n  }\n  const afterMemberAttempt = await readState()\n  const memberCreationPassed =\n    memberErrorCode === 'WORLD_PERMISSION_DENIED' &&\n    afterMemberAttempt?.campaigns.length === 0\n  checks.push({\n    id: 'member-create-denied',\n    title: 'World Member cannot create a Campaign',\n    status: memberCreationPassed ? 'passed' : 'failed',\n    actor: 'Mira (World Member)',\n    target: WORLD_NAME,\n    expected: 'WORLD_PERMISSION_DENIED and no Campaign record',\n    actual: `${memberErrorCode ?? 'no domain error'}; ${afterMemberAttempt?.campaigns.length ?? 'unknown'} Campaigns`,\n    domainErrorCode: memberErrorCode,\n    detail: memberCreationPassed\n      ? 'The World permission boundary failed closed before persistence.'\n      : 'The rejection or database state differed from the expectation.',\n  })\n"""
+          new = """  await resetFixture()\n  const memberCampaign = await createCampaignFor('WORLD_MEMBER')\n  const memberCreationPassed =\n    memberCampaign.ownerId === WORLD_MEMBER_ID &&\n    memberCampaign.worldId === WORLD_ID &&\n    memberCampaign.status === 'ACTIVE'\n  checks.push({\n    id: 'world-member-create',\n    title: 'World Member (Threadwalker) creates and independently owns a Campaign',\n    status: memberCreationPassed ? 'passed' : 'failed',\n    actor: 'Mira (World Member / Threadwalker)',\n    target: WORLD_NAME,\n    expected: `ACTIVE Campaign owned by ${WORLD_MEMBER_ID}`,\n    actual: `${memberCampaign.status}; owner ${memberCampaign.ownerId}`,\n    detail: memberCreationPassed\n      ? 'The real Campaign service grants Threadwalkers creation permission while keeping Campaign ownership independent.'\n      : 'The Campaign was not created with the expected independent ownership.',\n  })\n"""
+          if old not in text:
+              raise SystemExit('Expected member denial acceptance block not found')
+          text = text.replace(old, new)
+          old_error = """    if (\n      error instanceof WorldDomainError &&\n      error.code === 'WORLD_PERMISSION_DENIED'\n    ) {\n      const expectedRejection =\n        request?.action === 'create-campaign' &&\n        request.actor === 'WORLD_MEMBER'\n      return {\n        code: error.code,\n        message: error.message,\n        status: 403,\n        activity: {\n          action: 'create-campaign',\n          actor: 'Mira (World Member)',\n          target: WORLD_NAME,\n          expected: 'WORLD_PERMISSION_DENIED',\n          actual: error.code,\n          domainErrorCode: error.code,\n          status: expectedRejection ? 'passed' : 'failed',\n        },\n      }\n    }\n\n"""
+          if old_error not in text:
+              raise SystemExit('Expected WorldDomainError map block not found')
+          text = text.replace(old_error, '')
+          text = text.replace(
+              "import { MAIN_WORLD_TIMELINE_NAME, WorldDomainError } from '@/server/worlds'",
+              "import { MAIN_WORLD_TIMELINE_NAME } from '@/server/worlds'"
+          )
+          scenario.write_text(text)
+
+          lab = Path('src/app/dev/campaign-foundation/campaign-foundation-lab.tsx')
+          text = lab.read_text()
+          text = text.replace(
+              "const adminCampaignId = '15000000-0000-4000-8000-000000000011'",
+              "const adminCampaignId = '15000000-0000-4000-8000-000000000011'\nconst memberCampaignId = '15000000-0000-4000-8000-000000000012'"
+          )
+          text = text.replace(
+              """      : createActor === 'WORLD_ADMIN'\n        ? adminCampaignId\n        : null\n""",
+              """      : createActor === 'WORLD_ADMIN'\n        ? adminCampaignId\n        : memberCampaignId\n"""
+          )
+          text = text.replace(
+              'World owner and Admin permissions authorize creation, and observe',
+              'World owner, Admin, and Threadwalker permissions authorize creation, and observe'
+          )
+          text = text.replace(
+              """              Owner and Admin succeed. Member receives{' '}\n              <code>WORLD_PERMISSION_DENIED</code> and no row is written.\n""",
+              """              Owner, Admin, and World Member (Threadwalker) all create their own\n              Campaign. Threadwatchers and Campaign-only users remain unauthorized.\n"""
+          )
+          text = text.replace(
+              """              <option value=\"WORLD_MEMBER\">\n                Mira · World Member (should fail)\n              </option>\n""",
+              """              <option value=\"WORLD_MEMBER\">\n                Mira · World Member / Threadwalker\n              </option>\n"""
+          )
+          lab.write_text(text)
+
+          page = Path('src/app/dev/campaign-foundation/page.tsx')
+          text = page.read_text().replace(
+              "Development-only Campaign persistence and authorization scenario for issue #15.",
+              "Development-only Campaign persistence and authorization scenario for issues #15 and #53."
+          )
+          page.write_text(text)
+          PY
+
+      - name: Remove temporary workflow
+        run: rm .github/workflows/threadwalker-campaign-patch.yml
+
+      - name: Commit targeted updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/ARCHITECTURE.md src/server/campaigns/campaign-service.test.ts src/dev/scenario-catalog.ts src/server/dev-scenarios/campaign-foundation.ts src/app/dev/campaign-foundation/campaign-foundation-lab.tsx src/app/dev/campaign-foundation/page.tsx .github/workflows/threadwalker-campaign-patch.yml
+          git commit -m "test: verify Threadwalker campaign creation flow"
+          git push origin HEAD:feat/issue-53-threadwalker-campaign-creation
