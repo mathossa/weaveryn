@@ -5,7 +5,9 @@ import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-
 import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { MembershipInviteManager } from '@/components/invitations/membership-invite-manager'
 import { MembershipManager } from '@/components/memberships/membership-manager'
+import { RoleHelp } from '@/components/memberships/role-help'
 import { StatusPanel } from '@/components/ui/status-panel'
+import { campaignRoleLabel, worldAccessLabel } from '@/lib/role-labels'
 import { membershipInvitationService } from '@/server/invitations'
 import {
   getWorldOverview,
@@ -16,14 +18,6 @@ import { ClaimWorldButton } from '../_components/claim-world-button'
 import { WorldForm } from '../_components/world-form'
 import { loadWorldPageUser } from '../_lib/load-world-user'
 import styles from '../world.module.css'
-
-const accessLabels = {
-  OWNER: 'World owner',
-  ADMIN: 'World admin',
-  MEMBER: 'World member',
-  VIEWER: 'World viewer',
-  CAMPAIGN_ONLY: 'Campaign-only World access',
-} as const
 
 interface WorldOverviewPageProps {
   params: Promise<{ worldId: string }>
@@ -66,7 +60,7 @@ export default async function WorldOverviewPage({
       }}
     >
       <AppPage
-        eyebrow={accessLabels[world.accessKind]}
+        eyebrow={worldAccessLabel(world.accessKind)}
         title={world.name}
         description={
           world.hasFullWorldAccess
@@ -144,7 +138,7 @@ export default async function WorldOverviewPage({
                         <strong>{campaign.name}</strong>
                         <span className={styles.meta}>
                           {campaign.isOwner ? 'Owner · ' : ''}
-                          {campaign.role}
+                          {campaignRoleLabel(campaign.role)}
                         </span>
                       </TrackedEntryLink>
                     )
@@ -194,6 +188,7 @@ export default async function WorldOverviewPage({
                 Change existing member access or create a single-use invitation.
                 World ownership is managed separately.
               </p>
+              <RoleHelp targetKind="World" />
               <h3>Members</h3>
               <MembershipManager
                 endpoint={`/api/v1/worlds/${world.id}/members`}
