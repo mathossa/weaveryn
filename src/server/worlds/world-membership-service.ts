@@ -49,6 +49,35 @@ export class WorldMembershipService {
       authorization ?? new WorldAuthorizationService(repository)
   }
 
+  async ensureViewerAccess(
+    userId: string,
+    worldId: string,
+  ): Promise<WorldMembershipRecord | null> {
+    const access = await this.authorization.getAccess(userId, worldId)
+    if (access.isOwner) return null
+
+    const current = await this.repository.findMembership(worldId, userId)
+    if (current) return current
+
+    if (!(await this.repository.userExists(userId))) {
+      throw userNotFound(userId)
+    }
+
+    try {
+      return await this.repository.createMembership({
+        worldId,
+        userId,
+        role: 'VIEWER',
+      })
+    } catch (error) {
+      if (error instanceof WorldMembershipRepositoryConflictError) {
+        const concurrent = await this.repository.findMembership(worldId, userId)
+        if (concurrent) return concurrent
+      }
+      throw error
+    }
+  }
+
   async addMember(input: AddWorldMemberInput): Promise<WorldMembershipRecord> {
     assertWorldRole(input.role)
 
