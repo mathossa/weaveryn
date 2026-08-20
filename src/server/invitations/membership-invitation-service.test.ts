@@ -448,6 +448,60 @@ describe('MembershipInvitationService', () => {
     ).toBeUndefined()
   })
 
+  it('accepts a Campaign Threadwatcher invitation with World VIEWER access', async () => {
+    const state = fixture()
+    await service(state.unitOfWork, tokenB).createCampaignInvitation({
+      actorUserId: ownerId,
+      campaignId,
+      role: 'SPECTATOR',
+    })
+
+    await expect(
+      service(state.unitOfWork, tokenC).acceptInvitation({
+        userId: inviteeId,
+        token: tokenB,
+      }),
+    ).resolves.toEqual({
+      kind: 'CAMPAIGN',
+      worldId,
+      campaignId,
+      role: 'SPECTATOR',
+    })
+
+    expect(
+      state.campaignMemberships.memberships.get(`${campaignId}:${inviteeId}`),
+    ).toMatchObject({ role: 'SPECTATOR' })
+    expect(
+      state.worldMemberships.memberships.get(`${worldId}:${inviteeId}`),
+    ).toMatchObject({ role: 'VIEWER' })
+  })
+
+  it('does not downgrade stronger World access when accepting a Threadwatcher invitation', async () => {
+    const state = fixture()
+    state.worldMemberships.memberships.set(`${worldId}:${inviteeId}`, {
+      id: 'existing-world-membership',
+      worldId,
+      userId: inviteeId,
+      role: 'MEMBER',
+      joinedAt: now,
+      updatedAt: now,
+    })
+    await service(state.unitOfWork, tokenB).createCampaignInvitation({
+      actorUserId: ownerId,
+      campaignId,
+      role: 'SPECTATOR',
+    })
+
+    await service(state.unitOfWork, tokenC).acceptInvitation({
+      userId: inviteeId,
+      token: tokenB,
+    })
+
+    expect(
+      state.worldMemberships.memberships.get(`${worldId}:${inviteeId}`),
+    ).toMatchObject({ role: 'MEMBER' })
+  })
+
   it('consumes a single-use invitation only once', async () => {
     const state = fixture()
     await service(state.unitOfWork).createWorldInvitation({
