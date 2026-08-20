@@ -51,6 +51,21 @@ describe('World permissions', () => {
     }
   })
 
+  it('lets a World MEMBER create Campaigns without granting member management', () => {
+    expect(
+      hasWorldPermission(access('MEMBER'), WORLD_PERMISSIONS.CREATE_CAMPAIGN),
+    ).toBe(true)
+    expect(
+      hasWorldPermission(access('MEMBER'), WORLD_PERMISSIONS.MANAGE_MEMBERS),
+    ).toBe(false)
+  })
+
+  it('keeps World VIEWER Campaign creation read-only', () => {
+    expect(
+      hasWorldPermission(access('VIEWER'), WORLD_PERMISSIONS.CREATE_CAMPAIGN),
+    ).toBe(false)
+  })
+
   it('does not grant World permissions to a non-member', () => {
     for (const permission of permissions) {
       expect(hasWorldPermission(access(null), permission)).toBe(false)
