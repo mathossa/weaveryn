@@ -40,6 +40,7 @@ describe('Campaign membership Choose Entity entries', () => {
     await prisma.worldCharacter.deleteMany({ where: { id: { in: ids } } })
     await prisma.character.deleteMany({ where: { id: { in: ids } } })
     await prisma.campaign.deleteMany({ where: { id: { in: ids } } })
+    await prisma.worldTimeline.deleteMany({ where: { id: { in: ids } } })
     await prisma.world.deleteMany({ where: { id: { in: ids } } })
     await prisma.user.deleteMany({ where: { email: { in: emails } } })
     ids.length = 0
@@ -50,8 +51,12 @@ describe('Campaign membership Choose Entity entries', () => {
     const actor = await createUser('actor')
     const owner = await createUser('owner')
     const worldId = id()
+    const timelineId = id()
     await prisma.world.create({
       data: { id: worldId, name: 'Membership World', ownerId: owner.id },
+    })
+    await prisma.worldTimeline.create({
+      data: { id: timelineId, worldId, name: 'Main' },
     })
 
     const spectatorCampaignId = id()
@@ -64,18 +69,27 @@ describe('Campaign membership Choose Entity entries', () => {
           name: 'Spectator Campaign',
           worldId,
           ownerId: owner.id,
+          timelineId,
+          currentWorldPosition: '1',
+          currentWorldDateLabel: 'Day 1',
         },
         {
           id: unattachedCampaignId,
           name: 'Unattached Player Campaign',
           worldId,
           ownerId: owner.id,
+          timelineId,
+          currentWorldPosition: '2',
+          currentWorldDateLabel: 'Day 2',
         },
         {
           id: attachedCampaignId,
           name: 'Attached Player Campaign',
           worldId,
           ownerId: owner.id,
+          timelineId,
+          currentWorldPosition: '3',
+          currentWorldDateLabel: 'Day 3',
         },
       ],
     })
