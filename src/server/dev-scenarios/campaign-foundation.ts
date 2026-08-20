@@ -341,7 +341,8 @@ async function runAcceptanceChecks() {
     memberCampaign.status === 'ACTIVE'
   checks.push({
     id: 'world-member-create',
-    title: 'World Member (Threadwalker) creates and independently owns a Campaign',
+    title:
+      'World Member (Threadwalker) creates and independently owns a Campaign',
     status: memberCreationPassed ? 'passed' : 'failed',
     actor: 'Mira (World Member / Threadwalker)',
     target: WORLD_NAME,

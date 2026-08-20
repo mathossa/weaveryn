@@ -54,8 +54,9 @@ export function CampaignFoundationLab() {
           <h1>Campaign foundation laboratory</h1>
           <p>
             Create a playable Campaign inside a persisted World, confirm that
-            World owner, Admin, and Threadwalker permissions authorize creation, and observe
-            that the creator—not the World owner—holds Campaign authority.
+            World owner, Admin, and Threadwalker permissions authorize creation,
+            and observe that the creator—not the World owner—holds Campaign
+            authority.
           </p>
         </header>
 
@@ -95,7 +96,8 @@ export function CampaignFoundationLab() {
             <h2 id="create-title">Create a Campaign</h2>
             <p>
               Owner, Admin, and World Member (Threadwalker) all create their own
-              Campaign. Threadwatchers and Campaign-only users remain unauthorized.
+              Campaign. Threadwatchers and Campaign-only users remain
+              unauthorized.
             </p>
             <label htmlFor="campaign-create-actor">Acting user</label>
             <select
