@@ -23,6 +23,7 @@ type Feedback =
   | null
 
 function roleLabel(role: string) {
+  if (role === 'SPECTATOR') return 'Witness'
   return role.replaceAll('_', ' ')
 }
 
