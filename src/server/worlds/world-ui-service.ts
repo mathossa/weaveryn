@@ -1,7 +1,11 @@
 import { prisma } from '../../lib/prisma'
 
 export type WorldAccessKind =
-  'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER' | 'CAMPAIGN_ONLY'
+  | 'OWNER'
+  | 'ADMIN'
+  | 'MEMBER'
+  | 'VIEWER'
+  | 'CAMPAIGN_ONLY'
 
 export interface WorldNavigationChoice {
   id: string
@@ -9,6 +13,7 @@ export interface WorldNavigationChoice {
   accessKind: WorldAccessKind
   orphaned: boolean
   canWeave: boolean
+  canThreadwatch: boolean
 }
 
 export interface WorldOverviewCampaign {
@@ -94,6 +99,15 @@ export async function listWorldNavigationChoices(
         select: { id: true },
         take: 1,
       },
+      threadwatchCampaigns: {
+        where: {
+          memberships: {
+            some: { userId, role: 'SPECTATOR' },
+          },
+        },
+        select: { id: true },
+        take: 1,
+      },
     },
     orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
   })
@@ -114,6 +128,7 @@ export async function listWorldNavigationChoices(
         accessKind === 'OWNER' ||
         accessKind === 'ADMIN' ||
         world.campaigns.length > 0,
+      canThreadwatch: world.threadwatchCampaigns.length > 0,
     }
   })
 }
