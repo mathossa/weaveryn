@@ -20,6 +20,7 @@ export async function listCampaignMembershipsForManagement(
       status: { not: 'ARCHIVED' },
     },
     select: {
+      ownerId: true,
       memberships: {
         select: {
           userId: true,
@@ -51,11 +52,13 @@ export async function listCampaignMembershipsForManagement(
     characterCountByUser.set(userId, (characterCountByUser.get(userId) ?? 0) + 1)
   }
 
-  return campaign.memberships.map((membership) => ({
-    userId: membership.userId,
-    username: membership.user.username,
-    displayName: membership.user.displayName,
-    role: membership.role,
-    activeCharacterCount: characterCountByUser.get(membership.userId) ?? 0,
-  }))
+  return campaign.memberships
+    .filter((membership) => membership.userId !== campaign.ownerId)
+    .map((membership) => ({
+      userId: membership.userId,
+      username: membership.user.username,
+      displayName: membership.user.displayName,
+      role: membership.role,
+      activeCharacterCount: characterCountByUser.get(membership.userId) ?? 0,
+    }))
 }
