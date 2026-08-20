@@ -24,6 +24,7 @@ export interface PortableCharacterChoice {
 }
 
 export interface PortableCharacterOverview extends PortableCharacterChoice {
+  unavailableWorldCharacters: CharacterWorldIncarnationChoice[]
   availableWorlds: Array<{ id: string; name: string }>
 }
 
@@ -70,6 +71,20 @@ function campaignRole(input: {
   return input.membershipRole ?? 'SPECTATOR'
 }
 
+function hasPlayableWorldCharacterAccess(input: {
+  userId: string
+  ownerId: string | null
+  worldRole: string | null
+  playableCampaignCount: number
+}) {
+  return (
+    input.ownerId === input.userId ||
+    input.worldRole === 'ADMIN' ||
+    input.worldRole === 'MEMBER' ||
+    input.playableCampaignCount > 0
+  )
+}
+
 export async function listOwnedCharacterChoices(
   userId: string,
 ): Promise<PortableCharacterChoice[]> {
@@ -80,7 +95,36 @@ export async function listOwnedCharacterChoices(
       name: true,
       image: true,
       worldCharacters: {
-        where: { status: 'ACTIVE' },
+        where: {
+          status: 'ACTIVE',
+          world: {
+            OR: [
+              { ownerId: userId },
+              {
+                memberships: {
+                  some: { userId, role: { in: ['ADMIN', 'MEMBER'] } },
+                },
+              },
+              {
+                campaigns: {
+                  some: {
+                    OR: [
+                      { ownerId: userId },
+                      {
+                        memberships: {
+                          some: {
+                            userId,
+                            role: { in: ['GM', 'ASSISTANT_GM', 'PLAYER'] },
+                          },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            ],
+          },
+        },
         select: {
           id: true,
           nameOverride: true,
@@ -91,7 +135,14 @@ export async function listOwnedCharacterChoices(
               campaign: {
                 OR: [
                   { ownerId: userId },
-                  { memberships: { some: { userId } } },
+                  {
+                    memberships: {
+                      some: {
+                        userId,
+                        role: { in: ['GM', 'ASSISTANT_GM', 'PLAYER'] },
+                      },
+                    },
+                  },
                 ],
               },
             },
@@ -130,16 +181,53 @@ export async function getPortableCharacterOverview(
       name: true,
       image: true,
       worldCharacters: {
+        where: { status: 'ACTIVE' },
         select: {
           id: true,
           nameOverride: true,
-          world: { select: { id: true, name: true } },
+          world: {
+            select: {
+              id: true,
+              name: true,
+              ownerId: true,
+              memberships: {
+                where: { userId },
+                select: { role: true },
+                take: 1,
+              },
+              campaigns: {
+                where: {
+                  OR: [
+                    { ownerId: userId },
+                    {
+                      memberships: {
+                        some: {
+                          userId,
+                          role: { in: ['GM', 'ASSISTANT_GM', 'PLAYER'] },
+                        },
+                      },
+                    },
+                  ],
+                },
+                select: { id: true },
+                take: 1,
+              },
+            },
+          },
           campaignCharacters: {
             where: {
+              status: 'ACTIVE',
               campaign: {
                 OR: [
                   { ownerId: userId },
-                  { memberships: { some: { userId } } },
+                  {
+                    memberships: {
+                      some: {
+                        userId,
+                        role: { in: ['GM', 'ASSISTANT_GM', 'PLAYER'] },
+                      },
+                    },
+                  },
                 ],
               },
             },
@@ -171,7 +259,17 @@ export async function getPortableCharacterOverview(
         {
           campaigns: {
             some: {
-              OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+              OR: [
+                { ownerId: userId },
+                {
+                  memberships: {
+                    some: {
+                      userId,
+                      role: { in: ['GM', 'ASSISTANT_GM', 'PLAYER'] },
+                    },
+                  },
+                },
+              ],
             },
           },
         },
@@ -181,18 +279,36 @@ export async function getPortableCharacterOverview(
     orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
   })
 
+  const worldCharacters = character.worldCharacters.map((worldCharacter) => ({
+    choice: {
+      id: worldCharacter.id,
+      name: worldCharacter.nameOverride ?? character.name,
+      world: {
+        id: worldCharacter.world.id,
+        name: worldCharacter.world.name,
+      },
+      campaignIds: worldCharacter.campaignCharacters.map(
+        (participation) => participation.campaignId,
+      ),
+    },
+    available: hasPlayableWorldCharacterAccess({
+      userId,
+      ownerId: worldCharacter.world.ownerId,
+      worldRole: worldCharacter.world.memberships[0]?.role ?? null,
+      playableCampaignCount: worldCharacter.world.campaigns.length,
+    }),
+  }))
+
   return {
     id: character.id,
     name: character.name,
     image: character.image,
-    worldCharacters: character.worldCharacters.map((worldCharacter) => ({
-      id: worldCharacter.id,
-      name: worldCharacter.nameOverride ?? character.name,
-      world: worldCharacter.world,
-      campaignIds: worldCharacter.campaignCharacters.map(
-        (participation) => participation.campaignId,
-      ),
-    })),
+    worldCharacters: worldCharacters
+      .filter((worldCharacter) => worldCharacter.available)
+      .map((worldCharacter) => worldCharacter.choice),
+    unavailableWorldCharacters: worldCharacters
+      .filter((worldCharacter) => !worldCharacter.available)
+      .map((worldCharacter) => worldCharacter.choice),
     availableWorlds,
   }
 }
@@ -233,7 +349,17 @@ export async function getWorldCharacterOverview(
           },
           campaigns: {
             where: {
-              OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+              OR: [
+                { ownerId: userId },
+                {
+                  memberships: {
+                    some: {
+                      userId,
+                      role: { in: ['GM', 'ASSISTANT_GM', 'PLAYER'] },
+                    },
+                  },
+                },
+              ],
             },
             select: { id: true },
             take: 1,
@@ -243,7 +369,17 @@ export async function getWorldCharacterOverview(
       campaignCharacters: {
         where: {
           campaign: {
-            OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+            OR: [
+              { ownerId: userId },
+              {
+                memberships: {
+                  some: {
+                    userId,
+                    role: { in: ['GM', 'ASSISTANT_GM', 'PLAYER'] },
+                  },
+                },
+              },
+            ],
           },
         },
         select: {
@@ -269,6 +405,15 @@ export async function getWorldCharacterOverview(
   })
 
   if (!worldCharacter) return null
+
+  const worldRole = worldCharacter.world.memberships[0]?.role ?? null
+  const canEditWorldIdentity = hasPlayableWorldCharacterAccess({
+    userId,
+    ownerId: worldCharacter.world.ownerId,
+    worldRole,
+    playableCampaignCount: worldCharacter.world.campaigns.length,
+  })
+  if (!canEditWorldIdentity) return null
 
   const availableCampaigns = await prisma.campaign.findMany({
     where: {
@@ -299,13 +444,6 @@ export async function getWorldCharacterOverview(
     },
     orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
   })
-
-  const worldRole = worldCharacter.world.memberships[0]?.role ?? null
-  const canEditWorldIdentity =
-    worldCharacter.world.ownerId === userId ||
-    worldRole === 'ADMIN' ||
-    worldRole === 'MEMBER' ||
-    worldCharacter.world.campaigns.length > 0
 
   return {
     id: worldCharacter.id,
