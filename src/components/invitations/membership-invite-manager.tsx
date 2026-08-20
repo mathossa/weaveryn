@@ -85,17 +85,10 @@ export function MembershipInviteManager({
         return
       }
 
-      setInvitations((current) => [
-        {
-          id: body.invitation!.id,
-          role: body.invitation!.role,
-          expiresAt: body.invitation!.expiresAt,
-        },
-        ...current,
-      ])
-      setGeneratedLink(
-        new URL(body.invitePath, window.location.origin).toString(),
-      )
+      const createdInvitation = body.invitation
+      const invitePath = body.invitePath
+      setInvitations((current) => [createdInvitation, ...current])
+      setGeneratedLink(new URL(invitePath, window.location.origin).toString())
       setFeedback({
         tone: 'success',
         message: 'Invitation created. Copy the link before leaving this page.',
