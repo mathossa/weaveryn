@@ -19,10 +19,16 @@ const TARGET_ID = 'target-1'
 class InMemoryCampaignMembershipRepository implements CampaignMembershipRepository {
   private readonly users = new Set<string>()
   private readonly memberships = new Map<string, CampaignMembershipRecord>()
+  private readonly activeCharacterUsers = new Set<string>()
   private sequence = 0
 
   addUser(userId: string) {
     this.users.add(userId)
+  }
+
+  setActiveCharacter(userId: string, active: boolean) {
+    if (active) this.activeCharacterUsers.add(userId)
+    else this.activeCharacterUsers.delete(userId)
   }
 
   async addMembership(userId: string, role: CampaignRole) {
@@ -81,6 +87,12 @@ class InMemoryCampaignMembershipRepository implements CampaignMembershipReposito
     const updated = { ...membership, role }
     this.memberships.set(this.key(campaignId, userId), updated)
     return Promise.resolve(updated)
+  }
+
+  hasActiveCampaignCharacterForUser(campaignId: string, userId: string) {
+    return Promise.resolve(
+      campaignId === CAMPAIGN_ID && this.activeCharacterUsers.has(userId),
+    )
   }
 
   deleteCampaignMembership(campaignId: string, userId: string) {
@@ -150,6 +162,24 @@ describe('CampaignMembershipService', () => {
         userId: PLAYER_ID,
       }),
     ).resolves.toBeUndefined()
+  })
+
+  it('blocks membership removal while the user still has active Character participation', async () => {
+    repository.setActiveCharacter(PLAYER_ID, true)
+
+    await expect(
+      service.removeMember({
+        actorUserId: OWNER_ID,
+        campaignId: CAMPAIGN_ID,
+        userId: PLAYER_ID,
+      }),
+    ).rejects.toMatchObject({
+      code: 'CAMPAIGN_MEMBERSHIP_HAS_ACTIVE_CHARACTER',
+    })
+
+    await expect(
+      repository.findCampaignMembership(CAMPAIGN_ID, PLAYER_ID),
+    ).resolves.not.toBeNull()
   })
 
   it.each([GM_ID, ASSISTANT_ID, PLAYER_ID, SPECTATOR_ID, OUTSIDER_ID])(
