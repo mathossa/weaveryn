@@ -29,6 +29,7 @@ const rolePermissions: Record<WorldRole, ReadonlySet<WorldPermission>> = {
   MEMBER: new Set([
     WORLD_PERMISSIONS.VIEW_WORLD,
     WORLD_PERMISSIONS.EDIT_CONTENT,
+    WORLD_PERMISSIONS.CREATE_CAMPAIGN,
   ]),
   VIEWER: new Set([WORLD_PERMISSIONS.VIEW_WORLD]),
 }
