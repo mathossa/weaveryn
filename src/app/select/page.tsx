@@ -54,6 +54,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
   const spectatorCampaigns = selection.campaignMemberships.filter(
     (campaign) => campaign.role === 'SPECTATOR',
   )
+  const primaryWitnessCampaign = spectatorCampaigns[0]
 
   const characterEntries: CharacterEntry[] = [
     ...selection.characters.flatMap<WorldCharacterEntry>((character) =>
@@ -147,17 +148,17 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
     : null
 
   const witnessHref =
-    spectatorCampaigns.length === 1
-      ? `/world/${spectatorCampaigns[0].worldId}/campaign/${spectatorCampaigns[0].id}`
+    spectatorCampaigns.length === 1 && primaryWitnessCampaign
+      ? `/world/${primaryWitnessCampaign.worldId}/campaign/${primaryWitnessCampaign.id}`
       : spectatorCampaigns.length > 1
         ? '/select/witness'
         : '/select/join'
   const witnessDescription =
-    spectatorCampaigns.length === 1
-      ? `${spectatorCampaigns[0].worldName} — ${spectatorCampaigns[0].name}`
+    spectatorCampaigns.length === 1 && primaryWitnessCampaign
+      ? `${primaryWitnessCampaign.worldName} — ${primaryWitnessCampaign.name}`
       : spectatorCampaigns.length > 1
         ? `${spectatorCampaigns.length} Campaigns available to observe.`
-        : 'Use a Spectator invitation to observe a Campaign.'
+        : 'Use a Witness invitation to observe a Campaign.'
 
   return (
     <AuthenticatedAppShell user={user}>
