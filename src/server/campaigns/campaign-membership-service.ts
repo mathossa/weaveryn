@@ -98,6 +98,18 @@ export class CampaignMembershipService {
     if (campaign.ownerId === input.userId && input.role !== 'GM') {
       throw campaignOwnerMustBeGm(input.campaignId, input.userId)
     }
+    if (
+      input.role === 'SPECTATOR' &&
+      (await this.repository.hasActiveCampaignCharacterForUser(
+        input.campaignId,
+        input.userId,
+      ))
+    ) {
+      throw campaignMembershipHasActiveCharacter(
+        input.campaignId,
+        input.userId,
+      )
+    }
     const membership = await this.repository.updateCampaignMembershipRole(
       input.campaignId,
       input.userId,
