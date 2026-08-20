@@ -31,7 +31,10 @@ export default async function WorldSettingsPage({
         title="World settings"
         description={`Edit the basic information for ${world.name}.`}
         actions={
-          <Link className={styles.secondary} href={`/world/${world.id}?mode=weaver`}>
+          <Link
+            className={styles.secondary}
+            href={`/world/${world.id}?mode=weaver`}
+          >
             Back to World
           </Link>
         }

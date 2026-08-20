@@ -231,7 +231,12 @@
   inset: 0;
   z-index: -2;
   background:
-    linear-gradient(90deg, rgba(4, 8, 15, 0.98) 0%, rgba(4, 8, 15, 0.78) 42%, rgba(4, 8, 15, 0.18) 76%),
+    linear-gradient(
+      90deg,
+      rgba(4, 8, 15, 0.98) 0%,
+      rgba(4, 8, 15, 0.78) 42%,
+      rgba(4, 8, 15, 0.18) 76%
+    ),
     linear-gradient(0deg, rgba(4, 8, 15, 0.96) 0%, transparent 52%);
 }
 
@@ -433,7 +438,11 @@
 .campaignShade {
   position: absolute;
   inset: 0;
-  background: linear-gradient(0deg, rgba(4, 8, 14, 0.98) 0%, rgba(4, 8, 14, 0.2) 76%);
+  background: linear-gradient(
+    0deg,
+    rgba(4, 8, 14, 0.98) 0%,
+    rgba(4, 8, 14, 0.2) 76%
+  );
 }
 
 .campaignCopy {
@@ -520,7 +529,8 @@
   align-items: center;
   min-height: 3rem;
   padding: 0.45rem 0.55rem;
-  border: 1px solid color-mix(in srgb, var(--ui-control-border) 82%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--ui-control-border) 82%, transparent);
   border-radius: var(--ui-radius-control);
   background: color-mix(in srgb, var(--ui-control-surface) 82%, transparent);
 }
@@ -603,7 +613,11 @@
 
 .actionItem:hover:not(.actionDisabled) {
   border-color: color-mix(in srgb, var(--ui-accent) 46%, var(--ui-border));
-  background: color-mix(in srgb, var(--ui-control-surface) 88%, var(--ui-accent) 5%);
+  background: color-mix(
+    in srgb,
+    var(--ui-control-surface) 88%,
+    var(--ui-accent) 5%
+  );
 }
 
 .actionItem > span:nth-child(2) {
@@ -836,8 +850,12 @@
   }
 
   .heroShade {
-    background:
-      linear-gradient(0deg, rgba(4, 8, 15, 0.98) 0%, rgba(4, 8, 15, 0.72) 64%, rgba(4, 8, 15, 0.42) 100%);
+    background: linear-gradient(
+      0deg,
+      rgba(4, 8, 15, 0.98) 0%,
+      rgba(4, 8, 15, 0.72) 64%,
+      rgba(4, 8, 15, 0.42) 100%
+    );
   }
 
   .sectionHeader {

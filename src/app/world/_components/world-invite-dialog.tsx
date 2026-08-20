@@ -66,8 +66,8 @@ export function WorldInviteDialog({
               </button>
             </div>
             <p className={styles.modalIntro}>
-              Choose the World role, create a single-use link, then copy it before
-              closing this window.
+              Choose the World role, create a single-use link, then copy it
+              before closing this window.
             </p>
             <MembershipInviteManager
               endpoint={endpoint}

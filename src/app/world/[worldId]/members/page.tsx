@@ -19,7 +19,9 @@ interface WorldMembersPageProps {
   params: Promise<{ worldId: string }>
 }
 
-export default async function WorldMembersPage({ params }: WorldMembersPageProps) {
+export default async function WorldMembersPage({
+  params,
+}: WorldMembersPageProps) {
   const [{ worldId }, user] = await Promise.all([params, loadWorldPageUser()])
   const world = await getWorldOverview(worldId, user.id)
   if (!world) notFound()
@@ -46,7 +48,10 @@ export default async function WorldMembersPage({ params }: WorldMembersPageProps
         title="World members"
         description={`Manage access to ${world.name} and its active invitation links.`}
         actions={
-          <Link className={styles.secondary} href={`/world/${world.id}?mode=weaver`}>
+          <Link
+            className={styles.secondary}
+            href={`/world/${world.id}?mode=weaver`}
+          >
             Back to World
           </Link>
         }

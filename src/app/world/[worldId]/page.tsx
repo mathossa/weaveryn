@@ -176,7 +176,9 @@ export default async function WorldOverviewPage({
                   <span>
                     <small>Active invites</small>
                     <strong>{activeInviteCount ?? '—'}</strong>
-                    <em>{activeInviteCount === null ? 'Restricted' : 'Open'}</em>
+                    <em>
+                      {activeInviteCount === null ? 'Restricted' : 'Open'}
+                    </em>
                   </span>
                 </div>
                 <div className={styles.statCard}>
@@ -186,7 +188,9 @@ export default async function WorldOverviewPage({
                   <span>
                     <small>Entities</small>
                     <strong>{world.entityCount ?? '—'}</strong>
-                    <em>{world.entityCount === null ? 'Restricted' : 'Tracked'}</em>
+                    <em>
+                      {world.entityCount === null ? 'Restricted' : 'Tracked'}
+                    </em>
                   </span>
                 </div>
               </div>
@@ -289,7 +293,9 @@ export default async function WorldOverviewPage({
             </section>
 
             {world.canManageMembers ? (
-              <section className={`${styles.dashboardPanel} ${styles.membersPanel}`}>
+              <section
+                className={`${styles.dashboardPanel} ${styles.membersPanel}`}
+              >
                 <div className={styles.sectionHeader}>
                   <div>
                     <span className={styles.sectionKicker}>Access</span>
@@ -330,7 +336,9 @@ export default async function WorldOverviewPage({
                       </div>
                     )
                   })}
-                  {world.memberCount > memberPreview.length + (world.accessKind === 'OWNER' ? 1 : 0) ? (
+                  {world.memberCount >
+                  memberPreview.length +
+                    (world.accessKind === 'OWNER' ? 1 : 0) ? (
                     <Link
                       className={styles.moreMembers}
                       href={`/world/${world.id}/members`}
@@ -447,7 +455,9 @@ export default async function WorldOverviewPage({
                   </span>
                   <span aria-hidden="true">›</span>
                 </Link>
-                <div className={`${styles.overviewItem} ${styles.overviewDisabled}`}>
+                <div
+                  className={`${styles.overviewItem} ${styles.overviewDisabled}`}
+                >
                   <span className={styles.overviewIcon} aria-hidden="true">
                     ⇄
                   </span>
@@ -457,7 +467,9 @@ export default async function WorldOverviewPage({
                   </span>
                   <span>Soon</span>
                 </div>
-                <div className={`${styles.overviewItem} ${styles.overviewDisabled}`}>
+                <div
+                  className={`${styles.overviewItem} ${styles.overviewDisabled}`}
+                >
                   <span className={styles.overviewIcon} aria-hidden="true">
                     ◧
                   </span>
@@ -467,7 +479,9 @@ export default async function WorldOverviewPage({
                   </span>
                   <span>Soon</span>
                 </div>
-                <div className={`${styles.overviewItem} ${styles.overviewDisabled}`}>
+                <div
+                  className={`${styles.overviewItem} ${styles.overviewDisabled}`}
+                >
                   <span className={styles.overviewIcon} aria-hidden="true">
                     ⌖
                   </span>
