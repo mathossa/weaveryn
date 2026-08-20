@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireAuthenticatedUser } from '@/server/auth'
 import { membershipInvitationService } from '@/server/invitations'
+import type { WorldRole } from '@/server/worlds'
 import { invitationErrorResponse } from '../../../invitations/_lib/invitation-response'
 
 export const runtime = 'nodejs'
@@ -35,7 +36,7 @@ export async function POST(request: Request, context: RouteContext) {
     const created = await membershipInvitationService.createWorldInvitation({
       actorUserId: user.id,
       worldId,
-      role: body.role as never,
+      role: body.role as WorldRole,
     })
     return NextResponse.json(
       {
