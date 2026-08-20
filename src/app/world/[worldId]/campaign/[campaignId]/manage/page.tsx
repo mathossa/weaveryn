@@ -4,10 +4,16 @@ import { notFound } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { MembershipInviteManager } from '@/components/invitations/membership-invite-manager'
+import { MembershipManager } from '@/components/memberships/membership-manager'
 import { requireAuthenticatedUser } from '@/server/auth'
-import { CAMPAIGN_ROLES, getCampaignOverview } from '@/server/campaigns'
+import {
+  CAMPAIGN_ROLES,
+  getCampaignOverview,
+  listCampaignMembershipsForManagement,
+} from '@/server/campaigns'
 import { membershipInvitationService } from '@/server/invitations'
 import { listEntryPreferences } from '@/server/selection'
+import { RemoveCampaignCharacterButton } from '../_components/remove-campaign-character-button'
 import { CampaignForm } from '../../_components/campaign-form'
 import styles from '../../campaign.module.css'
 
@@ -60,12 +66,15 @@ export default async function CampaignManagePage({
     campaign.canManageMembers
   if (!canManageCampaign) notFound()
 
-  const campaignInvitations = campaign.canManageMembers
-    ? await membershipInvitationService.listCampaignInvitations({
-        actorUserId: user.id,
-        campaignId: campaign.id,
-      })
-    : []
+  const [campaignInvitations, campaignMembers] = campaign.canManageMembers
+    ? await Promise.all([
+        membershipInvitationService.listCampaignInvitations({
+          actorUserId: user.id,
+          campaignId: campaign.id,
+        }),
+        listCampaignMembershipsForManagement(campaign.id, user.id),
+      ])
+    : [[], null]
 
   const explicitWeaverMode = query.mode === 'weaver'
   const requestedCharacterId =
@@ -215,14 +224,30 @@ export default async function CampaignManagePage({
 
           <section className={styles.panel}>
             <h2>Campaign Characters</h2>
+            <p className={styles.meta}>
+              Character participation is separate from Campaign membership.
+              Removing participation keeps the portable Character and
+              WorldCharacter intact.
+            </p>
             {campaign.characters.length === 0 ? (
               <p>No active Campaign Characters are attached yet.</p>
             ) : (
               <div className={styles.party}>
                 {campaign.characters.map((character) => (
                   <div className={styles.partyItem} key={character.id}>
-                    <strong>{character.name}</strong>
-                    {character.ownedByCurrentUser ? ' · your Character' : ''}
+                    <div>
+                      <strong>{character.name}</strong>
+                      <span className={styles.meta}>
+                        {' · '}
+                        {character.owner.displayName ??
+                          `@${character.owner.username}`}
+                        {character.ownedByCurrentUser ? ' · your Character' : ''}
+                      </span>
+                    </div>
+                    <RemoveCampaignCharacterButton
+                      campaignCharacterId={character.id}
+                      characterName={character.name}
+                    />
                   </div>
                 ))}
               </div>
@@ -233,9 +258,18 @@ export default async function CampaignManagePage({
             <section className={styles.panel}>
               <h2>Campaign membership</h2>
               <p className={styles.meta}>
-                Create a single-use link that grants the selected Campaign role.
-                Campaign invitations do not create World membership.
+                Promote, demote, or remove existing members, or create a
+                single-use invitation. Campaign membership never creates a World
+                membership automatically.
               </p>
+              <h3>Members</h3>
+              <MembershipManager
+                endpoint={`/api/v1/worlds/${worldId}/campaigns/${campaign.id}/members`}
+                roles={CAMPAIGN_ROLES}
+                targetKind="Campaign"
+                initialMembers={campaignMembers ?? []}
+              />
+              <h3>Invite someone</h3>
               <MembershipInviteManager
                 endpoint={`/api/v1/worlds/${worldId}/campaigns/${campaign.id}/invitations`}
                 roles={CAMPAIGN_ROLES}
