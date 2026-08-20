@@ -22,6 +22,7 @@ interface MembershipManagerProps {
 type Feedback = { tone: 'error' | 'success'; message: string } | null
 
 function roleLabel(role: string) {
+  if (role === 'SPECTATOR') return 'Witness'
   return role.replaceAll('_', ' ')
 }
 
@@ -165,7 +166,7 @@ export function MembershipManager({
                     <span className={styles.note}>
                       {activeCharacterCount} active Campaign Character
                       {activeCharacterCount === 1 ? '' : 's'} — remove participation
-                      before removing this membership or changing it to Spectator.
+                      before removing this membership or changing it to Witness.
                     </span>
                   ) : null}
                 </div>
