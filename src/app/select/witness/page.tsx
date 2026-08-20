@@ -34,8 +34,8 @@ export default async function WitnessSelectionPage() {
             }
           >
             <p>
-              A Spectator invitation gives you Witness access without creating a
-              WorldCharacter.
+              A Witness invitation lets you observe a Campaign without creating
+              a WorldCharacter.
             </p>
           </StatusPanel>
         ) : (
