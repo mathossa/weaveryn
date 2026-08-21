@@ -99,7 +99,9 @@ export default async function WorldSelectionPage({
                       ? { kind: 'WEAVER', worldId: world.id }
                       : undefined
                   }
-                  style={{ backgroundImage: `url(${uiAssets.fallbacks.world})` }}
+                  style={{
+                    backgroundImage: `url(${uiAssets.fallbacks.world})`,
+                  }}
                 >
                   <span className={styles.badge}>
                     {enterAsThreadwatcher

@@ -113,7 +113,10 @@ function contextCampaign(
   return campaign ? { id: campaign.id, name: campaign.name } : null
 }
 
-function uiEntity(entity: WorldEntityRecord, userId: string): WorldEntityUiRecord {
+function uiEntity(
+  entity: WorldEntityRecord,
+  userId: string,
+): WorldEntityUiRecord {
   return {
     id: entity.id,
     type: entity.type,
@@ -197,7 +200,10 @@ export async function getWorldEntityBrowseWorkspace(
   if (!world) return null
 
   const resolvedContextCampaign = contextCampaign(world, contextCampaignId)
-  const authorizedEntities = await worldEntityService.listEntities(worldId, userId)
+  const authorizedEntities = await worldEntityService.listEntities(
+    worldId,
+    userId,
+  )
   const entities = filterWorldEntitiesForCampaignContext(
     authorizedEntities,
     resolvedContextCampaign?.id,

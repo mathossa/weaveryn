@@ -41,7 +41,9 @@ export function filterWorldEntitiesForCampaignContext(
   campaignId?: string,
 ) {
   if (!campaignId) return entities
-  return entities.filter((entity) => visibleInCampaignContext(entity, campaignId))
+  return entities.filter((entity) =>
+    visibleInCampaignContext(entity, campaignId),
+  )
 }
 
 export function filterEntityRelationshipsForCampaignContext(
