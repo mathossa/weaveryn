@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - weaveryn-postgres-data:/var/lib/postgresql/data
+
+    networks:
+      - backend
+
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  app:
+    image: ghcr.io/mathossa/weaveryn:${WEAVERYN_IMAGE_TAG:-edge}
+    pull_policy: always
+    restart: unless-stopped
+    init: true
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      BETTER_AUTH_TRUSTED_ORIGINS: ${BETTER_AUTH_TRUSTED_ORIGINS}
+      ADMIN_ALLOWED_CIDRS: ${ADMIN_ALLOWED_CIDRS:-}
+      ADMIN_TRUST_PROXY_HEADERS: '${ADMIN_TRUST_PROXY_HEADERS:-false}'
+      ADMIN_CLIENT_IP_HEADER: ${ADMIN_CLIENT_IP_HEADER:-x-forwarded-for}
+
+    expose:
+      - '3000'
+
+    networks:
+      backend:
+      proxy:
+        aliases:
+          - weaveryn-app
+
+    stop_grace_period: 30s
+
+volumes:
+  weaveryn-postgres-data:
+
+networks:
+  backend:
+    driver: bridge
+    internal: true
+
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK}

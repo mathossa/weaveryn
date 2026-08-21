@@ -1,0 +1,13 @@
+.git
+.github
+
+node_modules
+.next
+coverage
+
+.env
+.env.*
+!.env.example
+
+*.log
+*.bundle

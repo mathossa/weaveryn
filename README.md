@@ -132,6 +132,13 @@ npm run weaveryn -- --help  # instance administration CLI
 - [Concept images](docs/images/concepts/) — historical/concept artwork; these are
   illustrative and may predate Vision 2.0 decisions.
 
+### Deployment
+
+- **[Self-hosting](docs/SELF_HOSTING.md)** — production-oriented Portainer,
+  PostgreSQL, GHCR, reverse-proxy, environment, update, and rollback guidance.
+- [Release and Versioning Policy](docs/development/RELEASES.md) — release tags,
+  edge builds, version sources, production isolation, and release readiness.
+
 ### Development
 
 - **[Development Setup](docs/development/SETUP.md)** — detailed local setup,
@@ -160,10 +167,12 @@ as part of that feature.
 
 ## Self-hosting status
 
-Self-hosting is a first-class project goal, but a production deployment guide is
-not finalized yet. The steps above describe the supported local development setup;
-do not treat the development Compose configuration or example credentials as a
-production deployment recipe.
+Self-hosting is a first-class project goal. The production-oriented Portainer setup
+is documented in [Self-hosting Weaveryn](docs/SELF_HOSTING.md). The existing root
+`compose.yml` remains development-only and must not be used as a production recipe.
+
+While Weaveryn is in early development, deployments that track `main` use the
+explicit `edge` image channel rather than a stable release tag.
 
 ## License
 

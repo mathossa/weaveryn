@@ -53,3 +53,24 @@ jobs:
 
       - name: Run authentication integration test
         run: npm run test:integration
+
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PROXY_NETWORK: weaveryn-proxy
+      POSTGRES_DB: weaveryn
+      POSTGRES_USER: weaveryn
+      POSTGRES_PASSWORD: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      BETTER_AUTH_SECRET: ci-only-better-auth-secret-change-me-1234567890
+      BETTER_AUTH_URL: https://weaveryn.example.invalid
+      BETTER_AUTH_TRUSTED_ORIGINS: https://weaveryn.example.invalid
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate production Compose configuration
+        run: docker compose -f compose.production.yml config
+
+      - name: Build production container
+        run: docker build --tag weaveryn:ci .
