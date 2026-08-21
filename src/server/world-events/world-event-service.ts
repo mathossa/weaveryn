@@ -102,8 +102,7 @@ export class WorldEventService {
   constructor(
     private readonly repository: WorldEventRepository,
     private readonly createId: WorldEventIdFactory = randomUUID,
-    private readonly loadVisibleEntityIds: VisibleEntityIdsLoader =
-      defaultVisibleEntityIdsLoader,
+    private readonly loadVisibleEntityIds: VisibleEntityIdsLoader = defaultVisibleEntityIdsLoader,
   ) {}
 
   async loadMainTimeline(worldId: string, userId: string) {

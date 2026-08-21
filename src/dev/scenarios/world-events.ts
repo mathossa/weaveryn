@@ -38,7 +38,9 @@ export interface WorldEventsState {
   }>
 }
 
-export function isWorldEventsAction(value: unknown): value is WorldEventsAction {
+export function isWorldEventsAction(
+  value: unknown,
+): value is WorldEventsAction {
   if (!value || typeof value !== 'object') return false
   const input = value as Record<string, unknown>
   const keys = Object.keys(input).sort()
@@ -46,10 +48,7 @@ export function isWorldEventsAction(value: unknown): value is WorldEventsAction 
     return false
   }
 
-  if (
-    input.action === 'create-point' ||
-    input.action === 'create-duration'
-  ) {
+  if (input.action === 'create-point' || input.action === 'create-duration') {
     return input.actor === 'MEMBER' || input.actor === 'VIEWER'
   }
 

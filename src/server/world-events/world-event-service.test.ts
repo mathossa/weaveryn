@@ -121,7 +121,9 @@ class InMemoryWorldEventRepository implements WorldEventRepository {
   }
 
   async replaceEventEntities(requestedEventId: string, entityIds: string[]) {
-    const event = this.events.find((candidate) => candidate.id === requestedEventId)
+    const event = this.events.find(
+      (candidate) => candidate.id === requestedEventId,
+    )
     if (event) event.entityIds = [...entityIds]
   }
 
@@ -150,7 +152,10 @@ class InMemoryWorldEventRepository implements WorldEventRepository {
     return reckoning
   }
 
-  async countReckoningUses(requestedWorldId: string, requestedReckoningId: string) {
+  async countReckoningUses(
+    requestedWorldId: string,
+    requestedReckoningId: string,
+  ) {
     if (requestedWorldId !== worldId) return 0
     return this.events.filter(
       (event) =>
@@ -159,7 +164,10 @@ class InMemoryWorldEventRepository implements WorldEventRepository {
     ).length
   }
 
-  async deleteReckoning(requestedWorldId: string, requestedReckoningId: string) {
+  async deleteReckoning(
+    requestedWorldId: string,
+    requestedReckoningId: string,
+  ) {
     if (requestedWorldId !== worldId) return false
     const index = this.reckonings.findIndex(
       (reckoning) => reckoning.id === requestedReckoningId,
@@ -216,11 +224,15 @@ describe('WorldEventService', () => {
     const { service } = createHarness()
     await service.createEvent(eventInput(memberId))
 
-    await expect(service.loadMainTimeline(worldId, viewerId)).resolves.toMatchObject({
+    await expect(
+      service.loadMainTimeline(worldId, viewerId),
+    ).resolves.toMatchObject({
       canEditEvents: false,
       events: [expect.objectContaining({ id: eventId })],
     })
-    await expect(service.createEvent(eventInput(viewerId))).rejects.toMatchObject({
+    await expect(
+      service.createEvent(eventInput(viewerId)),
+    ).rejects.toMatchObject({
       code: 'WORLD_PERMISSION_DENIED',
     } satisfies Partial<WorldDomainError>)
   })

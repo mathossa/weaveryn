@@ -18,7 +18,9 @@ export async function GET(request: Request, context: RouteContext) {
     const user = await requireAuthenticatedUser(request.headers)
     const { worldId, eventId } = await context.params
     const workspace = await getWorldTimelineWorkspace(worldId, user.id)
-    const event = workspace?.events.find((candidate) => candidate.id === eventId)
+    const event = workspace?.events.find(
+      (candidate) => candidate.id === eventId,
+    )
     if (!event) {
       return NextResponse.json(
         {

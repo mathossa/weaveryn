@@ -169,7 +169,9 @@ export class PrismaWorldEventRepository implements WorldEventRepository {
   }
 
   async replaceEventEntities(eventId: string, entityIds: string[]) {
-    await this.db.worldEventEntity.deleteMany({ where: { worldEventId: eventId } })
+    await this.db.worldEventEntity.deleteMany({
+      where: { worldEventId: eventId },
+    })
     if (entityIds.length === 0) return
     await this.db.worldEventEntity.createMany({
       data: entityIds.map((worldEntityId) => ({
@@ -211,7 +213,10 @@ export class PrismaWorldEventRepository implements WorldEventRepository {
     return this.db.worldEvent.count({
       where: {
         timeline: { worldId },
-        OR: [{ startReckoningId: reckoningId }, { endReckoningId: reckoningId }],
+        OR: [
+          { startReckoningId: reckoningId },
+          { endReckoningId: reckoningId },
+        ],
       },
     })
   }

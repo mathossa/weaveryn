@@ -76,12 +76,10 @@ describe('World date resolver', () => {
 
   it('reconstructs the selected reckoning notation for editing', () => {
     expect(
-      worldDateInputFromPosition(
-        '100',
-        rebuild.id,
-        'BEFORE',
-        [cataclysm, rebuild],
-      ),
+      worldDateInputFromPosition('100', rebuild.id, 'BEFORE', [
+        cataclysm,
+        rebuild,
+      ]),
     ).toEqual({ year: '100', reckoningId: rebuild.id, direction: 'BEFORE' })
   })
 

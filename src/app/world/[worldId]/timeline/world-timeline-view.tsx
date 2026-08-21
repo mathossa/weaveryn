@@ -168,7 +168,9 @@ function DateField({
             inputMode="numeric"
             placeholder={value.reckoningId ? '100' : '1247'}
             required
-            onChange={(event) => onChange({ ...value, year: event.target.value })}
+            onChange={(event) =>
+              onChange({ ...value, year: event.target.value })
+            }
           />
         </label>
       </div>
@@ -191,7 +193,11 @@ function Modal({
   wide?: boolean
 }) {
   return (
-    <div className={styles.modalBackdrop} role="presentation" onMouseDown={onClose}>
+    <div
+      className={styles.modalBackdrop}
+      role="presentation"
+      onMouseDown={onClose}
+    >
       <section
         className={`${styles.modal} ${wide ? styles.modalWide : ''}`}
         role="dialog"
@@ -286,9 +292,9 @@ function EventEditorDialog({
     })
 
     if (!response.ok) {
-      const body = (await response.json().catch(() => null)) as
-        | { error?: { message?: string } }
-        | null
+      const body = (await response.json().catch(() => null)) as {
+        error?: { message?: string }
+      } | null
       setError(body?.error?.message ?? 'The event could not be saved.')
       setBusy(false)
       return
@@ -422,7 +428,11 @@ function EventEditorDialog({
           >
             Cancel
           </button>
-          <button className={styles.primaryButton} type="submit" disabled={busy}>
+          <button
+            className={styles.primaryButton}
+            type="submit"
+            disabled={busy}
+          >
             {busy ? 'Saving…' : event ? 'Save event' : 'Add event'}
           </button>
         </div>
@@ -467,9 +477,9 @@ function ChronologyDialog({
       }),
     })
     if (!response.ok) {
-      const body = (await response.json().catch(() => null)) as
-        | { error?: { message?: string } }
-        | null
+      const body = (await response.json().catch(() => null)) as {
+        error?: { message?: string }
+      } | null
       setError(body?.error?.message ?? 'The year system could not be created.')
       setBusy(false)
       return
@@ -493,9 +503,9 @@ function ChronologyDialog({
       { method: 'DELETE' },
     )
     if (!response.ok) {
-      const body = (await response.json().catch(() => null)) as
-        | { error?: { message?: string } }
-        | null
+      const body = (await response.json().catch(() => null)) as {
+        error?: { message?: string }
+      } | null
       setError(body?.error?.message ?? 'The year system could not be removed.')
       return
     }
@@ -603,7 +613,11 @@ function ChronologyDialog({
           </div>
           {error ? <p className={styles.error}>{error}</p> : null}
           <div className={styles.formActions}>
-            <button className={styles.primaryButton} type="submit" disabled={busy}>
+            <button
+              className={styles.primaryButton}
+              type="submit"
+              disabled={busy}
+            >
               {busy ? 'Adding…' : 'Add year system'}
             </button>
           </div>
@@ -658,13 +672,16 @@ export function WorldTimelineView({
     if (!window.confirm(`Delete “${event.title}” from World history?`)) return
     setDeleteBusy(true)
     setDetailError(null)
-    const response = await fetch(`/api/v1/worlds/${worldId}/events/${event.id}`, {
-      method: 'DELETE',
-    })
+    const response = await fetch(
+      `/api/v1/worlds/${worldId}/events/${event.id}`,
+      {
+        method: 'DELETE',
+      },
+    )
     if (!response.ok) {
-      const body = (await response.json().catch(() => null)) as
-        | { error?: { message?: string } }
-        | null
+      const body = (await response.json().catch(() => null)) as {
+        error?: { message?: string }
+      } | null
       setDetailError(body?.error?.message ?? 'The event could not be deleted.')
       setDeleteBusy(false)
       return
@@ -843,8 +860,8 @@ export function WorldTimelineView({
           <strong>Calendar depth comes later</strong>
           <p>
             Custom months, weekdays, day lengths, hours, seasons, moons, lunar
-            cycles, solar cycles, and leap rules will extend this same chronology
-            system without replacing your events.
+            cycles, solar cycles, and leap rules will extend this same
+            chronology system without replacing your events.
           </p>
         </section>
 
@@ -872,7 +889,9 @@ export function WorldTimelineView({
                 : ''}
             </span>
             <span className={styles.detailBadge}>
-              {selectedEvent.endWorldPosition ? 'Duration event' : 'Point event'}
+              {selectedEvent.endWorldPosition
+                ? 'Duration event'
+                : 'Point event'}
             </span>
             {selectedEvent.description ? (
               <p>{selectedEvent.description}</p>
