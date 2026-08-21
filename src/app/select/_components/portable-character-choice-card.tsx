@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import Link from 'next/link'
+import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { uiAssets } from '@/lib/ui-assets'
 import type { EntryPortableCharacterChoice } from '@/server/selection'
 import styles from '../select.module.css'
@@ -12,10 +12,11 @@ export function PortableCharacterChoiceCard({
   eager?: boolean
 }) {
   return (
-    <Link
+    <TrackedEntryLink
       className={styles.characterCard}
       href={`/character/portable/${character.id}`}
-      aria-label={`Open portable Character ${character.name}`}
+      tracking={{ kind: 'PORTABLE_CHARACTER', characterId: character.id }}
+      ariaLabel={`Open portable Character ${character.name}`}
     >
       <Image
         className={styles.characterImage}
@@ -31,6 +32,6 @@ export function PortableCharacterChoiceCard({
         <span>Portable Character</span>
         <span className={styles.characterMeta}>Not in a World yet</span>
       </span>
-    </Link>
+    </TrackedEntryLink>
   )
 }

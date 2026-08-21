@@ -1,8 +1,9 @@
 import { prisma } from '@/lib/prisma'
-import { getEntrySelection } from './entry-selection'
+import type { WeaverWorldChoice } from './entry-selection'
 
 export const WEAVER_ENTRY_KEY = 'weaver'
 export const WEAVER_CAMPAIGN_ENTRY_KEY_PREFIX = 'weaver-campaign'
+export const PORTABLE_CHARACTER_ENTRY_KEY_PREFIX = 'portable-character'
 
 export type EntryPreferenceErrorCode =
   'ENTRY_PREFERENCE_NOT_AVAILABLE' | 'ENTRY_PREFERENCE_INVALID'
@@ -72,6 +73,10 @@ export function characterEntryKey(
   return `character:${worldCharacterId}:${campaignId ?? 'world'}`
 }
 
+export function portableCharacterEntryKey(characterId: string) {
+  return `${PORTABLE_CHARACTER_ENTRY_KEY_PREFIX}:${characterId}`
+}
+
 export function weaverCampaignEntryKey(worldId: string, campaignId: string) {
   return `${WEAVER_CAMPAIGN_ENTRY_KEY_PREFIX}:${worldId}:${campaignId}`
 }
@@ -96,10 +101,65 @@ async function requireCharacterEntry(
   worldCharacterId: string,
   campaignId?: string | null,
 ) {
-  const selection = await getEntrySelection(userId)
-  const character = selection.characters.find(
-    (choice) => choice.id === worldCharacterId,
-  )
+  const character = await prisma.worldCharacter.findFirst({
+    where: {
+      id: worldCharacterId,
+      status: 'ACTIVE',
+      character: { ownerUserId: userId, status: 'ACTIVE' },
+      world: {
+        OR: [
+          { ownerId: userId },
+          {
+            memberships: {
+              some: { userId, role: { in: ['ADMIN', 'MEMBER'] } },
+            },
+          },
+          {
+            campaigns: {
+              some: {
+                OR: [
+                  { ownerId: userId },
+                  {
+                    memberships: {
+                      some: {
+                        userId,
+                        role: { in: ['GM', 'ASSISTANT_GM', 'PLAYER'] },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      },
+    },
+    select: {
+      id: true,
+      campaignCharacters: {
+        where: {
+          status: 'ACTIVE',
+          campaign: {
+            status: 'ACTIVE',
+            OR: [
+              { ownerId: userId },
+              {
+                memberships: {
+                  some: {
+                    userId,
+                    role: { in: ['GM', 'ASSISTANT_GM', 'PLAYER'] },
+                  },
+                },
+              },
+            ],
+          },
+        },
+        select: {
+          campaign: { select: { id: true, name: true } },
+        },
+      },
+    },
+  })
 
   if (!character) {
     throw new EntryPreferenceDomainError(
@@ -109,9 +169,9 @@ async function requireCharacterEntry(
   }
 
   if (campaignId) {
-    const campaign = character.campaigns.find(
-      (choice) => choice.id === campaignId,
-    )
+    const campaign = character.campaignCharacters.find(
+      (choice) => choice.campaign.id === campaignId,
+    )?.campaign
     if (!campaign) {
       throw new EntryPreferenceDomainError(
         'ENTRY_PREFERENCE_NOT_AVAILABLE',
@@ -121,7 +181,7 @@ async function requireCharacterEntry(
     return { character, campaign }
   }
 
-  if (character.campaigns.length > 0) {
+  if (character.campaignCharacters.length > 0) {
     throw new EntryPreferenceDomainError(
       'ENTRY_PREFERENCE_NOT_AVAILABLE',
       'This WorldCharacter is entered through one of its Campaigns.',
@@ -129,6 +189,52 @@ async function requireCharacterEntry(
   }
 
   return { character, campaign: null }
+}
+
+async function requirePortableCharacter(userId: string, characterId: string) {
+  const character = await prisma.character.findFirst({
+    where: { id: characterId, ownerUserId: userId, status: 'ACTIVE' },
+    select: { id: true },
+  })
+
+  if (!character) {
+    throw new EntryPreferenceDomainError(
+      'ENTRY_PREFERENCE_NOT_AVAILABLE',
+      'Portable Character entry is not available.',
+    )
+  }
+
+  return character
+}
+
+async function findManageableWeaverWorld(userId: string, worldId: string) {
+  return prisma.world.findFirst({
+    where: {
+      id: worldId,
+      OR: [
+        { ownerId: userId },
+        { memberships: { some: { userId, role: 'ADMIN' } } },
+        {
+          campaigns: {
+            some: {
+              OR: [
+                { ownerId: userId },
+                {
+                  memberships: {
+                    some: {
+                      userId,
+                      role: { in: ['GM', 'ASSISTANT_GM'] },
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      ],
+    },
+    select: { id: true, name: true },
+  })
 }
 
 async function findManageableWeaverCampaign(
@@ -259,15 +365,37 @@ export async function recordCharacterEntryUse(input: {
   })
 }
 
+export async function recordPortableCharacterEntryUse(input: {
+  userId: string
+  characterId: string
+}) {
+  await requirePortableCharacter(input.userId, input.characterId)
+  const entryKey = portableCharacterEntryKey(input.characterId)
+  const lastUsedAt = new Date()
+
+  return prisma.entryPreference.upsert({
+    where: {
+      userId_entryKey: {
+        userId: input.userId,
+        entryKey,
+      },
+    },
+    create: {
+      userId: input.userId,
+      entryKey,
+      kind: 'CHARACTER',
+      lastUsedAt,
+    },
+    update: { lastUsedAt },
+  })
+}
+
 export async function recordWeaverEntryUse(input: {
   userId: string
   worldId: string
   campaignId?: string | null
 }) {
-  const selection = await getEntrySelection(input.userId)
-  const world = selection.weaverWorlds.find(
-    (choice) => choice.id === input.worldId,
-  )
+  const world = await findManageableWeaverWorld(input.userId, input.worldId)
 
   if (!world) {
     throw new EntryPreferenceDomainError(
@@ -342,25 +470,44 @@ export async function recordWeaverEntryUse(input: {
   return preference
 }
 
-export async function getWeaverResume(userId: string) {
-  const [preference, selection] = await Promise.all([
-    prisma.entryPreference.findUnique({
-      where: {
-        userId_entryKey: { userId, entryKey: WEAVER_ENTRY_KEY },
-      },
-      select: {
-        worldId: true,
-        campaignId: true,
-        lastUsedAt: true,
-      },
-    }),
-    getEntrySelection(userId),
-  ])
+export async function getLatestCampaignEntryPreference(
+  userId: string,
+  campaignId: string,
+) {
+  return prisma.entryPreference.findFirst({
+    where: {
+      userId,
+      campaignId,
+      lastUsedAt: { not: null },
+    },
+    select: {
+      kind: true,
+      worldCharacterId: true,
+      lastUsedAt: true,
+    },
+    orderBy: [{ lastUsedAt: 'desc' }, { id: 'asc' }],
+  })
+}
+
+export async function getWeaverResume(
+  userId: string,
+  weaverWorlds?: readonly WeaverWorldChoice[],
+) {
+  const preference = await prisma.entryPreference.findUnique({
+    where: {
+      userId_entryKey: { userId, entryKey: WEAVER_ENTRY_KEY },
+    },
+    select: {
+      worldId: true,
+      campaignId: true,
+      lastUsedAt: true,
+    },
+  })
 
   if (!preference?.worldId) return null
-  const world = selection.weaverWorlds.find(
-    (choice) => choice.id === preference.worldId,
-  )
+  const world = weaverWorlds
+    ? (weaverWorlds.find((choice) => choice.id === preference.worldId) ?? null)
+    : await findManageableWeaverWorld(userId, preference.worldId)
   if (!world) return null
 
   const campaign = preference.campaignId

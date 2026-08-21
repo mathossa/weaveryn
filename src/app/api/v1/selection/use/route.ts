@@ -4,6 +4,7 @@ import {
   EntryPreferenceDomainError,
   parseEntryUseInput,
   recordCharacterEntryUse,
+  recordPortableCharacterEntryUse,
   recordWeaverEntryUse,
 } from '@/server/selection'
 
@@ -49,6 +50,11 @@ export async function POST(request: Request) {
         userId: user.id,
         worldCharacterId: input.worldCharacterId,
         campaignId: input.campaignId,
+      })
+    } else if (input.kind === 'PORTABLE_CHARACTER') {
+      await recordPortableCharacterEntryUse({
+        userId: user.id,
+        characterId: input.characterId,
       })
     } else {
       await recordWeaverEntryUse({

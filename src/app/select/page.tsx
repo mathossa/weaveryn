@@ -1,21 +1,30 @@
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { StatusPanel } from '@/components/ui/status-panel'
 import {
   characterEntryKey,
+  portableCharacterEntryKey,
   type EntryCampaignChoice,
   type EntryPortableCharacterChoice,
   type EntryWorldCharacterChoice,
 } from '@/server/selection'
 import { CharacterChoiceCard } from './_components/character-choice-card'
+import {
+  CharacterSortControl,
+  type CharacterSortMode,
+} from './_components/character-sort-control'
 import { PortableCharacterChoiceCard } from './_components/portable-character-choice-card'
 import { loadSelectionPageData } from './_lib/load-selection-page-data'
 import styles from './select.module.css'
 
 interface SelectPageProps {
-  searchParams: Promise<{ show?: string | string[] }>
+  searchParams: Promise<{
+    show?: string | string[]
+    sort?: string | string[]
+  }>
 }
 
 type SelectionPageData = Awaited<ReturnType<typeof loadSelectionPageData>>
@@ -24,6 +33,7 @@ type EntryPreference = SelectionPageData['entryPreferences'][number]
 interface WorldCharacterEntry {
   kind: 'world'
   key: string
+  sortName: string
   character: EntryWorldCharacterChoice
   campaign: EntryCampaignChoice | null
   preference: EntryPreference | undefined
@@ -33,17 +43,31 @@ interface WorldCharacterEntry {
 interface PortableCharacterEntry {
   kind: 'portable'
   key: string
+  sortName: string
   character: EntryPortableCharacterChoice
-  preference: undefined
+  preference: EntryPreference | undefined
   createdAt: Date
 }
 
 type CharacterEntry = WorldCharacterEntry | PortableCharacterEntry
 
+function characterSortMode(
+  value: string | string[] | undefined,
+): CharacterSortMode | null {
+  if (value === 'recent' || value === 'alphabetical') return value
+  return null
+}
+
 export default async function SelectPage({ searchParams }: SelectPageProps) {
   const [{ user, selection, entryPreferences, weaverResume }, query] =
     await Promise.all([loadSelectionPageData(), searchParams])
   const showAll = query.show === 'all'
+  const savedSort = characterSortMode(
+    (await cookies()).get('weaveryn-character-sort')?.value,
+  )
+  const sortMode = showAll
+    ? (characterSortMode(query.sort) ?? savedSort ?? 'recent')
+    : 'recent'
   const preferenceByKey = new Map(
     entryPreferences.map((preference) => [preference.entryKey, preference]),
   )
@@ -60,6 +84,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
             return {
               kind: 'world' as const,
               key,
+              sortName: character.portableName,
               character,
               campaign,
               preference: preferenceByKey.get(key),
@@ -72,6 +97,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
               {
                 kind: 'world' as const,
                 key,
+                sortName: character.portableName,
                 character,
                 campaign: null,
                 preference: preferenceByKey.get(key),
@@ -80,16 +106,25 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
             ]
           })(),
     ),
-    ...selection.portableCharacters.map<PortableCharacterEntry>(
-      (character) => ({
+    ...selection.portableCharacters.map<PortableCharacterEntry>((character) => {
+      const key = portableCharacterEntryKey(character.id)
+      return {
         kind: 'portable',
-        key: `portable-${character.id}`,
+        key,
+        sortName: character.name,
         character,
-        preference: undefined,
+        preference: preferenceByKey.get(key),
         createdAt: character.createdAt,
-      }),
-    ),
+      }
+    }),
   ].sort((left, right) => {
+    if (sortMode === 'alphabetical') {
+      const nameDifference = left.sortName.localeCompare(right.sortName, undefined, {
+        sensitivity: 'base',
+      })
+      return nameDifference || left.key.localeCompare(right.key)
+    }
+
     const pinnedDifference =
       Number(right.preference?.pinned ?? false) -
       Number(left.preference?.pinned ?? false)
@@ -172,6 +207,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                     stay close to your Character choices.
                   </p>
                 </div>
+                {showAll ? <CharacterSortControl value={sortMode} /> : null}
               </div>
 
               {playerCampaigns.length > 0 ? (

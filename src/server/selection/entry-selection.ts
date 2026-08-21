@@ -8,6 +8,7 @@ export interface EntryCampaignChoice {
 export interface EntryWorldCharacterChoice {
   id: string
   characterId: string
+  portableName: string
   name: string
   image: string | null
   worldId: string
@@ -214,6 +215,7 @@ export async function getEntrySelection(
     characters: worldCharacters.map((worldCharacter) => ({
       id: worldCharacter.id,
       characterId: worldCharacter.characterId,
+      portableName: worldCharacter.character.name,
       name: worldCharacter.nameOverride ?? worldCharacter.character.name,
       image: worldCharacter.character.image,
       worldId: worldCharacter.world.id,
