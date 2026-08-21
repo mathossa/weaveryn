@@ -91,7 +91,8 @@ class InMemoryWorldEventRepository implements WorldEventRepository {
   async listEvents(requestedTimelineId: string) {
     if (requestedTimelineId !== timelineId) return []
     return [...this.events].sort((left, right) => {
-      const positionDifference = Number(left.startWorldPosition) - Number(right.startWorldPosition)
+      const positionDifference =
+        Number(left.startWorldPosition) - Number(right.startWorldPosition)
       if (positionDifference !== 0) return positionDifference
       return left.id.localeCompare(right.id)
     })
@@ -124,7 +125,9 @@ class InMemoryWorldEventRepository implements WorldEventRepository {
   }
 
   async replaceEventEntities(requestedEventId: string, entityIds: string[]) {
-    const event = this.events.find((candidate) => candidate.id === requestedEventId)
+    const event = this.events.find(
+      (candidate) => candidate.id === requestedEventId,
+    )
     if (event) event.entityIds = [...entityIds]
   }
 
@@ -153,7 +156,10 @@ class InMemoryWorldEventRepository implements WorldEventRepository {
     return reckoning
   }
 
-  async countReckoningUses(requestedWorldId: string, requestedReckoningId: string) {
+  async countReckoningUses(
+    requestedWorldId: string,
+    requestedReckoningId: string,
+  ) {
     if (requestedWorldId !== worldId) return 0
     return this.events.filter(
       (event) =>
@@ -162,7 +168,10 @@ class InMemoryWorldEventRepository implements WorldEventRepository {
     ).length
   }
 
-  async deleteReckoning(requestedWorldId: string, requestedReckoningId: string) {
+  async deleteReckoning(
+    requestedWorldId: string,
+    requestedReckoningId: string,
+  ) {
     if (requestedWorldId !== worldId) return false
     const previousLength = this.reckonings.length
     this.reckonings = this.reckonings.filter(
@@ -243,10 +252,7 @@ describe('WorldEventService', () => {
       entityIds: [entityId],
     })
 
-    const updated = await service.updateEvent({
-      actorUserId: memberId,
-      worldId,
-      eventId: created.id,
+    const updated = await service.updateEvent(worldId, memberId, created.id, {
       title: 'New title',
       startDate: { year: '30' },
       entityIds: [],
@@ -382,11 +388,7 @@ describe('WorldEventService', () => {
     })
 
     await expect(
-      service.deleteReckoning({
-        actorUserId: ownerId,
-        worldId,
-        reckoningId: reckoning.id,
-      }),
+      service.deleteReckoning(worldId, ownerId, reckoning.id),
     ).rejects.toBeInstanceOf(WorldEventDomainError)
   })
 })
