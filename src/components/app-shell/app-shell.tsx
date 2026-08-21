@@ -2,17 +2,19 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import type { ReactNode } from 'react'
+import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { uiAssets } from '@/lib/ui-assets'
 import styles from './app-shell.module.css'
-import desktopStyles from './desktop-context.module.css'
+import switcherStyles from './context-switcher.module.css'
 
 export type AppShellContextKind = 'world' | 'campaign' | 'character'
+export type AppShellContextMode = 'weaver' | 'threadwatcher'
 
 export interface AppShellContextLink {
+  id?: string
   label: string
   href?: string
 }
@@ -21,6 +23,7 @@ export interface AppShellContext {
   world?: AppShellContextLink
   campaign?: AppShellContextLink
   character?: AppShellContextLink
+  mode?: AppShellContextMode
 }
 
 export interface AppShellUser {
@@ -37,6 +40,39 @@ export interface AppShellProps {
 
 interface ContextItem extends AppShellContextLink {
   kind: AppShellContextKind
+}
+
+type ContextNavigationTracking =
+  | {
+      kind: 'CHARACTER'
+      worldCharacterId: string
+      campaignId?: string | null
+    }
+  | {
+      kind: 'WEAVER'
+      worldId: string
+      campaignId?: string | null
+    }
+
+interface ContextNavigationOption {
+  id: string
+  label: string
+  href: string
+  active: boolean
+  meta?: string
+  tracking?: ContextNavigationTracking
+}
+
+type ContextOptionState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'loaded'; options: ContextNavigationOption[] }
+  | { status: 'error' }
+
+interface ContextIdentifiers {
+  worldId?: string
+  campaignId?: string
+  worldCharacterId?: string
 }
 
 const contextKinds: ReadonlyArray<AppShellContextKind> = [
@@ -99,47 +135,79 @@ function ContextGlyph({ kind }: { kind: AppShellContextKind }) {
   )
 }
 
-function ContextEntry({ item }: { item: ContextItem }) {
-  const content = (
-    <>
-      <span className={styles.contextGlyph}>
-        <ContextGlyph kind={item.kind} />
-      </span>
-      <span className={styles.contextCopy}>
-        <span className={styles.contextKind}>{contextLabels[item.kind]}</span>
-        <span className={styles.contextName}>{item.label}</span>
-      </span>
-    </>
-  )
-
-  if (item.href) {
-    return (
-      <Link className={styles.contextEntry} href={item.href}>
-        {content}
-      </Link>
-    )
-  }
-
-  return <span className={styles.contextEntry}>{content}</span>
+function contextIdFromHref(
+  href: string | undefined,
+  kind: AppShellContextKind,
+) {
+  if (!href) return undefined
+  const segment =
+    kind === 'world' ? 'world' : kind === 'campaign' ? 'campaign' : 'character'
+  const match = href.match(new RegExp(`/${segment}/([^/?#]+)`))
+  return match?.[1] ? decodeURIComponent(match[1]) : undefined
 }
 
-function DesktopContextEntry({
+function getContextMode(context?: AppShellContext): AppShellContextMode | undefined {
+  if (context?.mode) return context.mode
+
+  for (const item of [context?.character, context?.campaign, context?.world]) {
+    if (!item?.href) continue
+    const query = item.href.split('?')[1]
+    if (!query) continue
+    const mode = new URLSearchParams(query).get('mode')
+    if (mode === 'weaver' || mode === 'threadwatcher') return mode
+  }
+
+  return undefined
+}
+
+function getContextIdentifiers(
+  context: AppShellContext | undefined,
+  pathname: string,
+  searchParams?: URLSearchParams,
+): ContextIdentifiers {
+  const worldId =
+    context?.world?.id ??
+    contextIdFromHref(context?.world?.href, 'world') ??
+    contextIdFromHref(pathname, 'world') ??
+    searchParams?.get('world') ??
+    undefined
+  const campaignId =
+    context?.campaign?.id ??
+    contextIdFromHref(context?.campaign?.href, 'campaign') ??
+    contextIdFromHref(pathname, 'campaign') ??
+    searchParams?.get('campaign') ??
+    undefined
+  const worldCharacterId =
+    context?.character?.id ??
+    contextIdFromHref(context?.character?.href, 'character') ??
+    contextIdFromHref(pathname, 'character') ??
+    searchParams?.get('character') ??
+    undefined
+
+  return { worldId, campaignId, worldCharacterId }
+}
+
+function canSwitchContext(
+  kind: AppShellContextKind,
+  identifiers: ContextIdentifiers,
+  mode?: AppShellContextMode,
+) {
+  if (kind === 'world') return true
+  if (kind === 'campaign') return Boolean(identifiers.worldId)
+  return Boolean(identifiers.worldId) && mode !== 'threadwatcher'
+}
+
+function ContextButtonContent({
   kind,
   item,
+  showChevron,
 }: {
   kind: AppShellContextKind
   item?: AppShellContextLink
+  showChevron: boolean
 }) {
   return (
-    <Link
-      className={desktopStyles.button}
-      href={item?.href ?? '/select'}
-      aria-label={
-        item
-          ? `${contextLabels[kind]}: ${item.label}`
-          : `Choose ${contextLabels[kind].toLowerCase()}`
-      }
-    >
+    <>
       <span className={styles.contextGlyph}>
         <ContextGlyph kind={kind} />
       </span>
@@ -150,22 +218,179 @@ function DesktopContextEntry({
             <span className={styles.contextName}>{item.label}</span>
           </>
         ) : (
-          <span className={desktopStyles.placeholder}>
+          <span className={switcherStyles.placeholder}>
             {contextLabels[kind]}
           </span>
         )}
       </span>
-      <span className={desktopStyles.chevron} aria-hidden="true">
-        ⌄
-      </span>
-    </Link>
+      {showChevron ? (
+        <span className={switcherStyles.chevron} aria-hidden="true">
+          ⌄
+        </span>
+      ) : null}
+    </>
+  )
+}
+
+function ContextOptionsContent({
+  state,
+  onSelect,
+  onRetry,
+}: {
+  state: ContextOptionState
+  onSelect: (
+    event: ReactMouseEvent<HTMLAnchorElement>,
+    option: ContextNavigationOption,
+  ) => void
+  onRetry: () => void
+}) {
+  if (state.status === 'idle' || state.status === 'loading') {
+    return (
+      <p className={switcherStyles.feedback} role="status">
+        Loading choices…
+      </p>
+    )
+  }
+
+  if (state.status === 'error') {
+    return (
+      <div className={switcherStyles.errorState}>
+        <p>Could not load authorized choices.</p>
+        <button type="button" onClick={onRetry}>
+          Try again
+        </button>
+      </div>
+    )
+  }
+
+  if (state.options.length === 0) {
+    return (
+      <p className={switcherStyles.feedback}>
+        No authorized choices are available here.
+      </p>
+    )
+  }
+
+  return (
+    <div className={switcherStyles.options}>
+      {state.options.map((option) => (
+        <Link
+          className={switcherStyles.option}
+          data-active={option.active ? 'true' : 'false'}
+          href={option.href}
+          key={option.id}
+          role="menuitem"
+          aria-current={option.active ? 'page' : undefined}
+          onClick={(event) => onSelect(event, option)}
+        >
+          <span className={switcherStyles.optionCopy}>
+            <strong>{option.label}</strong>
+            {option.meta ? <small>{option.meta}</small> : null}
+          </span>
+          {option.active ? (
+            <span className={switcherStyles.activeMark} aria-hidden="true">
+              ✓
+            </span>
+          ) : (
+            <span className={switcherStyles.optionArrow} aria-hidden="true">
+              ›
+            </span>
+          )}
+        </Link>
+      ))}
+    </div>
+  )
+}
+
+function DesktopContextEntry({
+  kind,
+  item,
+  canSwitch,
+  open,
+  state,
+  onToggle,
+  onSelect,
+  onRetry,
+}: {
+  kind: AppShellContextKind
+  item?: AppShellContextLink
+  canSwitch: boolean
+  open: boolean
+  state: ContextOptionState
+  onToggle: () => void
+  onSelect: (
+    event: ReactMouseEvent<HTMLAnchorElement>,
+    option: ContextNavigationOption,
+  ) => void
+  onRetry: () => void
+}) {
+  if (!canSwitch) {
+    return (
+      <Link
+        className={switcherStyles.button}
+        href={item?.href ?? '/select'}
+        aria-label={
+          item
+            ? `${contextLabels[kind]}: ${item.label}`
+            : `Choose ${contextLabels[kind].toLowerCase()}`
+        }
+      >
+        <ContextButtonContent kind={kind} item={item} showChevron={false} />
+      </Link>
+    )
+  }
+
+  return (
+    <div
+      className={switcherStyles.slot}
+      data-kind={kind}
+      data-open={open ? 'true' : 'false'}
+    >
+      <button
+        type="button"
+        className={switcherStyles.button}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={
+          item
+            ? `Switch ${contextLabels[kind]} from ${item.label}`
+            : `Choose ${contextLabels[kind].toLowerCase()}`
+        }
+        onClick={onToggle}
+      >
+        <ContextButtonContent kind={kind} item={item} showChevron />
+      </button>
+
+      {open ? (
+        <div
+          className={switcherStyles.menu}
+          role="menu"
+          aria-label={`Switch ${contextLabels[kind]}`}
+        >
+          <span className={switcherStyles.menuLabel}>
+            Switch {contextLabels[kind]}
+          </span>
+          <ContextOptionsContent
+            state={state}
+            onSelect={onSelect}
+            onRetry={onRetry}
+          />
+        </div>
+      ) : null}
+    </div>
   )
 }
 
 export function AppShell({ children, user, context }: AppShellProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const [accountOpen, setAccountOpen] = useState(false)
   const [contextOpen, setContextOpen] = useState(false)
+  const [switcherKind, setSwitcherKind] =
+    useState<AppShellContextKind | null>(null)
+  const [contextOptions, setContextOptions] = useState<
+    Partial<Record<AppShellContextKind, ContextOptionState>>
+  >({})
   const [signingOut, setSigningOut] = useState(false)
   const [signOutError, setSignOutError] = useState<string | null>(null)
 
@@ -173,30 +398,156 @@ export function AppShell({ children, user, context }: AppShellProps) {
   const activeContext = contextItems.at(-1)
   const displayName = user.displayName?.trim() || `@${user.username}`
   const background = uiAssets.backgrounds.appShell
+  const contextMode = getContextMode(context)
+  const identifiers = getContextIdentifiers(context, pathname)
+  const contextSignature = [
+    pathname,
+    contextMode ?? '',
+    ...contextKinds.flatMap((kind) => [
+      context?.[kind]?.id ?? '',
+      context?.[kind]?.label ?? '',
+      context?.[kind]?.href ?? '',
+    ]),
+  ].join('|')
 
   useEffect(() => {
-    if (!accountOpen && !contextOpen) return
+    setContextOpen(false)
+    setSwitcherKind(null)
+    setContextOptions({})
+  }, [contextSignature])
+
+  useEffect(() => {
+    if (!accountOpen && !contextOpen && !switcherKind) return
 
     function closeOnEscape(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setAccountOpen(false)
         setContextOpen(false)
+        setSwitcherKind(null)
       }
     }
 
     document.addEventListener('keydown', closeOnEscape)
     return () => document.removeEventListener('keydown', closeOnEscape)
-  }, [accountOpen, contextOpen])
+  }, [accountOpen, contextOpen, switcherKind])
 
   function toggleAccount() {
     setContextOpen(false)
+    setSwitcherKind(null)
     setAccountOpen((open) => !open)
     setSignOutError(null)
   }
 
   function toggleContext() {
     setAccountOpen(false)
+    setSwitcherKind(null)
     setContextOpen((open) => !open)
+  }
+
+  async function loadContextOptions(
+    kind: AppShellContextKind,
+    force = false,
+  ) {
+    const existing = contextOptions[kind]
+    if (
+      !force &&
+      (existing?.status === 'loading' || existing?.status === 'loaded')
+    ) {
+      return
+    }
+
+    setContextOptions((current) => ({
+      ...current,
+      [kind]: { status: 'loading' },
+    }))
+
+    try {
+      const pageSearchParams = new URLSearchParams(window.location.search)
+      const currentIdentifiers = getContextIdentifiers(
+        context,
+        pathname,
+        pageSearchParams,
+      )
+      const params = new URLSearchParams({ kind })
+
+      if (currentIdentifiers.worldId) {
+        params.set('worldId', currentIdentifiers.worldId)
+      }
+      if (currentIdentifiers.campaignId) {
+        params.set('campaignId', currentIdentifiers.campaignId)
+      }
+      if (currentIdentifiers.worldCharacterId) {
+        params.set('worldCharacterId', currentIdentifiers.worldCharacterId)
+      }
+
+      const pageMode = pageSearchParams.get('mode')
+      const mode =
+        pageMode === 'weaver' || pageMode === 'threadwatcher'
+          ? pageMode
+          : contextMode
+      if (mode) params.set('mode', mode)
+
+      const response = await fetch(
+        `/api/v1/navigation/context?${params.toString()}`,
+        {
+          credentials: 'same-origin',
+          cache: 'no-store',
+        },
+      )
+      if (!response.ok) throw new Error('Context navigation request failed.')
+
+      const payload = (await response.json()) as {
+        options?: ContextNavigationOption[]
+      }
+      if (!Array.isArray(payload.options)) {
+        throw new Error('Context navigation response is invalid.')
+      }
+
+      setContextOptions((current) => ({
+        ...current,
+        [kind]: { status: 'loaded', options: payload.options ?? [] },
+      }))
+    } catch {
+      setContextOptions((current) => ({
+        ...current,
+        [kind]: { status: 'error' },
+      }))
+    }
+  }
+
+  function toggleSwitcher(kind: AppShellContextKind) {
+    setAccountOpen(false)
+    const nextKind = switcherKind === kind ? null : kind
+    setSwitcherKind(nextKind)
+    if (nextKind) void loadContextOptions(nextKind)
+  }
+
+  function selectContextOption(
+    event: ReactMouseEvent<HTMLAnchorElement>,
+    option: ContextNavigationOption,
+  ) {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return
+    }
+
+    if (option.tracking) {
+      void fetch('/api/v1/selection/use', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(option.tracking),
+        keepalive: true,
+      }).catch(() => undefined)
+    }
+
+    setSwitcherKind(null)
+    setContextOpen(false)
   }
 
   async function signOut() {
@@ -252,12 +603,33 @@ export function AppShell({ children, user, context }: AppShellProps) {
         </Link>
 
         <nav className={styles.desktopContext} aria-label="Current context">
+          {switcherKind && !contextOpen ? (
+            <button
+              type="button"
+              className={styles.dismissLayer}
+              tabIndex={-1}
+              aria-label="Close context switcher"
+              onClick={() => setSwitcherKind(null)}
+            />
+          ) : null}
           <div className={styles.contextTrail}>
-            {contextKinds.map((kind) => (
-              <div className={styles.contextTrailSlot} key={kind}>
-                <DesktopContextEntry kind={kind} item={context?.[kind]} />
-              </div>
-            ))}
+            {contextKinds.map((kind) => {
+              const canSwitch = canSwitchContext(kind, identifiers, contextMode)
+              return (
+                <div className={styles.contextTrailSlot} key={kind}>
+                  <DesktopContextEntry
+                    kind={kind}
+                    item={context?.[kind]}
+                    canSwitch={canSwitch}
+                    open={switcherKind === kind}
+                    state={contextOptions[kind] ?? { status: 'idle' }}
+                    onToggle={() => toggleSwitcher(kind)}
+                    onSelect={selectContextOption}
+                    onRetry={() => void loadContextOptions(kind, true)}
+                  />
+                </div>
+              )
+            })}
           </div>
         </nav>
 
@@ -266,7 +638,7 @@ export function AppShell({ children, user, context }: AppShellProps) {
           className={styles.mobileContextButton}
           aria-haspopup="dialog"
           aria-expanded={contextOpen}
-          aria-controls="mobile-context-sheet"
+          aria-controls="mobile-context-panel"
           onClick={toggleContext}
         >
           {activeContext ? (
@@ -366,56 +738,128 @@ export function AppShell({ children, user, context }: AppShellProps) {
             className={styles.dismissLayer}
             tabIndex={-1}
             aria-label="Close context selector"
-            onClick={() => setContextOpen(false)}
+            onClick={() => {
+              setContextOpen(false)
+              setSwitcherKind(null)
+            }}
           />
           <section
-            id="mobile-context-sheet"
-            className={styles.contextSheet}
+            id="mobile-context-panel"
+            className={switcherStyles.mobilePanel}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="context-sheet-title"
+            aria-labelledby="mobile-context-title"
           >
-            <div className={styles.sheetHandle} aria-hidden="true" />
-            <h2 id="context-sheet-title">Current context</h2>
-
-            {contextItems.length > 0 ? (
-              <div className={styles.sheetContextList}>
-                {contextItems.map((item) => (
-                  <div className={styles.sheetContextItem} key={item.kind}>
-                    <ContextEntry item={item} />
-                  </div>
-                ))}
+            <div className={switcherStyles.mobileHeader}>
+              <div>
+                <span>Current context</span>
+                <h2 id="mobile-context-title">
+                  {activeContext?.label ?? 'Choose Entity'}
+                </h2>
               </div>
-            ) : (
-              <p className={styles.noContextCopy}>
-                No World, Campaign, or Character is selected yet.
-              </p>
-            )}
+              <button
+                type="button"
+                className={switcherStyles.mobileClose}
+                aria-label="Close context selector"
+                onClick={() => {
+                  setContextOpen(false)
+                  setSwitcherKind(null)
+                }}
+              >
+                ×
+              </button>
+            </div>
 
-            <div className={styles.sheetDivider} />
-            <p className={styles.sheetLabel}>Change context</p>
+            <div className={switcherStyles.mobileList}>
+              {contextKinds.map((kind) => {
+                const item = context?.[kind]
+                const canSwitch = canSwitchContext(
+                  kind,
+                  identifiers,
+                  contextMode,
+                )
+                const open = switcherKind === kind
+
+                return (
+                  <div
+                    className={switcherStyles.mobileRow}
+                    data-open={open ? 'true' : 'false'}
+                    key={kind}
+                  >
+                    {canSwitch ? (
+                      <button
+                        type="button"
+                        className={switcherStyles.mobileRowButton}
+                        aria-expanded={open}
+                        onClick={() => toggleSwitcher(kind)}
+                      >
+                        <span className={styles.contextGlyph}>
+                          <ContextGlyph kind={kind} />
+                        </span>
+                        <span className={switcherStyles.mobileRowCopy}>
+                          <small>{contextLabels[kind]}</small>
+                          <strong>
+                            {item?.label ?? `Choose ${contextLabels[kind]}`}
+                          </strong>
+                        </span>
+                        <span
+                          className={switcherStyles.mobileRowChevron}
+                          aria-hidden="true"
+                        >
+                          ⌄
+                        </span>
+                      </button>
+                    ) : (
+                      <Link
+                        className={switcherStyles.mobileRowButton}
+                        href={item?.href ?? '/select'}
+                        onClick={() => setContextOpen(false)}
+                      >
+                        <span className={styles.contextGlyph}>
+                          <ContextGlyph kind={kind} />
+                        </span>
+                        <span className={switcherStyles.mobileRowCopy}>
+                          <small>{contextLabels[kind]}</small>
+                          <strong>
+                            {item?.label ?? `Choose ${contextLabels[kind]}`}
+                          </strong>
+                        </span>
+                      </Link>
+                    )}
+
+                    {open ? (
+                      <div
+                        className={switcherStyles.mobileOptions}
+                        role="menu"
+                        aria-label={`Switch ${contextLabels[kind]}`}
+                      >
+                        <ContextOptionsContent
+                          state={contextOptions[kind] ?? { status: 'idle' }}
+                          onSelect={selectContextOption}
+                          onRetry={() => void loadContextOptions(kind, true)}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                )
+              })}
+            </div>
+
             <Link
-              className={styles.changeContextLink}
+              className={switcherStyles.chooseEntity}
               href="/select"
-              onClick={() => setContextOpen(false)}
+              onClick={() => {
+                setContextOpen(false)
+                setSwitcherKind(null)
+              }}
             >
-              <span className={styles.changeContextGlyph} aria-hidden="true">
-                ◇
-              </span>
+              <span aria-hidden="true">◇</span>
               <span>
                 <strong>Choose Entity</strong>
-                <small>Switch to another World, Campaign, or Character</small>
+                <small>Return to the full entry selection</small>
               </span>
               <span aria-hidden="true">›</span>
             </Link>
-
-            <button
-              type="button"
-              className={styles.closeSheetButton}
-              onClick={() => setContextOpen(false)}
-            >
-              Close
-            </button>
           </section>
         </>
       ) : null}
