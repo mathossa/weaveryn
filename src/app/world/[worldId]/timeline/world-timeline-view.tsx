@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { FormEvent, useMemo, useState } from 'react'
 import styles from './timeline.module.css'
 
 type Direction = 'BEFORE' | 'AFTER'
@@ -640,14 +640,12 @@ export function WorldTimelineView({
   const router = useRouter()
   const [search, setSearch] = useState('')
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
-  const [editor, setEditor] = useState<'create' | EventView | null>(null)
+  const [editor, setEditor] = useState<'create' | EventView | null>(() =>
+    initialCreate && canEditEvents ? 'create' : null,
+  )
   const [chronologyOpen, setChronologyOpen] = useState(false)
   const [deleteBusy, setDeleteBusy] = useState(false)
   const [detailError, setDetailError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (initialCreate && canEditEvents) setEditor('create')
-  }, [canEditEvents, initialCreate])
 
   const selectedEvent =
     events.find((event) => event.id === selectedEventId) ?? null
