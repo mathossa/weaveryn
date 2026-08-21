@@ -48,11 +48,6 @@ jobs:
       - name: Apply database migrations
         run: npx prisma migrate deploy
 
-      - name: Preview deployment formatting
-        run: |
-          npx prettier compose.production.yml docs/SELF_HOSTING.md --write
-          git diff -- compose.production.yml docs/SELF_HOSTING.md
-
       - name: Validate repository
         run: npm run validate
 
