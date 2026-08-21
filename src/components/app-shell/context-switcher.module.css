@@ -116,7 +116,11 @@
 
 .option[data-active='true'] {
   border-color: color-mix(in srgb, var(--ui-accent) 44%, transparent);
-  background: color-mix(in srgb, var(--ui-accent) 8%, var(--ui-control-surface));
+  background: color-mix(
+    in srgb,
+    var(--ui-accent) 8%,
+    var(--ui-control-surface)
+  );
 }
 
 .optionCopy {
@@ -285,7 +289,8 @@
   }
 
   .mobileRow {
-    border-bottom: 1px solid color-mix(in srgb, var(--ui-border) 70%, transparent);
+    border-bottom: 1px solid
+      color-mix(in srgb, var(--ui-border) 70%, transparent);
   }
 
   .mobileRow:last-child {

@@ -146,7 +146,9 @@ function contextIdFromHref(
   return match?.[1] ? decodeURIComponent(match[1]) : undefined
 }
 
-function getContextMode(context?: AppShellContext): AppShellContextMode | undefined {
+function getContextMode(
+  context?: AppShellContext,
+): AppShellContextMode | undefined {
   if (context?.mode) return context.mode
 
   for (const item of [context?.character, context?.campaign, context?.world]) {
@@ -386,8 +388,9 @@ export function AppShell({ children, user, context }: AppShellProps) {
   const pathname = usePathname()
   const [accountOpen, setAccountOpen] = useState(false)
   const [contextOpen, setContextOpen] = useState(false)
-  const [switcherKind, setSwitcherKind] =
-    useState<AppShellContextKind | null>(null)
+  const [switcherKind, setSwitcherKind] = useState<AppShellContextKind | null>(
+    null,
+  )
   const [contextOptions, setContextOptions] = useState<
     Partial<Record<AppShellContextKind, ContextOptionState>>
   >({})
@@ -429,10 +432,7 @@ export function AppShell({ children, user, context }: AppShellProps) {
     setContextOpen((open) => !open)
   }
 
-  async function loadContextOptions(
-    kind: AppShellContextKind,
-    force = false,
-  ) {
+  async function loadContextOptions(kind: AppShellContextKind, force = false) {
     const existing = contextOptions[kind]
     if (
       !force &&

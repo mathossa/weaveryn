@@ -119,9 +119,13 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
     }),
   ].sort((left, right) => {
     if (sortMode === 'alphabetical') {
-      const nameDifference = left.sortName.localeCompare(right.sortName, undefined, {
-        sensitivity: 'base',
-      })
+      const nameDifference = left.sortName.localeCompare(
+        right.sortName,
+        undefined,
+        {
+          sensitivity: 'base',
+        },
+      )
       return nameDifference || left.key.localeCompare(right.key)
     }
 

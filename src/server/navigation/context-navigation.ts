@@ -198,8 +198,7 @@ async function listCampaignOptions(
 
   return campaigns.map((campaign) => {
     const preservedWorldCharacterId =
-      !input.mode &&
-      currentWorldCharacter?.campaignIds.includes(campaign.id)
+      !input.mode && currentWorldCharacter?.campaignIds.includes(campaign.id)
         ? currentWorldCharacter.id
         : undefined
 

@@ -51,13 +51,15 @@ export default async function CampaignOverviewPage({
     !requestedWorldCharacterId &&
     !explicitWeaverMode &&
     !explicitThreadwatcherMode
-  const [campaign, latestCampaignPreference, worldOverview] = await Promise.all([
-    getCampaignOverview(worldId, campaignId, user.id),
-    shouldLoadCampaignPreference
-      ? getLatestCampaignEntryPreference(user.id, campaignId)
-      : Promise.resolve(null),
-    getWorldOverview(worldId, user.id),
-  ])
+  const [campaign, latestCampaignPreference, worldOverview] = await Promise.all(
+    [
+      getCampaignOverview(worldId, campaignId, user.id),
+      shouldLoadCampaignPreference
+        ? getLatestCampaignEntryPreference(user.id, campaignId)
+        : Promise.resolve(null),
+      getWorldOverview(worldId, user.id),
+    ],
+  )
   if (!campaign) notFound()
 
   const preferredWorldCharacterId =
