@@ -87,24 +87,24 @@ Do not create a production `.env` file. Enter the values in the Portainer stack 
 
 Required values:
 
-| Variable | Example | Purpose |
-| --- | --- | --- |
-| `PROXY_NETWORK` | `weaveryn-proxy` | Existing Docker network shared with Nginx Proxy Manager |
-| `POSTGRES_DB` | `weaveryn` | Production database name |
-| `POSTGRES_USER` | `weaveryn` | Production database user |
-| `POSTGRES_PASSWORD` | generated value | PostgreSQL password |
-| `BETTER_AUTH_SECRET` | generated value | Better Auth signing/encryption secret |
-| `BETTER_AUTH_URL` | `https://weaveryn.example.nl` | Public browser-facing URL |
-| `BETTER_AUTH_TRUSTED_ORIGINS` | `https://weaveryn.example.nl` | Allowed browser origin |
+| Variable                      | Example                       | Purpose                                                 |
+| ----------------------------- | ----------------------------- | ------------------------------------------------------- |
+| `PROXY_NETWORK`               | `weaveryn-proxy`              | Existing Docker network shared with Nginx Proxy Manager |
+| `POSTGRES_DB`                 | `weaveryn`                    | Production database name                                |
+| `POSTGRES_USER`               | `weaveryn`                    | Production database user                                |
+| `POSTGRES_PASSWORD`           | generated value               | PostgreSQL password                                     |
+| `BETTER_AUTH_SECRET`          | generated value               | Better Auth signing/encryption secret                   |
+| `BETTER_AUTH_URL`             | `https://weaveryn.example.nl` | Public browser-facing URL                               |
+| `BETTER_AUTH_TRUSTED_ORIGINS` | `https://weaveryn.example.nl` | Allowed browser origin                                  |
 
 Optional values:
 
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `WEAVERYN_IMAGE_TAG` | `edge` | Image tag to deploy, such as `edge` or `sha-1a2b3c4` |
-| `ADMIN_ALLOWED_CIDRS` | empty | Client networks allowed to access instance administration |
-| `ADMIN_TRUST_PROXY_HEADERS` | `false` | Trust the configured proxy client-IP header |
-| `ADMIN_CLIENT_IP_HEADER` | `x-forwarded-for` | Header used to determine the original client IP |
+| Variable                    | Default           | Purpose                                                   |
+| --------------------------- | ----------------- | --------------------------------------------------------- |
+| `WEAVERYN_IMAGE_TAG`        | `edge`            | Image tag to deploy, such as `edge` or `sha-1a2b3c4`      |
+| `ADMIN_ALLOWED_CIDRS`       | empty             | Client networks allowed to access instance administration |
+| `ADMIN_TRUST_PROXY_HEADERS` | `false`           | Trust the configured proxy client-IP header               |
+| `ADMIN_CLIENT_IP_HEADER`    | `x-forwarded-for` | Header used to determine the original client IP           |
 
 ### Generate the database password
 
