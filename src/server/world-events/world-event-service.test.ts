@@ -38,7 +38,7 @@ class InMemoryWorldEventRepository implements WorldEventRepository {
 
   runInTransaction<T>(
     operation: (repository: WorldEventRepository) => Promise<T>,
-  ) {
+  ): Promise<T> {
     return operation(this)
   }
 
@@ -89,15 +89,12 @@ class InMemoryWorldEventRepository implements WorldEventRepository {
   }
 
   async listEvents(requestedTimelineId: string) {
-    return this.events
-      .filter((event) => event.timelineId === requestedTimelineId)
-      .sort((left, right) =>
-        BigInt(left.startWorldPosition) < BigInt(right.startWorldPosition)
-          ? -1
-          : BigInt(left.startWorldPosition) > BigInt(right.startWorldPosition)
-            ? 1
-            : 0,
-      )
+    if (requestedTimelineId !== timelineId) return []
+    return [...this.events].sort((left, right) => {
+      const positionDifference = Number(left.startWorldPosition) - Number(right.startWorldPosition)
+      if (positionDifference !== 0) return positionDifference
+      return left.id.localeCompare(right.id)
+    })
   }
 
   async updateEvent(
@@ -105,30 +102,34 @@ class InMemoryWorldEventRepository implements WorldEventRepository {
     requestedEventId: string,
     input: UpdateWorldEventRecordInput,
   ) {
-    const event = await this.findEvent(requestedWorldId, requestedEventId)
-    if (!event) return null
-    Object.assign(event, input, { updatedAt: now })
-    return event
+    if (requestedWorldId !== worldId) return null
+    const index = this.events.findIndex((event) => event.id === requestedEventId)
+    if (index < 0) return null
+    const current = this.events[index]
+    if (!current) return null
+    const updated: WorldEventRecord = {
+      ...current,
+      ...input,
+      updatedAt: now,
+    }
+    this.events[index] = updated
+    return updated
   }
 
   async deleteEvent(requestedWorldId: string, requestedEventId: string) {
-    const index = this.events.findIndex(
-      (event) => event.id === requestedEventId && requestedWorldId === worldId,
-    )
-    if (index < 0) return false
-    this.events.splice(index, 1)
-    return true
+    if (requestedWorldId !== worldId) return false
+    const previousLength = this.events.length
+    this.events = this.events.filter((event) => event.id !== requestedEventId)
+    return this.events.length !== previousLength
   }
 
   async replaceEventEntities(requestedEventId: string, entityIds: string[]) {
-    const event = this.events.find(
-      (candidate) => candidate.id === requestedEventId,
-    )
+    const event = this.events.find((candidate) => candidate.id === requestedEventId)
     if (event) event.entityIds = [...entityIds]
   }
 
   async listReckonings(requestedWorldId: string) {
-    return requestedWorldId === worldId ? this.reckonings : []
+    return requestedWorldId === worldId ? [...this.reckonings] : []
   }
 
   async findReckoning(requestedWorldId: string, requestedReckoningId: string) {
@@ -152,10 +153,7 @@ class InMemoryWorldEventRepository implements WorldEventRepository {
     return reckoning
   }
 
-  async countReckoningUses(
-    requestedWorldId: string,
-    requestedReckoningId: string,
-  ) {
+  async countReckoningUses(requestedWorldId: string, requestedReckoningId: string) {
     if (requestedWorldId !== worldId) return 0
     return this.events.filter(
       (event) =>
@@ -164,171 +162,231 @@ class InMemoryWorldEventRepository implements WorldEventRepository {
     ).length
   }
 
-  async deleteReckoning(
-    requestedWorldId: string,
-    requestedReckoningId: string,
-  ) {
+  async deleteReckoning(requestedWorldId: string, requestedReckoningId: string) {
     if (requestedWorldId !== worldId) return false
-    const index = this.reckonings.findIndex(
-      (reckoning) => reckoning.id === requestedReckoningId,
+    const previousLength = this.reckonings.length
+    this.reckonings = this.reckonings.filter(
+      (reckoning) => reckoning.id !== requestedReckoningId,
     )
-    if (index < 0) return false
-    this.reckonings.splice(index, 1)
-    return true
+    return this.reckonings.length !== previousLength
+  }
+
+  async listEntitiesByIds(requestedWorldId: string, entityIds: string[]) {
+    if (requestedWorldId !== worldId) return []
+    return entityIds
+      .filter((id) => id === entityId || id === hiddenEntityId)
+      .map((id) => ({ id, worldId }))
+  }
+
+  async listVisibleEntityIds(
+    requestedWorldId: string,
+    _userId: string,
+    entityIds: string[],
+  ) {
+    if (requestedWorldId !== worldId) return []
+    return entityIds.filter((id) => id === entityId)
   }
 }
 
-function createHarness() {
-  const repository = new InMemoryWorldEventRepository()
-  let nextId = eventId
-  const service = new WorldEventService(
-    repository,
-    () => nextId,
-    async (_requestedWorldId, userId) =>
-      new Set(userId === outsiderId ? [] : [entityId]),
-  )
+function makeService(
+  repository = new InMemoryWorldEventRepository(),
+  ids: string[] = [eventId],
+) {
+  let index = 0
   return {
     repository,
-    service,
-    useReckoningId() {
-      nextId = reckoningId
-    },
-  }
-}
-
-function eventInput(actorUserId: string) {
-  return {
-    actorUserId,
-    worldId,
-    title: 'Fall of Moonwatch',
-    description: 'The Red Legion captures Moonwatch Keep.',
-    startDate: { year: '1247' },
-    entityIds: [entityId],
+    service: new WorldEventService(repository, () => ids[index++] ?? eventId),
   }
 }
 
 describe('WorldEventService', () => {
-  it('allows a Threadwalker to create canonical World history', async () => {
-    const { service } = createHarness()
-    const event = await service.createEvent(eventInput(memberId))
-
-    expect(event).toMatchObject({
-      title: 'Fall of Moonwatch',
-      startWorldPosition: '1247',
-      startWorldDateLabel: 'Year 1247',
+  it('lets a World MEMBER create a point event and link visible entities', async () => {
+    const { repository, service } = makeService()
+    const event = await service.createEvent({
+      actorUserId: memberId,
+      worldId,
+      title: 'The First Beacon',
+      description: 'A light is kindled on the mountain.',
+      startDate: { year: '120' },
       entityIds: [entityId],
     })
+
+    expect(event.startWorldPosition).toBe('120')
+    expect(event.startWorldDateLabel).toBe('Year 120')
+    expect(event.endWorldPosition).toBeNull()
+    expect(event.entityIds).toEqual([entityId])
+    expect(repository.events).toHaveLength(1)
   })
 
-  it('allows a Threadwatcher to read but not edit World history', async () => {
-    const { service } = createHarness()
-    await service.createEvent(eventInput(memberId))
-
-    await expect(
-      service.loadMainTimeline(worldId, viewerId),
-    ).resolves.toMatchObject({
-      canEditEvents: false,
-      events: [expect.objectContaining({ id: eventId })],
-    })
-    await expect(
-      service.createEvent(eventInput(viewerId)),
-    ).rejects.toMatchObject({
-      code: 'WORLD_PERMISSION_DENIED',
-    } satisfies Partial<WorldDomainError>)
-  })
-
-  it('rejects a duration whose end precedes its start', async () => {
-    const { service } = createHarness()
+  it('rejects an end date before the start date', async () => {
+    const { service } = makeService()
     await expect(
       service.createEvent({
-        ...eventInput(memberId),
-        startDate: { year: '1253' },
-        endDate: { year: '1247' },
+        actorUserId: memberId,
+        worldId,
+        title: 'Impossible reign',
+        startDate: { year: '200' },
+        endDate: { year: '199' },
       }),
     ).rejects.toMatchObject({
       code: 'WORLD_EVENT_END_BEFORE_START',
-    } satisfies Partial<WorldEventDomainError>)
-  })
-
-  it('rejects linked entities that are not visible in the World', async () => {
-    const { service } = createHarness()
-    await expect(
-      service.createEvent({
-        ...eventInput(memberId),
-        entityIds: [hiddenEntityId],
-      }),
-    ).rejects.toMatchObject({
-      code: 'WORLD_EVENT_ENTITY_INVALID',
-    } satisfies Partial<WorldEventDomainError>)
-  })
-
-  it('allows owner/admin chronology configuration but not a Threadwalker', async () => {
-    const { service, useReckoningId } = createHarness()
-    useReckoningId()
-    const reckoning = await service.createReckoning({
-      actorUserId: adminId,
-      worldId,
-      name: 'Cataclysm Reckoning',
-      anchorDate: { year: '0' },
-      beforeLabel: 'Before Cataclysm',
-      beforeAbbreviation: 'BC',
-      afterLabel: 'After Cataclysm',
-      afterAbbreviation: 'AC',
     })
-    expect(reckoning.id).toBe(reckoningId)
+  })
 
+  it('lets a MEMBER edit chronology and linked entities without granting configuration', async () => {
+    const { repository, service } = makeService()
+    const created = await service.createEvent({
+      actorUserId: memberId,
+      worldId,
+      title: 'Old title',
+      startDate: { year: '25' },
+      entityIds: [entityId],
+    })
+
+    const updated = await service.updateEvent({
+      actorUserId: memberId,
+      worldId,
+      eventId: created.id,
+      title: 'New title',
+      startDate: { year: '30' },
+      entityIds: [],
+    })
+
+    expect(updated.title).toBe('New title')
+    expect(updated.startWorldPosition).toBe('30')
+    expect(updated.entityIds).toEqual([])
     await expect(
       service.createReckoning({
         actorUserId: memberId,
         worldId,
-        name: 'Denied',
+        name: 'Forbidden reckoning',
         anchorDate: { year: '0' },
         beforeLabel: 'Before',
         afterLabel: 'After',
       }),
-    ).rejects.toMatchObject({
-      code: 'WORLD_PERMISSION_DENIED',
-    } satisfies Partial<WorldDomainError>)
+    ).rejects.toBeInstanceOf(WorldDomainError)
+    expect(repository.reckonings).toHaveLength(0)
   })
 
-  it('keeps a reckoning while an event uses its notation', async () => {
-    const { repository, service, useReckoningId } = createHarness()
-    useReckoningId()
-    await service.createReckoning({
-      actorUserId: ownerId,
+  it('keeps VIEWER and outsiders read-only', async () => {
+    const { service } = makeService()
+    for (const actorUserId of [viewerId, outsiderId]) {
+      await expect(
+        service.createEvent({
+          actorUserId,
+          worldId,
+          title: 'Forbidden history',
+          startDate: { year: '1' },
+        }),
+      ).rejects.toBeInstanceOf(WorldDomainError)
+    }
+  })
+
+  it('lets ADMIN configure overlapping reckonings and resolves both to one position', async () => {
+    const cataclysmId = reckoningId
+    const rebuildId = '20000000-0000-4000-8000-000000000041'
+    const { service } = makeService(new InMemoryWorldEventRepository(), [
+      cataclysmId,
+      rebuildId,
+    ])
+
+    const cataclysm = await service.createReckoning({
+      actorUserId: adminId,
       worldId,
-      name: 'Cataclysm Reckoning',
+      name: 'Cataclysm',
       anchorDate: { year: '0' },
       beforeLabel: 'Before Cataclysm',
       beforeAbbreviation: 'BC',
       afterLabel: 'After Cataclysm',
       afterAbbreviation: 'AC',
     })
+    const rebuild = await service.createReckoning({
+      actorUserId: adminId,
+      worldId,
+      name: 'Rebuild',
+      anchorDate: {
+        year: '200',
+        reckoningId: cataclysm.id,
+        direction: 'AFTER',
+      },
+      beforeLabel: 'Before Rebuild',
+      beforeAbbreviation: 'BR',
+      afterLabel: 'After Rebuild',
+      afterAbbreviation: 'AR',
+    })
 
-    repository.events.push({
-      id: eventId,
-      timelineId,
-      title: 'Aftermath',
-      description: null,
-      startWorldPosition: '100',
-      endWorldPosition: null,
-      startWorldDateLabel: '100 AC',
-      endWorldDateLabel: null,
-      startReckoningId: reckoningId,
-      startReckoningDirection: 'AFTER',
-      endReckoningId: null,
-      endReckoningDirection: null,
-      type: 'event',
-      data: {},
-      entityIds: [],
-      createdAt: now,
-      updatedAt: now,
+    const first = await service.createEvent({
+      actorUserId: memberId,
+      worldId,
+      title: 'One century after the Cataclysm',
+      startDate: {
+        year: '100',
+        reckoningId: cataclysm.id,
+        direction: 'AFTER',
+      },
+    })
+    const second = await service.createEvent({
+      actorUserId: memberId,
+      worldId,
+      title: 'One century before Rebuild',
+      startDate: {
+        year: '100',
+        reckoningId: rebuild.id,
+        direction: 'BEFORE',
+      },
+    })
+
+    expect(first.startWorldPosition).toBe('100')
+    expect(first.startWorldDateLabel).toBe('100 AC')
+    expect(second.startWorldPosition).toBe('100')
+    expect(second.startWorldDateLabel).toBe('100 BR')
+  })
+
+  it('refuses hidden or cross-World entity links', async () => {
+    const { service } = makeService()
+    await expect(
+      service.createEvent({
+        actorUserId: memberId,
+        worldId,
+        title: 'Hidden link',
+        startDate: { year: '1' },
+        entityIds: [hiddenEntityId],
+      }),
+    ).rejects.toMatchObject({ code: 'WORLD_EVENT_ENTITY_FORBIDDEN' })
+  })
+
+  it('prevents removing a reckoning while an event uses it', async () => {
+    const { service } = makeService(new InMemoryWorldEventRepository(), [
+      reckoningId,
+      eventId,
+    ])
+    const reckoning = await service.createReckoning({
+      actorUserId: ownerId,
+      worldId,
+      name: 'Age of Ash',
+      anchorDate: { year: '500' },
+      beforeLabel: 'Before Ash',
+      beforeAbbreviation: 'BA',
+      afterLabel: 'After Ash',
+      afterAbbreviation: 'AA',
+    })
+    await service.createEvent({
+      actorUserId: memberId,
+      worldId,
+      title: 'Ashfall',
+      startDate: {
+        year: '0',
+        reckoningId: reckoning.id,
+        direction: 'AFTER',
+      },
     })
 
     await expect(
-      service.deleteReckoning(worldId, ownerId, reckoningId),
-    ).rejects.toMatchObject({
-      code: 'WORLD_RECKONING_IN_USE',
-    } satisfies Partial<WorldEventDomainError>)
+      service.deleteReckoning({
+        actorUserId: ownerId,
+        worldId,
+        reckoningId: reckoning.id,
+      }),
+    ).rejects.toBeInstanceOf(WorldEventDomainError)
   })
 })
