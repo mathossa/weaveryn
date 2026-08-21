@@ -255,7 +255,9 @@ export default async function CampaignOverviewPage({
                 <span className={styles.placeholderDot} />
                 <p>
                   <strong>World events</strong>
-                  <small>Canonical history is available from the World timeline.</small>
+                  <small>
+                    Canonical history is available from the World timeline.
+                  </small>
                 </p>
               </div>
               <div>
