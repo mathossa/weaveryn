@@ -9,7 +9,8 @@ import type {
 
 const SIGNED_YEAR_PATTERN = /^-?\d+$/
 const UNSIGNED_YEAR_PATTERN = /^\d+$/
-const MAX_ABSOLUTE_YEAR = 999_999_999_999_999_999n
+const ZERO = BigInt(0)
+const MAX_ABSOLUTE_YEAR = BigInt('999999999999999999')
 
 export interface WorldDateInput {
   year: string
@@ -37,7 +38,7 @@ function parseYear(value: string, allowNegative: boolean) {
   }
 
   const year = BigInt(normalized)
-  const absolute = year < 0n ? -year : year
+  const absolute = year < ZERO ? -year : year
   if (absolute > MAX_ABSOLUTE_YEAR) {
     throw worldEventDateInvalid('Year is outside the supported range.')
   }
