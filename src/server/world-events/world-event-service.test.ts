@@ -104,7 +104,9 @@ class InMemoryWorldEventRepository implements WorldEventRepository {
     input: UpdateWorldEventRecordInput,
   ) {
     if (requestedWorldId !== worldId) return null
-    const index = this.events.findIndex((event) => event.id === requestedEventId)
+    const index = this.events.findIndex(
+      (event) => event.id === requestedEventId,
+    )
     if (index < 0) return null
     const current = this.events[index]
     if (!current) return null
@@ -202,9 +204,24 @@ function makeService(
   ids: string[] = [eventId],
 ) {
   let index = 0
+  const loadVisibleEntityIds = async (
+    requestedWorldId: string,
+    userId: string,
+  ) =>
+    new Set(
+      await repository.listVisibleEntityIds(requestedWorldId, userId, [
+        entityId,
+        hiddenEntityId,
+      ]),
+    )
+
   return {
     repository,
-    service: new WorldEventService(repository, () => ids[index++] ?? eventId),
+    service: new WorldEventService(
+      repository,
+      () => ids[index++] ?? eventId,
+      loadVisibleEntityIds,
+    ),
   }
 }
 
@@ -291,9 +308,13 @@ describe('WorldEventService', () => {
   it('lets ADMIN configure overlapping reckonings and resolves both to one position', async () => {
     const cataclysmId = reckoningId
     const rebuildId = '20000000-0000-4000-8000-000000000041'
+    const firstEventId = '20000000-0000-4000-8000-000000000042'
+    const secondEventId = '20000000-0000-4000-8000-000000000043'
     const { service } = makeService(new InMemoryWorldEventRepository(), [
       cataclysmId,
       rebuildId,
+      firstEventId,
+      secondEventId,
     ])
 
     const cataclysm = await service.createReckoning({
@@ -358,7 +379,7 @@ describe('WorldEventService', () => {
         startDate: { year: '1' },
         entityIds: [hiddenEntityId],
       }),
-    ).rejects.toMatchObject({ code: 'WORLD_EVENT_ENTITY_FORBIDDEN' })
+    ).rejects.toMatchObject({ code: 'WORLD_EVENT_ENTITY_INVALID' })
   })
 
   it('prevents removing a reckoning while an event uses it', async () => {
