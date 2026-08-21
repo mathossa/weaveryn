@@ -1,0 +1,44 @@
+name: Format World events branch
+
+on:
+  push:
+    branches:
+      - feat/issue-113-world-events-timeline
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/issue-113-world-events-timeline
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Format repository
+        run: npm run format
+
+      - name: Commit formatting changes
+        run: |
+          rm .github/workflows/format-world-events.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No formatting changes to commit."
+            exit 0
+          fi
+          git commit -m "style: format World events changes"
+          git push origin HEAD:feat/issue-113-world-events-timeline
