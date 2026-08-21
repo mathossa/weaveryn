@@ -55,8 +55,10 @@ describe('World event API input', () => {
   })
 
   it('caps linked entities so one event stays bounded', () => {
-    const entityIds = Array.from({ length: 31 }, (_, index) =>
-      `30000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+    const entityIds = Array.from(
+      { length: 31 },
+      (_, index) =>
+        `30000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
     )
 
     expect(() =>
