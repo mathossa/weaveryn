@@ -143,22 +143,30 @@ async function listWorldOptions(
         : true,
   )
 
-  return available.map((world) => ({
-    id: world.id,
-    label: world.name,
-    href: buildWorldContextHref(world.id, input.mode),
-    active: world.id === input.worldId,
-    meta:
-      input.mode === 'weaver'
-        ? 'Weaver access'
-        : input.mode === 'threadwatcher'
-          ? 'Threadwatcher access'
-          : world.accessKind.replaceAll('_', ' ').toLowerCase(),
-    tracking:
-      input.mode === 'weaver'
-        ? { kind: 'WEAVER', worldId: world.id }
-        : undefined,
-  }))
+  return available.map((world) => {
+    const active = world.id === input.worldId
+
+    return {
+      id: world.id,
+      label: world.name,
+      href:
+        active && input.mode === 'threadwatcher'
+          ? `/world/${world.id}`
+          : buildWorldContextHref(world.id, input.mode),
+      active,
+      meta: active
+        ? 'Open World overview'
+        : input.mode === 'weaver'
+          ? 'Weaver access'
+          : input.mode === 'threadwatcher'
+            ? 'Threadwatcher access'
+            : world.accessKind.replaceAll('_', ' ').toLowerCase(),
+      tracking:
+        input.mode === 'weaver'
+          ? { kind: 'WEAVER', worldId: world.id }
+          : undefined,
+    }
+  })
 }
 
 async function listCampaignOptions(
