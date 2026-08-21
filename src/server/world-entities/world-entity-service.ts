@@ -23,6 +23,7 @@ import type {
   VisibilityScope,
   WorldEntityRecord,
   WorldEntityRepository,
+  WorldEntityTypeRecord,
 } from './world-entity-repository'
 import { PrismaWorldEntityRepository } from './prisma-world-entity-repository'
 
@@ -411,6 +412,30 @@ export class WorldEntityService {
     return repository.createRelationship(relationship)
   }
 
+  private buildEntityTypeChoices(
+    custom: WorldEntityTypeRecord[],
+    entities: WorldEntityRecord[],
+  ): WorldEntityTypeChoice[] {
+    const builtIn: WorldEntityTypeChoice[] = BUILT_IN_WORLD_ENTITY_TYPES.map(
+      (choice) => ({ ...choice, scope: 'BUILT_IN' }),
+    )
+    const seen = new Set(
+      builtIn.map((choice) => normalizeTypeName(choice.value)),
+    )
+    const customChoices = custom
+      .filter((choice) => !seen.has(choice.normalizedName))
+      .map((choice) => ({
+        id: choice.id,
+        value: choice.name,
+        label: choice.name,
+        scope: choice.campaignId ? ('CAMPAIGN' as const) : ('WORLD' as const),
+        usageCount: entities.filter(
+          (entity) => normalizeTypeName(entity.type) === choice.normalizedName,
+        ).length,
+      }))
+    return [...builtIn, ...customChoices]
+  }
+
   createEntity(input: CreateWorldEntityInput): Promise<WorldEntityRecord> {
     return this.repository.runInTransaction(async (repository) => {
       const authorization = new WorldAuthorizationService(repository)
@@ -622,6 +647,48 @@ export class WorldEntityService {
     )
   }
 
+  async readWorkspace(
+    worldId: string,
+    userId: string,
+    contextCampaignId?: string,
+  ) {
+    const context = await this.getVisibilityContext(
+      this.repository,
+      worldId,
+      userId,
+    )
+    if (contextCampaignId) {
+      await this.assertCampaignContext(
+        this.repository,
+        worldId,
+        userId,
+        contextCampaignId,
+      )
+    }
+
+    const [entities, relationships, customTypes] = await Promise.all([
+      this.repository.listEntities(worldId),
+      this.repository.listRelationships(worldId),
+      this.repository.listWorldEntityTypes(worldId, contextCampaignId),
+    ])
+    const visibleEntities = entities.filter((entity) =>
+      canViewRecord(entity, context),
+    )
+    const visibleEntityIds = new Set(visibleEntities.map((entity) => entity.id))
+    const visibleRelationships = relationships.filter(
+      (relationship) =>
+        canViewRecord(relationship, context) &&
+        visibleEntityIds.has(relationship.sourceEntityId) &&
+        visibleEntityIds.has(relationship.targetEntityId),
+    )
+
+    return {
+      entities: visibleEntities,
+      relationships: visibleRelationships,
+      entityTypes: this.buildEntityTypeChoices(customTypes, entities),
+    }
+  }
+
   deleteRelationship(worldId: string, userId: string, relationshipId: string) {
     return this.repository.runInTransaction(async (repository) => {
       const authorization = new WorldAuthorizationService(repository)
@@ -678,24 +745,7 @@ export class WorldEntityService {
       this.repository.listWorldEntityTypes(worldId, contextCampaignId),
       this.repository.listEntities(worldId),
     ])
-    const builtIn: WorldEntityTypeChoice[] = BUILT_IN_WORLD_ENTITY_TYPES.map(
-      (choice) => ({ ...choice, scope: 'BUILT_IN' }),
-    )
-    const seen = new Set(
-      builtIn.map((choice) => normalizeTypeName(choice.value)),
-    )
-    const customChoices = custom
-      .filter((choice) => !seen.has(choice.normalizedName))
-      .map((choice) => ({
-        id: choice.id,
-        value: choice.name,
-        label: choice.name,
-        scope: choice.campaignId ? ('CAMPAIGN' as const) : ('WORLD' as const),
-        usageCount: entities.filter(
-          (entity) => normalizeTypeName(entity.type) === choice.normalizedName,
-        ).length,
-      }))
-    return [...builtIn, ...customChoices]
+    return this.buildEntityTypeChoices(custom, entities)
   }
 }
 
