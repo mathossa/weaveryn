@@ -1,0 +1,723 @@
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
+  gap: 1rem;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.timelinePanel,
+.datePanel {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-panel-strong);
+}
+
+.timelinePanel {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border-bottom: 1px solid var(--ui-border);
+  background: var(--ui-control-surface);
+}
+
+.searchField input,
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  padding: 0.68rem 0.75rem;
+  font: inherit;
+}
+
+.searchField input {
+  background: var(--ui-panel-strong);
+}
+
+.field {
+  display: grid;
+  min-width: 0;
+  gap: 0.35rem;
+}
+
+.field > span,
+.dateField legend {
+  color: var(--ui-text-muted);
+  font-size: 0.76rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.viewTabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+}
+
+.viewTabs button {
+  border: 0;
+  border-radius: calc(var(--ui-radius-control) - 2px);
+  padding: 0.45rem 0.65rem;
+  background: transparent;
+  color: var(--ui-text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.viewTabs button[data-active='true'] {
+  background: var(--ui-accent-soft);
+  color: var(--ui-accent);
+}
+
+.viewTabs button:disabled {
+  opacity: 0.48;
+}
+
+.viewTabs small {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.primaryButton,
+.secondaryButton,
+.dangerButton,
+.smallDangerButton,
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.65rem;
+  border-radius: var(--ui-radius-control);
+  padding: 0.62rem 0.9rem;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.primaryButton {
+  border: 0;
+  background: var(--ui-accent);
+  color: var(--ui-accent-ink);
+}
+
+.secondaryButton {
+  border: 1px solid var(--ui-control-border);
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+}
+
+.dangerButton,
+.smallDangerButton {
+  border: 1px solid var(--ui-danger);
+  background: transparent;
+  color: var(--ui-danger);
+}
+
+.smallDangerButton {
+  min-height: 2rem;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.76rem;
+}
+
+.iconButton {
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  border: 1px solid var(--ui-control-border);
+  padding: 0.35rem;
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  font-size: 1.25rem;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.dangerButton:disabled,
+.smallDangerButton:disabled,
+.iconButton:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.listHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.listHeader span,
+.datePanelHeader > span {
+  color: var(--ui-accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.listHeader h2,
+.datePanelHeader h2,
+.modalHeader h2,
+.formSection h3 {
+  margin: 0.2rem 0 0;
+  color: var(--ui-text);
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.listHeader strong {
+  color: var(--ui-text-muted);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.eventList {
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  align-content: start;
+  gap: 0.7rem;
+  padding: 0.85rem;
+}
+
+.eventCard {
+  overflow: hidden;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+
+.eventCard:hover {
+  border-color: var(--ui-accent);
+}
+
+.eventOpen {
+  display: grid;
+  width: 100%;
+  gap: 0.4rem;
+  border: 0;
+  padding: 0.85rem 0.9rem 0.65rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.eventDate {
+  color: var(--ui-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.eventHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.eventHeading strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--ui-text);
+  font-size: 1.05rem;
+}
+
+.eventHeading small,
+.detailBadge {
+  flex: 0 0 auto;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--ui-border);
+  border-radius: 999px;
+  color: var(--ui-text-muted);
+  font-size: 0.68rem;
+  font-weight: 750;
+}
+
+.eventOpen p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--ui-text-muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.entityLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0 0.9rem 0.75rem;
+}
+
+.entityLinks a {
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: 999px;
+  padding: 0.2rem 0.45rem;
+  color: var(--ui-text-muted);
+  font-size: 0.72rem;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entityLinks a:hover {
+  border-color: var(--ui-accent);
+  color: var(--ui-accent);
+}
+
+.emptyState {
+  display: grid;
+  justify-items: center;
+  gap: 0.65rem;
+  padding: 3rem 1.5rem;
+  color: var(--ui-text-muted);
+  text-align: center;
+}
+
+.emptyState strong {
+  color: var(--ui-text);
+  font-size: 1.05rem;
+}
+
+.emptyState p,
+.emptyCopy,
+.helpText {
+  margin: 0;
+  color: var(--ui-text-muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.datePanel {
+  overflow: auto;
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.datePanelHeader p,
+.explainerCard p,
+.futureCalendar p {
+  margin: 0.55rem 0 0;
+  color: var(--ui-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.explainerCard,
+.futureCalendar {
+  padding: 0.8rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+
+.explainerCard > strong,
+.futureCalendar > strong,
+.explainerHeading strong {
+  color: var(--ui-text);
+  font-size: 0.86rem;
+}
+
+.explainerHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.explainerHeading span {
+  min-width: 1.6rem;
+  border-radius: 999px;
+  padding: 0.15rem 0.4rem;
+  background: var(--ui-accent-soft);
+  color: var(--ui-accent);
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.explainerReckonings {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.6rem;
+}
+
+.explainerReckonings > div {
+  display: grid;
+  gap: 0.15rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--ui-border);
+}
+
+.explainerReckonings strong {
+  color: var(--ui-text);
+  font-size: 0.78rem;
+}
+
+.explainerReckonings span,
+.explainerReckonings small {
+  color: var(--ui-text-muted);
+  font-size: 0.7rem;
+}
+
+.futureCalendar {
+  border-style: dashed;
+}
+
+.modalBackdrop {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(5px);
+}
+
+.modal {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(100%, 40rem);
+  max-height: min(88dvh, 52rem);
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-panel-strong);
+  box-shadow: 0 1.5rem 5rem rgba(0, 0, 0, 0.55);
+}
+
+.modalWide {
+  width: min(100%, 58rem);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.modalBody {
+  min-height: 0;
+  overflow: auto;
+  padding: 1rem;
+}
+
+.editorForm,
+.chronologyDialog,
+.eventDetail {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.formSection {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.9rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+}
+
+.formSection h3 {
+  font-size: 1rem;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.sectionHeading p {
+  max-width: 42rem;
+  margin: 0.25rem 0 0;
+  color: var(--ui-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.dateField {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-control);
+  padding: 0.75rem;
+}
+
+.dateField legend {
+  padding: 0 0.3rem;
+  color: var(--ui-accent);
+}
+
+.dateRow,
+.twoColumnFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.datePreview {
+  margin: 0;
+  color: var(--ui-text-muted);
+  font-size: 0.75rem;
+}
+
+.datePreview strong {
+  color: var(--ui-text);
+}
+
+.toggleRow {
+  display: flex;
+  align-items: start;
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-control);
+  cursor: pointer;
+}
+
+.toggleRow input {
+  margin-top: 0.2rem;
+}
+
+.toggleRow span {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.toggleRow strong {
+  color: var(--ui-text);
+  font-size: 0.85rem;
+}
+
+.toggleRow small {
+  color: var(--ui-text-muted);
+  font-size: 0.75rem;
+}
+
+.entityPicker {
+  max-height: 13rem;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.entityOption {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-control);
+  cursor: pointer;
+}
+
+.entityOption span {
+  display: grid;
+  min-width: 0;
+}
+
+.entityOption strong {
+  overflow: hidden;
+  color: var(--ui-text);
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entityOption small {
+  color: var(--ui-text-muted);
+  font-size: 0.68rem;
+}
+
+.formActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.error {
+  margin: 0;
+  color: var(--ui-danger);
+  font-size: 0.82rem;
+}
+
+.reckoningList {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.reckoningRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-control);
+}
+
+.reckoningRow > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.reckoningRow strong {
+  color: var(--ui-text);
+  font-size: 0.82rem;
+}
+
+.reckoningRow span {
+  color: var(--ui-text-muted);
+  font-size: 0.72rem;
+}
+
+.eventDetail > p {
+  margin: 0;
+  color: var(--ui-text-muted);
+  line-height: 1.6;
+}
+
+.detailBadge {
+  width: fit-content;
+}
+
+.detailEntities {
+  display: grid;
+  gap: 0.55rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--ui-border);
+}
+
+.detailEntities > strong {
+  color: var(--ui-text);
+  font-size: 0.78rem;
+}
+
+.detailEntities .entityLinks {
+  padding: 0;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 1080px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 17rem;
+  }
+
+  .toolbar {
+    grid-template-columns: minmax(10rem, 1fr) auto;
+  }
+
+  .toolbar > .primaryButton {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+  }
+
+  .timelinePanel {
+    min-height: 35rem;
+    max-height: 68dvh;
+  }
+
+  .datePanel {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .viewTabs {
+    overflow-x: auto;
+  }
+
+  .toolbar > .primaryButton {
+    grid-column: auto;
+    width: 100%;
+  }
+
+  .modalBackdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .modal,
+  .modalWide {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: var(--ui-radius-panel) var(--ui-radius-panel) 0 0;
+  }
+
+  .dateRow,
+  .twoColumnFields,
+  .entityPicker {
+    grid-template-columns: 1fr;
+  }
+}
