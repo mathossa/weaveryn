@@ -400,21 +400,6 @@ export function AppShell({ children, user, context }: AppShellProps) {
   const background = uiAssets.backgrounds.appShell
   const contextMode = getContextMode(context)
   const identifiers = getContextIdentifiers(context, pathname)
-  const contextSignature = [
-    pathname,
-    contextMode ?? '',
-    ...contextKinds.flatMap((kind) => [
-      context?.[kind]?.id ?? '',
-      context?.[kind]?.label ?? '',
-      context?.[kind]?.href ?? '',
-    ]),
-  ].join('|')
-
-  useEffect(() => {
-    setContextOpen(false)
-    setSwitcherKind(null)
-    setContextOptions({})
-  }, [contextSignature])
 
   useEffect(() => {
     if (!accountOpen && !contextOpen && !switcherKind) return
@@ -519,7 +504,7 @@ export function AppShell({ children, user, context }: AppShellProps) {
     setAccountOpen(false)
     const nextKind = switcherKind === kind ? null : kind
     setSwitcherKind(nextKind)
-    if (nextKind) void loadContextOptions(nextKind)
+    if (nextKind) void loadContextOptions(nextKind, true)
   }
 
   function selectContextOption(
