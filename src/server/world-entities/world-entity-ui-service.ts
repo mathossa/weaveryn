@@ -5,6 +5,10 @@ import {
   WorldAuthorizationService,
 } from '@/server/worlds/world-permissions'
 import {
+  filterEntityRelationshipsForCampaignContext,
+  filterWorldEntitiesForCampaignContext,
+} from './world-entity-campaign-context'
+import {
   worldEntityTypeInUse,
   worldEntityTypeNotFound,
 } from './world-entity-errors'
@@ -192,11 +196,16 @@ export async function getWorldEntityBrowseWorkspace(
   const world = await getWorldOverview(worldId, userId)
   if (!world) return null
 
-  const entities = await worldEntityService.listEntities(worldId, userId)
+  const resolvedContextCampaign = contextCampaign(world, contextCampaignId)
+  const authorizedEntities = await worldEntityService.listEntities(worldId, userId)
+  const entities = filterWorldEntitiesForCampaignContext(
+    authorizedEntities,
+    resolvedContextCampaign?.id,
+  )
 
   return {
     world: { id: world.id, name: world.name, accessKind: world.accessKind },
-    contextCampaign: contextCampaign(world, contextCampaignId),
+    contextCampaign: resolvedContextCampaign,
     entities: entities.map((entity) => uiEntity(entity, userId)),
     canEditContent: canEditWorldContent(world),
   }
@@ -210,15 +219,25 @@ export async function getWorldEntityWorkspace(
   const world = await getWorldOverview(worldId, userId)
   if (!world) return null
 
-  const [entities, relationships, entityTypes] = await Promise.all([
-    worldEntityService.listEntities(worldId, userId),
-    worldEntityService.listRelationships(worldId, userId),
-    worldEntityService.listEntityTypes(worldId, userId, contextCampaignId),
-  ])
+  const resolvedContextCampaign = contextCampaign(world, contextCampaignId)
+  const [authorizedEntities, authorizedRelationships, entityTypes] =
+    await Promise.all([
+      worldEntityService.listEntities(worldId, userId),
+      worldEntityService.listRelationships(worldId, userId),
+      worldEntityService.listEntityTypes(worldId, userId, contextCampaignId),
+    ])
+  const entities = filterWorldEntitiesForCampaignContext(
+    authorizedEntities,
+    resolvedContextCampaign?.id,
+  )
+  const relationships = filterEntityRelationshipsForCampaignContext(
+    authorizedRelationships,
+    entities,
+    resolvedContextCampaign?.id,
+  )
 
   const entityById = new Map(entities.map((entity) => [entity.id, entity]))
   const canEditContent = canEditWorldContent(world)
-  const resolvedContextCampaign = contextCampaign(world, contextCampaignId)
 
   const visibilityUsers = new Map<string, WorldEntityVisibilityUserChoice>()
   if (canEditContent) {
