@@ -32,6 +32,7 @@ describe('World permissions', () => {
         WORLD_PERMISSIONS.EDIT_CONTENT,
         WORLD_PERMISSIONS.MANAGE_MEMBERS,
         WORLD_PERMISSIONS.CREATE_CAMPAIGN,
+        WORLD_PERMISSIONS.MANAGE_CONFIGURATION,
       ],
     ],
     [
@@ -57,6 +58,21 @@ describe('World permissions', () => {
     ).toBe(true)
     expect(
       hasWorldPermission(access('MEMBER'), WORLD_PERMISSIONS.MANAGE_MEMBERS),
+    ).toBe(false)
+  })
+
+  it('lets an ADMIN configure chronology without giving that permission to MEMBER', () => {
+    expect(
+      hasWorldPermission(
+        access('ADMIN'),
+        WORLD_PERMISSIONS.MANAGE_CONFIGURATION,
+      ),
+    ).toBe(true)
+    expect(
+      hasWorldPermission(
+        access('MEMBER'),
+        WORLD_PERMISSIONS.MANAGE_CONFIGURATION,
+      ),
     ).toBe(false)
   })
 

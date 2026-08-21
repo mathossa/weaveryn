@@ -13,6 +13,7 @@ import { uiAssets } from '@/lib/ui-assets'
 import { requireAuthenticatedUser } from '@/server/auth'
 import { getCampaignOverview } from '@/server/campaigns'
 import { listEntryPreferences } from '@/server/selection'
+import { getWorldOverview } from '@/server/worlds'
 import {
   CampaignDashboardIcon,
   type CampaignDashboardIconName,
@@ -43,9 +44,10 @@ export default async function CampaignOverviewPage({
     searchParams,
     requireAuthenticatedUser(new Headers(await headers())),
   ])
-  const [campaign, entryPreferences] = await Promise.all([
+  const [campaign, entryPreferences, worldOverview] = await Promise.all([
     getCampaignOverview(worldId, campaignId, user.id),
     listEntryPreferences(user.id),
+    getWorldOverview(worldId, user.id),
   ])
   if (!campaign) notFound()
 
@@ -133,11 +135,18 @@ export default async function CampaignOverviewPage({
       ),
       implemented: true,
     },
-    {
-      label: 'Timeline',
-      icon: 'timeline',
-      href: placeholderHref('timeline'),
-    },
+    worldOverview?.hasFullWorldAccess
+      ? {
+          label: 'Timeline',
+          icon: 'timeline',
+          href: `/world/${worldId}/timeline`,
+          implemented: true,
+        }
+      : {
+          label: 'Timeline',
+          icon: 'timeline',
+          href: placeholderHref('timeline'),
+        },
   ]
 
   return (
@@ -220,9 +229,7 @@ export default async function CampaignOverviewPage({
                 Current World time
               </span>
               <strong>{campaign.currentWorldDateLabel ?? 'Not set'}</strong>
-              <small>
-                Position {campaign.currentWorldPosition ?? 'not set'}
-              </small>
+              <small>Resolved through the World chronology</small>
             </aside>
           </section>
 
@@ -248,7 +255,9 @@ export default async function CampaignOverviewPage({
                 <span className={styles.placeholderDot} />
                 <p>
                   <strong>World events</strong>
-                  <small>#113 will provide real historical events.</small>
+                  <small>
+                    Canonical history is available from the World timeline.
+                  </small>
                 </p>
               </div>
               <div>

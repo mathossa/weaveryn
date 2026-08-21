@@ -551,8 +551,16 @@ A `WorldEvent` represents a time-dependent fact or change in World history.
 WorldEvent
 - id
 - timelineId
-- worldPosition
-- worldDateLabel
+- title
+- description?
+- startWorldPosition
+- endWorldPosition?
+- startWorldDateLabel
+- endWorldDateLabel?
+- startReckoningId?
+- startReckoningDirection?
+- endReckoningId?
+- endReckoningDirection?
 - type
 - data
 - createdAt
@@ -563,14 +571,42 @@ Relations:
 
 - belongs to one WorldTimeline
 - may affect one or more WorldEntities through WorldEventEntity associations
+- may preserve the named reckoning used to enter its start and end dates
 
 WorldEvents may represent facts such as founding or destruction, births and deaths, changes in political control, important discoveries, wars, migrations, or other setting changes for which temporal context matters.
 
-`worldPosition` is the authoritative sortable numeric value for ordering and state resolution. `worldDateLabel` is a human-readable, setting-specific label and is not assumed to use a Gregorian calendar.
+`startWorldPosition` is the authoritative sortable numeric value for ordering and state resolution. `endWorldPosition`, when present, makes the event a duration and must not precede the start. Start/end date labels are human-readable, setting-specific representations and are not assumed to use a Gregorian calendar.
+
+Normal users do not enter canonical positions directly. A World-date resolver derives them from the chosen human-facing notation. This resolver boundary allows later calendar depth without replacing or rewriting WorldEvent identity.
 
 The World view may expose the complete history, while a Campaign resolves only the state applicable to its timeline and current World date.
 
-### 16.3 World Event Entity
+### 16.3 World Reckoning
+
+A `WorldReckoning` represents an optional named year-numbering system anchored to the canonical chronology.
+
+```text
+WorldReckoning
+- id
+- worldId
+- name
+- anchorWorldPosition
+- anchorWorldDateLabel
+- beforeLabel
+- beforeAbbreviation?
+- afterLabel
+- afterAbbreviation?
+- createdAt
+- updatedAt
+```
+
+Reckonings are not a hard-coded `BC | AD` enum and do not have to form one sequential era chain. Multiple reckonings may coexist and overlap. For example, one canonical moment may legitimately be expressed as `100 AC` relative to a Cataclysm and `100 BR` relative to a later Rebuild.
+
+The canonical position remains authoritative for sorting; the event may retain the reckoning/direction selected by the author so the same human notation can be reconstructed during editing.
+
+Full calendar structure is separate from reckonings. Months, weeks, weekdays, hours, seasons, leap/intercalary rules, moons, solar cycles, and richer date formatting are introduced through the calendar system tracked by #69 and resolve through the same canonical position boundary.
+
+### 16.4 World Event Entity
 
 `WorldEventEntity` associates a WorldEvent with an affected WorldEntity.
 
@@ -917,6 +953,7 @@ User
 │                        ├── WorldTimeline
 │                        │   └── WorldEvent
 │                        │       └── WorldEventEntity ──► WorldEntity
+│                        ├── WorldReckoning
 │                        ├── WorldCharacter ◄────► Character-backed WorldEntity
 │                        └── Campaign
 │                            ├── WorldTimeline / currentWorldPosition
@@ -975,6 +1012,8 @@ Ruleset
 30. Campaign-only access may expose a Character-backed entity only through authorized Campaign participation and does not imply general World access.
 31. Copying a WorldCharacter creates a fresh target-World Character entity and does not copy source-World EntityRelationships automatically.
 32. Migrating a WorldCharacter preserves source-World relationships by converting the detached source entity into an independent `Person / NPC` snapshot before creating a fresh Character entity in the target World.
+33. WorldEvent start/end positions are canonical sortable coordinates; human-facing date notation is resolved separately and may use overlapping World reckonings.
+34. Calendar-derived facts should be resolved from the World calendar and canonical position rather than duplicated into every WorldEvent.
 
 ---
 

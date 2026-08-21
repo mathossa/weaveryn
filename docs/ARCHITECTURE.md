@@ -111,6 +111,12 @@ Campaign participation does not create additional Character entities. A WorldCha
 
 Temporal facts about a WorldEntity must not be modeled as though the entity has one universally current state. Facts that change according to in-world time, such as the destruction of a settlement, the death of a ruler, or a change of ownership, belong to World history.
 
+World history uses a canonical sortable World position that is deliberately separate from the date notation shown to users. `WorldEvent` may represent either a point in time or a duration with a start and optional end position. Normal event authoring goes through the World Date Resolver rather than asking users to type the internal chronology coordinate.
+
+The MVP resolver supports a simple World year plus optional named reckonings anchored to canonical positions. Reckonings are not a hard-coded BC/AD enum and may overlap: one canonical moment can legitimately be expressed relative to several historical anchors. The event can retain the reckoning notation chosen by its author while canonical positions remain authoritative for sorting and later state resolution.
+
+Calendar structure is a separate concern. Months, weeks, weekdays, day/hour lengths, seasons, leap or intercalary rules, moons, solar cycles, and richer date formatting are part of the calendar system tracked by #69. That system extends the same World Date Resolver and must not require replacing WorldEvent identity or duplicating derived calendar facts into every event.
+
 Campaigns operate within a temporal context of their World and resolve World entities according to their position on the relevant World timeline.
 
 For example, if a settlement is destroyed in the year 1440:
@@ -160,7 +166,7 @@ When a World is deleted after all active Campaigns have been resolved, ended or 
 
 A Campaign operates at a position on a World timeline.
 
-The first MVP supports one automatically created main timeline per World. Timeline events use both a sortable numeric position and a human-readable date label. The sortable position is authoritative for ordering and state resolution; the label permits setting-specific notation without treating every World as a Gregorian calendar.
+The first MVP supports one automatically created main timeline per World. Timeline events store authoritative canonical start positions and optional end positions for durations, together with human-readable setting-specific date labels. Users normally author dates through the World Date Resolver; the raw canonical coordinate is an implementation detail rather than a normal form field. Named reckonings may project different labels onto the same canonical moment without changing event ordering.
 
 Its temporal context determines how time-dependent World facts are resolved for that Campaign. Two Campaigns in the same World may therefore see different valid states of the same WorldEntity because they take place at different dates.
 
@@ -289,10 +295,11 @@ Authorization must be enforced by backend/application services. UI visibility is
 
 ### Initial World Permissions
 
-- The World owner controls World lifecycle, ownership, members, configuration, World content, and Campaign placement.
-- `ADMIN` may manage World members, normal World content, and Campaign creation, but may not transfer or relinquish ownership or delete the World.
-- `MEMBER` may read the World and create or edit normal WorldEntity content, but may not manage ownership, lifecycle, or membership.
-- `VIEWER` has read-only access to World content visible to them.
+- The World owner controls World lifecycle, ownership, members, configuration, World content, canonical history, chronology configuration, and Campaign placement.
+- `ADMIN` may manage World members, World configuration (including named chronology reckonings), normal World content and canonical history, and Campaign creation, but may not transfer or relinquish ownership or delete the World.
+- `MEMBER` (Threadwalker) may read the World and create or edit normal World content, including WorldEntity content and canonical World events, but may not manage chronology configuration, ownership, lifecycle, or membership.
+- `VIEWER` (Threadwatcher) has read-only access to World content visible to them, including canonical history, and cannot author events or configure chronology.
+- Campaign-only access does not grant unrestricted access to the canonical World timeline.
 
 ### Initial Campaign Permissions
 
@@ -439,7 +446,7 @@ Ruleset
 22. A Campaign owner always holds the functional `GM` role.
 23. A Campaign ownership transfer is initiated only by the current owner and is atomic.
 24. Campaign-only World access does not imply World membership or World editing rights.
-25. MVP timeline ordering uses an authoritative numeric position plus a human-readable date label.
+25. MVP timeline ordering uses authoritative canonical World positions; human-facing date notation is resolved separately and normal authoring does not depend on entering raw numeric positions.
 26. Ended or archived Campaigns are detached through an explicit snapshot workflow when their World is deleted.
 27. A WorldCharacter has at most one linked Character-backed WorldEntity, and both must belong to the same World.
 28. Character-backed WorldEntity name/image presentation derives from Character/WorldCharacter authority rather than an independently editable duplicate.

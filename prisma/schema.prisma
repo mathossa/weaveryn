@@ -44,6 +44,11 @@ enum MembershipInvitationKind {
   CAMPAIGN
 }
 
+enum ReckoningDirection {
+  BEFORE
+  AFTER
+}
+
 model User {
   id              String  @id @default(uuid()) @db.Uuid
   email           String  @unique
@@ -53,16 +58,16 @@ model User {
   image           String?
   isInstanceAdmin Boolean @default(false)
 
-  ownedWorlds                      World[]              @relation("WorldOwner")
-  ownedCampaigns                   Campaign[]           @relation("CampaignOwner")
-  ownedCharacters                  Character[]          @relation("CharacterOwner")
+  ownedWorlds                      World[]                @relation("WorldOwner")
+  ownedCampaigns                   Campaign[]             @relation("CampaignOwner")
+  ownedCharacters                  Character[]            @relation("CharacterOwner")
   worldMemberships                 WorldMembership[]
   campaignMemberships              CampaignMembership[]
-  createdWorldEntities             WorldEntity[]        @relation("WorldEntityCreator")
-  playerVisibleWorldEntities       WorldEntity[]        @relation("WorldEntityVisibilityUser")
-  createdEntityRelationships       EntityRelationship[] @relation("EntityRelationshipCreator")
-  playerVisibleEntityRelationships EntityRelationship[] @relation("EntityRelationshipVisibilityUser")
-  createdWorldEntityTypes          WorldEntityType[]    @relation("WorldEntityTypeCreator")
+  createdWorldEntities             WorldEntity[]          @relation("WorldEntityCreator")
+  playerVisibleWorldEntities       WorldEntity[]          @relation("WorldEntityVisibilityUser")
+  createdEntityRelationships       EntityRelationship[]   @relation("EntityRelationshipCreator")
+  playerVisibleEntityRelationships EntityRelationship[]   @relation("EntityRelationshipVisibilityUser")
+  createdWorldEntityTypes          WorldEntityType[]      @relation("WorldEntityTypeCreator")
   entryPreferences                 EntryPreference[]
   createdMembershipInvitations     MembershipInvitation[] @relation("MembershipInvitationCreator")
   acceptedMembershipInvitations    MembershipInvitation[] @relation("MembershipInvitationAcceptor")
@@ -112,8 +117,8 @@ model AuthVerification {
   identifier String
   value      String
   expiresAt  DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([identifier])
 }
@@ -126,15 +131,16 @@ model World {
   ownerId String? @db.Uuid
   owner   User?   @relation("WorldOwner", fields: [ownerId], references: [id], onDelete: SetNull)
 
-  memberships          WorldMembership[]
+  memberships           WorldMembership[]
   membershipInvitations MembershipInvitation[]
-  timelines            WorldTimeline[]
-  campaigns            Campaign[]
-  characters           WorldCharacter[]
-  entities             WorldEntity[]
-  entityRelationships  EntityRelationship[]
-  entityTypes          WorldEntityType[]
-  entryPreferences     EntryPreference[]
+  timelines             WorldTimeline[]
+  reckonings            WorldReckoning[]
+  campaigns             Campaign[]
+  characters            WorldCharacter[]
+  entities              WorldEntity[]
+  entityRelationships   EntityRelationship[]
+  entityTypes           WorldEntityType[]
+  entryPreferences      EntryPreference[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -171,6 +177,7 @@ model WorldEntity {
 
   sourceRelationships EntityRelationship[] @relation("EntityRelationshipSource")
   targetRelationships EntityRelationship[] @relation("EntityRelationshipTarget")
+  worldEventLinks     WorldEventEntity[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -192,8 +199,8 @@ model EntityRelationship {
   sourceEntityId   String  @db.Uuid
   targetEntityId   String  @db.Uuid
   relationshipType String
-  label             String?
-  metadata          Json    @default("{}")
+  label            String?
+  metadata         Json    @default("{}")
 
   createdById String? @db.Uuid
 
@@ -250,9 +257,9 @@ model Character {
   coreData    Json?
   status      String  @default("ACTIVE")
 
-  owner                   User          @relation("CharacterOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
+  owner                   User             @relation("CharacterOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
   worldCharacters         WorldCharacter[]
-  worldEntityContinuities WorldEntity[] @relation("WorldEntityOriginCharacter")
+  worldEntityContinuities WorldEntity[]    @relation("WorldEntityOriginCharacter")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -290,11 +297,75 @@ model WorldTimeline {
   world World @relation(fields: [worldId], references: [id], onDelete: Cascade)
 
   campaigns Campaign[]
+  events    WorldEvent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([worldId])
+}
+
+model WorldReckoning {
+  id                   String  @id @default(uuid()) @db.Uuid
+  worldId              String  @db.Uuid
+  name                 String
+  anchorWorldPosition  Decimal @db.Decimal(65, 30)
+  anchorWorldDateLabel String
+  beforeLabel          String
+  beforeAbbreviation   String?
+  afterLabel           String
+  afterAbbreviation    String?
+
+  world       World        @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  startEvents WorldEvent[] @relation("WorldEventStartReckoning")
+  endEvents   WorldEvent[] @relation("WorldEventEndReckoning")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([worldId, name])
+  @@index([worldId, anchorWorldPosition])
+}
+
+model WorldEvent {
+  id                      String              @id @default(uuid()) @db.Uuid
+  timelineId              String              @db.Uuid
+  title                   String
+  description             String?
+  startWorldPosition      Decimal             @db.Decimal(65, 30)
+  endWorldPosition        Decimal?            @db.Decimal(65, 30)
+  startWorldDateLabel     String
+  endWorldDateLabel       String?
+  startReckoningId        String?             @db.Uuid
+  startReckoningDirection ReckoningDirection?
+  endReckoningId          String?             @db.Uuid
+  endReckoningDirection   ReckoningDirection?
+  type                    String              @default("event")
+  data                    Json                @default("{}")
+
+  timeline       WorldTimeline      @relation(fields: [timelineId], references: [id], onDelete: Cascade)
+  startReckoning WorldReckoning?    @relation("WorldEventStartReckoning", fields: [startReckoningId], references: [id], onDelete: Restrict)
+  endReckoning   WorldReckoning?    @relation("WorldEventEndReckoning", fields: [endReckoningId], references: [id], onDelete: Restrict)
+  entities       WorldEventEntity[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([timelineId, startWorldPosition])
+  @@index([startReckoningId])
+  @@index([endReckoningId])
+}
+
+model WorldEventEntity {
+  worldEventId  String  @db.Uuid
+  worldEntityId String  @db.Uuid
+  role          String?
+
+  worldEvent  WorldEvent  @relation(fields: [worldEventId], references: [id], onDelete: Cascade)
+  worldEntity WorldEntity @relation(fields: [worldEntityId], references: [id], onDelete: Cascade)
+
+  @@id([worldEventId, worldEntityId])
+  @@index([worldEntityId])
 }
 
 model WorldMembership {
@@ -335,8 +406,8 @@ model Campaign {
   memberships                CampaignMembership[]
   membershipInvitations      MembershipInvitation[]
   campaignCharacters         CampaignCharacter[]
-  visibleWorldEntities       WorldEntity[]        @relation("WorldEntityVisibilityCampaign")
-  visibleEntityRelationships EntityRelationship[] @relation("EntityRelationshipVisibilityCampaign")
+  visibleWorldEntities       WorldEntity[]          @relation("WorldEntityVisibilityCampaign")
+  visibleEntityRelationships EntityRelationship[]   @relation("EntityRelationshipVisibilityCampaign")
   worldEntityTypes           WorldEntityType[]
   entryPreferences           EntryPreference[]
 

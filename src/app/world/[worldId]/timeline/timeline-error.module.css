@@ -1,0 +1,72 @@
+.page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: var(--ui-bg);
+}
+
+.panel {
+  width: min(100%, 34rem);
+  display: grid;
+  gap: 0.8rem;
+  padding: 1.25rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-panel-strong);
+}
+
+.panel > span {
+  color: var(--ui-accent);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.panel h1,
+.panel p {
+  margin: 0;
+}
+
+.panel h1 {
+  color: var(--ui-text);
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.panel p {
+  color: var(--ui-text-muted);
+  line-height: 1.55;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.primary,
+.secondary {
+  min-height: 2.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--ui-radius-control);
+  padding: 0.62rem 0.9rem;
+  font: inherit;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.primary {
+  border: 0;
+  background: var(--ui-accent);
+  color: var(--ui-accent-ink);
+}
+
+.secondary {
+  border: 1px solid var(--ui-control-border);
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+}
