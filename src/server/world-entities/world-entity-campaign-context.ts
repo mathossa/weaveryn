@@ -4,11 +4,20 @@ import type {
   WorldEntityRecord,
 } from './world-entity-repository'
 
+function isWorldCharacterRecord(
+  record: VisibilityRecord,
+): record is WorldEntityRecord {
+  return (
+    'worldCharacterId' in record &&
+    Boolean((record as WorldEntityRecord).worldCharacterId)
+  )
+}
+
 function visibleInCampaignContext(
-  record: VisibilityRecord | WorldEntityRecord,
+  record: VisibilityRecord,
   campaignId: string,
 ) {
-  if ('worldCharacterId' in record && record.worldCharacterId) {
+  if (isWorldCharacterRecord(record)) {
     return (record.worldCharacterCampaignIds ?? []).includes(campaignId)
   }
 
