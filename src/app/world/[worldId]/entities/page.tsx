@@ -6,7 +6,7 @@ import {
   requestedCharacterContext,
   withCharacterContext,
 } from '@/lib/campaign-context'
-import { getWorldEntityWorkspace } from '@/server/world-entities'
+import { getWorldEntityBrowseWorkspace } from '@/server/world-entities'
 import { loadWorldPageUser } from '../../_lib/load-world-user'
 import { EntityBrowser } from './_components/entity-browser'
 import styles from './entity.module.css'
@@ -39,7 +39,11 @@ export default async function WorldEntitiesPage({
   const campaignId =
     typeof requested.campaign === 'string' ? requested.campaign : undefined
   const worldCharacterId = requestedCharacterContext(requested.character)
-  const workspace = await getWorldEntityWorkspace(worldId, user.id, campaignId)
+  const workspace = await getWorldEntityBrowseWorkspace(
+    worldId,
+    user.id,
+    campaignId,
+  )
   if (!workspace) notFound()
 
   const backHref = workspace.contextCampaign

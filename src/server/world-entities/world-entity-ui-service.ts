@@ -14,6 +14,11 @@ import { worldEntityService } from './world-entity-service'
 
 export type SimpleEntityFieldValue = string | number | boolean
 
+type WorldOverview = NonNullable<Awaited<ReturnType<typeof getWorldOverview>>>
+type WorldEntityRecord = Awaited<
+  ReturnType<typeof worldEntityService.listEntities>
+>[number]
+
 export interface WorldEntityUiRecord {
   id: string
   type: string
@@ -50,20 +55,23 @@ export interface WorldEntityVisibilityUserChoice {
   label: string
 }
 
-export interface WorldEntityWorkspace {
+export interface WorldEntityBrowseWorkspace {
   world: {
     id: string
     name: string
     accessKind: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER' | 'CAMPAIGN_ONLY'
   }
   contextCampaign: { id: string; name: string } | null
-  campaigns: { id: string; name: string }[]
   entities: WorldEntityUiRecord[]
+  canEditContent: boolean
+}
+
+export interface WorldEntityWorkspace extends WorldEntityBrowseWorkspace {
+  campaigns: { id: string; name: string }[]
   relationships: WorldEntityRelationshipUiRecord[]
   relationshipTypes: string[]
   entityTypes: Awaited<ReturnType<typeof worldEntityService.listEntityTypes>>
   visibilityUsers: WorldEntityVisibilityUserChoice[]
-  canEditContent: boolean
 }
 
 function simpleData(value: unknown): Record<string, SimpleEntityFieldValue> {
@@ -80,6 +88,47 @@ function simpleData(value: unknown): Record<string, SimpleEntityFieldValue> {
       },
     ),
   )
+}
+
+function canEditWorldContent(world: WorldOverview) {
+  return (
+    world.accessKind === 'OWNER' ||
+    world.accessKind === 'ADMIN' ||
+    world.accessKind === 'MEMBER'
+  )
+}
+
+function contextCampaign(
+  world: WorldOverview,
+  contextCampaignId?: string,
+): { id: string; name: string } | null {
+  if (!contextCampaignId) return null
+  const campaign = world.campaigns.find(
+    (choice) => choice.id === contextCampaignId,
+  )
+  return campaign ? { id: campaign.id, name: campaign.name } : null
+}
+
+function uiEntity(entity: WorldEntityRecord, userId: string): WorldEntityUiRecord {
+  return {
+    id: entity.id,
+    type: entity.type,
+    name: entity.name,
+    description: entity.description,
+    image: entity.image,
+    imageFocusX: entity.imageFocusX ?? 50,
+    imageFocusY: entity.imageFocusY ?? 50,
+    data: simpleData(entity.data),
+    worldCharacterId: entity.worldCharacterId ?? null,
+    worldCharacterOwnedByCurrentUser: Boolean(
+      entity.worldCharacterId && entity.createdById === userId,
+    ),
+    visibilityScope: entity.visibilityScope,
+    visibilityCampaignId: entity.visibilityCampaignId,
+    visibilityUserId: entity.visibilityUserId,
+    createdById: entity.createdById,
+    updatedAt: entity.updatedAt.toISOString(),
+  }
 }
 
 function userLabel(user: {
@@ -135,6 +184,24 @@ export async function deleteWorldEntityType(
   })
 }
 
+export async function getWorldEntityBrowseWorkspace(
+  worldId: string,
+  userId: string,
+  contextCampaignId?: string,
+): Promise<WorldEntityBrowseWorkspace | null> {
+  const world = await getWorldOverview(worldId, userId)
+  if (!world) return null
+
+  const entities = await worldEntityService.listEntities(worldId, userId)
+
+  return {
+    world: { id: world.id, name: world.name, accessKind: world.accessKind },
+    contextCampaign: contextCampaign(world, contextCampaignId),
+    entities: entities.map((entity) => uiEntity(entity, userId)),
+    canEditContent: canEditWorldContent(world),
+  }
+}
+
 export async function getWorldEntityWorkspace(
   worldId: string,
   userId: string,
@@ -150,14 +217,8 @@ export async function getWorldEntityWorkspace(
   ])
 
   const entityById = new Map(entities.map((entity) => [entity.id, entity]))
-  const canEditContent =
-    world.accessKind === 'OWNER' ||
-    world.accessKind === 'ADMIN' ||
-    world.accessKind === 'MEMBER'
-  const contextCampaign = contextCampaignId
-    ? (world.campaigns.find((campaign) => campaign.id === contextCampaignId) ??
-      null)
-    : null
+  const canEditContent = canEditWorldContent(world)
+  const resolvedContextCampaign = contextCampaign(world, contextCampaignId)
 
   const visibilityUsers = new Map<string, WorldEntityVisibilityUserChoice>()
   if (canEditContent) {
@@ -233,32 +294,12 @@ export async function getWorldEntityWorkspace(
 
   return {
     world: { id: world.id, name: world.name, accessKind: world.accessKind },
-    contextCampaign: contextCampaign
-      ? { id: contextCampaign.id, name: contextCampaign.name }
-      : null,
+    contextCampaign: resolvedContextCampaign,
     campaigns: world.campaigns.map((campaign) => ({
       id: campaign.id,
       name: campaign.name,
     })),
-    entities: entities.map((entity) => ({
-      id: entity.id,
-      type: entity.type,
-      name: entity.name,
-      description: entity.description,
-      image: entity.image,
-      imageFocusX: entity.imageFocusX ?? 50,
-      imageFocusY: entity.imageFocusY ?? 50,
-      data: simpleData(entity.data),
-      worldCharacterId: entity.worldCharacterId ?? null,
-      worldCharacterOwnedByCurrentUser: Boolean(
-        entity.worldCharacterId && entity.createdById === userId,
-      ),
-      visibilityScope: entity.visibilityScope,
-      visibilityCampaignId: entity.visibilityCampaignId,
-      visibilityUserId: entity.visibilityUserId,
-      createdById: entity.createdById,
-      updatedAt: entity.updatedAt.toISOString(),
-    })),
+    entities: entities.map((entity) => uiEntity(entity, userId)),
     relationships: relationships.map((relationship) => ({
       id: relationship.id,
       sourceEntityId: relationship.sourceEntityId,
