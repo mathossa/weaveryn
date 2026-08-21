@@ -226,12 +226,15 @@ export async function getWorldEntityWorkspace(
   if (!world) return null
 
   const resolvedContextCampaign = contextCampaign(world, contextCampaignId)
-  const [authorizedEntities, authorizedRelationships, entityTypes] =
-    await Promise.all([
-      worldEntityService.listEntities(worldId, userId),
-      worldEntityService.listRelationships(worldId, userId),
-      worldEntityService.listEntityTypes(worldId, userId, contextCampaignId),
-    ])
+  const {
+    entities: authorizedEntities,
+    relationships: authorizedRelationships,
+    entityTypes,
+  } = await worldEntityService.readWorkspace(
+    worldId,
+    userId,
+    resolvedContextCampaign?.id,
+  )
   const entities = filterWorldEntitiesForCampaignContext(
     authorizedEntities,
     resolvedContextCampaign?.id,
