@@ -361,6 +361,10 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                 <strong>Create Character</strong>
                 <span>Start a new portable Character identity.</span>
               </Link>
+              <Link className={styles.actionLink} href="/world/create">
+                <strong>Create World</strong>
+                <span>Begin a new setting to weave and manage.</span>
+              </Link>
               <Link className={styles.actionLink} href="/select/join">
                 <strong>Join with invite</strong>
                 <span>Use a World or Campaign invitation.</span>

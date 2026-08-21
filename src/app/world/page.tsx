@@ -35,14 +35,14 @@ export default async function WorldSelectionPage({
         title="Choose a World"
         description={
           weaverMode
-            ? 'Choose a World where you can enter as a Weaver.'
+            ? 'Choose a World where you can enter as a Weaver, or create a new World.'
             : threadwatcherMode
               ? 'Choose a World that contains a Campaign you can observe as a Threadwatcher.'
               : 'Open a World you can access, or begin a new one.'
         }
         wide
         actions={
-          weaverMode || threadwatcherMode ? undefined : (
+          threadwatcherMode ? undefined : (
             <Link className={styles.secondary} href="/world/create">
               Create World
             </Link>
@@ -60,7 +60,7 @@ export default async function WorldSelectionPage({
                   : 'No Worlds available'
             }
             action={
-              weaverMode || threadwatcherMode ? (
+              threadwatcherMode ? (
                 <Link className={styles.secondary} href="/select/join">
                   Join with invite
                 </Link>
@@ -74,7 +74,9 @@ export default async function WorldSelectionPage({
             <p>
               {threadwatcherMode
                 ? 'Join a Campaign as a Threadwatcher to make its World available here.'
-                : 'Create a World or join one through a Campaign or invitation.'}
+                : weaverMode
+                  ? 'Create a World to begin weaving, or return to entry selection to join an invitation.'
+                  : 'Create a World or join one through a Campaign or invitation.'}
             </p>
           </StatusPanel>
         ) : (
