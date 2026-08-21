@@ -180,6 +180,21 @@ export const devScenarioCatalog = [
     fixtureNamespace: 'dev:world-ownership-transfer:v1',
   },
   {
+    id: 'world-events',
+    title: 'World events and main timeline',
+    domain: 'Worlds',
+    purpose:
+      'Exercise point and duration World events, entity links, named reckonings, chronological ordering, invalid spans, and Threadwalker/Threadwatcher authorization through the real World event service.',
+    href: '/dev/world-events',
+    issueNumbers: [113, 69],
+    prerequisites: [
+      'Dedicated development database',
+      'Applied Prisma migrations',
+    ],
+    availability: 'available',
+    fixtureNamespace: 'dev:world-events:v1',
+  },
+  {
     id: 'world-update-example',
     title: 'World update contract example',
     domain: 'Worlds',
