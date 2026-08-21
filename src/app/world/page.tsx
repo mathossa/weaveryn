@@ -22,9 +22,7 @@ export default async function WorldSelectionPage({
   const threadwatcherMode = query.mode === 'threadwatcher'
   const worlds = weaverMode
     ? allWorlds.filter((world) => world.canWeave)
-    : threadwatcherMode
-      ? allWorlds.filter((world) => world.canThreadwatch)
-      : allWorlds
+    : allWorlds
 
   return (
     <AuthenticatedAppShell user={user}>
@@ -37,7 +35,7 @@ export default async function WorldSelectionPage({
           weaverMode
             ? 'Choose a World where you can enter as a Weaver, or create a new World.'
             : threadwatcherMode
-              ? 'Choose a World that contains a Campaign you can observe as a Threadwatcher.'
+              ? 'Choose a World you can access. Worlds with a Campaign you can observe continue in Threadwatcher mode.'
               : 'Open a World you can access, or begin a new one.'
         }
         wide
@@ -56,7 +54,7 @@ export default async function WorldSelectionPage({
               weaverMode
                 ? 'No Weaver Worlds available'
                 : threadwatcherMode
-                  ? 'No Threadwatcher Worlds available'
+                  ? 'No accessible Worlds available'
                   : 'No Worlds available'
             }
             action={
@@ -73,7 +71,7 @@ export default async function WorldSelectionPage({
           >
             <p>
               {threadwatcherMode
-                ? 'Join a Campaign as a Threadwatcher to make its World available here.'
+                ? 'Join a World or Campaign to make its World available here.'
                 : weaverMode
                   ? 'Create a World to begin weaving, or return to entry selection to join an invitation.'
                   : 'Create a World or join one through a Campaign or invitation.'}
@@ -81,37 +79,44 @@ export default async function WorldSelectionPage({
           </StatusPanel>
         ) : (
           <div className={styles.grid}>
-            {worlds.map((world) => (
-              <TrackedEntryLink
-                key={world.id}
-                className={styles.card}
-                href={
-                  weaverMode
-                    ? `/world/${world.id}?mode=weaver`
-                    : threadwatcherMode
-                      ? `/world/${world.id}/campaign?mode=threadwatcher`
-                      : `/world/${world.id}`
-                }
-                tracking={
-                  weaverMode ? { kind: 'WEAVER', worldId: world.id } : undefined
-                }
-                style={{ backgroundImage: `url(${uiAssets.fallbacks.world})` }}
-              >
-                <span className={styles.badge}>
-                  {threadwatcherMode
-                    ? 'Threadwatcher'
-                    : worldAccessLabel(world.accessKind)}
-                </span>
-                <strong>{world.name}</strong>
-                <span className={styles.meta}>
-                  {threadwatcherMode
-                    ? 'Choose a Campaign'
-                    : world.orphaned
-                      ? 'Orphaned World'
-                      : 'Open World'}
-                </span>
-              </TrackedEntryLink>
-            ))}
+            {worlds.map((world) => {
+              const enterAsThreadwatcher =
+                threadwatcherMode && world.canThreadwatch
+
+              return (
+                <TrackedEntryLink
+                  key={world.id}
+                  className={styles.card}
+                  href={
+                    weaverMode
+                      ? `/world/${world.id}?mode=weaver`
+                      : enterAsThreadwatcher
+                        ? `/world/${world.id}/campaign?mode=threadwatcher`
+                        : `/world/${world.id}`
+                  }
+                  tracking={
+                    weaverMode
+                      ? { kind: 'WEAVER', worldId: world.id }
+                      : undefined
+                  }
+                  style={{ backgroundImage: `url(${uiAssets.fallbacks.world})` }}
+                >
+                  <span className={styles.badge}>
+                    {enterAsThreadwatcher
+                      ? 'Threadwatcher'
+                      : worldAccessLabel(world.accessKind)}
+                  </span>
+                  <strong>{world.name}</strong>
+                  <span className={styles.meta}>
+                    {enterAsThreadwatcher
+                      ? 'Choose a Campaign'
+                      : world.orphaned
+                        ? 'Orphaned World'
+                        : 'Open World overview'}
+                  </span>
+                </TrackedEntryLink>
+              )
+            })}
           </div>
         )}
       </AppPage>
