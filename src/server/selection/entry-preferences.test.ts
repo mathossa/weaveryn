@@ -3,15 +3,19 @@ import {
   EntryPreferenceDomainError,
   characterEntryKey,
   parseCharacterEntryPinInput,
+  portableCharacterEntryKey,
 } from './entry-preferences'
 
 describe('entry preferences', () => {
-  it('builds distinct keys for World and Campaign character entries', () => {
+  it('builds distinct keys for World, Campaign, and portable Character entries', () => {
     expect(characterEntryKey('world-character-1')).toBe(
       'character:world-character-1:world',
     )
     expect(characterEntryKey('world-character-1', 'campaign-1')).toBe(
       'character:world-character-1:campaign-1',
+    )
+    expect(portableCharacterEntryKey('character-1')).toBe(
+      'portable-character:character-1',
     )
   })
 

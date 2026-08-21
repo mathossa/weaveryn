@@ -1,0 +1,418 @@
+.slot {
+  position: relative;
+  min-width: 0;
+}
+
+.slot[data-open='true'] {
+  z-index: 60;
+}
+
+.button {
+  appearance: none;
+  display: inline-flex;
+  width: 100%;
+  min-width: 9.5rem;
+  max-width: 13.5rem;
+  min-height: 50px;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  padding: 0.45rem 0.7rem;
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+
+.button:hover {
+  border-color: var(--ui-border);
+  background: color-mix(in srgb, var(--ui-control-surface) 88%, white 5%);
+  transform: translateY(-1px);
+}
+
+.button:focus-visible,
+.option:focus-visible,
+.errorState button:focus-visible,
+.mobileRowButton:focus-visible,
+.mobileClose:focus-visible,
+.chooseEntity:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+.placeholder {
+  overflow: hidden;
+  color: var(--ui-text);
+  font-size: 0.86rem;
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  margin-left: auto;
+  color: var(--ui-text-muted);
+  font-size: 0.88rem;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  left: 0;
+  z-index: 60;
+  width: min(20rem, calc(100vw - 2rem));
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  padding: 0.55rem;
+  background: color-mix(in srgb, var(--ui-panel-strong) 98%, black 2%);
+  box-shadow: var(--ui-shadow-panel);
+}
+
+.slot[data-kind='character'] .menu {
+  right: 0;
+  left: auto;
+}
+
+.menuLabel {
+  display: block;
+  padding: 0.35rem 0.55rem 0.5rem;
+  color: var(--ui-accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.options {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-control);
+  padding: 0.58rem 0.65rem;
+  color: var(--ui-text);
+  text-decoration: none;
+}
+
+.option:hover {
+  border-color: color-mix(in srgb, var(--ui-border) 78%, transparent);
+  background: var(--ui-control-surface);
+}
+
+.option[data-active='true'] {
+  border-color: color-mix(in srgb, var(--ui-accent) 44%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--ui-accent) 8%,
+    var(--ui-control-surface)
+  );
+}
+
+.optionCopy {
+  display: grid;
+  min-width: 0;
+  gap: 0.1rem;
+}
+
+.optionCopy strong,
+.optionCopy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.optionCopy strong {
+  font-size: 0.86rem;
+}
+
+.optionCopy small {
+  color: var(--ui-text-muted);
+  font-size: 0.7rem;
+  text-transform: capitalize;
+}
+
+.activeMark {
+  color: var(--ui-accent-hover);
+  font-weight: 800;
+}
+
+.optionArrow {
+  color: var(--ui-text-muted);
+  font-size: 1.1rem;
+}
+
+.feedback {
+  margin: 0;
+  padding: 0.8rem 0.6rem;
+  color: var(--ui-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.errorState {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.65rem;
+}
+
+.errorState p {
+  margin: 0;
+  color: var(--ui-text-muted);
+  font-size: 0.78rem;
+}
+
+.errorState button {
+  appearance: none;
+  width: max-content;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  padding: 0.45rem 0.65rem;
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mobilePanel {
+  display: none;
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .button {
+    min-width: 0;
+    max-width: 9.5rem;
+    min-height: 44px;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .placeholder {
+    font-size: 0.78rem;
+  }
+
+  .menu {
+    width: min(18rem, calc(100vw - 1.5rem));
+  }
+}
+
+@media (max-width: 640px) {
+  .mobilePanel {
+    position: fixed;
+    top: max(4.55rem, calc(env(safe-area-inset-top) + 4rem));
+    right: 0.75rem;
+    left: 0.75rem;
+    z-index: 70;
+    display: block;
+    max-height: calc(
+      100dvh - max(5.3rem, calc(env(safe-area-inset-top) + 4.75rem)) -
+        env(safe-area-inset-bottom)
+    );
+    overflow-y: auto;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-panel);
+    padding: 0.85rem;
+    background: color-mix(in srgb, var(--ui-panel-strong) 98%, black 2%);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+    overscroll-behavior: contain;
+  }
+
+  .mobileHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.15rem 0.15rem 0.7rem;
+  }
+
+  .mobileHeader div {
+    display: grid;
+    min-width: 0;
+    gap: 0.12rem;
+  }
+
+  .mobileHeader span {
+    color: var(--ui-accent);
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mobileHeader h2 {
+    overflow: hidden;
+    margin: 0;
+    color: var(--ui-text);
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.08rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobileClose {
+    appearance: none;
+    display: grid;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid var(--ui-control-border);
+    border-radius: 999px;
+    background: var(--ui-control-surface);
+    color: var(--ui-text);
+    font: inherit;
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+
+  .mobileList {
+    display: grid;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--ui-border) 80%, transparent);
+    border-radius: var(--ui-radius-control);
+    background: rgba(3, 7, 13, 0.28);
+  }
+
+  .mobileRow {
+    border-bottom: 1px solid
+      color-mix(in srgb, var(--ui-border) 70%, transparent);
+  }
+
+  .mobileRow:last-child {
+    border-bottom: 0;
+  }
+
+  .mobileRow[data-open='true'] {
+    background: color-mix(in srgb, var(--ui-accent) 5%, transparent);
+  }
+
+  .mobileRowButton {
+    appearance: none;
+    display: grid;
+    width: 100%;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.7rem;
+    border: 0;
+    padding: 0.68rem 0.65rem;
+    background: transparent;
+    color: var(--ui-text);
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .mobileRowButton:hover {
+    background: var(--ui-control-surface);
+  }
+
+  .mobileRowCopy {
+    display: grid;
+    min-width: 0;
+    gap: 0.08rem;
+  }
+
+  .mobileRowCopy small {
+    color: var(--ui-accent);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .mobileRowCopy strong {
+    overflow: hidden;
+    font-size: 0.9rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobileRowChevron {
+    color: var(--ui-text-muted);
+    transition: transform 140ms ease;
+  }
+
+  .mobileRow[data-open='true'] .mobileRowChevron {
+    transform: rotate(180deg);
+  }
+
+  .mobileOptions {
+    border-top: 1px solid color-mix(in srgb, var(--ui-border) 70%, transparent);
+    padding: 0.35rem 0.4rem 0.45rem 3.65rem;
+  }
+
+  .mobileOptions .option {
+    min-height: 42px;
+    padding: 0.5rem 0.55rem;
+  }
+
+  .chooseEntity {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.7rem;
+    margin-top: 0.75rem;
+    border: 1px solid var(--ui-control-border);
+    border-radius: var(--ui-radius-control);
+    padding: 0.65rem 0.7rem;
+    background: var(--ui-control-surface);
+    color: var(--ui-text);
+    text-decoration: none;
+  }
+
+  .chooseEntity > span:nth-child(2) {
+    display: grid;
+    min-width: 0;
+    gap: 0.08rem;
+  }
+
+  .chooseEntity strong {
+    font-size: 0.84rem;
+  }
+
+  .chooseEntity small {
+    color: var(--ui-text-muted);
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .mobilePanel {
+    right: 0.5rem;
+    left: 0.5rem;
+  }
+
+  .mobileOptions {
+    padding-left: 0.45rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+
+  .button:hover {
+    transform: none;
+  }
+
+  .mobileRowChevron {
+    transition: none;
+  }
+}

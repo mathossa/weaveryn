@@ -11,6 +11,7 @@ const character = (
   id: 'wc-1',
   characterId: 'character-1',
   name: 'Bodwick',
+  portableName: 'Bodwick',
   image: null,
   worldId: 'world-1',
   worldName: 'Ansalon',

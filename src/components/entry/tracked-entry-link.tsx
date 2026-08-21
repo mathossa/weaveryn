@@ -10,6 +10,10 @@ type EntryTracking =
       campaignId?: string | null
     }
   | {
+      kind: 'PORTABLE_CHARACTER'
+      characterId: string
+    }
+  | {
       kind: 'WEAVER'
       worldId: string
       campaignId?: string | null

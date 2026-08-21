@@ -11,10 +11,10 @@ export async function loadSelectionPageData() {
   const user = await getAuthenticatedUser(new Headers(await headers()))
   if (!user) redirect('/login')
 
-  const [selection, entryPreferences, weaverResume] = await Promise.all([
-    getEntrySelection(user.id),
+  const selection = await getEntrySelection(user.id)
+  const [entryPreferences, weaverResume] = await Promise.all([
     listEntryPreferences(user.id),
-    getWeaverResume(user.id),
+    getWeaverResume(user.id, selection.weaverWorlds),
   ])
   return { user, selection, entryPreferences, weaverResume }
 }

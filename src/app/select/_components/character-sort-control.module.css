@@ -1,0 +1,30 @@
+.control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: rgba(245, 239, 225, 0.72);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+.control select {
+  min-height: 2.2rem;
+  border: 1px solid rgba(197, 157, 85, 0.38);
+  border-radius: 0.55rem;
+  background: rgba(12, 13, 16, 0.9);
+  color: #f5efe1;
+  padding: 0.35rem 2rem 0.35rem 0.7rem;
+  font: inherit;
+}
+
+.control select:focus-visible {
+  outline: 2px solid rgba(214, 178, 105, 0.85);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .control {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

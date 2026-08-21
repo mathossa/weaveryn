@@ -7,6 +7,10 @@ export type EntryUseInput =
       campaignId?: string | null
     }
   | {
+      kind: 'PORTABLE_CHARACTER'
+      characterId: string
+    }
+  | {
       kind: 'WEAVER'
       worldId: string
       campaignId?: string | null
@@ -49,6 +53,22 @@ export function parseEntryUseInput(value: unknown): EntryUseInput {
     }
   }
 
+  if (candidate.kind === 'PORTABLE_CHARACTER') {
+    if (
+      typeof candidate.characterId !== 'string' ||
+      candidate.characterId.length === 0
+    ) {
+      throw new EntryPreferenceDomainError(
+        'ENTRY_PREFERENCE_INVALID',
+        'Character ID is required for portable Character entry tracking.',
+      )
+    }
+    return {
+      kind: 'PORTABLE_CHARACTER',
+      characterId: candidate.characterId,
+    }
+  }
+
   if (candidate.kind === 'WEAVER') {
     if (
       typeof candidate.worldId !== 'string' ||
@@ -68,6 +88,6 @@ export function parseEntryUseInput(value: unknown): EntryUseInput {
 
   throw new EntryPreferenceDomainError(
     'ENTRY_PREFERENCE_INVALID',
-    'Entry-use kind must be CHARACTER or WEAVER.',
+    'Entry-use kind must be CHARACTER, PORTABLE_CHARACTER, or WEAVER.',
   )
 }
