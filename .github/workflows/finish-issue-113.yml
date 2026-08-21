@@ -59,6 +59,18 @@ jobs:
                   raise SystemExit(f"Expected block not found in {path}: {old[:100]!r}")
               target.write_text(text.replace(old, new, 1))
 
+          # Open the ?new=1 editor through initial state instead of a state-setting effect.
+          replace(
+              'src/app/world/[worldId]/timeline/world-timeline-view.tsx',
+              "import { FormEvent, useEffect, useMemo, useState } from 'react'\n",
+              "import { FormEvent, useMemo, useState } from 'react'\n",
+          )
+          replace(
+              'src/app/world/[worldId]/timeline/world-timeline-view.tsx',
+              "  const [editor, setEditor] = useState<'create' | EventView | null>(null)\n  const [chronologyOpen, setChronologyOpen] = useState(false)\n  const [deleteBusy, setDeleteBusy] = useState(false)\n  const [detailError, setDetailError] = useState<string | null>(null)\n\n  useEffect(() => {\n    if (initialCreate && canEditEvents) setEditor('create')\n  }, [canEditEvents, initialCreate])\n",
+              "  const [editor, setEditor] = useState<'create' | EventView | null>(() =>\n    initialCreate && canEditEvents ? 'create' : null,\n  )\n  const [chronologyOpen, setChronologyOpen] = useState(false)\n  const [deleteBusy, setDeleteBusy] = useState(false)\n  const [detailError, setDetailError] = useState<string | null>(null)\n",
+          )
+
           # Register deterministic World-events scenario.
           replace(
               'src/dev/scenario-catalog.ts',
