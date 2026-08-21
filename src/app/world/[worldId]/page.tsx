@@ -229,6 +229,24 @@ export default async function WorldOverviewPage({
                 </span>
               </Link>
 
+              {world.hasFullWorldAccess ? (
+                <Link
+                  className={styles.actionItem}
+                  href={`/world/${world.id}/timeline`}
+                >
+                  <span className={styles.actionIcon} aria-hidden="true">
+                    ⇄
+                  </span>
+                  <span>
+                    <strong>Open World timeline</strong>
+                    <small>Browse canonical history and eras</small>
+                  </span>
+                  <span className={styles.actionArrow} aria-hidden="true">
+                    ›
+                  </span>
+                </Link>
+              ) : null}
+
               <div
                 className={`${styles.actionItem} ${styles.actionDisabled}`}
                 aria-disabled="true"
@@ -413,18 +431,35 @@ export default async function WorldOverviewPage({
                 </span>
                 <span aria-hidden="true">›</span>
               </Link>
-              <div
-                className={`${styles.overviewItem} ${styles.overviewDisabled}`}
-              >
-                <span className={styles.overviewIcon} aria-hidden="true">
-                  ⇄
-                </span>
-                <span>
-                  <strong>Timeline</strong>
-                  <small>World history and eras.</small>
-                </span>
-                <span>Soon</span>
-              </div>
+              {world.hasFullWorldAccess ? (
+                <Link
+                  className={styles.overviewItem}
+                  href={`/world/${world.id}/timeline`}
+                >
+                  <span className={styles.overviewIcon} aria-hidden="true">
+                    ⇄
+                  </span>
+                  <span>
+                    <strong>Timeline</strong>
+                    <small>World history, events, and year systems.</small>
+                  </span>
+                  <span aria-hidden="true">›</span>
+                </Link>
+              ) : (
+                <div
+                  className={`${styles.overviewItem} ${styles.overviewDisabled}`}
+                  aria-disabled="true"
+                >
+                  <span className={styles.overviewIcon} aria-hidden="true">
+                    ⇄
+                  </span>
+                  <span>
+                    <strong>Timeline</strong>
+                    <small>Full World membership is required.</small>
+                  </span>
+                  <span>Restricted</span>
+                </div>
+              )}
               <div
                 className={`${styles.overviewItem} ${styles.overviewDisabled}`}
               >
