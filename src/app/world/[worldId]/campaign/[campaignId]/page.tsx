@@ -12,7 +12,7 @@ import { campaignRoleLabel } from '@/lib/role-labels'
 import { uiAssets } from '@/lib/ui-assets'
 import { requireAuthenticatedUser } from '@/server/auth'
 import { getCampaignOverview } from '@/server/campaigns'
-import { listEntryPreferences } from '@/server/selection'
+import { getLatestCampaignEntryPreference } from '@/server/selection'
 import { getWorldOverview } from '@/server/worlds'
 import {
   CampaignDashboardIcon,
@@ -44,29 +44,22 @@ export default async function CampaignOverviewPage({
     searchParams,
     requireAuthenticatedUser(new Headers(await headers())),
   ])
-  const [campaign, entryPreferences, worldOverview] = await Promise.all([
+  const explicitWeaverMode = query.mode === 'weaver'
+  const explicitThreadwatcherMode = query.mode === 'threadwatcher'
+  const requestedWorldCharacterId = requestedCharacterContext(query.character)
+  const shouldLoadCampaignPreference =
+    !requestedWorldCharacterId &&
+    !explicitWeaverMode &&
+    !explicitThreadwatcherMode
+  const [campaign, latestCampaignPreference, worldOverview] = await Promise.all([
     getCampaignOverview(worldId, campaignId, user.id),
-    listEntryPreferences(user.id),
+    shouldLoadCampaignPreference
+      ? getLatestCampaignEntryPreference(user.id, campaignId)
+      : Promise.resolve(null),
     getWorldOverview(worldId, user.id),
   ])
   if (!campaign) notFound()
 
-  const explicitWeaverMode = query.mode === 'weaver'
-  const explicitThreadwatcherMode = query.mode === 'threadwatcher'
-  const requestedWorldCharacterId = requestedCharacterContext(query.character)
-  const latestCampaignPreference =
-    requestedWorldCharacterId || explicitWeaverMode || explicitThreadwatcherMode
-      ? undefined
-      : entryPreferences
-          .filter(
-            (preference) =>
-              preference.campaignId === campaign.id && preference.lastUsedAt,
-          )
-          .sort(
-            (left, right) =>
-              (right.lastUsedAt?.getTime() ?? 0) -
-              (left.lastUsedAt?.getTime() ?? 0),
-          )[0]
   const preferredWorldCharacterId =
     explicitWeaverMode || explicitThreadwatcherMode
       ? undefined
