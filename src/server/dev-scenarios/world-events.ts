@@ -257,22 +257,23 @@ async function runAcceptanceChecks() {
     target: 'The War of Ash',
     expected: 'Year 1249 through Year 1253',
     actual: `${duration.startWorldDateLabel} through ${duration.endWorldDateLabel}`,
-    detail: 'A single canonical event record represents a span rather than a view-specific copy.',
+    detail:
+      'A single canonical event record represents a span rather than a view-specific copy.',
   })
 
   const reckoning = await createReckoning()
-  const labeled = await serviceFor('11300000-0000-4000-8000-000000000032').createEvent(
-    {
-      actorUserId: MEMBER_ID,
-      worldId: WORLD_ID,
-      title: 'The First New Dawn',
-      startDate: {
-        year: '50',
-        reckoningId: reckoning.id,
-        direction: 'AFTER',
-      },
+  const labeled = await serviceFor(
+    '11300000-0000-4000-8000-000000000032',
+  ).createEvent({
+    actorUserId: MEMBER_ID,
+    worldId: WORLD_ID,
+    title: 'The First New Dawn',
+    startDate: {
+      year: '50',
+      reckoningId: reckoning.id,
+      direction: 'AFTER',
     },
-  )
+  })
   checks.push({
     id: 'named-reckoning',
     title: 'Named reckoning resolves to canonical chronology',
@@ -285,7 +286,8 @@ async function runAcceptanceChecks() {
     target: 'Cataclysm Reckoning',
     expected: '50 AC resolves to canonical position 1250',
     actual: `${labeled.startWorldDateLabel} -> ${labeled.startWorldPosition}`,
-    detail: 'The human-facing notation resolves through the same canonical coordinate used for sorting.',
+    detail:
+      'The human-facing notation resolves through the same canonical coordinate used for sorting.',
   })
 
   let invalidCode: string | null = null
@@ -304,13 +306,15 @@ async function runAcceptanceChecks() {
   checks.push({
     id: 'invalid-duration',
     title: 'End-before-start is rejected',
-    status: invalidCode === 'WORLD_EVENT_END_BEFORE_START' ? 'passed' : 'failed',
+    status:
+      invalidCode === 'WORLD_EVENT_END_BEFORE_START' ? 'passed' : 'failed',
     actor: 'Bodwick (Threadwalker)',
     target: 'Impossible War',
     expected: 'WORLD_EVENT_END_BEFORE_START',
     actual: invalidCode ?? 'no domain error',
     domainErrorCode: invalidCode,
-    detail: 'Chronology validation fails closed before an impossible duration is persisted.',
+    detail:
+      'Chronology validation fails closed before an impossible duration is persisted.',
   })
 
   let viewerCode: string | null = null
@@ -343,18 +347,25 @@ async function runAcceptanceChecks() {
   checks.push({
     id: 'persisted-order',
     title: 'Persisted history reloads in chronological order',
-    status: JSON.stringify(positions) === JSON.stringify(sorted) ? 'passed' : 'failed',
+    status:
+      JSON.stringify(positions) === JSON.stringify(sorted)
+        ? 'passed'
+        : 'failed',
     actor: 'Bodwick (Threadwalker)',
     target: MAIN_WORLD_TIMELINE_NAME,
     expected: 'Events reload ordered by canonical start position',
     actual: positions.join(', '),
-    detail: 'The main timeline list uses persisted canonical positions rather than insertion order.',
+    detail:
+      'The main timeline list uses persisted canonical positions rather than insertion order.',
   })
 
   return checks
 }
 
-export const worldEventsScenario: DevScenario<WorldEventsState, WorldEventsAction> = {
+export const worldEventsScenario: DevScenario<
+  WorldEventsState,
+  WorldEventsAction
+> = {
   metadata,
   readState,
   async reset() {
@@ -366,7 +377,8 @@ export const worldEventsScenario: DevScenario<WorldEventsState, WorldEventsActio
         action: 'reset',
         actor: 'Development fixture runner',
         target: WORLD_NAME,
-        expected: 'World, main timeline, Threadwalker, Threadwatcher, two entities, and no events',
+        expected:
+          'World, main timeline, Threadwalker, Threadwatcher, two entities, and no events',
         actual: 'Fixture restored with an empty canonical history',
         status: 'passed',
       },
@@ -417,9 +429,15 @@ export const worldEventsScenario: DevScenario<WorldEventsState, WorldEventsActio
         message: 'Created the point event through WorldEventService.',
         activity: {
           action: request.action,
-          actor: request.actor === 'MEMBER' ? 'Bodwick (Threadwalker)' : 'Sera (Threadwatcher)',
+          actor:
+            request.actor === 'MEMBER'
+              ? 'Bodwick (Threadwalker)'
+              : 'Sera (Threadwatcher)',
           target: WORLD_NAME,
-          expected: request.actor === 'MEMBER' ? 'Point event created' : 'WORLD_PERMISSION_DENIED',
+          expected:
+            request.actor === 'MEMBER'
+              ? 'Point event created'
+              : 'WORLD_PERMISSION_DENIED',
           actual: `${event.title} at ${event.startWorldDateLabel}`,
           status: request.actor === 'MEMBER' ? 'passed' : 'failed',
         },
@@ -432,9 +450,15 @@ export const worldEventsScenario: DevScenario<WorldEventsState, WorldEventsActio
         message: 'Created the duration event through WorldEventService.',
         activity: {
           action: request.action,
-          actor: request.actor === 'MEMBER' ? 'Bodwick (Threadwalker)' : 'Sera (Threadwatcher)',
+          actor:
+            request.actor === 'MEMBER'
+              ? 'Bodwick (Threadwalker)'
+              : 'Sera (Threadwatcher)',
           target: WORLD_NAME,
-          expected: request.actor === 'MEMBER' ? 'Duration event created' : 'WORLD_PERMISSION_DENIED',
+          expected:
+            request.actor === 'MEMBER'
+              ? 'Duration event created'
+              : 'WORLD_PERMISSION_DENIED',
           actual: `${event.startWorldDateLabel} — ${event.endWorldDateLabel}`,
           status: request.actor === 'MEMBER' ? 'passed' : 'failed',
         },
@@ -464,7 +488,8 @@ export const worldEventsScenario: DevScenario<WorldEventsState, WorldEventsActio
         message: error.message,
         status: 403,
         activity: {
-          action: (action as { action?: string } | undefined)?.action ?? 'unknown',
+          action:
+            (action as { action?: string } | undefined)?.action ?? 'unknown',
           actor: 'Sera (Threadwatcher)',
           target: WORLD_NAME,
           expected: 'WORLD_PERMISSION_DENIED',
@@ -481,7 +506,8 @@ export const worldEventsScenario: DevScenario<WorldEventsState, WorldEventsActio
         message: error.message,
         status: 400,
         activity: {
-          action: (action as { action?: string } | undefined)?.action ?? 'unknown',
+          action:
+            (action as { action?: string } | undefined)?.action ?? 'unknown',
           actor: 'Bodwick (Threadwalker)',
           target: WORLD_NAME,
           expected: 'WORLD_EVENT_END_BEFORE_START',
