@@ -1,4 +1,8 @@
 import { prisma } from '../../lib/prisma'
+import {
+  campaignAccessibleToUserWhere,
+  worldAccessibleToUserWhere,
+} from '../access/prisma-access-predicates'
 
 export interface CampaignChoice {
   id: string
@@ -56,17 +60,7 @@ export async function getWorldCampaignSelection(
   const world = await prisma.world.findFirst({
     where: {
       id: worldId,
-      OR: [
-        { ownerId: userId },
-        { memberships: { some: { userId } } },
-        {
-          campaigns: {
-            some: {
-              OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
-            },
-          },
-        },
-      ],
+      ...worldAccessibleToUserWhere(userId),
     },
     select: {
       id: true,
@@ -78,9 +72,7 @@ export async function getWorldCampaignSelection(
         take: 1,
       },
       campaigns: {
-        where: {
-          OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
-        },
+        where: campaignAccessibleToUserWhere(userId),
         select: {
           id: true,
           name: true,
@@ -128,7 +120,7 @@ export async function getCampaignOverview(
     where: {
       id: campaignId,
       worldId,
-      OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+      ...campaignAccessibleToUserWhere(userId),
     },
     select: {
       id: true,

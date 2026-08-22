@@ -1,4 +1,5 @@
 import { Prisma, type PrismaClient } from '@/generated/prisma/client'
+import { campaignAccessibleToUserWhere } from '../access/prisma-access-predicates'
 import type { WorldMembershipRecord } from '../worlds/world-membership-repository'
 import type {
   CampaignVisibilityAccessRecord,
@@ -10,6 +11,7 @@ import type {
   WorldEntityRecord,
   WorldEntityRepository,
   WorldEntityTypeRecord,
+  WorldEntityVisibilityQuery,
 } from './world-entity-repository'
 
 type Db = PrismaClient | Prisma.TransactionClient
@@ -72,6 +74,129 @@ function toCampaignAccess(value: {
     worldId: value.worldId,
     ownerId: value.ownerId,
     membershipRole: value.memberships[0]?.role ?? null,
+  }
+}
+
+function visibleEntityWhere(
+  worldId: string,
+  visibility: WorldEntityVisibilityQuery,
+): Prisma.WorldEntityWhereInput {
+  const nonCharacterVisibility: Prisma.WorldEntityWhereInput[] = [
+    {
+      visibilityScope: 'PRIVATE',
+      createdById: visibility.userId,
+    },
+    {
+      visibilityScope: 'PLAYER',
+      visibilityUserId: visibility.userId,
+      OR: [
+        { visibilityCampaignId: null },
+        ...(visibility.campaignIds.length > 0
+          ? [
+              {
+                visibilityCampaignId: {
+                  in: visibility.campaignIds,
+                },
+              },
+            ]
+          : []),
+      ],
+    },
+  ]
+
+  if (visibility.hasWorldAccess) {
+    nonCharacterVisibility.push({ visibilityScope: 'WORLD' })
+  }
+  if (visibility.campaignIds.length > 0) {
+    nonCharacterVisibility.push({
+      visibilityScope: 'CAMPAIGN',
+      visibilityCampaignId: { in: visibility.campaignIds },
+    })
+  }
+  if (visibility.gmCampaignIds.length > 0) {
+    nonCharacterVisibility.push({
+      visibilityScope: 'GM',
+      visibilityCampaignId: { in: visibility.gmCampaignIds },
+    })
+  }
+
+  const characterVisibility: Prisma.WorldEntityWhereInput =
+    visibility.hasWorldAccess
+      ? { worldCharacterId: { not: null } }
+      : {
+          worldCharacter: {
+            is: {
+              campaignCharacters: {
+                some: { campaignId: { in: visibility.campaignIds } },
+              },
+            },
+          },
+        }
+
+  return {
+    worldId,
+    OR: [
+      characterVisibility,
+      {
+        worldCharacterId: null,
+        OR: nonCharacterVisibility,
+      },
+    ],
+  }
+}
+
+function visibleRelationshipWhere(
+  worldId: string,
+  visibility: WorldEntityVisibilityQuery,
+): Prisma.EntityRelationshipWhereInput {
+  const relationshipVisibility: Prisma.EntityRelationshipWhereInput[] = [
+    {
+      visibilityScope: 'PRIVATE',
+      createdById: visibility.userId,
+    },
+    {
+      visibilityScope: 'PLAYER',
+      visibilityUserId: visibility.userId,
+      OR: [
+        { visibilityCampaignId: null },
+        ...(visibility.campaignIds.length > 0
+          ? [
+              {
+                visibilityCampaignId: {
+                  in: visibility.campaignIds,
+                },
+              },
+            ]
+          : []),
+      ],
+    },
+  ]
+
+  if (visibility.hasWorldAccess) {
+    relationshipVisibility.push({ visibilityScope: 'WORLD' })
+  }
+  if (visibility.campaignIds.length > 0) {
+    relationshipVisibility.push({
+      visibilityScope: 'CAMPAIGN',
+      visibilityCampaignId: { in: visibility.campaignIds },
+    })
+  }
+  if (visibility.gmCampaignIds.length > 0) {
+    relationshipVisibility.push({
+      visibilityScope: 'GM',
+      visibilityCampaignId: { in: visibility.gmCampaignIds },
+    })
+  }
+
+  const visibleEndpoint = visibleEntityWhere(worldId, visibility)
+
+  return {
+    worldId,
+    AND: [
+      { OR: relationshipVisibility },
+      { sourceEntity: { is: visibleEndpoint } },
+      { targetEntity: { is: visibleEndpoint } },
+    ],
   }
 }
 
@@ -147,6 +272,19 @@ export class PrismaWorldEntityRepository implements WorldEntityRepository {
     ).map(toEntity)
   }
 
+  async listVisibleEntities(
+    worldId: string,
+    visibility: WorldEntityVisibilityQuery,
+  ) {
+    return (
+      await this.db.worldEntity.findMany({
+        where: visibleEntityWhere(worldId, visibility),
+        include: worldCharacterInclude,
+        orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+      })
+    ).map(toEntity)
+  }
+
   async updateEntity(
     worldId: string,
     entityId: string,
@@ -204,6 +342,18 @@ export class PrismaWorldEntityRepository implements WorldEntityRepository {
     ).map(toRelationship)
   }
 
+  async listVisibleRelationships(
+    worldId: string,
+    visibility: WorldEntityVisibilityQuery,
+  ) {
+    return (
+      await this.db.entityRelationship.findMany({
+        where: visibleRelationshipWhere(worldId, visibility),
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      })
+    ).map(toRelationship)
+  }
+
   async deleteRelationship(worldId: string, relationshipId: string) {
     const result = await this.db.entityRelationship.deleteMany({
       where: { id: relationshipId, worldId },
@@ -215,7 +365,7 @@ export class PrismaWorldEntityRepository implements WorldEntityRepository {
     const campaign = await this.db.campaign.findFirst({
       where: {
         id: campaignId,
-        OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+        ...campaignAccessibleToUserWhere(userId),
       },
       select: {
         id: true,
@@ -236,7 +386,7 @@ export class PrismaWorldEntityRepository implements WorldEntityRepository {
       await this.db.campaign.findMany({
         where: {
           worldId,
-          OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+          ...campaignAccessibleToUserWhere(userId),
         },
         select: {
           id: true,

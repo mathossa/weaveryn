@@ -23,6 +23,8 @@ import type {
   VisibilityScope,
   WorldEntityRecord,
   WorldEntityRepository,
+  WorldEntityTypeRecord,
+  WorldEntityVisibilityQuery,
 } from './world-entity-repository'
 import { PrismaWorldEntityRepository } from './prisma-world-entity-repository'
 
@@ -113,6 +115,13 @@ interface ResolvedVisibility {
   visibilityUserId: string | null
 }
 
+interface PreparedRelationshipContext {
+  visibility?: ResolvedVisibility
+  visibilityContext?: VisibilityContext
+  source?: WorldEntityRecord
+  campaignContextValidated?: boolean
+}
+
 function normalizeTypeName(value: string) {
   return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('en-US')
 }
@@ -169,6 +178,25 @@ function canViewRecord(record: VisibilityRecord, context: VisibilityContext) {
       )
     case 'PRIVATE':
       return record.createdById === context.userId
+  }
+}
+
+function entityVisibilityQuery(
+  context: VisibilityContext,
+): WorldEntityVisibilityQuery {
+  const campaigns = [...context.campaigns.values()]
+  return {
+    userId: context.userId,
+    hasWorldAccess: context.isWorldOwner || context.hasWorldMembership,
+    campaignIds: campaigns.map((access) => access.id),
+    gmCampaignIds: campaigns
+      .filter(
+        (access) =>
+          access.ownerId === context.userId ||
+          access.membershipRole === 'GM' ||
+          access.membershipRole === 'ASSISTANT_GM',
+      )
+      .map((access) => access.id),
   }
 }
 
@@ -363,9 +391,9 @@ export class WorldEntityService {
   private async createRelationshipRecord(
     repository: WorldEntityRepository,
     input: CreateEntityRelationshipInput,
-    inheritedVisibility?: ResolvedVisibility,
+    prepared?: PreparedRelationshipContext,
   ) {
-    if (input.contextCampaignId) {
+    if (input.contextCampaignId && !prepared?.campaignContextValidated) {
       await this.assertCampaignContext(
         repository,
         input.worldId,
@@ -373,15 +401,19 @@ export class WorldEntityService {
         input.contextCampaignId,
       )
     }
-    const context = await this.getVisibilityContext(
-      repository,
-      input.worldId,
-      input.actorUserId,
-    )
-    const [source, target] = await Promise.all([
-      repository.findEntityById(input.sourceEntityId),
-      repository.findEntityById(input.targetEntityId),
-    ])
+    const context =
+      prepared?.visibilityContext ??
+      (await this.getVisibilityContext(
+        repository,
+        input.worldId,
+        input.actorUserId,
+      ))
+    const [source, target] = prepared?.source
+      ? [prepared.source, await repository.findEntityById(input.targetEntityId)]
+      : await Promise.all([
+          repository.findEntityById(input.sourceEntityId),
+          repository.findEntityById(input.targetEntityId),
+        ])
 
     if (!source) throw worldEntityNotFound(input.sourceEntityId)
     if (!target) throw worldEntityNotFound(input.targetEntityId)
@@ -396,7 +428,7 @@ export class WorldEntityService {
     }
 
     const visibility =
-      inheritedVisibility ?? (await this.resolveVisibility(repository, input))
+      prepared?.visibility ?? (await this.resolveVisibility(repository, input))
     const relationship: CreateEntityRelationshipRecordInput = {
       id: this.createId(),
       worldId: input.worldId,
@@ -409,6 +441,57 @@ export class WorldEntityService {
       ...visibility,
     }
     return repository.createRelationship(relationship)
+  }
+
+  private buildEntityTypeChoices(
+    custom: WorldEntityTypeRecord[],
+    entities: WorldEntityRecord[],
+  ): WorldEntityTypeChoice[] {
+    const builtIn: WorldEntityTypeChoice[] = BUILT_IN_WORLD_ENTITY_TYPES.map(
+      (choice) => ({ ...choice, scope: 'BUILT_IN' }),
+    )
+    const seen = new Set(
+      builtIn.map((choice) => normalizeTypeName(choice.value)),
+    )
+    const customChoices = custom
+      .filter((choice) => !seen.has(choice.normalizedName))
+      .map((choice) => ({
+        id: choice.id,
+        value: choice.name,
+        label: choice.name,
+        scope: choice.campaignId ? ('CAMPAIGN' as const) : ('WORLD' as const),
+        usageCount: entities.filter(
+          (entity) => normalizeTypeName(entity.type) === choice.normalizedName,
+        ).length,
+      }))
+    return [...builtIn, ...customChoices]
+  }
+
+  private async listVisibleEntities(
+    repository: WorldEntityRepository,
+    worldId: string,
+    context: VisibilityContext,
+  ) {
+    const entities = repository.listVisibleEntities
+      ? await repository.listVisibleEntities(
+          worldId,
+          entityVisibilityQuery(context),
+        )
+      : await repository.listEntities(worldId)
+    return entities.filter((entity) => canViewRecord(entity, context))
+  }
+
+  private listRelationshipCandidates(
+    repository: WorldEntityRepository,
+    worldId: string,
+    context: VisibilityContext,
+  ) {
+    return repository.listVisibleRelationships
+      ? repository.listVisibleRelationships(
+          worldId,
+          entityVisibilityQuery(context),
+        )
+      : repository.listRelationships(worldId)
   }
 
   createEntity(input: CreateWorldEntityInput): Promise<WorldEntityRecord> {
@@ -447,7 +530,17 @@ export class WorldEntityService {
         ...visibility,
       })
 
-      for (const relationship of input.initialRelationships ?? []) {
+      const initialRelationships = input.initialRelationships ?? []
+      const relationshipContext =
+        initialRelationships.length > 0
+          ? await this.getVisibilityContext(
+              repository,
+              input.worldId,
+              input.actorUserId,
+            )
+          : undefined
+
+      for (const relationship of initialRelationships) {
         await this.createRelationshipRecord(
           repository,
           {
@@ -459,7 +552,12 @@ export class WorldEntityService {
             label: relationship.label,
             contextCampaignId: input.contextCampaignId,
           },
-          visibility,
+          {
+            visibility,
+            visibilityContext: relationshipContext,
+            source: entity,
+            campaignContextValidated: Boolean(input.contextCampaignId),
+          },
         )
       }
 
@@ -487,8 +585,7 @@ export class WorldEntityService {
       worldId,
       userId,
     )
-    const entities = await this.repository.listEntities(worldId)
-    return entities.filter((entity) => canViewRecord(entity, context))
+    return this.listVisibleEntities(this.repository, worldId, context)
   }
 
   updateEntity(
@@ -605,21 +702,59 @@ export class WorldEntityService {
       worldId,
       userId,
     )
-    const [relationships, entities] = await Promise.all([
-      this.repository.listRelationships(worldId),
-      this.repository.listEntities(worldId),
+    const [relationships, visibleEntities] = await Promise.all([
+      this.listRelationshipCandidates(this.repository, worldId, context),
+      this.listVisibleEntities(this.repository, worldId, context),
     ])
-    const visibleEntityIds = new Set(
-      entities
-        .filter((entity) => canViewRecord(entity, context))
-        .map((entity) => entity.id),
-    )
+    const visibleEntityIds = new Set(visibleEntities.map((entity) => entity.id))
     return relationships.filter(
       (relationship) =>
         canViewRecord(relationship, context) &&
         visibleEntityIds.has(relationship.sourceEntityId) &&
         visibleEntityIds.has(relationship.targetEntityId),
     )
+  }
+
+  async readWorkspace(
+    worldId: string,
+    userId: string,
+    contextCampaignId?: string,
+  ) {
+    const context = await this.getVisibilityContext(
+      this.repository,
+      worldId,
+      userId,
+    )
+    if (contextCampaignId) {
+      await this.assertCampaignContext(
+        this.repository,
+        worldId,
+        userId,
+        contextCampaignId,
+      )
+    }
+
+    const [entities, relationships, customTypes] = await Promise.all([
+      this.repository.listEntities(worldId),
+      this.listRelationshipCandidates(this.repository, worldId, context),
+      this.repository.listWorldEntityTypes(worldId, contextCampaignId),
+    ])
+    const visibleEntities = entities.filter((entity) =>
+      canViewRecord(entity, context),
+    )
+    const visibleEntityIds = new Set(visibleEntities.map((entity) => entity.id))
+    const visibleRelationships = relationships.filter(
+      (relationship) =>
+        canViewRecord(relationship, context) &&
+        visibleEntityIds.has(relationship.sourceEntityId) &&
+        visibleEntityIds.has(relationship.targetEntityId),
+    )
+
+    return {
+      entities: visibleEntities,
+      relationships: visibleRelationships,
+      entityTypes: this.buildEntityTypeChoices(customTypes, entities),
+    }
   }
 
   deleteRelationship(worldId: string, userId: string, relationshipId: string) {
@@ -678,24 +813,7 @@ export class WorldEntityService {
       this.repository.listWorldEntityTypes(worldId, contextCampaignId),
       this.repository.listEntities(worldId),
     ])
-    const builtIn: WorldEntityTypeChoice[] = BUILT_IN_WORLD_ENTITY_TYPES.map(
-      (choice) => ({ ...choice, scope: 'BUILT_IN' }),
-    )
-    const seen = new Set(
-      builtIn.map((choice) => normalizeTypeName(choice.value)),
-    )
-    const customChoices = custom
-      .filter((choice) => !seen.has(choice.normalizedName))
-      .map((choice) => ({
-        id: choice.id,
-        value: choice.name,
-        label: choice.name,
-        scope: choice.campaignId ? ('CAMPAIGN' as const) : ('WORLD' as const),
-        usageCount: entities.filter(
-          (entity) => normalizeTypeName(entity.type) === choice.normalizedName,
-        ).length,
-      }))
-    return [...builtIn, ...customChoices]
+    return this.buildEntityTypeChoices(custom, entities)
   }
 }
 

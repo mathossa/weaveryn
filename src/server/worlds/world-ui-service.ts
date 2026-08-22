@@ -1,4 +1,8 @@
 import { prisma } from '../../lib/prisma'
+import {
+  campaignAccessibleToUserWhere,
+  worldAccessibleToUserWhere,
+} from '../access/prisma-access-predicates'
 import { hasWorldPermission, WORLD_PERMISSIONS } from './world-permissions'
 
 export type WorldAccessKind =
@@ -58,23 +62,24 @@ function campaignRole(input: {
   return input.membershipRole ?? 'SPECTATOR'
 }
 
+export function shouldCheckOwnedActiveCampaignForClaim(input: {
+  ownerId: string | null
+  membershipRole: 'ADMIN' | 'MEMBER' | 'VIEWER' | null
+  adminMembershipCount: number
+}) {
+  return (
+    input.ownerId === null &&
+    input.membershipRole !== 'ADMIN' &&
+    input.membershipRole !== 'MEMBER' &&
+    input.adminMembershipCount === 0
+  )
+}
+
 export async function listWorldNavigationChoices(
   userId: string,
 ): Promise<WorldNavigationChoice[]> {
   const worlds = await prisma.world.findMany({
-    where: {
-      OR: [
-        { ownerId: userId },
-        { memberships: { some: { userId } } },
-        {
-          campaigns: {
-            some: {
-              OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
-            },
-          },
-        },
-      ],
-    },
+    where: worldAccessibleToUserWhere(userId),
     select: {
       id: true,
       name: true,
@@ -144,17 +149,7 @@ export async function getWorldOverview(
   const world = await prisma.world.findFirst({
     where: {
       id: worldId,
-      OR: [
-        { ownerId: userId },
-        { memberships: { some: { userId } } },
-        {
-          campaigns: {
-            some: {
-              OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
-            },
-          },
-        },
-      ],
+      ...worldAccessibleToUserWhere(userId),
     },
     select: {
       id: true,
@@ -167,9 +162,7 @@ export async function getWorldOverview(
         take: 1,
       },
       campaigns: {
-        where: {
-          OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
-        },
+        where: campaignAccessibleToUserWhere(userId),
         select: {
           id: true,
           name: true,
@@ -212,13 +205,22 @@ export async function getWorldOverview(
     },
     WORLD_PERMISSIONS.CREATE_CAMPAIGN,
   )
+  const shouldCheckOwnedActiveCampaign = shouldCheckOwnedActiveCampaignForClaim(
+    {
+      ownerId: world.ownerId,
+      membershipRole,
+      adminMembershipCount: world._count.memberships,
+    },
+  )
 
   const [ownsActiveCampaign, preferences, membershipCount, entityCount] =
     await Promise.all([
-      prisma.campaign.findFirst({
-        where: { worldId, ownerId: userId, status: 'ACTIVE' },
-        select: { id: true },
-      }),
+      shouldCheckOwnedActiveCampaign
+        ? prisma.campaign.findFirst({
+            where: { worldId, ownerId: userId, status: 'ACTIVE' },
+            select: { id: true },
+          })
+        : Promise.resolve(null),
       prisma.entryPreference.findMany({
         where: {
           userId,
