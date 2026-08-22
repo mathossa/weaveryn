@@ -148,6 +148,10 @@ export interface WorldEntityRepository extends WorldAuthorizationRepository {
     relationshipId: string,
   ): Promise<EntityRelationshipRecord | null>
   listRelationships(worldId: string): Promise<EntityRelationshipRecord[]>
+  listVisibleRelationships?(
+    worldId: string,
+    visibility: WorldEntityVisibilityQuery,
+  ): Promise<EntityRelationshipRecord[]>
   deleteRelationship(worldId: string, relationshipId: string): Promise<boolean>
   findAccessibleCampaign(
     campaignId: string,
