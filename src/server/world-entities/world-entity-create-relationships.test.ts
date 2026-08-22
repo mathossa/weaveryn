@@ -50,8 +50,7 @@ describe('WorldEntityService initial relationships', () => {
       [targetTwoId, worldEntity(targetTwoId, 'Target Two')],
     ])
 
-    let repository: WorldEntityRepository
-    repository = {
+    const repository = {
       runInTransaction: async <T>(
         operation: (repository: WorldEntityRepository) => Promise<T>,
       ) => operation(repository),
