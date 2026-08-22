@@ -114,6 +114,13 @@ interface ResolvedVisibility {
   visibilityUserId: string | null
 }
 
+interface PreparedRelationshipContext {
+  visibility?: ResolvedVisibility
+  visibilityContext?: VisibilityContext
+  source?: WorldEntityRecord
+  campaignContextValidated?: boolean
+}
+
 function normalizeTypeName(value: string) {
   return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('en-US')
 }
@@ -157,9 +164,9 @@ function canViewRecord(record: VisibilityRecord, context: VisibilityContext) {
       const access = context.campaigns.get(record.visibilityCampaignId)
       return Boolean(
         access &&
-        (access.ownerId === context.userId ||
-          access.membershipRole === 'GM' ||
-          access.membershipRole === 'ASSISTANT_GM'),
+          (access.ownerId === context.userId ||
+            access.membershipRole === 'GM' ||
+            access.membershipRole === 'ASSISTANT_GM'),
       )
     }
     case 'PLAYER':
@@ -364,9 +371,9 @@ export class WorldEntityService {
   private async createRelationshipRecord(
     repository: WorldEntityRepository,
     input: CreateEntityRelationshipInput,
-    inheritedVisibility?: ResolvedVisibility,
+    prepared?: PreparedRelationshipContext,
   ) {
-    if (input.contextCampaignId) {
+    if (input.contextCampaignId && !prepared?.campaignContextValidated) {
       await this.assertCampaignContext(
         repository,
         input.worldId,
@@ -374,15 +381,16 @@ export class WorldEntityService {
         input.contextCampaignId,
       )
     }
-    const context = await this.getVisibilityContext(
-      repository,
-      input.worldId,
-      input.actorUserId,
-    )
-    const [source, target] = await Promise.all([
-      repository.findEntityById(input.sourceEntityId),
-      repository.findEntityById(input.targetEntityId),
-    ])
+    const context =
+      prepared?.visibilityContext ??
+      (await this.getVisibilityContext(
+        repository,
+        input.worldId,
+        input.actorUserId,
+      ))
+    const source =
+      prepared?.source ?? (await repository.findEntityById(input.sourceEntityId))
+    const target = await repository.findEntityById(input.targetEntityId)
 
     if (!source) throw worldEntityNotFound(input.sourceEntityId)
     if (!target) throw worldEntityNotFound(input.targetEntityId)
@@ -397,7 +405,7 @@ export class WorldEntityService {
     }
 
     const visibility =
-      inheritedVisibility ?? (await this.resolveVisibility(repository, input))
+      prepared?.visibility ?? (await this.resolveVisibility(repository, input))
     const relationship: CreateEntityRelationshipRecordInput = {
       id: this.createId(),
       worldId: input.worldId,
@@ -472,7 +480,17 @@ export class WorldEntityService {
         ...visibility,
       })
 
-      for (const relationship of input.initialRelationships ?? []) {
+      const initialRelationships = input.initialRelationships ?? []
+      const relationshipContext =
+        initialRelationships.length > 0
+          ? await this.getVisibilityContext(
+              repository,
+              input.worldId,
+              input.actorUserId,
+            )
+          : undefined
+
+      for (const relationship of initialRelationships) {
         await this.createRelationshipRecord(
           repository,
           {
@@ -484,7 +502,12 @@ export class WorldEntityService {
             label: relationship.label,
             contextCampaignId: input.contextCampaignId,
           },
-          visibility,
+          {
+            visibility,
+            visibilityContext: relationshipContext,
+            source: entity,
+            campaignContextValidated: Boolean(input.contextCampaignId),
+          },
         )
       }
 
