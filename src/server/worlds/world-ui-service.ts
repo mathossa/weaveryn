@@ -58,6 +58,19 @@ function campaignRole(input: {
   return input.membershipRole ?? 'SPECTATOR'
 }
 
+export function shouldCheckOwnedActiveCampaignForClaim(input: {
+  ownerId: string | null
+  membershipRole: 'ADMIN' | 'MEMBER' | 'VIEWER' | null
+  adminMembershipCount: number
+}) {
+  return (
+    input.ownerId === null &&
+    input.membershipRole !== 'ADMIN' &&
+    input.membershipRole !== 'MEMBER' &&
+    input.adminMembershipCount === 0
+  )
+}
+
 export async function listWorldNavigationChoices(
   userId: string,
 ): Promise<WorldNavigationChoice[]> {
@@ -212,13 +225,21 @@ export async function getWorldOverview(
     },
     WORLD_PERMISSIONS.CREATE_CAMPAIGN,
   )
+  const shouldCheckOwnedActiveCampaign =
+    shouldCheckOwnedActiveCampaignForClaim({
+      ownerId: world.ownerId,
+      membershipRole,
+      adminMembershipCount: world._count.memberships,
+    })
 
   const [ownsActiveCampaign, preferences, membershipCount, entityCount] =
     await Promise.all([
-      prisma.campaign.findFirst({
-        where: { worldId, ownerId: userId, status: 'ACTIVE' },
-        select: { id: true },
-      }),
+      shouldCheckOwnedActiveCampaign
+        ? prisma.campaign.findFirst({
+            where: { worldId, ownerId: userId, status: 'ACTIVE' },
+            select: { id: true },
+          })
+        : Promise.resolve(null),
       prisma.entryPreference.findMany({
         where: {
           userId,
