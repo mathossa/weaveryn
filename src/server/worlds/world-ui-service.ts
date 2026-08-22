@@ -205,12 +205,13 @@ export async function getWorldOverview(
     },
     WORLD_PERMISSIONS.CREATE_CAMPAIGN,
   )
-  const shouldCheckOwnedActiveCampaign =
-    shouldCheckOwnedActiveCampaignForClaim({
+  const shouldCheckOwnedActiveCampaign = shouldCheckOwnedActiveCampaignForClaim(
+    {
       ownerId: world.ownerId,
       membershipRole,
       adminMembershipCount: world._count.memberships,
-    })
+    },
+  )
 
   const [ownsActiveCampaign, preferences, membershipCount, entityCount] =
     await Promise.all([

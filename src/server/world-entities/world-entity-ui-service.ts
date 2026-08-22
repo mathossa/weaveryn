@@ -230,11 +230,7 @@ export async function getWorldEntityWorkspace(
     entities: authorizedEntities,
     relationships: authorizedRelationships,
     entityTypes,
-  } = await worldEntityService.readWorkspace(
-    worldId,
-    userId,
-    contextCampaignId,
-  )
+  } = await worldEntityService.readWorkspace(worldId, userId, contextCampaignId)
   const entities = filterWorldEntitiesForCampaignContext(
     authorizedEntities,
     resolvedContextCampaign?.id,

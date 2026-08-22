@@ -118,9 +118,7 @@ async function measureRequest(baseUrl, cookie, benchmarkCase) {
   const response = await fetch(new URL(benchmarkCase.path, baseUrl), {
     method: benchmarkCase.method,
     headers,
-    body: benchmarkCase.body
-      ? JSON.stringify(benchmarkCase.body)
-      : undefined,
+    body: benchmarkCase.body ? JSON.stringify(benchmarkCase.body) : undefined,
     redirect: 'manual',
   })
   await response.arrayBuffer()

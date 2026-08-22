@@ -409,10 +409,7 @@ export class WorldEntityService {
         input.actorUserId,
       ))
     const [source, target] = prepared?.source
-      ? [
-          prepared.source,
-          await repository.findEntityById(input.targetEntityId),
-        ]
+      ? [prepared.source, await repository.findEntityById(input.targetEntityId)]
       : await Promise.all([
           repository.findEntityById(input.sourceEntityId),
           repository.findEntityById(input.targetEntityId),
@@ -490,7 +487,10 @@ export class WorldEntityService {
     context: VisibilityContext,
   ) {
     return repository.listVisibleRelationships
-      ? repository.listVisibleRelationships(worldId, entityVisibilityQuery(context))
+      ? repository.listVisibleRelationships(
+          worldId,
+          entityVisibilityQuery(context),
+        )
       : repository.listRelationships(worldId)
   }
 

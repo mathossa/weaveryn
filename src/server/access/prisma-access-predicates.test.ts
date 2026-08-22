@@ -21,10 +21,7 @@ describe('Prisma access predicates', () => {
         {
           campaigns: {
             some: {
-              OR: [
-                { ownerId: userId },
-                { memberships: { some: { userId } } },
-              ],
+              OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
             },
           },
         },
