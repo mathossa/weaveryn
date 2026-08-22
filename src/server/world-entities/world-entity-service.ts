@@ -470,6 +470,30 @@ export class WorldEntityService {
     return [...builtIn, ...customChoices]
   }
 
+  private async listVisibleEntities(
+    repository: WorldEntityRepository,
+    worldId: string,
+    context: VisibilityContext,
+  ) {
+    const entities = repository.listVisibleEntities
+      ? await repository.listVisibleEntities(
+          worldId,
+          entityVisibilityQuery(context),
+        )
+      : await repository.listEntities(worldId)
+    return entities.filter((entity) => canViewRecord(entity, context))
+  }
+
+  private listRelationshipCandidates(
+    repository: WorldEntityRepository,
+    worldId: string,
+    context: VisibilityContext,
+  ) {
+    return repository.listVisibleRelationships
+      ? repository.listVisibleRelationships(worldId, entityVisibilityQuery(context))
+      : repository.listRelationships(worldId)
+  }
+
   createEntity(input: CreateWorldEntityInput): Promise<WorldEntityRecord> {
     return this.repository.runInTransaction(async (repository) => {
       const authorization = new WorldAuthorizationService(repository)
@@ -561,13 +585,7 @@ export class WorldEntityService {
       worldId,
       userId,
     )
-    const entities = this.repository.listVisibleEntities
-      ? await this.repository.listVisibleEntities(
-          worldId,
-          entityVisibilityQuery(context),
-        )
-      : await this.repository.listEntities(worldId)
-    return entities.filter((entity) => canViewRecord(entity, context))
+    return this.listVisibleEntities(this.repository, worldId, context)
   }
 
   updateEntity(
@@ -684,15 +702,11 @@ export class WorldEntityService {
       worldId,
       userId,
     )
-    const [relationships, entities] = await Promise.all([
-      this.repository.listRelationships(worldId),
-      this.repository.listEntities(worldId),
+    const [relationships, visibleEntities] = await Promise.all([
+      this.listRelationshipCandidates(this.repository, worldId, context),
+      this.listVisibleEntities(this.repository, worldId, context),
     ])
-    const visibleEntityIds = new Set(
-      entities
-        .filter((entity) => canViewRecord(entity, context))
-        .map((entity) => entity.id),
-    )
+    const visibleEntityIds = new Set(visibleEntities.map((entity) => entity.id))
     return relationships.filter(
       (relationship) =>
         canViewRecord(relationship, context) &&
@@ -722,7 +736,7 @@ export class WorldEntityService {
 
     const [entities, relationships, customTypes] = await Promise.all([
       this.repository.listEntities(worldId),
-      this.repository.listRelationships(worldId),
+      this.listRelationshipCandidates(this.repository, worldId, context),
       this.repository.listWorldEntityTypes(worldId, contextCampaignId),
     ])
     const visibleEntities = entities.filter((entity) =>
