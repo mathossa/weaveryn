@@ -164,9 +164,9 @@ function canViewRecord(record: VisibilityRecord, context: VisibilityContext) {
       const access = context.campaigns.get(record.visibilityCampaignId)
       return Boolean(
         access &&
-          (access.ownerId === context.userId ||
-            access.membershipRole === 'GM' ||
-            access.membershipRole === 'ASSISTANT_GM'),
+        (access.ownerId === context.userId ||
+          access.membershipRole === 'GM' ||
+          access.membershipRole === 'ASSISTANT_GM'),
       )
     }
     case 'PLAYER':
@@ -388,9 +388,15 @@ export class WorldEntityService {
         input.worldId,
         input.actorUserId,
       ))
-    const source =
-      prepared?.source ?? (await repository.findEntityById(input.sourceEntityId))
-    const target = await repository.findEntityById(input.targetEntityId)
+    const [source, target] = prepared?.source
+      ? [
+          prepared.source,
+          await repository.findEntityById(input.targetEntityId),
+        ]
+      : await Promise.all([
+          repository.findEntityById(input.sourceEntityId),
+          repository.findEntityById(input.targetEntityId),
+        ])
 
     if (!source) throw worldEntityNotFound(input.sourceEntityId)
     if (!target) throw worldEntityNotFound(input.targetEntityId)
