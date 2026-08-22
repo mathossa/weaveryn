@@ -1,4 +1,5 @@
 import { Prisma, type PrismaClient } from '@/generated/prisma/client'
+import { campaignAccessibleToUserWhere } from '../access/prisma-access-predicates'
 import type { WorldMembershipRecord } from '../worlds/world-membership-repository'
 import type {
   CampaignVisibilityAccessRecord,
@@ -364,7 +365,7 @@ export class PrismaWorldEntityRepository implements WorldEntityRepository {
     const campaign = await this.db.campaign.findFirst({
       where: {
         id: campaignId,
-        OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+        ...campaignAccessibleToUserWhere(userId),
       },
       select: {
         id: true,
@@ -385,7 +386,7 @@ export class PrismaWorldEntityRepository implements WorldEntityRepository {
       await this.db.campaign.findMany({
         where: {
           worldId,
-          OR: [{ ownerId: userId }, { memberships: { some: { userId } } }],
+          ...campaignAccessibleToUserWhere(userId),
         },
         select: {
           id: true,
