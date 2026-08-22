@@ -24,6 +24,7 @@ import type {
   WorldEntityRecord,
   WorldEntityRepository,
   WorldEntityTypeRecord,
+  WorldEntityVisibilityQuery,
 } from './world-entity-repository'
 import { PrismaWorldEntityRepository } from './prisma-world-entity-repository'
 
@@ -177,6 +178,25 @@ function canViewRecord(record: VisibilityRecord, context: VisibilityContext) {
       )
     case 'PRIVATE':
       return record.createdById === context.userId
+  }
+}
+
+function entityVisibilityQuery(
+  context: VisibilityContext,
+): WorldEntityVisibilityQuery {
+  const campaigns = [...context.campaigns.values()]
+  return {
+    userId: context.userId,
+    hasWorldAccess: context.isWorldOwner || context.hasWorldMembership,
+    campaignIds: campaigns.map((access) => access.id),
+    gmCampaignIds: campaigns
+      .filter(
+        (access) =>
+          access.ownerId === context.userId ||
+          access.membershipRole === 'GM' ||
+          access.membershipRole === 'ASSISTANT_GM',
+      )
+      .map((access) => access.id),
   }
 }
 
@@ -541,7 +561,12 @@ export class WorldEntityService {
       worldId,
       userId,
     )
-    const entities = await this.repository.listEntities(worldId)
+    const entities = this.repository.listVisibleEntities
+      ? await this.repository.listVisibleEntities(
+          worldId,
+          entityVisibilityQuery(context),
+        )
+      : await this.repository.listEntities(worldId)
     return entities.filter((entity) => canViewRecord(entity, context))
   }
 
