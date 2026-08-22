@@ -144,6 +144,61 @@ function visibleEntityWhere(
   }
 }
 
+function visibleRelationshipWhere(
+  worldId: string,
+  visibility: WorldEntityVisibilityQuery,
+): Prisma.EntityRelationshipWhereInput {
+  const relationshipVisibility: Prisma.EntityRelationshipWhereInput[] = [
+    {
+      visibilityScope: 'PRIVATE',
+      createdById: visibility.userId,
+    },
+    {
+      visibilityScope: 'PLAYER',
+      visibilityUserId: visibility.userId,
+      OR: [
+        { visibilityCampaignId: null },
+        ...(visibility.campaignIds.length > 0
+          ? [
+              {
+                visibilityCampaignId: {
+                  in: visibility.campaignIds,
+                },
+              },
+            ]
+          : []),
+      ],
+    },
+  ]
+
+  if (visibility.hasWorldAccess) {
+    relationshipVisibility.push({ visibilityScope: 'WORLD' })
+  }
+  if (visibility.campaignIds.length > 0) {
+    relationshipVisibility.push({
+      visibilityScope: 'CAMPAIGN',
+      visibilityCampaignId: { in: visibility.campaignIds },
+    })
+  }
+  if (visibility.gmCampaignIds.length > 0) {
+    relationshipVisibility.push({
+      visibilityScope: 'GM',
+      visibilityCampaignId: { in: visibility.gmCampaignIds },
+    })
+  }
+
+  const visibleEndpoint = visibleEntityWhere(worldId, visibility)
+
+  return {
+    worldId,
+    AND: [
+      { OR: relationshipVisibility },
+      { sourceEntity: { is: visibleEndpoint } },
+      { targetEntity: { is: visibleEndpoint } },
+    ],
+  }
+}
+
 export class PrismaWorldEntityRepository implements WorldEntityRepository {
   constructor(
     private readonly root: PrismaClient,
@@ -281,6 +336,18 @@ export class PrismaWorldEntityRepository implements WorldEntityRepository {
     return (
       await this.db.entityRelationship.findMany({
         where: { worldId },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      })
+    ).map(toRelationship)
+  }
+
+  async listVisibleRelationships(
+    worldId: string,
+    visibility: WorldEntityVisibilityQuery,
+  ) {
+    return (
+      await this.db.entityRelationship.findMany({
+        where: visibleRelationshipWhere(worldId, visibility),
         orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       })
     ).map(toRelationship)
