@@ -59,6 +59,13 @@ export interface CampaignVisibilityAccessRecord {
   membershipRole: CampaignRole | null
 }
 
+export interface WorldEntityVisibilityQuery {
+  userId: string
+  hasWorldAccess: boolean
+  campaignIds: string[]
+  gmCampaignIds: string[]
+}
+
 export interface CreateWorldEntityRecordInput {
   id: string
   worldId: string
@@ -123,6 +130,10 @@ export interface WorldEntityRepository extends WorldAuthorizationRepository {
   ): Promise<WorldEntityRecord | null>
   findEntityById(entityId: string): Promise<WorldEntityRecord | null>
   listEntities(worldId: string): Promise<WorldEntityRecord[]>
+  listVisibleEntities?(
+    worldId: string,
+    visibility: WorldEntityVisibilityQuery,
+  ): Promise<WorldEntityRecord[]>
   updateEntity(
     worldId: string,
     entityId: string,
