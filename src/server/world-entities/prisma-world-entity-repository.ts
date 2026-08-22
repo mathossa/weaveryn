@@ -10,6 +10,7 @@ import type {
   WorldEntityRecord,
   WorldEntityRepository,
   WorldEntityTypeRecord,
+  WorldEntityVisibilityQuery,
 } from './world-entity-repository'
 
 type Db = PrismaClient | Prisma.TransactionClient
@@ -72,6 +73,74 @@ function toCampaignAccess(value: {
     worldId: value.worldId,
     ownerId: value.ownerId,
     membershipRole: value.memberships[0]?.role ?? null,
+  }
+}
+
+function visibleEntityWhere(
+  worldId: string,
+  visibility: WorldEntityVisibilityQuery,
+): Prisma.WorldEntityWhereInput {
+  const nonCharacterVisibility: Prisma.WorldEntityWhereInput[] = [
+    {
+      visibilityScope: 'PRIVATE',
+      createdById: visibility.userId,
+    },
+    {
+      visibilityScope: 'PLAYER',
+      visibilityUserId: visibility.userId,
+      OR: [
+        { visibilityCampaignId: null },
+        ...(visibility.campaignIds.length > 0
+          ? [
+              {
+                visibilityCampaignId: {
+                  in: visibility.campaignIds,
+                },
+              },
+            ]
+          : []),
+      ],
+    },
+  ]
+
+  if (visibility.hasWorldAccess) {
+    nonCharacterVisibility.push({ visibilityScope: 'WORLD' })
+  }
+  if (visibility.campaignIds.length > 0) {
+    nonCharacterVisibility.push({
+      visibilityScope: 'CAMPAIGN',
+      visibilityCampaignId: { in: visibility.campaignIds },
+    })
+  }
+  if (visibility.gmCampaignIds.length > 0) {
+    nonCharacterVisibility.push({
+      visibilityScope: 'GM',
+      visibilityCampaignId: { in: visibility.gmCampaignIds },
+    })
+  }
+
+  const characterVisibility: Prisma.WorldEntityWhereInput =
+    visibility.hasWorldAccess
+      ? { worldCharacterId: { not: null } }
+      : {
+          worldCharacter: {
+            is: {
+              campaignCharacters: {
+                some: { campaignId: { in: visibility.campaignIds } },
+              },
+            },
+          },
+        }
+
+  return {
+    worldId,
+    OR: [
+      characterVisibility,
+      {
+        worldCharacterId: null,
+        OR: nonCharacterVisibility,
+      },
+    ],
   }
 }
 
@@ -141,6 +210,19 @@ export class PrismaWorldEntityRepository implements WorldEntityRepository {
     return (
       await this.db.worldEntity.findMany({
         where: { worldId },
+        include: worldCharacterInclude,
+        orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+      })
+    ).map(toEntity)
+  }
+
+  async listVisibleEntities(
+    worldId: string,
+    visibility: WorldEntityVisibilityQuery,
+  ) {
+    return (
+      await this.db.worldEntity.findMany({
+        where: visibleEntityWhere(worldId, visibility),
         include: worldCharacterInclude,
         orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
       })
