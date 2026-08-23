@@ -1,0 +1,94 @@
+.browserMode,
+.launcherMode {
+  position: relative;
+}
+
+/* Browse mode should be calm and utilitarian: keep hover transitions, but stop
+   the continuous ambient/reveal animations used by the landing launcher. */
+.browserMode,
+.browserMode *,
+.browserMode *::before,
+.browserMode *::after,
+.browserMode::before,
+.browserMode::after {
+  animation: none !important;
+}
+
+:global(header):has(+ :global(main) .browserMode)::before {
+  animation: none !important;
+}
+
+.uniformEntryFrame {
+  position: relative;
+  min-width: 0;
+}
+
+.uniformEntryTile {
+  min-height: 6rem !important;
+}
+
+.uniformEntryTile > span:nth-child(2) {
+  min-width: 0;
+}
+
+.uniformEntryTile > span:nth-child(2) > strong {
+  font-size: 1rem !important;
+  line-height: 1.2;
+}
+
+.uniformEntryTile > span:nth-child(2) span {
+  overflow: visible !important;
+  line-height: 1.32;
+  text-overflow: clip !important;
+  white-space: normal !important;
+}
+
+.resumeCopy {
+  display: grid !important;
+  gap: 0.04rem;
+}
+
+.resumeCopy > span {
+  display: block;
+}
+
+.weaverResumeTile {
+  padding-bottom: 1.3rem !important;
+}
+
+.changeWeaver {
+  position: absolute;
+  right: 0.92rem;
+  bottom: 0.46rem;
+  z-index: 3;
+  border-radius: 999px;
+  padding: 0.13rem 0.42rem;
+  color: var(--ui-accent-hover);
+  font-size: 0.68rem;
+  font-weight: 750;
+  line-height: 1.2;
+  text-decoration: none;
+  transition:
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.changeWeaver:hover {
+  background: color-mix(in srgb, var(--ui-accent) 10%, transparent);
+  color: var(--ui-text);
+}
+
+.changeWeaver:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+@media (max-width: 760px) {
+  .uniformEntryTile {
+    min-height: 5.25rem !important;
+  }
+
+  .weaverResumeTile {
+    padding-bottom: 1.55rem !important;
+  }
+}
