@@ -29,9 +29,7 @@ export function CharacterChoiceCard({
   const contextLabel = campaign?.name ?? 'No campaign'
 
   return (
-    <div
-      className={`${styles.characterCardFrame} ${fixStyles.ornamentFrame}`}
-    >
+    <div className={`${styles.characterCardFrame} ${fixStyles.ornamentFrame}`}>
       <TrackedEntryLink
         className={`${styles.characterCard} ${polishStyles.characterCard} ${fixStyles.pageCardMarker} ${fixStyles.ornamentCard} ${highlighted ? `${styles.resumeEntry} ${polishStyles.resumeEntry}` : ''}`}
         href={destination}
@@ -58,7 +56,9 @@ export function CharacterChoiceCard({
           className={`${styles.characterShade} ${polishStyles.characterShade}`}
           aria-hidden="true"
         />
-        <span className={`${styles.characterCopy} ${polishStyles.characterCopy}`}>
+        <span
+          className={`${styles.characterCopy} ${polishStyles.characterCopy}`}
+        >
           <strong>{character.name}</strong>
           <span className={styles.characterCampaign}>{contextLabel}</span>
           <span className={styles.characterWorldTime}>

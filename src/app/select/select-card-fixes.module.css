@@ -77,7 +77,8 @@
       color-mix(in srgb, var(--ui-accent) 58%, transparent),
       transparent
     );
-    box-shadow: 0 0 0.75rem color-mix(in srgb, var(--ui-accent) 32%, transparent);
+    box-shadow: 0 0 0.75rem
+      color-mix(in srgb, var(--ui-accent) 32%, transparent);
     pointer-events: none;
     content: '';
     animation: alignedFeaturedThread 6.5s ease-in-out infinite;

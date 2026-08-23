@@ -379,7 +379,9 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
           {!showAll ? (
             <div className={polishStyles.secondaryHeading}>
               <span aria-hidden="true">✦</span>
-              <h2 id="secondary-entry-heading">Other paths through the Weave</h2>
+              <h2 id="secondary-entry-heading">
+                Other paths through the Weave
+              </h2>
             </div>
           ) : null}
 
@@ -442,7 +444,9 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                     </span>
                     <span className={styles.weaverCopy}>
                       <strong>Threadwatcher</strong>
-                      <span>Observe a Campaign without taking a Character.</span>
+                      <span>
+                        Observe a Campaign without taking a Character.
+                      </span>
                     </span>
                     <span className={styles.weaverArrow} aria-hidden="true">
                       →

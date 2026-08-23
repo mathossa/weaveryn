@@ -92,13 +92,16 @@
       10rem,
       0.8fr
     ) !important;
-  border-bottom-color: color-mix(in srgb, var(--ui-accent) 18%, var(--ui-border));
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--ui-panel-strong) 96%, black),
-      color-mix(in srgb, var(--ui-panel-strong) 91%, black)
-    ) !important;
+  border-bottom-color: color-mix(
+    in srgb,
+    var(--ui-accent) 18%,
+    var(--ui-border)
+  );
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--ui-panel-strong) 96%, black),
+    color-mix(in srgb, var(--ui-panel-strong) 91%, black)
+  ) !important;
   box-shadow:
     0 12px 34px rgba(0, 0, 0, 0.24),
     0 1px 0 color-mix(in srgb, var(--ui-accent) 5%, transparent);
@@ -227,12 +230,18 @@
 .secondaryHeading > span {
   color: var(--ui-accent);
   font-size: 0.68rem;
-  filter: drop-shadow(0 0 0.45rem color-mix(in srgb, var(--ui-accent) 20%, transparent));
+  filter: drop-shadow(
+    0 0 0.45rem color-mix(in srgb, var(--ui-accent) 20%, transparent)
+  );
 }
 
 .characterCard {
   overflow: hidden;
-  border-color: color-mix(in srgb, var(--ui-border) 72%, transparent) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--ui-border) 72%,
+    transparent
+  ) !important;
   background: color-mix(in srgb, var(--ui-panel-strong) 90%, black);
   box-shadow:
     0 1rem 2.5rem rgba(0, 0, 0, 0.24),
@@ -245,7 +254,11 @@
 }
 
 .resumeEntry {
-  border-color: color-mix(in srgb, var(--ui-accent) 88%, var(--ui-border)) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--ui-accent) 88%,
+    var(--ui-border)
+  ) !important;
   box-shadow:
     0 1.15rem 3rem rgba(0, 0, 0, 0.32),
     0 0 0 1px color-mix(in srgb, var(--ui-accent) 48%, transparent),
@@ -315,13 +328,16 @@
 
 .entryTile {
   min-height: 6rem !important;
-  border-color: color-mix(in srgb, var(--ui-control-border) 35%, transparent) !important;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--ui-control-surface) 50%, transparent),
-      color-mix(in srgb, var(--ui-panel-strong) 34%, transparent)
-    ) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--ui-control-border) 35%,
+    transparent
+  ) !important;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--ui-control-surface) 50%, transparent),
+    color-mix(in srgb, var(--ui-panel-strong) 34%, transparent)
+  ) !important;
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ui-accent) 4%, transparent);
   transition:
     border-color 200ms ease,
@@ -342,13 +358,21 @@
 @media (hover: hover) {
   .polishedLauncher > header a:hover {
     border-color: color-mix(in srgb, var(--ui-accent) 70%, var(--ui-border));
-    background: color-mix(in srgb, var(--ui-accent) 10%, var(--ui-control-surface));
+    background: color-mix(
+      in srgb,
+      var(--ui-accent) 10%,
+      var(--ui-control-surface)
+    );
     color: var(--ui-text);
     transform: translateY(-1px);
   }
 
   .characterCard:hover {
-    border-color: color-mix(in srgb, var(--ui-accent) 58%, var(--ui-border)) !important;
+    border-color: color-mix(
+      in srgb,
+      var(--ui-accent) 58%,
+      var(--ui-border)
+    ) !important;
     box-shadow:
       0 1.35rem 3.4rem rgba(0, 0, 0, 0.36),
       0 0 2rem color-mix(in srgb, var(--ui-accent) 9%, transparent);
@@ -366,16 +390,19 @@
 
   .entryTile:hover,
   .entryTileFrame:hover {
-    border-color: color-mix(in srgb, var(--ui-accent) 36%, var(--ui-border)) !important;
+    border-color: color-mix(
+      in srgb,
+      var(--ui-accent) 36%,
+      var(--ui-border)
+    ) !important;
   }
 
   .entryTile:hover {
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--ui-accent) 7%, var(--ui-control-surface)),
-        color-mix(in srgb, var(--ui-control-surface) 66%, transparent)
-      ) !important;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--ui-accent) 7%, var(--ui-control-surface)),
+      color-mix(in srgb, var(--ui-control-surface) 66%, transparent)
+    ) !important;
     box-shadow:
       inset 0 1px 0 color-mix(in srgb, var(--ui-accent) 14%, transparent),
       0 0.65rem 1.4rem rgba(0, 0, 0, 0.16);
@@ -439,7 +466,11 @@
     z-index: 2;
   }
 
-  .compactLauncher .recentStories > div:last-child > div > :first-child::before {
+  .compactLauncher
+    .recentStories
+    > div:last-child
+    > div
+    > :first-child::before {
     position: absolute;
     inset: 0.42rem;
     z-index: 4;
@@ -486,15 +517,29 @@
     animation: featuredThread 6.5s ease-in-out infinite;
   }
 
-  .compactLauncher .recentStories > div:last-child > div > :first-child .characterCard {
-    border-color: color-mix(in srgb, var(--ui-accent) 58%, var(--ui-border)) !important;
+  .compactLauncher
+    .recentStories
+    > div:last-child
+    > div
+    > :first-child
+    .characterCard {
+    border-color: color-mix(
+      in srgb,
+      var(--ui-accent) 58%,
+      var(--ui-border)
+    ) !important;
     box-shadow:
       0 1.35rem 3.4rem rgba(0, 0, 0, 0.34),
       0 0 0 1px color-mix(in srgb, var(--ui-accent) 18%, transparent),
       0 0 2.8rem color-mix(in srgb, var(--ui-accent) 8%, transparent);
   }
 
-  .compactLauncher .recentStories > div:last-child > div > :first-child .characterImage {
+  .compactLauncher
+    .recentStories
+    > div:last-child
+    > div
+    > :first-child
+    .characterImage {
     animation: featuredBreath 14s ease-in-out infinite alternate;
   }
 
@@ -665,7 +710,12 @@
   .resumeEntry,
   .compactLauncher .recentStories > div:last-child > div > *,
   .compactLauncher .recentStories > div:last-child > div > :first-child::after,
-  .compactLauncher .recentStories > div:last-child > div > :first-child .characterImage,
+  .compactLauncher
+    .recentStories
+    > div:last-child
+    > div
+    > :first-child
+    .characterImage,
   .compactLauncher .alternateEntry,
   .compactLauncher .managementActions,
   .compactLauncher .secondaryHeading,
