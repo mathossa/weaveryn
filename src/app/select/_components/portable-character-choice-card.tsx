@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { uiAssets } from '@/lib/ui-assets'
 import type { EntryPortableCharacterChoice } from '@/server/selection'
+import fixStyles from '../select-card-fixes.module.css'
 import polishStyles from '../select-polish.module.css'
 import styles from '../select.module.css'
 
@@ -14,7 +15,7 @@ export function PortableCharacterChoiceCard({
 }) {
   return (
     <TrackedEntryLink
-      className={`${styles.characterCard} ${polishStyles.characterCard}`}
+      className={`${styles.characterCard} ${polishStyles.characterCard} ${fixStyles.pageCardMarker}`}
       href={`/character/portable/${character.id}`}
       tracking={{ kind: 'PORTABLE_CHARACTER', characterId: character.id }}
       ariaLabel={`Open portable Character ${character.name}`}
