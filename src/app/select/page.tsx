@@ -18,6 +18,7 @@ import {
 } from './_components/character-sort-control'
 import { PortableCharacterChoiceCard } from './_components/portable-character-choice-card'
 import { loadSelectionPageData } from './_lib/load-selection-page-data'
+import refineStyles from './select-launcher-refinement.module.css'
 import polishStyles from './select-polish.module.css'
 import styles from './select.module.css'
 
@@ -212,18 +213,13 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
   )
   const weaverHighlighted =
     latestUsedAt > 0 && weaverResume?.lastUsedAt?.getTime() === latestUsedAt
-  const weaverResumeLabel = weaverResume
-    ? weaverResume.campaign
-      ? `${weaverResume.world.name} — ${weaverResume.campaign.name}`
-      : weaverResume.world.name
-    : null
 
   return (
     <AuthenticatedAppShell user={user}>
       <AppPage
         title={showAll ? 'Browse the Weave' : 'Return to the Weave'}
         layout="workspace"
-        className={`${styles.launcherPage} ${polishStyles.polishedLauncher} ${showAll ? `${styles.expandedLauncher} ${polishStyles.browserLauncher}` : polishStyles.compactLauncher}`}
+        className={`${styles.launcherPage} ${polishStyles.polishedLauncher} ${showAll ? `${styles.expandedLauncher} ${polishStyles.browserLauncher} ${refineStyles.browserMode}` : `${polishStyles.compactLauncher} ${refineStyles.launcherMode}`}`}
         actions={
           allCharacterEntries.length > 3 ? (
             <Link
@@ -383,7 +379,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
           {!showAll ? (
             <div className={polishStyles.secondaryHeading}>
               <span aria-hidden="true">✦</span>
-              <h2 id="secondary-entry-heading">Enter another way</h2>
+              <h2 id="secondary-entry-heading">Other paths through the Weave</h2>
             </div>
           ) : null}
 
@@ -394,10 +390,10 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
             >
               <div className={styles.roleGrid}>
                 <div
-                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${weaverHighlighted ? `${styles.resumeEntry} ${polishStyles.resumeEntry}` : ''}`}
+                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${refineStyles.uniformEntryFrame} ${weaverHighlighted ? `${styles.resumeEntry} ${polishStyles.resumeEntry}` : ''}`}
                 >
                   <TrackedEntryLink
-                    className={`${styles.weaverMainAction} ${polishStyles.entryTile}`}
+                    className={`${styles.weaverMainAction} ${polishStyles.entryTile} ${refineStyles.uniformEntryTile} ${weaverResume ? refineStyles.weaverResumeTile : ''}`}
                     href={weaverResumeHref ?? '/world?mode=weaver'}
                     tracking={weaverResumeTracking}
                   >
@@ -406,23 +402,39 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                     </span>
                     <span className={styles.weaverCopy}>
                       <strong>Weaver</strong>
-                      <span>
-                        {weaverResumeLabel
-                          ? `Continue ${weaverResumeLabel}`
-                          : 'Choose a World to shape and manage.'}
-                      </span>
+                      {weaverResume ? (
+                        <span className={refineStyles.resumeCopy}>
+                          <span>
+                            Continue {weaverResume.world.name}
+                            {weaverResume.campaign ? ' —' : ''}
+                          </span>
+                          {weaverResume.campaign ? (
+                            <span>{weaverResume.campaign.name}</span>
+                          ) : null}
+                        </span>
+                      ) : (
+                        <span>Choose a World to shape and manage.</span>
+                      )}
                     </span>
                     <span className={styles.weaverArrow} aria-hidden="true">
                       →
                     </span>
                   </TrackedEntryLink>
+                  {weaverResume ? (
+                    <Link
+                      className={refineStyles.changeWeaver}
+                      href="/world?mode=weaver"
+                    >
+                      Change
+                    </Link>
+                  ) : null}
                 </div>
 
                 <div
-                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame}`}
+                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${refineStyles.uniformEntryFrame}`}
                 >
                   <Link
-                    className={`${styles.weaverMainAction} ${polishStyles.entryTile}`}
+                    className={`${styles.weaverMainAction} ${polishStyles.entryTile} ${refineStyles.uniformEntryTile}`}
                     href="/world?mode=threadwatcher"
                   >
                     <span className={styles.weaverGlyph} aria-hidden="true">
@@ -457,42 +469,65 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
               aria-labelledby="secondary-entry-heading"
             >
               <div className={styles.actions}>
-                <Link
-                  className={`${styles.actionLink} ${polishStyles.entryTile}`}
-                  href="/select/create-character"
+                <div
+                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${refineStyles.uniformEntryFrame}`}
                 >
-                  <strong>
-                    <span className={styles.actionGlyph} aria-hidden="true">
+                  <Link
+                    className={`${styles.weaverMainAction} ${polishStyles.entryTile} ${refineStyles.uniformEntryTile}`}
+                    href="/select/create-character"
+                  >
+                    <span className={styles.weaverGlyph} aria-hidden="true">
                       ✦
                     </span>
-                    Create Character
-                  </strong>
-                  <span>Begin a new portable identity.</span>
-                </Link>
-                <Link
-                  className={`${styles.actionLink} ${polishStyles.entryTile}`}
-                  href="/select/join"
+                    <span className={styles.weaverCopy}>
+                      <strong>Create Character</strong>
+                      <span>Begin a new portable identity.</span>
+                    </span>
+                    <span className={styles.weaverArrow} aria-hidden="true">
+                      →
+                    </span>
+                  </Link>
+                </div>
+
+                <div
+                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${refineStyles.uniformEntryFrame}`}
                 >
-                  <strong>
-                    <span className={styles.actionGlyph} aria-hidden="true">
+                  <Link
+                    className={`${styles.weaverMainAction} ${polishStyles.entryTile} ${refineStyles.uniformEntryTile}`}
+                    href="/select/join"
+                  >
+                    <span className={styles.weaverGlyph} aria-hidden="true">
                       ↗
                     </span>
-                    Join with invite
-                  </strong>
-                  <span>Enter a World or Campaign.</span>
-                </Link>
-                <Link
-                  className={`${styles.actionLink} ${polishStyles.entryTile}`}
-                  href="/character"
+                    <span className={styles.weaverCopy}>
+                      <strong>Join with invite</strong>
+                      <span>Enter a World or Campaign.</span>
+                    </span>
+                    <span className={styles.weaverArrow} aria-hidden="true">
+                      →
+                    </span>
+                  </Link>
+                </div>
+
+                <div
+                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${refineStyles.uniformEntryFrame}`}
                 >
-                  <strong>
-                    <span className={styles.actionGlyph} aria-hidden="true">
+                  <Link
+                    className={`${styles.weaverMainAction} ${polishStyles.entryTile} ${refineStyles.uniformEntryTile}`}
+                    href="/character"
+                  >
+                    <span className={styles.weaverGlyph} aria-hidden="true">
                       ⚙
                     </span>
-                    Manage Characters
-                  </strong>
-                  <span>Edit your portable identities.</span>
-                </Link>
+                    <span className={styles.weaverCopy}>
+                      <strong>Manage Characters</strong>
+                      <span>Edit your portable identities.</span>
+                    </span>
+                    <span className={styles.weaverArrow} aria-hidden="true">
+                      →
+                    </span>
+                  </Link>
+                </div>
               </div>
             </section>
           ) : null}
