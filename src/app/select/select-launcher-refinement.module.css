@@ -18,6 +18,14 @@
   animation: none !important;
 }
 
+/* The decorative woven selector belongs only to the featured recent card on
+   the launcher. Character cards are deliberately uniform in Browse mode. */
+.browserMode .ornamentCard::before,
+.browserMode .ornamentCard::after {
+  display: none !important;
+  content: none !important;
+}
+
 .uniformEntryFrame {
   position: relative;
   min-width: 0;
