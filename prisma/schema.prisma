@@ -26,6 +26,10 @@ enum CampaignRole {
   SPECTATOR
 }
 
+enum CampaignCapability {
+  UPDATE_CURRENT_LOCATION
+}
+
 enum VisibilityScope {
   WORLD
   CAMPAIGN
@@ -178,6 +182,7 @@ model WorldEntity {
   sourceRelationships EntityRelationship[] @relation("EntityRelationshipSource")
   targetRelationships EntityRelationship[] @relation("EntityRelationshipTarget")
   worldEventLinks     WorldEventEntity[]
+  currentCampaigns    Campaign[]           @relation("CampaignCurrentLocation")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -401,6 +406,9 @@ model Campaign {
 
   currentWorldPosition  Decimal?       @db.Decimal(65, 30)
   currentWorldDateLabel String?
+  currentLocationId     String?        @db.Uuid
+  currentLocation       WorldEntity?   @relation("CampaignCurrentLocation", fields: [currentLocationId], references: [id], onDelete: SetNull)
+  currentFocus          String?
   status                CampaignStatus @default(ACTIVE)
 
   memberships                CampaignMembership[]
@@ -417,15 +425,17 @@ model Campaign {
   @@index([worldId])
   @@index([ownerId])
   @@index([timelineId])
+  @@index([currentLocationId])
   @@index([worldId, status])
 }
 
 model CampaignMembership {
   id String @id @default(uuid()) @db.Uuid
 
-  campaignId String       @db.Uuid
-  userId     String       @db.Uuid
-  role       CampaignRole
+  campaignId   String               @db.Uuid
+  userId       String               @db.Uuid
+  role         CampaignRole
+  capabilities CampaignCapability[] @default([])
 
   campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)

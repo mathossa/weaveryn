@@ -56,6 +56,9 @@ Users with permission can:
 - transfer Campaign ownership
 - end, archive, or delete Campaigns they own according to Campaign lifecycle rules
 - select a position on the World's main timeline
+- maintain a nullable Current Location and short player-visible current focus
+- grant a Threadwalker the typed ability to update Current Location without
+  creating a new role
 
 An active Campaign retains its World relationship and prevents that World from
 being deleted. World ownership does not grant deletion authority over a
@@ -66,6 +69,11 @@ deleted after all active Campaigns have been ended, transferred as necessary,
 or deleted. Ended or archived Campaigns are preserved using a limited immutable
 World snapshot and are detached from the deleted World through an explicit
 workflow.
+
+Current Location is a visible `location` WorldEntity in the Campaign World and is
+not dependent on a Scene. Player-facing location and Around You data continue to
+use normal entity visibility authorization. The current focus is short text only;
+it does not introduce an Objective domain.
 
 ### Characters
 
@@ -128,6 +136,9 @@ The first MVP does not require:
 - arbitrary visibility grants
 - timeline branching or custom calendar engines
 - AI, solo play, battle maps, projector clients, or marketplace functionality
+- Sessions, Party Chronicles, Personal/Weaver Notes, Scenes, player contributions,
+  public access, Campaign listing/watchability, and Ruleset-specific sheets
+- a full Objective/Quest domain or final realtime transport
 
 ## MVP Completion
 

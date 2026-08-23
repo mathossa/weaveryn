@@ -75,6 +75,18 @@ structure.
   or menu chrome in CSS. Raster artwork is not used for interactive controls.
 - The backgrounds have deliberately quiet center areas so text, navigation, and
   form controls remain legible on phones, tablets, and desktop screens.
+- Treat environmental artwork as part of the information hierarchy: location and
+  World art may anchor a composition while legible gradients carry the content.
+- Prefer a few strong regions over many equally bordered cards. Antique gold is a
+  focus and interaction accent, not a border applied to every surface.
+- Player phone views prioritize quick Campaign and Character lookup with compact
+  real destinations. Do not render disabled future tabs or fake map/notes panels.
+- World home uses the World fallback as an atmospheric overview until user artwork
+  and the future Atlas are available. Do not add a competing dashboard/map preview
+  merely to fill space.
+- Campaign Current Location uses entity artwork when authorized and available,
+  otherwise the Campaign fallback. Around You uses only authorized real entities
+  and relationships; fallback artwork never implies fabricated content.
 
 ## Generation and optimization
 

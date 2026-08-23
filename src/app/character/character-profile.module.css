@@ -438,6 +438,41 @@
 }
 
 @media (max-width: 640px) {
+  .profilePortraitColumn {
+    order: 1;
+  }
+
+  .profileSidebar {
+    order: 2;
+  }
+
+  .profileMainColumn {
+    order: 3;
+  }
+
+  .profileIdentityPanel {
+    grid-template-columns: 5.75rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .profilePortraitFrame > div {
+    aspect-ratio: 1;
+    border-radius: 0.8rem;
+  }
+
+  .identityDescription {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 0.82rem;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .identityDivider {
+    margin: 0.1rem 0;
+  }
+
   .campaignArtworkCopy {
     right: 0.8rem;
     bottom: 3.35rem;

@@ -3,6 +3,11 @@ import {
   campaignAccessibleToUserWhere,
   worldAccessibleToUserWhere,
 } from '../access/prisma-access-predicates'
+import {
+  filterEntityRelationshipsForCampaignContext,
+  filterWorldEntitiesForCampaignContext,
+} from '../world-entities/world-entity-campaign-context'
+import { worldEntityService } from '../world-entities/world-entity-service'
 
 export interface CampaignChoice {
   id: string
@@ -38,10 +43,34 @@ export interface CampaignOverview {
   status: 'ACTIVE' | 'ENDED' | 'ARCHIVED'
   currentWorldPosition: string | null
   currentWorldDateLabel: string | null
+  currentFocus: string | null
+  updatedAt: string
   canEditName: boolean
   canEditSharedInfo: boolean
   canManageMembers: boolean
+  canUpdateCurrentLocation: boolean
   characters: CampaignOverviewCharacter[]
+}
+
+export interface CampaignNowEntity {
+  id: string
+  type: string
+  name: string
+  description: string | null
+  image: string | null
+  imageFocusX: number
+  imageFocusY: number
+}
+
+export interface CampaignAroundYouEntry extends CampaignNowEntity {
+  relationship: string
+}
+
+export interface CampaignNowContext {
+  campaign: CampaignOverview
+  currentLocation: CampaignNowEntity | null
+  aroundYou: CampaignAroundYouEntry[]
+  locationChoices: Array<{ id: string; name: string }>
 }
 
 function resolvedRole(input: {
@@ -130,13 +159,15 @@ export async function getCampaignOverview(
       status: true,
       currentWorldPosition: true,
       currentWorldDateLabel: true,
+      currentFocus: true,
+      updatedAt: true,
       world: { select: { id: true, name: true } },
       owner: {
         select: { id: true, username: true, displayName: true },
       },
       memberships: {
         where: { userId },
-        select: { role: true },
+        select: { role: true, capabilities: true },
         take: 1,
       },
       campaignCharacters: {
@@ -188,9 +219,18 @@ export async function getCampaignOverview(
     status: campaign.status,
     currentWorldPosition: campaign.currentWorldPosition?.toString() ?? null,
     currentWorldDateLabel: campaign.currentWorldDateLabel,
+    currentFocus: campaign.currentFocus,
+    updatedAt: campaign.updatedAt.toISOString(),
     canEditName: campaign.status !== 'ARCHIVED' && isOwner,
     canEditSharedInfo,
     canManageMembers: campaign.status !== 'ARCHIVED' && isOwner,
+    canUpdateCurrentLocation:
+      campaign.status !== 'ARCHIVED' &&
+      (canEditSharedInfo ||
+        (role === 'PLAYER' &&
+          (campaign.memberships[0]?.capabilities ?? []).includes(
+            'UPDATE_CURRENT_LOCATION',
+          ))),
     characters: campaign.campaignCharacters.map((campaignCharacter) => ({
       id: campaignCharacter.id,
       worldCharacterId: campaignCharacter.worldCharacter.id,
@@ -202,5 +242,98 @@ export async function getCampaignOverview(
       ownedByCurrentUser:
         campaignCharacter.worldCharacter.character.ownerUserId === userId,
     })),
+  }
+}
+
+function normalizedEntityType(type: string) {
+  return type.trim().replace(/\s+/g, ' ').toLocaleLowerCase('en-US')
+}
+
+function nowEntity(entity: {
+  id: string
+  type: string
+  name: string
+  description: string | null
+  image: string | null
+  imageFocusX?: number
+  imageFocusY?: number
+}): CampaignNowEntity {
+  return {
+    id: entity.id,
+    type: entity.type,
+    name: entity.name,
+    description: entity.description,
+    image: entity.image,
+    imageFocusX: entity.imageFocusX ?? 50,
+    imageFocusY: entity.imageFocusY ?? 50,
+  }
+}
+
+export async function getCampaignNowContext(
+  worldId: string,
+  campaignId: string,
+  userId: string,
+): Promise<CampaignNowContext | null> {
+  const campaign = await getCampaignOverview(worldId, campaignId, userId)
+  if (!campaign) return null
+
+  const contextRecord = await prisma.campaign.findUnique({
+    where: { id: campaignId, worldId },
+    select: { currentLocationId: true },
+  })
+  const [authorizedEntities, authorizedRelationships] = await Promise.all([
+    worldEntityService.listEntities(worldId, userId),
+    worldEntityService.listRelationships(worldId, userId),
+  ])
+  const entities = filterWorldEntitiesForCampaignContext(
+    authorizedEntities,
+    campaignId,
+  )
+  const relationships = filterEntityRelationshipsForCampaignContext(
+    authorizedRelationships,
+    entities,
+    campaignId,
+  )
+  const entityById = new Map(entities.map((entity) => [entity.id, entity]))
+  const locationRecord = contextRecord?.currentLocationId
+    ? entityById.get(contextRecord.currentLocationId)
+    : null
+  const currentLocation =
+    locationRecord && normalizedEntityType(locationRecord.type) === 'location'
+      ? locationRecord
+      : null
+
+  const seenAround = new Set<string>()
+  const aroundYou: CampaignAroundYouEntry[] = []
+  if (currentLocation) {
+    for (const relationship of relationships) {
+      const otherId =
+        relationship.sourceEntityId === currentLocation.id
+          ? relationship.targetEntityId
+          : relationship.targetEntityId === currentLocation.id
+            ? relationship.sourceEntityId
+            : null
+      if (!otherId || seenAround.has(otherId)) continue
+      const related = entityById.get(otherId)
+      if (!related) continue
+      seenAround.add(otherId)
+      aroundYou.push({
+        ...nowEntity(related),
+        relationship:
+          relationship.label?.trim() || relationship.relationshipType,
+      })
+    }
+  }
+
+  return {
+    campaign,
+    currentLocation: currentLocation ? nowEntity(currentLocation) : null,
+    aroundYou,
+    locationChoices: campaign.canUpdateCurrentLocation
+      ? entities
+          .filter((entity) => normalizedEntityType(entity.type) === 'location')
+          .map((entity) => ({ id: entity.id, name: entity.name }))
+          .sort((left, right) => left.name.localeCompare(right.name))
+      : [],
   }
 }

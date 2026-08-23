@@ -6,6 +6,7 @@ import {
 } from './campaign-membership-repository'
 import { CampaignMembershipService } from './campaign-membership-service'
 import type { CampaignRole } from './campaign-role'
+import type { CampaignCapability } from './campaign-capability'
 
 const CAMPAIGN_ID = 'campaign-1'
 const OWNER_ID = 'owner-1'
@@ -70,6 +71,7 @@ class InMemoryCampaignMembershipRepository implements CampaignMembershipReposito
     const membership: CampaignMembershipRecord = {
       id: `membership-${++this.sequence}`,
       ...input,
+      capabilities: [],
       joinedAt: now,
       updatedAt: now,
     }
@@ -84,7 +86,23 @@ class InMemoryCampaignMembershipRepository implements CampaignMembershipReposito
   ) {
     const membership = this.memberships.get(this.key(campaignId, userId))
     if (!membership) return Promise.resolve(null)
-    const updated = { ...membership, role }
+    const updated = {
+      ...membership,
+      role,
+      capabilities: role === 'PLAYER' ? membership.capabilities : [],
+    }
+    this.memberships.set(this.key(campaignId, userId), updated)
+    return Promise.resolve(updated)
+  }
+
+  updateCampaignMembershipCapabilities(
+    campaignId: string,
+    userId: string,
+    capabilities: CampaignCapability[],
+  ) {
+    const membership = this.memberships.get(this.key(campaignId, userId))
+    if (!membership) return Promise.resolve(null)
+    const updated = { ...membership, capabilities }
     this.memberships.set(this.key(campaignId, userId), updated)
     return Promise.resolve(updated)
   }
@@ -162,6 +180,68 @@ describe('CampaignMembershipService', () => {
         userId: PLAYER_ID,
       }),
     ).resolves.toBeUndefined()
+  })
+
+  it('allows only the owner to grant and revoke typed player capabilities', async () => {
+    await expect(
+      service.setMemberCapability({
+        actorUserId: OWNER_ID,
+        campaignId: CAMPAIGN_ID,
+        userId: PLAYER_ID,
+        capability: 'UPDATE_CURRENT_LOCATION',
+        enabled: true,
+      }),
+    ).resolves.toMatchObject({
+      capabilities: ['UPDATE_CURRENT_LOCATION'],
+    })
+
+    await expect(
+      service.setMemberCapability({
+        actorUserId: GM_ID,
+        campaignId: CAMPAIGN_ID,
+        userId: PLAYER_ID,
+        capability: 'UPDATE_CURRENT_LOCATION',
+        enabled: false,
+      }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_MEMBERSHIP_FORBIDDEN' })
+
+    await expect(
+      service.setMemberCapability({
+        actorUserId: OWNER_ID,
+        campaignId: CAMPAIGN_ID,
+        userId: PLAYER_ID,
+        capability: 'UPDATE_CURRENT_LOCATION',
+        enabled: false,
+      }),
+    ).resolves.toMatchObject({ capabilities: [] })
+  })
+
+  it('keeps capabilities on Threadwalker memberships only', async () => {
+    await expect(
+      service.setMemberCapability({
+        actorUserId: OWNER_ID,
+        campaignId: CAMPAIGN_ID,
+        userId: SPECTATOR_ID,
+        capability: 'UPDATE_CURRENT_LOCATION',
+        enabled: true,
+      }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_CAPABILITY_REQUIRES_PLAYER' })
+
+    await service.setMemberCapability({
+      actorUserId: OWNER_ID,
+      campaignId: CAMPAIGN_ID,
+      userId: PLAYER_ID,
+      capability: 'UPDATE_CURRENT_LOCATION',
+      enabled: true,
+    })
+    await expect(
+      service.changeMemberRole({
+        actorUserId: OWNER_ID,
+        campaignId: CAMPAIGN_ID,
+        userId: PLAYER_ID,
+        role: 'ASSISTANT_GM',
+      }),
+    ).resolves.toMatchObject({ capabilities: [] })
   })
 
   it('blocks membership removal while the user still has active Character participation', async () => {

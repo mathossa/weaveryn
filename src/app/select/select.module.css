@@ -32,9 +32,6 @@
 
 .characterViewport {
   min-height: 0;
-  overflow-y: auto;
-  padding-right: 0.25rem;
-  overscroll-behavior: contain;
 }
 
 .characterGrid {
@@ -183,8 +180,7 @@
 }
 
 .weaverCard {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: block;
   align-items: stretch;
   overflow: hidden;
   border: 1px solid var(--ui-border);
@@ -258,8 +254,55 @@
 
 .actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
+}
+
+.browserFilters {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1.5fr) minmax(10rem, 0.8fr) auto auto;
+  align-items: end;
+  gap: 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--ui-border) 78%, transparent);
+  border-radius: var(--ui-radius-control);
+  padding: 0.7rem;
+  background: color-mix(in srgb, var(--ui-control-surface) 72%, transparent);
+}
+
+.browserFilters label {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--ui-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.browserFilters input,
+.browserFilters select,
+.browserFilters button,
+.browserFilters a {
+  min-height: 2.55rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  padding: 0.55rem 0.7rem;
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  font: inherit;
+}
+
+.browserFilters button,
+.browserFilters a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 750;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.browserFilters button {
+  border-color: color-mix(in srgb, var(--ui-accent) 52%, var(--ui-border));
+  color: var(--ui-accent-hover);
 }
 
 .actionLink,
@@ -386,27 +429,8 @@
 }
 
 @media (min-width: 761px) {
-  .expandedStack {
-    height: 100%;
-    min-height: 0;
-    overflow: hidden;
-    grid-template-rows: minmax(0, 1fr) auto auto;
-    gap: 1rem;
-  }
-
-  .expandedCharacterSection {
-    min-height: 0;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-  }
-
-  .expandedCharacterSection .characterViewport {
-    height: 100%;
-    min-height: 0;
-    overflow-y: auto;
-  }
-
   .expandedCharacterGrid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.75rem;
     padding-bottom: 0.25rem;
   }
@@ -444,7 +468,15 @@
 
 @media (min-width: 761px) and (max-width: 1100px) {
   .expandedCharacterGrid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .browserFilters {
+    grid-template-columns: minmax(12rem, 1fr) minmax(9rem, 0.7fr) auto;
+  }
+
+  .browserFilters a {
+    grid-column: 1 / -1;
   }
 }
 
@@ -453,11 +485,6 @@
     max-height: none;
     overflow: visible;
     padding-right: 0;
-  }
-
-  .expandedStack {
-    height: auto;
-    overflow: visible;
   }
 
   .characterGrid,
@@ -479,6 +506,10 @@
   }
 
   .actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .browserFilters {
     grid-template-columns: minmax(0, 1fr);
   }
 

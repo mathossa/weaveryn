@@ -1,11 +1,13 @@
 import { prisma } from '../../lib/prisma'
 import type { CampaignRole } from './campaign-role'
+import type { CampaignCapability } from './campaign-capability'
 
 export interface ManagedCampaignMembership {
   userId: string
   username: string
   displayName: string | null
   role: CampaignRole
+  capabilities: CampaignCapability[]
   activeCharacterCount: number
 }
 
@@ -25,6 +27,7 @@ export async function listCampaignMembershipsForManagement(
         select: {
           userId: true,
           role: true,
+          capabilities: true,
           user: {
             select: { username: true, displayName: true },
           },
@@ -62,6 +65,7 @@ export async function listCampaignMembershipsForManagement(
       username: membership.user.username,
       displayName: membership.user.displayName,
       role: membership.role,
+      capabilities: membership.capabilities,
       activeCharacterCount: characterCountByUser.get(membership.userId) ?? 0,
     }))
 }

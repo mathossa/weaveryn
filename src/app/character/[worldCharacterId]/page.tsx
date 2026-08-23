@@ -302,6 +302,7 @@ export default async function WorldCharacterPage({
                         alt=""
                         fill
                         sizes="(max-width: 900px) 100vw, 24rem"
+                        loading="eager"
                       />
                     </div>
                     <div className={profileStyles.campaignArtworkCopy}>

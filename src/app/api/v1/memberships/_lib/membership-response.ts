@@ -12,12 +12,17 @@ function worldStatus(code: WorldDomainError['code']) {
 }
 
 function campaignStatus(code: CampaignDomainError['code']) {
-  if (code === 'INVALID_CAMPAIGN_ROLE') return 400
+  if (
+    code === 'INVALID_CAMPAIGN_ROLE' ||
+    code === 'INVALID_CAMPAIGN_CAPABILITY'
+  )
+    return 400
   if (code === 'CAMPAIGN_NOT_FOUND' || code === 'USER_NOT_FOUND') return 404
   if (code === 'CAMPAIGN_MEMBERSHIP_NOT_FOUND') return 404
   if (
     code === 'CAMPAIGN_MEMBERSHIP_ALREADY_EXISTS' ||
-    code === 'CAMPAIGN_MEMBERSHIP_HAS_ACTIVE_CHARACTER'
+    code === 'CAMPAIGN_MEMBERSHIP_HAS_ACTIVE_CHARACTER' ||
+    code === 'CAMPAIGN_CAPABILITY_REQUIRES_PLAYER'
   ) {
     return 409
   }

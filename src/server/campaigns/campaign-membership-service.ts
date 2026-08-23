@@ -3,10 +3,15 @@ import {
   campaignMembershipForbidden,
   campaignMembershipHasActiveCharacter,
   campaignMembershipNotFound,
+  campaignCapabilityRequiresPlayer,
   campaignOwnerMustBeGm,
   campaignNotFound,
   userNotFound,
 } from './campaign-errors'
+import {
+  assertCampaignCapability,
+  type CampaignCapability,
+} from './campaign-capability'
 import {
   CampaignMembershipRepositoryConflictError,
   type CampaignMembershipRecord,
@@ -29,6 +34,14 @@ export interface RemoveCampaignMemberInput {
   actorUserId: string
   campaignId: string
   userId: string
+}
+
+export interface SetCampaignMemberCapabilityInput {
+  actorUserId: string
+  campaignId: string
+  userId: string
+  capability: CampaignCapability
+  enabled: boolean
 }
 
 export async function assertCampaignMembershipManager(
@@ -128,6 +141,42 @@ export class CampaignMembershipService {
     if (!membership)
       throw campaignMembershipNotFound(input.campaignId, input.userId)
     return membership
+  }
+
+  async setMemberCapability(
+    input: SetCampaignMemberCapabilityInput,
+  ): Promise<CampaignMembershipRecord> {
+    assertCampaignCapability(input.capability)
+    await assertCampaignMembershipManager(
+      this.repository,
+      input.actorUserId,
+      input.campaignId,
+    )
+    const membership = await this.repository.findCampaignMembership(
+      input.campaignId,
+      input.userId,
+    )
+    if (!membership) {
+      throw campaignMembershipNotFound(input.campaignId, input.userId)
+    }
+    if (membership.role !== 'PLAYER') {
+      throw campaignCapabilityRequiresPlayer(input.campaignId, input.userId)
+    }
+
+    const capabilities = input.enabled
+      ? Array.from(new Set([...membership.capabilities, input.capability]))
+      : membership.capabilities.filter(
+          (capability) => capability !== input.capability,
+        )
+    const updated = await this.repository.updateCampaignMembershipCapabilities(
+      input.campaignId,
+      input.userId,
+      capabilities,
+    )
+    if (!updated) {
+      throw campaignMembershipNotFound(input.campaignId, input.userId)
+    }
+    return updated
   }
 
   async removeMember(input: RemoveCampaignMemberInput): Promise<void> {

@@ -1,4 +1,7 @@
 export * from './campaign-errors'
+export * from './campaign-capability'
+export * from './campaign-context-input'
+export * from './campaign-context-service'
 export * from './campaign-input'
 export * from './campaign-membership-repository'
 export * from './campaign-membership-service'

@@ -4,6 +4,7 @@ import { requireAuthenticatedUser } from '@/server/auth'
 import {
   campaignMembershipService,
   getCampaignOverview,
+  isCampaignCapability,
   type CampaignRole,
 } from '@/server/campaigns'
 import { worldMembershipService } from '@/server/worlds/world-membership-service'
@@ -32,10 +33,40 @@ export async function PATCH(request: Request, context: RouteContext) {
     const [{ worldId, campaignId, userId }, actor, body] = await Promise.all([
       context.params,
       requireAuthenticatedUser(request.headers),
-      request.json() as Promise<{ role?: unknown }>,
+      request.json() as Promise<{
+        role?: unknown
+        capability?: unknown
+        enabled?: unknown
+      }>,
     ])
     const routeError = await assertRouteCampaign(worldId, campaignId, actor.id)
     if (routeError) return routeError
+
+    if (body.capability !== undefined) {
+      if (
+        !isCampaignCapability(body.capability) ||
+        typeof body.enabled !== 'boolean'
+      ) {
+        return NextResponse.json(
+          {
+            error: {
+              code: 'INVALID_CAMPAIGN_CAPABILITY',
+              message:
+                'A valid Campaign capability and enabled state are required.',
+            },
+          },
+          { status: 400 },
+        )
+      }
+      const membership = await campaignMembershipService.setMemberCapability({
+        actorUserId: actor.id,
+        campaignId,
+        userId,
+        capability: body.capability,
+        enabled: body.enabled,
+      })
+      return NextResponse.json({ membership })
+    }
 
     const role = body.role as CampaignRole
     const membership = await campaignMembershipService.changeMemberRole({

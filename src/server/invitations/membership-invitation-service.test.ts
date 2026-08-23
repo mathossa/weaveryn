@@ -123,6 +123,7 @@ class FakeCampaignMembershipRepository implements CampaignMembershipRepository {
     const record: CampaignMembershipRecord = {
       id: `campaign-membership-${this.memberships.size + 1}`,
       ...input,
+      capabilities: [],
       joinedAt: now,
       updatedAt: now,
     }
@@ -139,6 +140,19 @@ class FakeCampaignMembershipRepository implements CampaignMembershipRepository {
     const current = this.memberships.get(key)
     if (!current) return Promise.resolve(null)
     const updated = { ...current, role, updatedAt: now }
+    this.memberships.set(key, updated)
+    return Promise.resolve(updated)
+  }
+
+  updateCampaignMembershipCapabilities(
+    targetCampaignId: string,
+    userId: string,
+    capabilities: CampaignMembershipRecord['capabilities'],
+  ) {
+    const key = this.key(targetCampaignId, userId)
+    const current = this.memberships.get(key)
+    if (!current) return Promise.resolve(null)
+    const updated = { ...current, capabilities, updatedAt: now }
     this.memberships.set(key, updated)
     return Promise.resolve(updated)
   }
@@ -345,6 +359,7 @@ function fixture() {
     campaignId,
     userId: adminId,
     role: 'GM',
+    capabilities: [],
     joinedAt: now,
     updatedAt: now,
   })
