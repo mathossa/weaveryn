@@ -9,7 +9,7 @@ import styles from './timeline.module.css'
 
 interface WorldTimelinePageProps {
   params: Promise<{ worldId: string }>
-  searchParams: Promise<{ new?: string | string[] }>
+  searchParams: Promise<{ new?: string | string[]; mode?: string | string[] }>
 }
 
 export default async function WorldTimelinePage({
@@ -23,6 +23,9 @@ export default async function WorldTimelinePage({
   ])
   const workspace = await getWorldTimelineWorkspace(worldId, user.id)
   if (!workspace) notFound()
+  const weaverMode = query.mode === 'weaver'
+  const timelineHref = `/world/${worldId}/timeline${weaverMode ? '?mode=weaver' : ''}`
+  const worldHref = `/world/${worldId}${weaverMode ? '?mode=weaver' : ''}`
 
   const reckonings = workspace.reckonings.map((reckoning) => ({
     id: reckoning.id,
@@ -39,7 +42,7 @@ export default async function WorldTimelinePage({
     <AuthenticatedAppShell
       user={user}
       context={{
-        world: { label: workspace.world.name, href: `/world/${worldId}` },
+        world: { label: workspace.world.name, href: worldHref },
       }}
     >
       <AppPage
@@ -49,7 +52,7 @@ export default async function WorldTimelinePage({
         wide
         bounded
         actions={
-          <Link className={styles.secondaryButton} href={`/world/${worldId}`}>
+          <Link className={styles.secondaryButton} href={worldHref}>
             World overview
           </Link>
         }
@@ -63,6 +66,7 @@ export default async function WorldTimelinePage({
           canEditEvents={workspace.canEditEvents}
           canManageChronology={workspace.canManageChronology}
           initialCreate={query.new === '1'}
+          timelineHref={timelineHref}
         />
       </AppPage>
     </AuthenticatedAppShell>

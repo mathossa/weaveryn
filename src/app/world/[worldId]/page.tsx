@@ -116,9 +116,9 @@ export default async function WorldOverviewPage({
               {world.hasFullWorldAccess ? (
                 <Link
                   className={dashboardStyles.quietAction}
-                  href={`/world/${world.id}/timeline`}
+                  href={`/world/${world.id}/timeline${weaverMode ? '?mode=weaver' : ''}`}
                 >
-                  Open timeline
+                  {weaverMode ? 'Edit timeline' : 'Open timeline'}
                 </Link>
               ) : null}
               <Link
@@ -235,10 +235,16 @@ export default async function WorldOverviewPage({
             </small>
           </Link>
           {world.hasFullWorldAccess ? (
-            <Link href={`/world/${world.id}/timeline`}>
+            <Link
+              href={`/world/${world.id}/timeline${weaverMode ? '?mode=weaver' : ''}`}
+            >
               <span>What happened?</span>
-              <strong>Timeline</strong>
-              <small>Explore canonical eras, events, and World dates.</small>
+              <strong>{weaverMode ? 'Edit timeline' : 'Timeline'}</strong>
+              <small>
+                {weaverMode
+                  ? 'Add and edit canonical eras, events, and World dates.'
+                  : 'Explore canonical eras, events, and World dates.'}
+              </small>
             </Link>
           ) : null}
           {world.canManageMembers ? (

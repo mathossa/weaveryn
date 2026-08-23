@@ -1,11 +1,69 @@
 .stack {
   display: grid;
-  gap: 1.5rem;
+  gap: 1rem;
+}
+
+.launcherPage .header {
+  margin-bottom: 0.9rem;
+}
+
+.launcherPage .header h1 {
+  font-size: clamp(1.8rem, 3vw, 2.45rem);
+}
+
+.launcherPage .description {
+  max-width: 60rem;
+  margin-top: 0.4rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.expandedLauncher .header {
+  margin-bottom: 0.2rem;
+}
+
+.expandedLauncher .header h1 {
+  font-size: clamp(1.65rem, 2.6vw, 2.1rem);
+}
+
+.expandedLauncher .characterBrowser .sectionHeader p {
+  display: none;
+}
+
+.moreCharactersButton {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 50%, var(--ui-border));
+  border-radius: var(--ui-radius-control);
+  padding: 0.55rem 0.8rem;
+  background: color-mix(
+    in srgb,
+    var(--ui-accent) 10%,
+    var(--ui-control-surface)
+  );
+  color: var(--ui-accent-hover);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.moreCharactersButton span {
+  font-size: 1.05rem;
 }
 
 .section {
   display: grid;
   gap: 0.85rem;
+}
+
+.characterBrowser {
+  grid-column: 1 / -1;
+  border: 1px solid color-mix(in srgb, var(--ui-border) 86%, transparent);
+  border-radius: var(--ui-radius-panel);
+  padding: 0.85rem;
+  background: color-mix(in srgb, var(--ui-panel-strong) 72%, transparent);
 }
 
 .sectionHeader {
@@ -58,7 +116,7 @@
 .characterCard {
   position: relative;
   display: block;
-  min-height: 17rem;
+  min-height: 12rem;
   height: 100%;
   overflow: hidden;
   border: 1px solid var(--ui-border);
@@ -126,6 +184,29 @@
   );
 }
 
+.characterEntryAction {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 42%, var(--ui-border));
+  border-radius: 999px;
+  padding: 0.35rem 0.6rem;
+  background: rgba(4, 8, 15, 0.68);
+  color: var(--ui-accent-hover);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.characterEntryAction span {
+  font-size: 1rem;
+  line-height: 0.7;
+}
+
 .characterCopy {
   position: absolute;
   inset: auto 0 0;
@@ -140,6 +221,31 @@
 
 .characterCopy span {
   color: var(--ui-text-muted);
+}
+
+.characterCampaign {
+  color: var(--ui-text) !important;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.characterWorldTime {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+}
+
+.characterWorldTime span + span::before {
+  margin-right: 0.35rem;
+  color: var(--ui-accent);
+  content: '·';
+}
+
+.characterMembers {
+  color: var(--ui-accent-hover) !important;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .characterMeta {
@@ -324,6 +430,24 @@
   display: block;
 }
 
+.actionLink strong {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.actionGlyph {
+  display: inline-grid !important;
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--ui-border);
+  border-radius: 50%;
+  color: var(--ui-accent);
+  font-size: 0.72rem;
+}
+
 .actionLink span {
   color: var(--ui-text-muted);
   font-size: 0.86rem;
@@ -429,6 +553,143 @@
 }
 
 @media (min-width: 761px) {
+  .stack {
+    grid-template-columns: minmax(0, 2fr) minmax(17rem, 0.9fr);
+    align-items: start;
+  }
+
+  .stack > :first-child,
+  .stack > :only-child {
+    grid-column: 1 / -1;
+  }
+
+  .entryPaths .roleGrid,
+  .entryActions .actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .launcherPage:not(.expandedLauncher) {
+    display: grid;
+    height: calc(100dvh - 7.75rem);
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .launcherPage:not(.expandedLauncher) .header {
+    position: relative;
+    min-height: 4.4rem;
+    margin-bottom: 0.7rem;
+    padding-left: 2.7rem;
+  }
+
+  .launcherPage:not(.expandedLauncher) .header::before {
+    position: absolute;
+    top: 0.15rem;
+    left: 0;
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border: 1px solid var(--ui-border);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--ui-accent) 12%, transparent);
+    color: var(--ui-accent-hover);
+    content: '✦';
+  }
+
+  .launcherPage:not(.expandedLauncher) .body,
+  .launcherPage:not(.expandedLauncher) .stack,
+  .launcherPage:not(.expandedLauncher) .section,
+  .launcherPage:not(.expandedLauncher) .characterGrid,
+  .launcherPage:not(.expandedLauncher) .characterCardFrame,
+  .launcherPage:not(.expandedLauncher) .roleGrid,
+  .launcherPage:not(.expandedLauncher) .weaverCard,
+  .launcherPage:not(.expandedLauncher) .actions {
+    min-height: 0;
+  }
+
+  .launcherPage:not(.expandedLauncher) .stack {
+    height: 100%;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 4fr) minmax(13rem, 2fr);
+    grid-template-rows: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .launcherPage:not(.expandedLauncher) .section:first-child {
+    position: relative;
+    grid-row: 1;
+    grid-column: 1 / -1;
+    grid-template-rows: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .launcherPage:not(.expandedLauncher) .section:first-child > .sectionHeader {
+    display: none;
+  }
+
+  .launcherPage:not(.expandedLauncher) .characterGrid,
+  .launcherPage:not(.expandedLauncher) .characterEntries,
+  .launcherPage:not(.expandedLauncher) .characterCardFrame,
+  .launcherPage:not(.expandedLauncher) .characterCard {
+    height: 100%;
+  }
+
+  .launcherPage:not(.expandedLauncher) .characterCard {
+    min-height: 0;
+  }
+
+  .launcherPage:not(.expandedLauncher) .entryPaths {
+    grid-row: 2;
+    grid-column: 1 / span 2;
+  }
+
+  .launcherPage:not(.expandedLauncher) .entryActions {
+    grid-row: 2;
+    grid-column: 3;
+  }
+
+  .launcherPage:not(.expandedLauncher) .entryPaths > .sectionHeader,
+  .launcherPage:not(.expandedLauncher) .entryActions > .sectionHeader {
+    display: none;
+  }
+
+  .launcherPage:not(.expandedLauncher) .entryPaths .roleGrid {
+    height: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .launcherPage:not(.expandedLauncher) .entryPaths .weaverMainAction {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .launcherPage:not(.expandedLauncher) .entryActions .actions {
+    height: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .launcherPage:not(.expandedLauncher) .entryActions .actionLink {
+    align-content: center;
+    padding: 0.65rem 0.7rem;
+  }
+
+  .entryPaths .weaverMainAction {
+    min-height: 4.3rem;
+    padding: 0.7rem 0.85rem;
+  }
+
+  .entryActions .actionLink {
+    gap: 0.1rem;
+    padding: 0.6rem 0.7rem;
+  }
+
+  .entryActions .actionLink span {
+    font-size: 0.76rem;
+  }
+
   .expandedCharacterGrid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.75rem;
@@ -466,6 +727,25 @@
   }
 }
 
+@media (min-width: 1200px) {
+  .expandedCharacterGrid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .expandedCharacterGrid .characterCard {
+    min-height: 13.5rem;
+  }
+
+  .expandedLauncher .section:not(.characterBrowser) .characterCard {
+    min-height: 21rem;
+  }
+
+  .expandedLauncher .characterBrowser {
+    gap: 0.65rem;
+    padding: 0.65rem;
+  }
+}
+
 @media (min-width: 761px) and (max-width: 1100px) {
   .expandedCharacterGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -481,6 +761,10 @@
 }
 
 @media (max-width: 760px) {
+  .launcherPage .description {
+    font-size: 0.88rem;
+  }
+
   .characterViewport {
     max-height: none;
     overflow: visible;

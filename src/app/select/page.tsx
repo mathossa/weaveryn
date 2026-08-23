@@ -182,10 +182,8 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
     ([id, name]) => ({ id, name }),
   ).sort((left, right) => left.name.localeCompare(right.name))
 
-  const visibleCharacters = showAll
-    ? characterEntries
-    : characterEntries.slice(0, 3)
-  const eagerCharacterCount = showAll ? 6 : 3
+  const visibleCharacters = characterEntries.slice(0, 3)
+  const eagerCharacterCount = 3
   const hasCharacterSection =
     characterEntries.length > 0 || playerCampaigns.length > 0
   const hasAnyEntry =
@@ -224,8 +222,22 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
       <AppPage
         eyebrow="Enter the living world"
         title="Continue Your Story"
-        description="Choose who you are entering as. Each card opens the exact Character, World, and Campaign context you last inhabited."
-        wide
+        description={
+          showAll ? undefined : 'Jump back into your worlds and adventures.'
+        }
+        layout="workspace"
+        className={`${styles.launcherPage} ${showAll ? styles.expandedLauncher : ''}`}
+        actions={
+          allCharacterEntries.length > 3 ? (
+            <Link
+              className={styles.moreCharactersButton}
+              href={showAll ? '/select' : '/select?show=all'}
+            >
+              {showAll ? 'Back to recent stories' : 'More Characters'}
+              <span aria-hidden="true">→</span>
+            </Link>
+          ) : undefined
+        }
       >
         <div className={styles.stack}>
           {hasCharacterSection ? (
@@ -235,56 +247,13 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
             >
               <div className={styles.sectionHeader}>
                 <div>
-                  <h2 id="recent-characters">
-                    {showAll ? 'More Characters' : 'Your recent stories'}
-                  </h2>
+                  <h2 id="recent-characters">Your recent stories</h2>
                   <p>
-                    {showAll
-                      ? 'Search or filter every available entry without leaving the launcher.'
-                      : 'Pinned entries appear first, followed by the stories you opened most recently.'}
+                    Pinned entries appear first, followed by the stories you
+                    opened most recently.
                   </p>
                 </div>
-                {showAll ? (
-                  <CharacterSortControl
-                    value={sortMode}
-                    query={searchQuery || undefined}
-                    world={worldFilter || undefined}
-                  />
-                ) : null}
               </div>
-
-              {showAll ? (
-                <form className={styles.browserFilters} method="get">
-                  <input type="hidden" name="show" value="all" />
-                  <input type="hidden" name="sort" value={sortMode} />
-                  <label>
-                    <span>Search</span>
-                    <input
-                      type="search"
-                      name="q"
-                      defaultValue={searchQuery}
-                      placeholder="Character, World, or Campaign"
-                    />
-                  </label>
-                  <label>
-                    <span>World</span>
-                    <select name="world" defaultValue={worldFilter}>
-                      <option value="">All Worlds</option>
-                      {worldChoices.map((world) => (
-                        <option value={world.id} key={world.id}>
-                          {world.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <button type="submit">Apply</button>
-                  {searchQuery || worldFilter ? (
-                    <Link href={`/select?show=all&sort=${sortMode}`}>
-                      Clear
-                    </Link>
-                  ) : null}
-                </form>
-              ) : null}
 
               {playerCampaigns.length > 0 ? (
                 <div className={styles.pendingCampaigns}>
@@ -302,10 +271,8 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
               ) : null}
 
               {characterEntries.length > 0 ? (
-                <div className={showAll ? styles.characterViewport : undefined}>
-                  <div
-                    className={`${styles.characterGrid} ${showAll ? styles.expandedCharacterGrid : ''}`}
-                  >
+                <div className={styles.characterEntries}>
+                  <div className={styles.characterGrid}>
                     {visibleCharacters.map((entry, index) =>
                       entry.kind === 'world' ? (
                         <CharacterChoiceCard
@@ -332,82 +299,158 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                 </div>
               ) : (
                 <p className={styles.muted}>
-                  {showAll
-                    ? 'No Character entries match these filters.'
-                    : 'No Character entries yet. Choose a Campaign above or create a Character below.'}
+                  No Character entries yet. Choose a Campaign above or create a
+                  Character below.
                 </p>
               )}
-
-              {allCharacterEntries.length > 3 || showAll ? (
-                <div className={styles.moreRow}>
-                  <Link
-                    className={styles.secondaryLink}
-                    href={showAll ? '/select' : '/select?show=all'}
-                  >
-                    {showAll ? 'Back to recent stories' : 'More Characters'}
-                  </Link>
-                </div>
-              ) : null}
             </section>
           ) : null}
 
-          <section className={styles.section} aria-labelledby="role-entry">
-            <div className={styles.sectionHeader}>
-              <div>
-                <h2 id="role-entry">Other ways to enter</h2>
-                <p>
-                  Shape the weave, or observe it without taking a Character.
+          {showAll ? (
+            <section className={`${styles.section} ${styles.characterBrowser}`}>
+              <div className={styles.sectionHeader}>
+                <div>
+                  <h2 id="all-characters">All Character entries</h2>
+                  <p>
+                    Search or filter every available entry without leaving the
+                    launcher.
+                  </p>
+                </div>
+                <CharacterSortControl
+                  value={sortMode}
+                  query={searchQuery || undefined}
+                  world={worldFilter || undefined}
+                />
+              </div>
+
+              <form className={styles.browserFilters} method="get">
+                <input type="hidden" name="show" value="all" />
+                <input type="hidden" name="sort" value={sortMode} />
+                <label>
+                  <span>Search</span>
+                  <input
+                    type="search"
+                    name="q"
+                    defaultValue={searchQuery}
+                    placeholder="Character, World, or Campaign"
+                  />
+                </label>
+                <label>
+                  <span>World</span>
+                  <select name="world" defaultValue={worldFilter}>
+                    <option value="">All Worlds</option>
+                    {worldChoices.map((world) => (
+                      <option value={world.id} key={world.id}>
+                        {world.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button type="submit">Apply</button>
+                {searchQuery || worldFilter ? (
+                  <Link href={`/select?show=all&sort=${sortMode}`}>Clear</Link>
+                ) : null}
+              </form>
+
+              {characterEntries.length > 0 ? (
+                <div className={styles.characterViewport}>
+                  <div
+                    className={`${styles.characterGrid} ${styles.expandedCharacterGrid}`}
+                  >
+                    {characterEntries.map((entry, index) =>
+                      entry.kind === 'world' ? (
+                        <CharacterChoiceCard
+                          key={entry.key}
+                          character={entry.character}
+                          campaign={entry.campaign}
+                          pinned={entry.preference?.pinned ?? false}
+                          highlighted={
+                            latestUsedAt > 0 &&
+                            entry.preference?.lastUsedAt?.getTime() ===
+                              latestUsedAt
+                          }
+                          eager={index < 6}
+                        />
+                      ) : (
+                        <PortableCharacterChoiceCard
+                          key={entry.key}
+                          character={entry.character}
+                          eager={index < 6}
+                        />
+                      ),
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <p className={styles.muted}>
+                  No Character entries match these filters.
                 </p>
-              </div>
-            </div>
+              )}
+            </section>
+          ) : null}
 
-            <div className={styles.roleGrid}>
-              <div
-                className={`${styles.weaverCard} ${weaverHighlighted ? styles.resumeEntry : ''}`}
-              >
-                <TrackedEntryLink
-                  className={styles.weaverMainAction}
-                  href={weaverResumeHref ?? '/world?mode=weaver'}
-                  tracking={weaverResumeTracking}
-                >
-                  <span className={styles.weaverGlyph} aria-hidden="true">
-                    ✦
-                  </span>
-                  <span className={styles.weaverCopy}>
-                    <strong>Weaver</strong>
-                    <span>
-                      {weaverResumeLabel
-                        ? `Continue ${weaverResumeLabel}`
-                        : 'Choose a World to shape and manage.'}
-                    </span>
-                  </span>
-                  <span className={styles.weaverArrow} aria-hidden="true">
-                    →
-                  </span>
-                </TrackedEntryLink>
+          {!showAll ? (
+            <section
+              className={`${styles.section} ${styles.entryPaths}`}
+              aria-labelledby="role-entry"
+            >
+              <div className={styles.sectionHeader}>
+                <div>
+                  <h2 id="role-entry">Other ways to enter</h2>
+                  <p>
+                    Shape the weave, or observe it without taking a Character.
+                  </p>
+                </div>
               </div>
 
-              <div className={styles.weaverCard}>
-                <Link
-                  className={styles.weaverMainAction}
-                  href="/world?mode=threadwatcher"
+              <div className={styles.roleGrid}>
+                <div
+                  className={`${styles.weaverCard} ${weaverHighlighted ? styles.resumeEntry : ''}`}
                 >
-                  <span className={styles.weaverGlyph} aria-hidden="true">
-                    ◉
-                  </span>
-                  <span className={styles.weaverCopy}>
-                    <strong>Threadwatcher</strong>
-                    <span>
-                      Choose a World, then a Campaign you can observe.
+                  <TrackedEntryLink
+                    className={styles.weaverMainAction}
+                    href={weaverResumeHref ?? '/world?mode=weaver'}
+                    tracking={weaverResumeTracking}
+                  >
+                    <span className={styles.weaverGlyph} aria-hidden="true">
+                      ✦
                     </span>
-                  </span>
-                  <span className={styles.weaverArrow} aria-hidden="true">
-                    →
-                  </span>
-                </Link>
+                    <span className={styles.weaverCopy}>
+                      <strong>Weaver</strong>
+                      <span>
+                        {weaverResumeLabel
+                          ? `Continue ${weaverResumeLabel}`
+                          : 'Choose a World to shape and manage.'}
+                      </span>
+                    </span>
+                    <span className={styles.weaverArrow} aria-hidden="true">
+                      →
+                    </span>
+                  </TrackedEntryLink>
+                </div>
+
+                <div className={styles.weaverCard}>
+                  <Link
+                    className={styles.weaverMainAction}
+                    href="/world?mode=threadwatcher"
+                  >
+                    <span className={styles.weaverGlyph} aria-hidden="true">
+                      ◉
+                    </span>
+                    <span className={styles.weaverCopy}>
+                      <strong>Threadwatcher</strong>
+                      <span>
+                        Choose a World, then a Campaign you can observe.
+                      </span>
+                    </span>
+                    <span className={styles.weaverArrow} aria-hidden="true">
+                      →
+                    </span>
+                  </Link>
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
+          ) : null}
 
           {!hasAnyEntry ? (
             <StatusPanel tone="empty" title="Your weave is ready to begin">
@@ -419,28 +462,48 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
             </StatusPanel>
           ) : null}
 
-          <section className={styles.section} aria-labelledby="entry-actions">
-            <div className={styles.sectionHeader}>
-              <h2 id="entry-actions">Create and manage</h2>
-            </div>
-            <div className={styles.actions}>
-              <Link
-                className={styles.actionLink}
-                href="/select/create-character"
-              >
-                <strong>Create Character</strong>
-                <span>Start a new portable Character identity.</span>
-              </Link>
-              <Link className={styles.actionLink} href="/select/join">
-                <strong>Join with invite</strong>
-                <span>Use a World or Campaign invitation.</span>
-              </Link>
-              <Link className={styles.actionLink} href="/character">
-                <strong>Manage Characters</strong>
-                <span>Edit portable Characters and World identities.</span>
-              </Link>
-            </div>
-          </section>
+          {!showAll ? (
+            <section
+              className={`${styles.section} ${styles.entryActions}`}
+              aria-labelledby="entry-actions"
+            >
+              <div className={styles.sectionHeader}>
+                <h2 id="entry-actions">Create and manage</h2>
+              </div>
+              <div className={styles.actions}>
+                <Link
+                  className={styles.actionLink}
+                  href="/select/create-character"
+                >
+                  <strong>
+                    <span className={styles.actionGlyph} aria-hidden="true">
+                      ✦
+                    </span>
+                    Create Character
+                  </strong>
+                  <span>Start a new portable Character identity.</span>
+                </Link>
+                <Link className={styles.actionLink} href="/select/join">
+                  <strong>
+                    <span className={styles.actionGlyph} aria-hidden="true">
+                      ↗
+                    </span>
+                    Join with invite
+                  </strong>
+                  <span>Use a World or Campaign invitation.</span>
+                </Link>
+                <Link className={styles.actionLink} href="/character">
+                  <strong>
+                    <span className={styles.actionGlyph} aria-hidden="true">
+                      ⚙
+                    </span>
+                    Manage Characters
+                  </strong>
+                  <span>Edit portable Characters and World identities.</span>
+                </Link>
+              </div>
+            </section>
+          ) : null}
         </div>
       </AppPage>
     </AuthenticatedAppShell>

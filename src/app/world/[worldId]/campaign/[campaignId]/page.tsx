@@ -133,7 +133,7 @@ export default async function CampaignOverviewPage({
               ? 'Shape the shared Campaign context without requiring a prepared Scene.'
               : 'Follow the player-visible Campaign context.'
         }
-        wide
+        layout="workspace"
         actions={
           <div className={styles.nowHeaderActions}>
             {canManageCampaign ? (

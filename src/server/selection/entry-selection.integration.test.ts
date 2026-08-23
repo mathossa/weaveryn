@@ -186,7 +186,12 @@ describe('Choose Entity integration', () => {
       campaigns: [],
     })
     expect(selection.characters[1].campaigns).toEqual([
-      { id: accessibleCampaignId, name: 'Accessible Campaign' },
+      {
+        id: accessibleCampaignId,
+        name: 'Accessible Campaign',
+        currentWorldDateLabel: 'Day 1',
+        memberCount: 1,
+      },
     ])
     expect(selection.portableCharacters).toEqual([
       expect.objectContaining({ id: portableCharacterId, name: 'Mira' }),

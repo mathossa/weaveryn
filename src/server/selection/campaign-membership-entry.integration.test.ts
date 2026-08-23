@@ -170,7 +170,12 @@ describe('Campaign membership Choose Entity entries', () => {
       expect.objectContaining({
         id: worldCharacterId,
         campaigns: [
-          { id: attachedCampaignId, name: 'Attached Player Campaign' },
+          {
+            id: attachedCampaignId,
+            name: 'Attached Player Campaign',
+            currentWorldDateLabel: 'Day 3',
+            memberCount: 1,
+          },
         ],
       }),
     ])

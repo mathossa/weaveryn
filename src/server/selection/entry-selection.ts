@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 export interface EntryCampaignChoice {
   id: string
   name: string
+  currentWorldDateLabel: string | null
+  memberCount: number
 }
 
 export interface EntryWorldCharacterChoice {
@@ -128,6 +130,12 @@ export async function getEntrySelection(
               select: {
                 id: true,
                 name: true,
+                currentWorldDateLabel: true,
+                _count: {
+                  select: {
+                    campaignCharacters: { where: { status: 'ACTIVE' } },
+                  },
+                },
               },
             },
           },
@@ -221,9 +229,12 @@ export async function getEntrySelection(
       worldId: worldCharacter.world.id,
       worldName: worldCharacter.world.name,
       createdAt: worldCharacter.createdAt,
-      campaigns: worldCharacter.campaignCharacters.map(
-        ({ campaign }) => campaign,
-      ),
+      campaigns: worldCharacter.campaignCharacters.map(({ campaign }) => ({
+        id: campaign.id,
+        name: campaign.name,
+        currentWorldDateLabel: campaign.currentWorldDateLabel,
+        memberCount: campaign._count.campaignCharacters,
+      })),
     })),
     portableCharacters: portableCharacters.filter(
       (character) => !selectedCharacterIds.has(character.id),

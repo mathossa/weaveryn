@@ -54,6 +54,7 @@ interface WorldTimelineViewProps {
   canEditEvents: boolean
   canManageChronology: boolean
   initialCreate: boolean
+  timelineHref: string
 }
 
 function emptyDateState(): DateState {
@@ -219,12 +220,14 @@ function Modal({
 
 function EventEditorDialog({
   worldId,
+  timelineHref,
   event,
   reckonings,
   entityChoices,
   onClose,
 }: {
   worldId: string
+  timelineHref: string
   event: EventView | null
   reckonings: ReckoningView[]
   entityChoices: EntityChoice[]
@@ -301,7 +304,7 @@ function EventEditorDialog({
     }
 
     onClose()
-    if (!event) router.replace(`/world/${worldId}/timeline`)
+    if (!event) router.replace(timelineHref)
     router.refresh()
   }
 
@@ -636,6 +639,7 @@ export function WorldTimelineView({
   canEditEvents,
   canManageChronology,
   initialCreate,
+  timelineHref,
 }: WorldTimelineViewProps) {
   const router = useRouter()
   const [search, setSearch] = useState('')
@@ -950,12 +954,13 @@ export function WorldTimelineView({
       {editor ? (
         <EventEditorDialog
           worldId={worldId}
+          timelineHref={timelineHref}
           event={editor === 'create' ? null : editor}
           reckonings={reckonings}
           entityChoices={entityChoices}
           onClose={() => {
             setEditor(null)
-            if (initialCreate) router.replace(`/world/${worldId}/timeline`)
+            if (initialCreate) router.replace(timelineHref)
           }}
         />
       ) : null}

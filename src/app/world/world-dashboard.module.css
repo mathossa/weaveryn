@@ -1,13 +1,13 @@
 .worldHome {
   display: grid;
   gap: 1.2rem;
-  width: min(92rem, 100%);
+  width: min(160rem, 100%);
   margin: 0 auto;
   padding: 1rem clamp(0.8rem, 2vw, 1.5rem) 1.5rem;
 }
 
 .atlasHero {
-  min-height: clamp(30rem, 62vh, 45rem);
+  min-height: clamp(24rem, 50vh, 38rem);
   border-color: color-mix(in srgb, var(--ui-accent) 24%, var(--ui-border));
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
 }

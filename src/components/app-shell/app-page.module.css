@@ -8,6 +8,18 @@
   width: min(100%, 92rem);
 }
 
+.workspace {
+  width: min(100%, 160rem);
+  padding-top: 1.5rem;
+  padding-bottom: 0;
+  padding-right: clamp(1.25rem, 3vw, 4rem);
+  padding-left: clamp(1.25rem, 3vw, 4rem);
+}
+
+.workspace .header {
+  margin-bottom: 0.75rem;
+}
+
 .bounded {
   position: fixed;
   top: 74px;
