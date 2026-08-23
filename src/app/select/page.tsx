@@ -18,6 +18,7 @@ import {
 } from './_components/character-sort-control'
 import { PortableCharacterChoiceCard } from './_components/portable-character-choice-card'
 import { loadSelectionPageData } from './_lib/load-selection-page-data'
+import polishStyles from './select-polish.module.css'
 import styles from './select.module.css'
 
 interface SelectPageProps {
@@ -220,39 +221,29 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
   return (
     <AuthenticatedAppShell user={user}>
       <AppPage
-        eyebrow="Enter the living world"
-        title="Continue Your Story"
-        description={
-          showAll ? undefined : 'Jump back into your worlds and adventures.'
-        }
+        title={showAll ? 'Browse the Weave' : 'Return to the Weave'}
         layout="workspace"
-        className={`${styles.launcherPage} ${showAll ? styles.expandedLauncher : ''}`}
+        className={`${styles.launcherPage} ${polishStyles.polishedLauncher} ${showAll ? `${styles.expandedLauncher} ${polishStyles.browserLauncher}` : polishStyles.compactLauncher}`}
         actions={
           allCharacterEntries.length > 3 ? (
             <Link
               className={styles.moreCharactersButton}
               href={showAll ? '/select' : '/select?show=all'}
             >
-              {showAll ? 'Back to recent stories' : 'More Characters'}
+              {showAll ? 'Return to recent' : 'Browse all characters'}
               <span aria-hidden="true">→</span>
             </Link>
           ) : undefined
         }
       >
-        <div className={styles.stack}>
+        <div className={`${styles.stack} ${polishStyles.stack}`}>
           {hasCharacterSection ? (
             <section
-              className={styles.section}
+              className={`${styles.section} ${polishStyles.recentStories}`}
               aria-labelledby="recent-characters"
             >
               <div className={styles.sectionHeader}>
-                <div>
-                  <h2 id="recent-characters">Your recent stories</h2>
-                  <p>
-                    Pinned entries appear first, followed by the stories you
-                    opened most recently.
-                  </p>
-                </div>
+                <h2 id="recent-characters">Recent threads</h2>
               </div>
 
               {playerCampaigns.length > 0 ? (
@@ -390,25 +381,23 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
           ) : null}
 
           {!showAll ? (
-            <section
-              className={`${styles.section} ${styles.entryPaths}`}
-              aria-labelledby="role-entry"
-            >
-              <div className={styles.sectionHeader}>
-                <div>
-                  <h2 id="role-entry">Other ways to enter</h2>
-                  <p>
-                    Shape the weave, or observe it without taking a Character.
-                  </p>
-                </div>
-              </div>
+            <div className={polishStyles.secondaryHeading}>
+              <span aria-hidden="true">✦</span>
+              <h2 id="secondary-entry-heading">Enter another way</h2>
+            </div>
+          ) : null}
 
+          {!showAll ? (
+            <section
+              className={`${styles.section} ${styles.entryPaths} ${polishStyles.alternateEntry}`}
+              aria-labelledby="secondary-entry-heading"
+            >
               <div className={styles.roleGrid}>
                 <div
-                  className={`${styles.weaverCard} ${weaverHighlighted ? styles.resumeEntry : ''}`}
+                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${weaverHighlighted ? `${styles.resumeEntry} ${polishStyles.resumeEntry}` : ''}`}
                 >
                   <TrackedEntryLink
-                    className={styles.weaverMainAction}
+                    className={`${styles.weaverMainAction} ${polishStyles.entryTile}`}
                     href={weaverResumeHref ?? '/world?mode=weaver'}
                     tracking={weaverResumeTracking}
                   >
@@ -429,9 +418,11 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                   </TrackedEntryLink>
                 </div>
 
-                <div className={styles.weaverCard}>
+                <div
+                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame}`}
+                >
                   <Link
-                    className={styles.weaverMainAction}
+                    className={`${styles.weaverMainAction} ${polishStyles.entryTile}`}
                     href="/world?mode=threadwatcher"
                   >
                     <span className={styles.weaverGlyph} aria-hidden="true">
@@ -439,9 +430,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                     </span>
                     <span className={styles.weaverCopy}>
                       <strong>Threadwatcher</strong>
-                      <span>
-                        Choose a World, then a Campaign you can observe.
-                      </span>
+                      <span>Observe a Campaign without taking a Character.</span>
                     </span>
                     <span className={styles.weaverArrow} aria-hidden="true">
                       →
@@ -464,15 +453,12 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
 
           {!showAll ? (
             <section
-              className={`${styles.section} ${styles.entryActions}`}
-              aria-labelledby="entry-actions"
+              className={`${styles.section} ${styles.entryActions} ${polishStyles.managementActions}`}
+              aria-labelledby="secondary-entry-heading"
             >
-              <div className={styles.sectionHeader}>
-                <h2 id="entry-actions">Create and manage</h2>
-              </div>
               <div className={styles.actions}>
                 <Link
-                  className={styles.actionLink}
+                  className={`${styles.actionLink} ${polishStyles.entryTile}`}
                   href="/select/create-character"
                 >
                   <strong>
@@ -481,25 +467,31 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                     </span>
                     Create Character
                   </strong>
-                  <span>Start a new portable Character identity.</span>
+                  <span>Begin a new portable identity.</span>
                 </Link>
-                <Link className={styles.actionLink} href="/select/join">
+                <Link
+                  className={`${styles.actionLink} ${polishStyles.entryTile}`}
+                  href="/select/join"
+                >
                   <strong>
                     <span className={styles.actionGlyph} aria-hidden="true">
                       ↗
                     </span>
                     Join with invite
                   </strong>
-                  <span>Use a World or Campaign invitation.</span>
+                  <span>Enter a World or Campaign.</span>
                 </Link>
-                <Link className={styles.actionLink} href="/character">
+                <Link
+                  className={`${styles.actionLink} ${polishStyles.entryTile}`}
+                  href="/character"
+                >
                   <strong>
                     <span className={styles.actionGlyph} aria-hidden="true">
                       ⚙
                     </span>
                     Manage Characters
                   </strong>
-                  <span>Edit portable Characters and World identities.</span>
+                  <span>Edit your portable identities.</span>
                 </Link>
               </div>
             </section>

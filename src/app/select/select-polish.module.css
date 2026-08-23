@@ -1,0 +1,360 @@
+.polishedLauncher {
+  position: relative;
+  background:
+    radial-gradient(
+      circle at 18% 3%,
+      color-mix(in srgb, var(--ui-accent) 7%, transparent),
+      transparent 24rem
+    ),
+    radial-gradient(
+      circle at 82% 32%,
+      color-mix(in srgb, var(--ui-text) 3%, transparent),
+      transparent 28rem
+    );
+}
+
+.polishedLauncher > header {
+  position: relative;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-left: 2.75rem;
+}
+
+.polishedLauncher > header::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 48%, var(--ui-border));
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ui-accent) 8%, var(--ui-panel-strong));
+  box-shadow: 0 0 1.25rem color-mix(in srgb, var(--ui-accent) 12%, transparent);
+  color: var(--ui-accent-hover);
+  content: '✦';
+  transform: translateY(-50%);
+}
+
+.polishedLauncher > header::after {
+  position: absolute;
+  bottom: -0.48rem;
+  left: 2.75rem;
+  width: min(18rem, 34vw);
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--ui-accent) 68%, transparent),
+    transparent
+  );
+  content: '';
+}
+
+.polishedLauncher > header h1 {
+  font-size: clamp(2rem, 3.3vw, 3.15rem);
+  letter-spacing: -0.035em;
+  text-shadow: 0 0 2rem color-mix(in srgb, var(--ui-accent) 8%, transparent);
+}
+
+.polishedLauncher > header a {
+  background: color-mix(in srgb, var(--ui-control-surface) 76%, transparent);
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.secondaryHeading {
+  display: flex;
+  grid-area: secondary-heading;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.15rem;
+  color: var(--ui-accent-hover);
+}
+
+.secondaryHeading h2 {
+  margin: 0;
+  color: var(--ui-text);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.secondaryHeading > span {
+  color: var(--ui-accent);
+  font-size: 0.78rem;
+}
+
+.characterCard {
+  min-height: 0 !important;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--ui-border) 78%, transparent) !important;
+  background: color-mix(in srgb, var(--ui-panel-strong) 90%, black);
+  box-shadow:
+    0 1rem 2.5rem rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.012);
+  transform: translateZ(0);
+  transition:
+    transform 190ms ease,
+    border-color 190ms ease,
+    box-shadow 190ms ease;
+}
+
+.resumeEntry {
+  border-color: var(--ui-accent) !important;
+  box-shadow:
+    0 1.15rem 3rem rgba(0, 0, 0, 0.28),
+    0 0 0 1px color-mix(in srgb, var(--ui-accent) 62%, transparent),
+    0 0 2rem color-mix(in srgb, var(--ui-accent) 11%, transparent) !important;
+}
+
+.characterImage {
+  transform: scale(1.001);
+  transition: transform 520ms cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+
+.characterShade {
+  background:
+    linear-gradient(180deg, rgba(3, 6, 12, 0.03) 22%, rgba(3, 6, 12, 0.2) 54%),
+    linear-gradient(180deg, transparent 38%, rgba(3, 6, 12, 0.97) 100%) !important;
+}
+
+.characterCopy {
+  gap: 0.22rem !important;
+  padding: clamp(0.9rem, 1.5vw, 1.2rem) !important;
+}
+
+.characterCopy > strong {
+  font-size: clamp(1.15rem, 1.45vw, 1.45rem) !important;
+  letter-spacing: -0.015em;
+  text-shadow: 0 2px 1.25rem rgba(0, 0, 0, 0.72);
+}
+
+.characterFooter {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.15rem;
+}
+
+.continueAction {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.42rem;
+  color: var(--ui-accent-hover) !important;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.015em;
+  opacity: 0.82;
+  transform: translateX(-0.15rem);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    color 180ms ease;
+}
+
+.continueAction > span {
+  color: var(--ui-accent) !important;
+  font-size: 1rem !important;
+}
+
+.entryTileFrame {
+  border-color: color-mix(in srgb, var(--ui-border) 72%, transparent) !important;
+  background: color-mix(in srgb, var(--ui-panel-strong) 74%, transparent) !important;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.entryTile {
+  min-height: 4.8rem !important;
+  border-color: color-mix(in srgb, var(--ui-control-border) 72%, transparent) !important;
+  background: color-mix(in srgb, var(--ui-control-surface) 64%, transparent) !important;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+@media (hover: hover) {
+  .polishedLauncher > header a:hover {
+    border-color: color-mix(in srgb, var(--ui-accent) 70%, var(--ui-border));
+    background: color-mix(in srgb, var(--ui-accent) 10%, var(--ui-control-surface));
+    color: var(--ui-text);
+    transform: translateY(-1px);
+  }
+
+  .characterCard:hover {
+    border-color: color-mix(in srgb, var(--ui-accent) 58%, var(--ui-border)) !important;
+    box-shadow:
+      0 1.2rem 3rem rgba(0, 0, 0, 0.3),
+      0 0 1.8rem color-mix(in srgb, var(--ui-accent) 8%, transparent);
+    transform: translateY(-3px);
+  }
+
+  .characterCard:hover .characterImage {
+    transform: scale(1.025);
+  }
+
+  .characterCard:hover .continueAction {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .entryTile:hover,
+  .entryTileFrame:hover {
+    border-color: color-mix(in srgb, var(--ui-accent) 42%, var(--ui-border)) !important;
+  }
+
+  .entryTile:hover {
+    background: color-mix(in srgb, var(--ui-accent) 6%, var(--ui-control-surface)) !important;
+    transform: translateY(-2px);
+  }
+}
+
+@media (min-width: 761px) {
+  .compactLauncher {
+    display: block !important;
+    height: auto !important;
+    min-height: calc(100dvh - 7.75rem);
+    overflow: visible !important;
+  }
+
+  .compactLauncher .stack {
+    height: auto !important;
+    grid-template-areas:
+      'stories stories'
+      'secondary-heading secondary-heading'
+      'alternate actions' !important;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) !important;
+    grid-template-rows: auto auto auto !important;
+    gap: 0.85rem 0.9rem !important;
+  }
+
+  .compactLauncher .recentStories {
+    grid-area: stories !important;
+    grid-template-rows: auto !important;
+  }
+
+  .compactLauncher .recentStories > div:first-child {
+    display: none;
+  }
+
+  .compactLauncher .alternateEntry {
+    grid-area: alternate !important;
+  }
+
+  .compactLauncher .managementActions {
+    grid-area: actions !important;
+  }
+
+  .compactLauncher .alternateEntry > div,
+  .compactLauncher .managementActions > div {
+    height: auto !important;
+  }
+
+  .compactLauncher .alternateEntry > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .compactLauncher .managementActions > div {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-rows: auto !important;
+    gap: 0.65rem !important;
+  }
+
+  .compactLauncher .characterCard {
+    width: 100%;
+    height: auto !important;
+    aspect-ratio: 16 / 9;
+  }
+
+  .compactLauncher .entryTile {
+    height: 100% !important;
+    padding: 0.75rem 0.85rem !important;
+  }
+}
+
+@media (max-width: 980px) and (min-width: 761px) {
+  .compactLauncher .stack {
+    grid-template-areas:
+      'stories'
+      'secondary-heading'
+      'alternate'
+      'actions' !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .compactLauncher .managementActions > div {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .polishedLauncher > header {
+    margin-bottom: 1.15rem;
+    padding-left: 2.55rem;
+  }
+
+  .polishedLauncher > header::after {
+    left: 2.55rem;
+    width: 9rem;
+  }
+
+  .polishedLauncher > header h1 {
+    font-size: clamp(1.9rem, 9vw, 2.55rem);
+  }
+
+  .stack {
+    gap: 0.9rem !important;
+  }
+
+  .recentStories {
+    gap: 0.65rem !important;
+  }
+
+  .recentStories > div:first-child {
+    display: block;
+  }
+
+  .recentStories > div:first-child h2 {
+    font-size: 0.86rem;
+    color: var(--ui-text-muted);
+  }
+
+  .characterCard {
+    aspect-ratio: 4 / 3;
+  }
+
+  .alternateEntry > div,
+  .managementActions > div {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .entryTile {
+    min-height: 4.35rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .polishedLauncher > header a,
+  .characterCard,
+  .characterImage,
+  .continueAction,
+  .entryTile,
+  .entryTileFrame {
+    transition: none !important;
+  }
+
+  .characterCard:hover,
+  .characterCard:hover .characterImage,
+  .entryTile:hover {
+    transform: none !important;
+  }
+}
