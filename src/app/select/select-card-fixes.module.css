@@ -1,0 +1,121 @@
+.pageCardMarker {
+  /* Marker used to scope select-page layout fixes without changing AppPage. */
+}
+
+.ornamentFrame {
+  position: relative;
+}
+
+.ornamentCard {
+  position: relative;
+}
+
+/* Give the title/action row more breathing room before the character cards.
+   This applies to both the normal launcher and Browse all characters. */
+:global(main):has(.pageCardMarker) > :global(section) > :global(header) {
+  margin-bottom: 2.55rem !important;
+}
+
+@media (min-width: 981px) {
+  /* The original ornament lived on the outer frame, so the card moved away from
+     it on hover. Hide that version and draw the ornament on the card itself. */
+  .ornamentFrame:first-child::before,
+  .ornamentFrame:first-child::after {
+    display: none !important;
+  }
+
+  .ornamentFrame:first-child .ornamentCard::before {
+    position: absolute;
+    inset: 0.68rem;
+    z-index: 3;
+    border-radius: calc(var(--ui-radius-panel) - 0.42rem);
+    background:
+      linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--ui-accent) 50%, transparent) 0 27%,
+          transparent 27% 100%
+        )
+        top left / 100% 1px no-repeat,
+      linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--ui-accent) 32%, transparent),
+          color-mix(in srgb, var(--ui-accent) 48%, transparent) 52%,
+          transparent 100%
+        )
+        bottom left / 100% 1px no-repeat,
+      linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--ui-accent) 44%, transparent),
+          color-mix(in srgb, var(--ui-accent) 22%, transparent)
+        )
+        top left / 1px 100% no-repeat,
+      linear-gradient(
+          180deg,
+          transparent 0 4.5rem,
+          color-mix(in srgb, var(--ui-accent) 30%, transparent) 4.5rem,
+          color-mix(in srgb, var(--ui-accent) 46%, transparent) 100%
+        )
+        top right / 1px 100% no-repeat;
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--ui-accent) 4%, transparent),
+      0 0 1.4rem color-mix(in srgb, var(--ui-accent) 5%, transparent);
+    pointer-events: none;
+    content: '';
+  }
+
+  .ornamentFrame:first-child .ornamentCard::after {
+    position: absolute;
+    top: 0.68rem;
+    left: 1.4rem;
+    z-index: 4;
+    width: 6rem;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--ui-accent-hover) 92%, white 8%),
+      color-mix(in srgb, var(--ui-accent) 58%, transparent),
+      transparent
+    );
+    box-shadow: 0 0 0.75rem
+      color-mix(in srgb, var(--ui-accent) 32%, transparent);
+    pointer-events: none;
+    content: '';
+    animation: alignedFeaturedThread 6.5s ease-in-out infinite;
+  }
+
+  /* Keep every bookmark on the same visual baseline. The featured bookmark is
+     inset farther so it clears the ornamental corner opening. */
+  .ornamentFrame > button {
+    top: 1.25rem !important;
+  }
+
+  .ornamentFrame:first-child > button {
+    right: 1.4rem !important;
+  }
+}
+
+@media (max-width: 760px) {
+  :global(main):has(.pageCardMarker) > :global(section) > :global(header) {
+    margin-bottom: 2rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ornamentFrame:first-child .ornamentCard::after {
+    animation: none !important;
+  }
+}
+
+@keyframes alignedFeaturedThread {
+  0%,
+  100% {
+    left: 1.4rem;
+    opacity: 0.28;
+  }
+
+  50% {
+    left: calc(100% - 8.2rem);
+    opacity: 0.95;
+  }
+}
