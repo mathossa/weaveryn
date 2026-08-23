@@ -5,6 +5,7 @@ import type {
   EntryCampaignChoice,
   EntryWorldCharacterChoice,
 } from '@/server/selection'
+import fixStyles from '../select-card-fixes.module.css'
 import polishStyles from '../select-polish.module.css'
 import styles from '../select.module.css'
 import { PinEntryButton } from './pin-entry-button'
@@ -28,9 +29,11 @@ export function CharacterChoiceCard({
   const contextLabel = campaign?.name ?? 'No campaign'
 
   return (
-    <div className={styles.characterCardFrame}>
+    <div
+      className={`${styles.characterCardFrame} ${fixStyles.ornamentFrame}`}
+    >
       <TrackedEntryLink
-        className={`${styles.characterCard} ${polishStyles.characterCard} ${highlighted ? `${styles.resumeEntry} ${polishStyles.resumeEntry}` : ''}`}
+        className={`${styles.characterCard} ${polishStyles.characterCard} ${fixStyles.pageCardMarker} ${fixStyles.ornamentCard} ${highlighted ? `${styles.resumeEntry} ${polishStyles.resumeEntry}` : ''}`}
         href={destination}
         tracking={{
           kind: 'CHARACTER',
