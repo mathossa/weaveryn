@@ -7,8 +7,12 @@ export interface AppPageProps {
   description?: ReactNode
   actions?: ReactNode
   children?: ReactNode
+  /** Layout density for the page's outer frame. */
+  layout?: 'readable' | 'wide' | 'workspace'
+  /** @deprecated Use layout="wide" instead. */
   wide?: boolean
   bounded?: boolean
+  className?: string
 }
 
 export function AppPage({
@@ -17,12 +21,15 @@ export function AppPage({
   description,
   actions,
   children,
+  layout,
   wide = false,
   bounded = false,
+  className,
 }: AppPageProps) {
+  const resolvedLayout = layout ?? (wide ? 'wide' : 'readable')
   return (
     <section
-      className={`${styles.page} ${wide ? styles.wide : ''} ${bounded ? styles.bounded : ''}`}
+      className={`${styles.page} ${styles[resolvedLayout]} ${bounded ? styles.bounded : ''} ${className ?? ''}`}
     >
       <header className={styles.header}>
         <div className={styles.headingGroup}>

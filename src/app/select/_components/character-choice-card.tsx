@@ -51,13 +51,18 @@ export function CharacterChoiceCard({
           loading={eager ? 'eager' : 'lazy'}
         />
         <span className={styles.characterShade} aria-hidden="true" />
+        <span className={styles.characterEntryAction} aria-hidden="true">
+          Enter World <span>→</span>
+        </span>
         <span className={styles.characterCopy}>
           <strong>{character.name}</strong>
-          <span>
-            {character.worldName} — {contextLabel}
+          <span className={styles.characterCampaign}>{contextLabel}</span>
+          <span className={styles.characterWorldTime}>
+            <span>{character.worldName}</span>
+            <span>{campaign?.currentWorldDateLabel ?? 'Time not set'}</span>
           </span>
-          <span className={styles.characterMeta}>
-            {campaign ? 'Campaign entry' : 'World character'}
+          <span className={styles.characterMembers}>
+            ◉ {campaign ? `${campaign.memberCount} members` : 'No party yet'}
           </span>
         </span>
       </TrackedEntryLink>

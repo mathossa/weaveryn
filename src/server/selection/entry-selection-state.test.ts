@@ -16,7 +16,11 @@ const character = (
   worldId: 'world-1',
   worldName: 'Ansalon',
   createdAt: new Date('2026-08-16T20:00:00Z'),
-  campaigns,
+  campaigns: campaigns.map((campaign) => ({
+    ...campaign,
+    currentWorldDateLabel: null,
+    memberCount: 0,
+  })),
 })
 
 describe('character entry selection', () => {
