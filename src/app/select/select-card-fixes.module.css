@@ -16,89 +16,6 @@
   margin-bottom: 2.55rem !important;
 }
 
-/* Lower launcher entries should read as one family instead of two unrelated
-   component styles. Weaver/Threadwatcher keep their richer three-column layout,
-   while the utility entries use the same scale, spacing, arrow and icon weight. */
-:global(main):has(.pageCardMarker) a[href*='mode=weaver'],
-:global(main):has(.pageCardMarker) a[href='/world?mode=threadwatcher'],
-:global(main):has(.pageCardMarker) a[href='/select/create-character'],
-:global(main):has(.pageCardMarker) a[href='/select/join'],
-:global(main):has(.pageCardMarker) a[href='/character'] {
-  min-height: 6.15rem !important;
-}
-
-:global(main):has(.pageCardMarker) a[href*='mode=weaver'] > span:nth-child(2) > span,
-:global(main):has(.pageCardMarker) a[href='/world?mode=threadwatcher'] > span:nth-child(2) > span {
-  overflow: visible !important;
-  text-overflow: clip !important;
-  white-space: normal !important;
-  line-height: 1.35;
-}
-
-:global(main):has(.pageCardMarker) a[href='/select/create-character'],
-:global(main):has(.pageCardMarker) a[href='/select/join'],
-:global(main):has(.pageCardMarker) a[href='/character'] {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto auto;
-  align-content: center;
-  align-items: center;
-  column-gap: 0.75rem;
-  row-gap: 0.18rem !important;
-  padding: 0.8rem 0.95rem !important;
-}
-
-:global(main):has(.pageCardMarker) a[href='/select/create-character']::after,
-:global(main):has(.pageCardMarker) a[href='/select/join']::after,
-:global(main):has(.pageCardMarker) a[href='/character']::after {
-  grid-column: 2;
-  grid-row: 1 / 3;
-  align-self: center;
-  color: var(--ui-accent);
-  content: '→';
-  font-size: 1.25rem;
-}
-
-:global(main):has(.pageCardMarker) a[href='/select/create-character'] > strong,
-:global(main):has(.pageCardMarker) a[href='/select/join'] > strong,
-:global(main):has(.pageCardMarker) a[href='/character'] > strong {
-  grid-column: 1;
-  grid-row: 1;
-  display: flex !important;
-  min-width: 0;
-  align-items: center;
-  gap: 0.75rem !important;
-  font-size: 1rem;
-}
-
-:global(main):has(.pageCardMarker) a[href='/select/create-character'] > strong > span:first-child,
-:global(main):has(.pageCardMarker) a[href='/select/join'] > strong > span:first-child,
-:global(main):has(.pageCardMarker) a[href='/character'] > strong > span:first-child {
-  display: inline-grid !important;
-  width: 3rem !important;
-  height: 3rem !important;
-  flex: 0 0 3rem !important;
-  place-items: center;
-  border: 1px solid var(--ui-border) !important;
-  border-radius: 50% !important;
-  color: var(--ui-accent) !important;
-  font-size: 1.05rem !important;
-}
-
-:global(main):has(.pageCardMarker) a[href='/select/create-character'] > span:last-of-type,
-:global(main):has(.pageCardMarker) a[href='/select/join'] > span:last-of-type,
-:global(main):has(.pageCardMarker) a[href='/character'] > span:last-of-type {
-  grid-column: 1;
-  grid-row: 2;
-  margin-left: 3.75rem;
-  overflow: visible !important;
-  color: var(--ui-text-muted) !important;
-  font-size: 0.82rem !important;
-  line-height: 1.35;
-  text-overflow: clip !important;
-  white-space: normal !important;
-}
-
 @media (min-width: 981px) {
   /* The original ornament lived on the outer frame, so the card moved away from
      it on hover. Hide that version and draw the ornament on the card itself. */
@@ -166,9 +83,13 @@
     animation: alignedFeaturedThread 6.5s ease-in-out infinite;
   }
 
-  /* Keep the bookmark comfortably inside the ornamental corner opening. */
+  /* Keep every bookmark on the same visual baseline. The featured bookmark is
+     inset farther so it clears the ornamental corner opening. */
+  .ornamentFrame > button {
+    top: 1.25rem !important;
+  }
+
   .ornamentFrame:first-child > button {
-    top: 1.15rem !important;
     right: 1.4rem !important;
   }
 }
@@ -176,12 +97,6 @@
 @media (max-width: 760px) {
   :global(main):has(.pageCardMarker) > :global(section) > :global(header) {
     margin-bottom: 2rem !important;
-  }
-
-  :global(main):has(.pageCardMarker) a[href='/select/create-character'],
-  :global(main):has(.pageCardMarker) a[href='/select/join'],
-  :global(main):has(.pageCardMarker) a[href='/character'] {
-    min-height: 5.4rem !important;
   }
 }
 
