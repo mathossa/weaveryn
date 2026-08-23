@@ -18,10 +18,11 @@
   animation: none !important;
 }
 
-/* The decorative woven selector belongs only to the featured recent card on
-   the launcher. Character cards are deliberately uniform in Browse mode. */
-.browserMode .ornamentCard::before,
-.browserMode .ornamentCard::after {
+/* Character-card ornaments are launcher-only. The ornament class lives in a
+   different CSS module, so target the rendered card links rather than trying
+   to reference that module-local class here. */
+.browserMode a::before,
+.browserMode a::after {
   display: none !important;
   content: none !important;
 }
@@ -92,11 +93,121 @@
 }
 
 @media (max-width: 760px) {
+  /* The desktop launcher uses several named grid areas and viewport-bound
+     dimensions. Reset those relationships completely on a phone so every
+     section participates in normal document flow and cannot create a hidden
+     desktop-width column. */
+  .launcherMode,
+  .browserMode {
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding-right: 1rem !important;
+    padding-left: 1rem !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+  }
+
+  .launcherMode > header,
+  .browserMode > header,
+  .launcherMode > div,
+  .browserMode > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .launcherMode > div,
+  .browserMode > div {
+    overflow: visible !important;
+  }
+
+  .launcherMode > div > div,
+  .browserMode > div > div {
+    display: grid !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    grid-template-areas: none !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: none !important;
+    grid-auto-flow: row !important;
+    grid-auto-rows: auto !important;
+    align-items: stretch !important;
+    gap: 1rem !important;
+  }
+
+  .launcherMode > div > div > *,
+  .browserMode > div > div > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    grid-area: auto !important;
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+
+  .launcherMode section,
+  .browserMode section,
+  .launcherMode section > div,
+  .browserMode section > div,
+  .launcherMode section > div > div,
+  .browserMode section > div > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Recent characters, Weaver/Threadwatcher and utility actions are all
+     single-column on a phone. This deliberately overrides both the legacy
+     launcher grid and the desktop polish layer. */
+  .launcherMode section > div,
+  .launcherMode section > div > div,
+  .browserMode section > div,
+  .browserMode section > div > div {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .uniformEntryFrame {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
   .uniformEntryTile {
+    display: grid !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
     min-height: 5.25rem !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    gap: 0.7rem !important;
+  }
+
+  .uniformEntryTile > span:nth-child(2) {
+    min-width: 0 !important;
+  }
+
+  .launcherMode a,
+  .browserMode a,
+  .launcherMode button,
+  .browserMode button,
+  .launcherMode input,
+  .browserMode input,
+  .launcherMode select,
+  .browserMode select {
+    max-width: 100%;
   }
 
   .weaverResumeTile {
     padding-bottom: 1.55rem !important;
+  }
+
+  .changeWeaver {
+    right: 0.8rem;
+    bottom: 0.35rem;
   }
 }
