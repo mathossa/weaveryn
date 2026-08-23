@@ -14,6 +14,7 @@ import type {
   CreateCampaignRecordInput,
   UpdateCampaignRecordInput,
 } from './campaign-repository'
+import type { CampaignCapability } from './campaign-capability'
 
 type CampaignDatabaseClient = PrismaClient | Prisma.TransactionClient
 
@@ -242,7 +243,10 @@ export class PrismaCampaignRepository implements CampaignRepository {
     try {
       return await this.client.campaignMembership.update({
         where: { campaignId_userId: { campaignId, userId } },
-        data: { role },
+        data: {
+          role,
+          ...(role === 'PLAYER' ? {} : { capabilities: [] }),
+        },
       })
     } catch (error) {
       if (
@@ -250,6 +254,27 @@ export class PrismaCampaignRepository implements CampaignRepository {
         error.code === 'P2025'
       )
         return null
+      throw error
+    }
+  }
+
+  async updateCampaignMembershipCapabilities(
+    campaignId: string,
+    userId: string,
+    capabilities: CampaignCapability[],
+  ) {
+    try {
+      return await this.client.campaignMembership.update({
+        where: { campaignId_userId: { campaignId, userId } },
+        data: { capabilities },
+      })
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        return null
+      }
       throw error
     }
   }

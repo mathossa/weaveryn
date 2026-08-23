@@ -86,6 +86,7 @@ class InMemoryCampaignRepository implements CampaignRepository {
     const membership: CampaignMembershipRecord = {
       id: `${input.campaignId}:${input.userId}`,
       ...input,
+      capabilities: [],
       joinedAt: now,
       updatedAt: now,
     }

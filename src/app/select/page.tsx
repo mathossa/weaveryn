@@ -24,6 +24,8 @@ interface SelectPageProps {
   searchParams: Promise<{
     show?: string | string[]
     sort?: string | string[]
+    q?: string | string[]
+    world?: string | string[]
   }>
 }
 
@@ -61,7 +63,10 @@ function characterSortMode(
 export default async function SelectPage({ searchParams }: SelectPageProps) {
   const [{ user, selection, entryPreferences, weaverResume }, query] =
     await Promise.all([loadSelectionPageData(), searchParams])
-  const showAll = query.show === 'all'
+  const searchQuery = typeof query.q === 'string' ? query.q.trim() : ''
+  const worldFilter = typeof query.world === 'string' ? query.world : ''
+  const showAll =
+    query.show === 'all' || Boolean(searchQuery) || Boolean(worldFilter)
   const savedSort = characterSortMode(
     (await cookies()).get('weaveryn-character-sort')?.value,
   )
@@ -76,7 +81,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
     (campaign) => campaign.role === 'PLAYER',
   )
 
-  const characterEntries: CharacterEntry[] = [
+  const allCharacterEntries: CharacterEntry[] = [
     ...selection.characters.flatMap<WorldCharacterEntry>((character) =>
       character.campaigns.length > 0
         ? character.campaigns.map((campaign) => {
@@ -117,33 +122,65 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
         createdAt: character.createdAt,
       }
     }),
-  ].sort((left, right) => {
-    if (sortMode === 'alphabetical') {
-      const nameDifference = left.sortName.localeCompare(
-        right.sortName,
-        undefined,
-        {
-          sensitivity: 'base',
-        },
+  ]
+  const characterEntries = allCharacterEntries
+    .filter((entry) => {
+      if (
+        worldFilter &&
+        (entry.kind === 'portable' || entry.character.worldId !== worldFilter)
+      ) {
+        return false
+      }
+      if (!searchQuery) return true
+      const search = searchQuery.toLocaleLowerCase()
+      const values =
+        entry.kind === 'portable'
+          ? [entry.character.name, 'portable character']
+          : [
+              entry.character.name,
+              entry.character.portableName,
+              entry.character.worldName,
+              entry.campaign?.name ?? '',
+            ]
+      return values.some((value) => value.toLocaleLowerCase().includes(search))
+    })
+    .sort((left, right) => {
+      if (sortMode === 'alphabetical') {
+        const nameDifference = left.sortName.localeCompare(
+          right.sortName,
+          undefined,
+          {
+            sensitivity: 'base',
+          },
+        )
+        return nameDifference || left.key.localeCompare(right.key)
+      }
+
+      const pinnedDifference =
+        Number(right.preference?.pinned ?? false) -
+        Number(left.preference?.pinned ?? false)
+      if (pinnedDifference !== 0) return pinnedDifference
+
+      const lastUsedDifference =
+        (right.preference?.lastUsedAt?.getTime() ?? 0) -
+        (left.preference?.lastUsedAt?.getTime() ?? 0)
+      if (lastUsedDifference !== 0) return lastUsedDifference
+
+      return (
+        right.createdAt.getTime() - left.createdAt.getTime() ||
+        left.key.localeCompare(right.key)
       )
-      return nameDifference || left.key.localeCompare(right.key)
-    }
+    })
 
-    const pinnedDifference =
-      Number(right.preference?.pinned ?? false) -
-      Number(left.preference?.pinned ?? false)
-    if (pinnedDifference !== 0) return pinnedDifference
-
-    const lastUsedDifference =
-      (right.preference?.lastUsedAt?.getTime() ?? 0) -
-      (left.preference?.lastUsedAt?.getTime() ?? 0)
-    if (lastUsedDifference !== 0) return lastUsedDifference
-
-    return (
-      right.createdAt.getTime() - left.createdAt.getTime() ||
-      left.key.localeCompare(right.key)
-    )
-  })
+  const worldChoices = Array.from(
+    new Map(
+      selection.characters.map((character) => [
+        character.worldId,
+        character.worldName,
+      ]),
+    ),
+    ([id, name]) => ({ id, name }),
+  ).sort((left, right) => left.name.localeCompare(right.name))
 
   const visibleCharacters = showAll
     ? characterEntries
@@ -170,7 +207,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
     : undefined
   const latestUsedAt = Math.max(
     weaverResume?.lastUsedAt?.getTime() ?? 0,
-    ...characterEntries.map(
+    ...allCharacterEntries.map(
       (entry) => entry.preference?.lastUsedAt?.getTime() ?? 0,
     ),
   )
@@ -185,34 +222,69 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
   return (
     <AuthenticatedAppShell user={user}>
       <AppPage
-        eyebrow="Signed in"
-        title="Choose Entity"
-        description="Enter through a Character, manage the weave as Weaver, or observe a Campaign as Threadwatcher."
+        eyebrow="Enter the living world"
+        title="Continue Your Story"
+        description="Choose who you are entering as. Each card opens the exact Character, World, and Campaign context you last inhabited."
         wide
-        bounded={showAll}
       >
-        <div
-          className={`${styles.stack} ${showAll ? styles.expandedStack : ''}`}
-        >
+        <div className={styles.stack}>
           {hasCharacterSection ? (
             <section
-              className={`${styles.section} ${showAll ? styles.expandedCharacterSection : ''}`}
+              className={styles.section}
               aria-labelledby="recent-characters"
             >
               <div className={styles.sectionHeader}>
                 <div>
                   <h2 id="recent-characters">
-                    {showAll
-                      ? 'All character entries'
-                      : 'Pinned and recent character entries'}
+                    {showAll ? 'More Characters' : 'Your recent stories'}
                   </h2>
                   <p>
-                    Choose a Character directly. Campaigns that still need one
-                    stay close to your Character choices.
+                    {showAll
+                      ? 'Search or filter every available entry without leaving the launcher.'
+                      : 'Pinned entries appear first, followed by the stories you opened most recently.'}
                   </p>
                 </div>
-                {showAll ? <CharacterSortControl value={sortMode} /> : null}
+                {showAll ? (
+                  <CharacterSortControl
+                    value={sortMode}
+                    query={searchQuery || undefined}
+                    world={worldFilter || undefined}
+                  />
+                ) : null}
               </div>
+
+              {showAll ? (
+                <form className={styles.browserFilters} method="get">
+                  <input type="hidden" name="show" value="all" />
+                  <input type="hidden" name="sort" value={sortMode} />
+                  <label>
+                    <span>Search</span>
+                    <input
+                      type="search"
+                      name="q"
+                      defaultValue={searchQuery}
+                      placeholder="Character, World, or Campaign"
+                    />
+                  </label>
+                  <label>
+                    <span>World</span>
+                    <select name="world" defaultValue={worldFilter}>
+                      <option value="">All Worlds</option>
+                      {worldChoices.map((world) => (
+                        <option value={world.id} key={world.id}>
+                          {world.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button type="submit">Apply</button>
+                  {searchQuery || worldFilter ? (
+                    <Link href={`/select?show=all&sort=${sortMode}`}>
+                      Clear
+                    </Link>
+                  ) : null}
+                </form>
+              ) : null}
 
               {playerCampaigns.length > 0 ? (
                 <div className={styles.pendingCampaigns}>
@@ -260,18 +332,19 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                 </div>
               ) : (
                 <p className={styles.muted}>
-                  No Character entries yet. Choose a Campaign above or create a
-                  Character below.
+                  {showAll
+                    ? 'No Character entries match these filters.'
+                    : 'No Character entries yet. Choose a Campaign above or create a Character below.'}
                 </p>
               )}
 
-              {characterEntries.length > 3 ? (
+              {allCharacterEntries.length > 3 || showAll ? (
                 <div className={styles.moreRow}>
                   <Link
                     className={styles.secondaryLink}
                     href={showAll ? '/select' : '/select?show=all'}
                   >
-                    {showAll ? 'Show recent' : 'More characters'}
+                    {showAll ? 'Back to recent stories' : 'More Characters'}
                   </Link>
                 </div>
               ) : null}
@@ -281,8 +354,10 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
           <section className={styles.section} aria-labelledby="role-entry">
             <div className={styles.sectionHeader}>
               <div>
-                <h2 id="role-entry">Enter another role</h2>
-                <p>Manage the weave, or observe without taking a Character.</p>
+                <h2 id="role-entry">Other ways to enter</h2>
+                <p>
+                  Shape the weave, or observe it without taking a Character.
+                </p>
               </div>
             </div>
 
@@ -290,35 +365,26 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
               <div
                 className={`${styles.weaverCard} ${weaverHighlighted ? styles.resumeEntry : ''}`}
               >
-                <Link
+                <TrackedEntryLink
                   className={styles.weaverMainAction}
-                  href="/world?mode=weaver"
+                  href={weaverResumeHref ?? '/world?mode=weaver'}
+                  tracking={weaverResumeTracking}
                 >
                   <span className={styles.weaverGlyph} aria-hidden="true">
                     ✦
                   </span>
                   <span className={styles.weaverCopy}>
-                    <strong>Join as Weaver</strong>
+                    <strong>Weaver</strong>
                     <span>
                       {weaverResumeLabel
-                        ? `Last managed: ${weaverResumeLabel}`
-                        : 'Choose a World, then continue to Campaign management.'}
+                        ? `Continue ${weaverResumeLabel}`
+                        : 'Choose a World to shape and manage.'}
                     </span>
                   </span>
                   <span className={styles.weaverArrow} aria-hidden="true">
                     →
                   </span>
-                </Link>
-
-                {weaverResumeHref ? (
-                  <TrackedEntryLink
-                    className={styles.weaverContinue}
-                    href={weaverResumeHref}
-                    tracking={weaverResumeTracking}
-                  >
-                    Continue
-                  </TrackedEntryLink>
-                ) : null}
+                </TrackedEntryLink>
               </div>
 
               <div className={styles.weaverCard}>
@@ -330,7 +396,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                     ◉
                   </span>
                   <span className={styles.weaverCopy}>
-                    <strong>Join as Threadwatcher</strong>
+                    <strong>Threadwatcher</strong>
                     <span>
                       Choose a World, then a Campaign you can observe.
                     </span>
@@ -355,7 +421,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
 
           <section className={styles.section} aria-labelledby="entry-actions">
             <div className={styles.sectionHeader}>
-              <h2 id="entry-actions">Start something new</h2>
+              <h2 id="entry-actions">Create and manage</h2>
             </div>
             <div className={styles.actions}>
               <Link
@@ -368,6 +434,10 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
               <Link className={styles.actionLink} href="/select/join">
                 <strong>Join with invite</strong>
                 <span>Use a World or Campaign invitation.</span>
+              </Link>
+              <Link className={styles.actionLink} href="/character">
+                <strong>Manage Characters</strong>
+                <span>Edit portable Characters and World identities.</span>
               </Link>
             </div>
           </section>

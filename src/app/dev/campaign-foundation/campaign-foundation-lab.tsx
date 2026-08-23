@@ -201,6 +201,13 @@ export function CampaignFoundationLab() {
                         {campaign.currentWorldDateLabel}
                       </dd>
                     </div>
+                    <div>
+                      <dt>Living World context</dt>
+                      <dd>
+                        {campaign.currentLocationId ?? 'No Current Location'} ·{' '}
+                        {campaign.currentFocus ?? 'No current focus'}
+                      </dd>
+                    </div>
                   </dl>
                 </article>
               ))}

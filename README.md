@@ -108,6 +108,9 @@ npm run weaveryn -- --help  # instance administration CLI
 - **[Vision 2.0](docs/VISION_2-0.md)** — current long-term product vision,
   interaction direction, character-first entry model, privacy/knowledge rules,
   timeline direction, Ruleset direction, AI boundaries, and UX principles.
+- [Living World UX Direction](docs/LIVING_WORLD_UX.md) — agreed launcher,
+  Campaign Now, phone companion, Atlas, knowledge, and capability principles plus
+  the current implementation boundary.
 - [MVP](docs/MVP.md) — what the current MVP must prove and what is explicitly
   deferred.
 - [Roadmap](ROADMAP.md) — roadmap placeholder/status and pointers to planning

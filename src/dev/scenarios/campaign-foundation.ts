@@ -29,6 +29,8 @@ export interface CampaignFoundationState {
     timelineId: string | null
     currentWorldPosition: string | null
     currentWorldDateLabel: string | null
+    currentLocationId: string | null
+    currentFocus: string | null
     status: 'ACTIVE' | 'ENDED' | 'ARCHIVED'
   }>
 }

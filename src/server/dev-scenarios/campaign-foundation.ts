@@ -9,11 +9,15 @@ import {
 import { prisma } from '@/lib/prisma'
 import {
   CampaignDomainError,
+  campaignContextService,
+  campaignMembershipService,
   CampaignService,
   campaignService,
+  getCampaignNowContext,
   PrismaCampaignRepository,
 } from '@/server/campaigns'
 import { MAIN_WORLD_TIMELINE_NAME } from '@/server/worlds'
+import { worldEntityService } from '@/server/world-entities'
 import { FixtureOwnershipError } from './fixture-safety'
 import {
   assertWorldFixtureOwned,
@@ -231,6 +235,8 @@ async function readState(): Promise<CampaignFoundationState | null> {
       timelineId: campaign.timelineId,
       currentWorldPosition: campaign.currentWorldPosition?.toString() ?? null,
       currentWorldDateLabel: campaign.currentWorldDateLabel,
+      currentLocationId: campaign.currentLocationId,
+      currentFocus: campaign.currentFocus,
       status: campaign.status,
     })),
   }
@@ -445,6 +451,99 @@ async function runAcceptanceChecks() {
     detail: independentAuthorityPassed
       ? 'The independent Campaign ownership boundary rejected World-level authority.'
       : 'The rejection or persisted Campaign state differed from the expectation.',
+  })
+
+  await resetFixture()
+  const contextCampaign = await createCampaignFor('WORLD_ADMIN')
+  await campaignMembershipService.addMember({
+    actorUserId: WORLD_ADMIN_ID,
+    campaignId: contextCampaign.id,
+    userId: WORLD_MEMBER_ID,
+    role: 'PLAYER',
+  })
+  const capablePlayer = await campaignMembershipService.setMemberCapability({
+    actorUserId: WORLD_ADMIN_ID,
+    campaignId: contextCampaign.id,
+    userId: WORLD_MEMBER_ID,
+    capability: 'UPDATE_CURRENT_LOCATION',
+    enabled: true,
+  })
+  const visibleLocation = await worldEntityService.createEntity({
+    actorUserId: WORLD_ADMIN_ID,
+    worldId: WORLD_ID,
+    type: 'location',
+    name: 'The Ember Gate',
+    data: { scenario: metadata.fixtureNamespace },
+    contextCampaignId: contextCampaign.id,
+    visibility: { scope: 'CAMPAIGN', campaignId: contextCampaign.id },
+  })
+  const visiblePerson = await worldEntityService.createEntity({
+    actorUserId: WORLD_ADMIN_ID,
+    worldId: WORLD_ID,
+    type: 'person',
+    name: 'Mara of the Watch',
+    data: { scenario: metadata.fixtureNamespace },
+    contextCampaignId: contextCampaign.id,
+    visibility: { scope: 'CAMPAIGN', campaignId: contextCampaign.id },
+  })
+  await worldEntityService.createRelationship({
+    actorUserId: WORLD_ADMIN_ID,
+    worldId: WORLD_ID,
+    sourceEntityId: visibleLocation.id,
+    targetEntityId: visiblePerson.id,
+    relationshipType: 'guards',
+    label: 'Keeping watch nearby',
+    contextCampaignId: contextCampaign.id,
+    visibility: { scope: 'CAMPAIGN', campaignId: contextCampaign.id },
+  })
+  await campaignContextService.update(contextCampaign.id, WORLD_MEMBER_ID, {
+    currentLocationId: visibleLocation.id,
+  })
+  await campaignContextService.update(contextCampaign.id, WORLD_ADMIN_ID, {
+    currentFocus: 'Find a safe road beyond the gate.',
+  })
+  const visiblePlayerNow = await getCampaignNowContext(
+    WORLD_ID,
+    contextCampaign.id,
+    WORLD_MEMBER_ID,
+  )
+  const hiddenLocation = await worldEntityService.createEntity({
+    actorUserId: WORLD_ADMIN_ID,
+    worldId: WORLD_ID,
+    type: 'location',
+    name: 'The Unrevealed Vault',
+    data: { scenario: metadata.fixtureNamespace },
+    contextCampaignId: contextCampaign.id,
+    visibility: { scope: 'GM', campaignId: contextCampaign.id },
+  })
+  await campaignContextService.update(contextCampaign.id, WORLD_ADMIN_ID, {
+    currentLocationId: hiddenLocation.id,
+  })
+  const hiddenPlayerNow = await getCampaignNowContext(
+    WORLD_ID,
+    contextCampaign.id,
+    WORLD_MEMBER_ID,
+  )
+  const campaignContextPassed =
+    capablePlayer.capabilities.includes('UPDATE_CURRENT_LOCATION') &&
+    visiblePlayerNow?.currentLocation?.id === visibleLocation.id &&
+    visiblePlayerNow.aroundYou.some((entry) => entry.id === visiblePerson.id) &&
+    visiblePlayerNow.campaign.currentFocus ===
+      'Find a safe road beyond the gate.' &&
+    hiddenPlayerNow?.currentLocation === null &&
+    hiddenPlayerNow.aroundYou.length === 0
+  checks.push({
+    id: 'living-world-campaign-context',
+    title: 'Campaign Now enforces capability and entity visibility boundaries',
+    status: campaignContextPassed ? 'passed' : 'failed',
+    actor: 'Mira (capable Threadwalker) and Ada (Campaign owner)',
+    target: ADMIN_CAMPAIGN_NAME,
+    expected:
+      'Visible Location and Around You resolve; GM-only Current Location does not leak',
+    actual: `capability ${capablePlayer.capabilities.join(', ') || 'none'}; visible location ${visiblePlayerNow?.currentLocation?.name ?? 'none'}; around ${visiblePlayerNow?.aroundYou.length ?? 0}; hidden player location ${hiddenPlayerNow?.currentLocation?.name ?? 'none'}`,
+    detail: campaignContextPassed
+      ? 'Real membership, context, entity, relationship, and visibility services preserve the Campaign Now boundary.'
+      : 'One or more Campaign context, capability, or visibility expectations differed.',
   })
 
   return checks

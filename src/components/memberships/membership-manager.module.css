@@ -19,6 +19,35 @@
   background: color-mix(in srgb, var(--ui-control-surface) 74%, transparent);
 }
 
+.campaignMember {
+  grid-template-columns:
+    minmax(0, 1fr) minmax(9rem, 12rem) minmax(12rem, 17rem)
+    auto;
+}
+
+.capability {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  color: var(--ui-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.capability input {
+  margin-top: 0.15rem;
+  accent-color: var(--ui-accent);
+}
+
+.capability span {
+  display: grid;
+}
+
+.capability strong {
+  color: var(--ui-text);
+  font-size: 0.8rem;
+}
+
 .identity {
   display: grid;
   gap: 0.15rem;

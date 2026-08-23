@@ -15,6 +15,7 @@ export interface ManagedMembershipView {
   username: string
   displayName: string | null
   role: string
+  capabilities?: string[]
   activeCharacterCount?: number
 }
 
@@ -59,7 +60,7 @@ export function MembershipManager({
         },
       )
       const body = (await response.json().catch(() => null)) as {
-        membership?: { role?: string }
+        membership?: { role?: string; capabilities?: string[] }
         error?: { message?: string }
       } | null
 
@@ -76,7 +77,13 @@ export function MembershipManager({
       setMembers((current) =>
         current.map((value) =>
           value.userId === member.userId
-            ? { ...value, role: body?.membership?.role ?? nextRole }
+            ? {
+                ...value,
+                role: body?.membership?.role ?? nextRole,
+                capabilities:
+                  body?.membership?.capabilities ??
+                  (nextRole === 'PLAYER' ? value.capabilities : []),
+              }
             : value,
         ),
       )
@@ -88,6 +95,63 @@ export function MembershipManager({
       setFeedback({
         tone: 'error',
         message: `Unable to change this ${targetKind} membership.`,
+      })
+    } finally {
+      setBusyUserId(null)
+    }
+  }
+
+  async function toggleCurrentLocationCapability(
+    member: ManagedMembershipView,
+    enabled: boolean,
+  ) {
+    if (busyUserId) return
+    setBusyUserId(member.userId)
+    setFeedback(null)
+    try {
+      const response = await fetch(
+        `${endpoint}/${encodeURIComponent(member.userId)}`,
+        {
+          method: 'PATCH',
+          headers: { 'content-type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            capability: 'UPDATE_CURRENT_LOCATION',
+            enabled,
+          }),
+        },
+      )
+      const body = (await response.json().catch(() => null)) as {
+        membership?: { capabilities?: string[] }
+        error?: { message?: string }
+      } | null
+      if (!response.ok) {
+        setFeedback({
+          tone: 'error',
+          message:
+            body?.error?.message ??
+            'Unable to update this Campaign capability.',
+        })
+        return
+      }
+      setMembers((current) =>
+        current.map((value) =>
+          value.userId === member.userId
+            ? {
+                ...value,
+                capabilities: body?.membership?.capabilities ?? [],
+              }
+            : value,
+        ),
+      )
+      setFeedback({
+        tone: 'success',
+        message: `${member.displayName ?? `@${member.username}`} ${enabled ? 'can now' : 'can no longer'} change Current Location.`,
+      })
+    } catch {
+      setFeedback({
+        tone: 'error',
+        message: 'Unable to update this Campaign capability.',
       })
     } finally {
       setBusyUserId(null)
@@ -166,7 +230,10 @@ export function MembershipManager({
             const activeCharacterCount = member.activeCharacterCount ?? 0
             const busy = busyUserId === member.userId
             return (
-              <div className={styles.member} key={member.userId}>
+              <div
+                className={`${styles.member} ${targetKind === 'Campaign' ? styles.campaignMember : ''}`}
+                key={member.userId}
+              >
                 <div className={styles.identity}>
                   <strong>{member.displayName ?? `@${member.username}`}</strong>
                   <span>@{member.username}</span>
@@ -201,6 +268,28 @@ export function MembershipManager({
                     </option>
                   ))}
                 </select>
+
+                {targetKind === 'Campaign' && member.role === 'PLAYER' ? (
+                  <label className={styles.capability}>
+                    <input
+                      type="checkbox"
+                      checked={(member.capabilities ?? []).includes(
+                        'UPDATE_CURRENT_LOCATION',
+                      )}
+                      disabled={Boolean(busyUserId)}
+                      onChange={(event) =>
+                        toggleCurrentLocationCapability(
+                          member,
+                          event.target.checked,
+                        )
+                      }
+                    />
+                    <span>
+                      <strong>Chronicler capability</strong>
+                      Can change player-visible Current Location
+                    </span>
+                  </label>
+                ) : null}
 
                 <div className={styles.actions}>
                   <Button

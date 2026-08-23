@@ -8,6 +8,9 @@ export type CampaignDomainErrorCode =
   | 'CAMPAIGN_MEMBERSHIP_HAS_ACTIVE_CHARACTER'
   | 'CAMPAIGN_OWNER_MUST_BE_GM'
   | 'INVALID_CAMPAIGN_ROLE'
+  | 'INVALID_CAMPAIGN_CAPABILITY'
+  | 'CAMPAIGN_CAPABILITY_REQUIRES_PLAYER'
+  | 'CAMPAIGN_LOCATION_INVALID'
   | 'USER_NOT_FOUND'
 
 export class CampaignDomainError extends Error {
@@ -89,6 +92,30 @@ export function invalidCampaignRole(role: unknown) {
   return new CampaignDomainError(
     'INVALID_CAMPAIGN_ROLE',
     `${String(role)} is not a valid Campaign role.`,
+  )
+}
+
+export function invalidCampaignCapability(capability: unknown) {
+  return new CampaignDomainError(
+    'INVALID_CAMPAIGN_CAPABILITY',
+    `${String(capability)} is not a valid Campaign capability.`,
+  )
+}
+
+export function campaignCapabilityRequiresPlayer(
+  campaignId: string,
+  userId: string,
+) {
+  return new CampaignDomainError(
+    'CAMPAIGN_CAPABILITY_REQUIRES_PLAYER',
+    `User ${userId} must be a Threadwalker before receiving this capability in Campaign ${campaignId}.`,
+  )
+}
+
+export function campaignLocationInvalid() {
+  return new CampaignDomainError(
+    'CAMPAIGN_LOCATION_INVALID',
+    "Current Location must be a visible Location in this Campaign's World.",
   )
 }
 

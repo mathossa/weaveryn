@@ -143,6 +143,8 @@ Campaign
 - timelineId?
 - currentWorldPosition?
 - currentWorldDateLabel?
+- currentLocationId?
+- currentFocus?
 - name
 - description
 - image
@@ -171,6 +173,7 @@ Relations:
 - operates on one WorldTimeline while active
 - has CampaignMemberships
 - has CampaignCharacters
+- may reference one nullable Current Location WorldEntity
 - may reference an active RulesetVersion after Ruleset functionality is introduced
 - may contain Sessions, Encounters, Campaign-specific Maps, Assets, DiceRolls, and live-play state
 
@@ -191,6 +194,10 @@ Constraints:
 - only the current Campaign owner may transfer Campaign ownership
 - ownership transfer is atomic, and the new owner must be or become a Campaign member with role `GM`
 - Campaign-specific data must not leak across authorization boundaries
+- Current Location must belong to the Campaign World and use the existing
+  `location` WorldEntity type; backend/application validation is authoritative
+- `currentFocus` is short player-visible context, not an Objective/Quest model
+- deleting the referenced Current Location sets `currentLocationId` to null
 - when Ruleset functionality is enabled, changing RulesetVersion requires an explicit migration process
 
 Inactive or archived Campaign preservation during eventual World deletion uses an explicit snapshot-and-detachment workflow. `archivedWorldSnapshot` stores the limited immutable World context required to understand the Campaign history, after which `worldId` and `timelineId` may become `null`. A detached Campaign is archival only and no longer resolves live World state. This must not rely on an accidental database cascade or weaken the rule that active Campaigns always retain a valid World and timeline.
@@ -207,7 +214,7 @@ CampaignMembership
 - campaignId
 - userId
 - role
-- permissions
+- capabilities[]
 - joinedAt
 - updatedAt
 ```
@@ -228,6 +235,12 @@ Constraints:
 - Campaign ownership comes from `Campaign.ownerId`
 - the Campaign owner always has functional `GM` membership
 - backend/application services enforce permissions
+- capabilities are typed, additive exceptions for a `PLAYER`/Threadwalker and do
+  not create a new role
+- only existing Campaign membership-management authority may grant or revoke
+  capabilities
+- `UPDATE_CURRENT_LOCATION` permits only the player-visible Current Location
+  change; it does not expose hidden entity data or grant other Campaign editing
 
 ---
 

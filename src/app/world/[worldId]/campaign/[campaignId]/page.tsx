@@ -11,13 +11,12 @@ import {
 import { campaignRoleLabel } from '@/lib/role-labels'
 import { uiAssets } from '@/lib/ui-assets'
 import { requireAuthenticatedUser } from '@/server/auth'
-import { getCampaignOverview } from '@/server/campaigns'
+import { getCampaignNowContext } from '@/server/campaigns'
 import { getLatestCampaignEntryPreference } from '@/server/selection'
 import { getWorldOverview } from '@/server/worlds'
-import {
-  CampaignDashboardIcon,
-  type CampaignDashboardIconName,
-} from './_components/campaign-dashboard-icon'
+import { CampaignContextControls } from './_components/campaign-context-controls'
+import { CampaignContextRefresh } from './_components/campaign-context-refresh'
+import { QuickEntityCapture } from './_components/quick-entity-capture'
 import styles from '../campaign.module.css'
 
 interface CampaignOverviewPageProps {
@@ -26,13 +25,6 @@ interface CampaignOverviewPageProps {
     character?: string | string[]
     mode?: string | string[]
   }>
-}
-
-interface QuickAction {
-  label: string
-  icon: CampaignDashboardIconName
-  href: string
-  implemented?: boolean
 }
 
 export default async function CampaignOverviewPage({
@@ -51,16 +43,15 @@ export default async function CampaignOverviewPage({
     !requestedWorldCharacterId &&
     !explicitWeaverMode &&
     !explicitThreadwatcherMode
-  const [campaign, latestCampaignPreference, worldOverview] = await Promise.all(
-    [
-      getCampaignOverview(worldId, campaignId, user.id),
-      shouldLoadCampaignPreference
-        ? getLatestCampaignEntryPreference(user.id, campaignId)
-        : Promise.resolve(null),
-      getWorldOverview(worldId, user.id),
-    ],
-  )
-  if (!campaign) notFound()
+  const [now, latestCampaignPreference, worldOverview] = await Promise.all([
+    getCampaignNowContext(worldId, campaignId, user.id),
+    shouldLoadCampaignPreference
+      ? getLatestCampaignEntryPreference(user.id, campaignId)
+      : Promise.resolve(null),
+    getWorldOverview(worldId, user.id),
+  ])
+  if (!now) notFound()
+  const { campaign } = now
 
   const preferredWorldCharacterId =
     explicitWeaverMode || explicitThreadwatcherMode
@@ -91,8 +82,6 @@ export default async function CampaignOverviewPage({
         `/world/${worldId}/campaign/${campaign.id}/manage`,
         characterContextId,
       )
-  const canChooseCharacter =
-    campaign.status === 'ACTIVE' && campaign.role !== 'SPECTATOR'
   const canManageCampaign =
     campaign.canEditSharedInfo ||
     campaign.canEditName ||
@@ -102,47 +91,16 @@ export default async function CampaignOverviewPage({
     (campaign.isOwner ||
       campaign.role === 'GM' ||
       campaign.role === 'ASSISTANT_GM')
+  const canCaptureWorldContent =
+    isWeaverContext &&
+    Boolean(
+      worldOverview &&
+      ['OWNER', 'ADMIN', 'MEMBER'].includes(worldOverview.accessKind),
+    )
   const roleLabel = campaignRoleLabel(campaign.role)
-
-  const placeholderBase = `/world/${worldId}/campaign/${campaign.id}/placeholder`
-  const placeholderHref = (feature: string) =>
-    explicitWeaverMode
-      ? `${placeholderBase}/${feature}?mode=weaver`
-      : explicitThreadwatcherMode
-        ? `${placeholderBase}/${feature}?mode=threadwatcher`
-        : withCharacterContext(
-            `${placeholderBase}/${feature}`,
-            characterContextId,
-          )
-  const quickActions: QuickAction[] = [
-    { label: 'Add Note', icon: 'note', href: placeholderHref('notes') },
-    { label: 'Add Event', icon: 'event', href: placeholderHref('event') },
-    { label: 'Roll Dice', icon: 'dice', href: placeholderHref('dice') },
-    { label: 'Open Map', icon: 'map', href: placeholderHref('map') },
-    { label: 'NPCs', icon: 'npc', href: placeholderHref('npcs') },
-    { label: 'Items', icon: 'item', href: placeholderHref('items') },
-    {
-      label: 'World Entities',
-      icon: 'entities',
-      href: withCharacterContext(
-        `/world/${worldId}/entities?campaign=${campaign.id}`,
-        characterContextId,
-      ),
-      implemented: true,
-    },
-    worldOverview?.hasFullWorldAccess
-      ? {
-          label: 'Timeline',
-          icon: 'timeline',
-          href: `/world/${worldId}/timeline`,
-          implemented: true,
-        }
-      : {
-          label: 'Timeline',
-          icon: 'timeline',
-          href: placeholderHref('timeline'),
-        },
-  ]
+  const entityContextQuery = `?campaign=${campaign.id}${characterContextId ? `&character=${characterContextId}` : ''}`
+  const contextEndpoint = `/api/v1/worlds/${worldId}/campaigns/${campaign.id}/context`
+  const campaignApiEndpoint = `/api/v1/worlds/${worldId}/campaigns/${campaign.id}`
 
   return (
     <AuthenticatedAppShell
@@ -154,10 +112,7 @@ export default async function CampaignOverviewPage({
             ? `/world/${worldId}/campaign?mode=threadwatcher`
             : `/world/${worldId}`,
         },
-        campaign: {
-          label: campaign.name,
-          href: campaignHref,
-        },
+        campaign: { label: campaign.name, href: campaignHref },
         ...(selectedCharacter
           ? {
               character: {
@@ -171,17 +126,19 @@ export default async function CampaignOverviewPage({
       <AppPage
         eyebrow={`${campaign.world.name} · ${campaign.isOwner ? 'Weaver (Owner)' : roleLabel}`}
         title={campaign.name}
+        description={
+          selectedCharacter
+            ? `You entered as ${selectedCharacter.name}. Find the Campaign context you need, then return to the table.`
+            : isWeaverContext
+              ? 'Shape the shared Campaign context without requiring a prepared Scene.'
+              : 'Follow the player-visible Campaign context.'
+        }
         wide
-        bounded
         actions={
-          <div className={styles.dashboardHeaderActions}>
+          <div className={styles.nowHeaderActions}>
             {canManageCampaign ? (
-              <Link
-                className={styles.manageCampaignLink}
-                href={manageCampaignHref}
-              >
-                <CampaignDashboardIcon name="manage" />
-                Manage Campaign
+              <Link className={styles.primaryQuiet} href={manageCampaignHref}>
+                Manage
               </Link>
             ) : null}
             <Link
@@ -193,336 +150,224 @@ export default async function CampaignOverviewPage({
           </div>
         }
       >
-        <div className={styles.dashboardGrid}>
-          <section
-            className={`${styles.dashboardPanel} ${styles.dashboardHero}`}
-          >
+        <CampaignContextRefresh
+          endpoint={campaignApiEndpoint}
+          initialUpdatedAt={campaign.updatedAt}
+        />
+
+        <nav className={styles.mobileCompanion} aria-label="Campaign companion">
+          <a href="#now">Now</a>
+          {selectedCharacter ? (
+            <Link
+              href={`/character/${selectedCharacter.worldCharacterId}?campaign=${campaign.id}`}
+            >
+              Character
+            </Link>
+          ) : null}
+          <Link href={`/world/${worldId}/entities${entityContextQuery}`}>
+            Explore
+          </Link>
+          <a href="#party">Party</a>
+          {canManageCampaign ? (
+            <Link href={manageCampaignHref}>More</Link>
+          ) : null}
+        </nav>
+
+        <div className={styles.nowLayout}>
+          <section className={styles.locationHero} id="now">
             <Image
-              className={styles.dashboardHeroImage}
-              src={uiAssets.fallbacks.campaign}
+              className={styles.locationImage}
+              src={now.currentLocation?.image || uiAssets.fallbacks.campaign}
               alt=""
               fill
-              sizes="(max-width: 760px) 100vw, 65vw"
-              loading="eager"
+              priority
+              sizes="(max-width: 760px) 100vw, 68vw"
+              style={
+                now.currentLocation
+                  ? {
+                      objectPosition: `${now.currentLocation.imageFocusX}% ${now.currentLocation.imageFocusY}%`,
+                    }
+                  : undefined
+              }
             />
-            <div className={styles.dashboardHeroShade} />
-            <div className={styles.dashboardHeroCopy}>
-              <span className={styles.dashboardEyebrow}>Current Adventure</span>
-              <h2>{campaign.name}</h2>
+            <div className={styles.locationShade} />
+            <div className={styles.locationCopy}>
+              <span>Where am I?</span>
+              <h2>{now.currentLocation?.name ?? 'Location not set'}</h2>
               <p>
-                {campaign.description ||
-                  'No Campaign description has been added yet. Manage the Campaign to add one.'}
+                {now.currentLocation?.description ??
+                  (campaign.canUpdateCurrentLocation
+                    ? 'Choose a visible Location to anchor this Campaign.'
+                    : 'Your Weaver has not shared a Current Location yet.')}
               </p>
-              <div className={styles.dashboardHeroBadges}>
-                <span>{campaign.status}</span>
-                <span>{roleLabel}</span>
-                <span>{campaign.world.name}</span>
-              </div>
+              {now.currentLocation ? (
+                <Link
+                  href={`/world/${worldId}/entities/${now.currentLocation.id}${entityContextQuery}`}
+                >
+                  Open Location
+                </Link>
+              ) : null}
             </div>
-            <aside className={styles.dashboardHeroContext}>
-              <span className={styles.dashboardMiniLabel}>
-                Current World time
-              </span>
-              <strong>{campaign.currentWorldDateLabel ?? 'Not set'}</strong>
-              <small>Resolved through the World chronology</small>
-            </aside>
+            <div className={styles.locationMeta}>
+              <span>{campaign.status}</span>
+              {campaign.currentWorldDateLabel ? (
+                <span>{campaign.currentWorldDateLabel}</span>
+              ) : null}
+            </div>
           </section>
 
-          <section
-            className={`${styles.dashboardPanel} ${styles.dashboardActivity}`}
-            aria-labelledby="campaign-activity"
-          >
-            <div className={styles.dashboardPanelHeader}>
-              <h2 id="campaign-activity">
-                <CampaignDashboardIcon name="activity" />
-                Recent Activity
-              </h2>
-            </div>
-            <div className={styles.dashboardPlaceholderList}>
+          <section className={styles.nowSection} id="around">
+            <div className={styles.sectionHeading}>
               <div>
-                <span className={styles.placeholderDot} />
-                <p>
-                  <strong>Campaign history</strong>
-                  <small>Timeline activity will appear here later.</small>
-                </p>
+                <span>What is around me?</span>
+                <h2>Around You</h2>
               </div>
-              <div>
-                <span className={styles.placeholderDot} />
-                <p>
-                  <strong>World events</strong>
-                  <small>
-                    Canonical history is available from the World timeline.
-                  </small>
-                </p>
-              </div>
-              <div>
-                <span className={styles.placeholderDot} />
-                <p>
-                  <strong>Session activity</strong>
-                  <small>Reserved for the later session experience.</small>
-                </p>
-              </div>
+              <Link href={`/world/${worldId}/entities${entityContextQuery}`}>
+                Explore visible entities
+              </Link>
             </div>
-            <Link
-              className={styles.dashboardPanelLink}
-              href={placeholderHref('activity')}
-            >
-              Activity placeholder <span aria-hidden="true">→</span>
-            </Link>
-          </section>
-
-          <section
-            className={`${styles.dashboardPanel} ${styles.dashboardParty}`}
-            aria-labelledby="campaign-party"
-          >
-            <div className={styles.dashboardPanelHeader}>
-              <h2 id="campaign-party">
-                <CampaignDashboardIcon name="party" />
-                Party ({campaign.characters.length})
-              </h2>
-            </div>
-            <div className={styles.dashboardPartyList}>
-              {campaign.characters.length === 0 ? (
-                <p className={styles.dashboardEmptyCopy}>
-                  No active Campaign Characters are attached yet.
-                </p>
-              ) : (
-                campaign.characters.map((character) => (
-                  <article
-                    className={styles.dashboardPartyMember}
-                    key={character.id}
+            {now.aroundYou.length === 0 ? (
+              <p className={styles.emptyNow}>
+                {now.currentLocation
+                  ? 'No visible entity connections surround this Location yet.'
+                  : 'Around You will follow the Current Location and its visible connections.'}
+              </p>
+            ) : (
+              <div className={styles.aroundGrid}>
+                {now.aroundYou.slice(0, 6).map((entity) => (
+                  <Link
+                    className={styles.aroundCard}
+                    href={`/world/${worldId}/entities/${entity.id}${entityContextQuery}`}
+                    key={entity.id}
                   >
-                    <span className={styles.dashboardPartyPortrait}>
+                    <span className={styles.aroundPortrait}>
                       <Image
-                        src={character.image || uiAssets.fallbacks.character}
+                        src={
+                          entity.image || uiAssets.backgrounds.entityBanner.src
+                        }
                         alt=""
                         fill
-                        sizes="48px"
+                        sizes="80px"
+                        style={{
+                          objectPosition: `${entity.imageFocusX}% ${entity.imageFocusY}%`,
+                        }}
                       />
                     </span>
-                    <span className={styles.dashboardPartyCopy}>
-                      <strong>{character.name}</strong>
-                      <small>
-                        {character.ownedByCurrentUser
-                          ? 'Your Character'
-                          : 'Party member'}
-                      </small>
+                    <span className={styles.aroundCopy}>
+                      <small>{entity.relationship}</small>
+                      <strong>{entity.name}</strong>
+                      <span>{entity.type}</span>
                     </span>
-                  </article>
-                ))
-              )}
-            </div>
-            <div className={styles.dashboardPanelFooter}>
-              <span>Shared party-member profiles will arrive later.</span>
-            </div>
-          </section>
-
-          <section
-            className={`${styles.dashboardPanel} ${styles.dashboardMap}`}
-            aria-labelledby="campaign-map"
-          >
-            <div className={styles.dashboardPanelHeaderOverlay}>
-              <h2 id="campaign-map">
-                <CampaignDashboardIcon name="map" />
-                Current Area Map
-              </h2>
-              <span>Placeholder</span>
-            </div>
-            <Image
-              className={styles.dashboardMapImage}
-              src={uiAssets.backgrounds.entityBanner.src}
-              alt=""
-              fill
-              sizes="(max-width: 760px) 100vw, 42vw"
-              loading="eager"
-            />
-            <div className={styles.dashboardMapShade} />
-            <div className={styles.dashboardMapMarker}>
-              <CampaignDashboardIcon name="location" />
-              <span>
-                <strong>{campaign.world.name}</strong>
-                <small>Map support arrives in 0.3.0</small>
-              </span>
-            </div>
-            <Link
-              className={styles.dashboardMapLink}
-              href={placeholderHref('map')}
-            >
-              Open map placeholder
-            </Link>
-          </section>
-
-          <section
-            className={`${styles.dashboardPanel} ${styles.dashboardObjectives}`}
-            aria-labelledby="campaign-objectives"
-          >
-            <div className={styles.dashboardPanelHeader}>
-              <h2 id="campaign-objectives">
-                <CampaignDashboardIcon name="objective" />
-                Objectives
-              </h2>
-            </div>
-            <div className={styles.dashboardObjectivePlaceholder}>
-              <span className={styles.objectiveRing} />
-              <div>
-                <strong>No objective system yet</strong>
-                <p>
-                  This space is reserved for Campaign/session objectives without
-                  introducing temporary persistence.
-                </p>
+                  </Link>
+                ))}
               </div>
-            </div>
-            <Link
-              className={styles.dashboardPanelLink}
-              href={placeholderHref('objectives')}
-            >
-              Objectives placeholder <span aria-hidden="true">→</span>
-            </Link>
-          </section>
-
-          <section
-            className={`${styles.dashboardPanel} ${styles.dashboardQuickActions}`}
-            aria-labelledby="campaign-quick-actions"
-          >
-            <div className={styles.dashboardPanelHeader}>
-              <h2 id="campaign-quick-actions">Quick Actions</h2>
-            </div>
-            <div className={styles.dashboardActionGrid}>
-              {quickActions.map((action) => (
-                <Link
-                  className={styles.dashboardAction}
-                  data-implemented={action.implemented ? 'true' : 'false'}
-                  href={action.href}
-                  key={action.label}
-                >
-                  <CampaignDashboardIcon name={action.icon} />
-                  <span>{action.label}</span>
-                </Link>
-              ))}
-            </div>
-          </section>
-
-          <section
-            className={`${styles.dashboardPanel} ${styles.dashboardNotes}`}
-            aria-labelledby="campaign-notes"
-          >
-            <div className={styles.dashboardPanelHeader}>
-              <h2 id="campaign-notes">
-                <CampaignDashboardIcon name="note" />
-                Recent Notes
-              </h2>
-            </div>
-            <div className={styles.dashboardNotesPlaceholder}>
-              <p>
-                <strong>No shared notes module yet.</strong>
-                <span>
-                  Recent Campaign notes will populate this panel from the 0.4
-                  notes/lore foundation.
-                </span>
-              </p>
-              <Link href={placeholderHref('notes')}>Notes placeholder →</Link>
-            </div>
-          </section>
-
-          <section
-            className={`${styles.dashboardPanel} ${styles.dashboardQuickView}`}
-            aria-labelledby="campaign-quick-view"
-          >
-            {selectedCharacter ? (
-              <>
-                <div className={styles.dashboardPanelHeader}>
-                  <h2 id="campaign-quick-view">Character Quick View</h2>
-                  <span className={styles.dashboardContextPill}>
-                    Entered as Character
-                  </span>
-                </div>
-                <div className={styles.dashboardCharacterQuickView}>
-                  <span className={styles.dashboardQuickPortrait}>
-                    <Image
-                      src={
-                        selectedCharacter.image || uiAssets.fallbacks.character
-                      }
-                      alt=""
-                      fill
-                      sizes="96px"
-                    />
-                  </span>
-                  <div>
-                    <strong>{selectedCharacter.name}</strong>
-                    <span>{campaign.world.name}</span>
-                    <p>
-                      Shared profile details and ruleset statistics will expand
-                      here when those foundations exist.
-                    </p>
-                  </div>
-                </div>
-                <Link
-                  className={styles.dashboardPrimaryLink}
-                  href={`/character/${selectedCharacter.worldCharacterId}?campaign=${campaign.id}`}
-                >
-                  Open your Character
-                </Link>
-              </>
-            ) : isWeaverContext ? (
-              <>
-                <div className={styles.dashboardPanelHeader}>
-                  <h2 id="campaign-quick-view">
-                    <CampaignDashboardIcon name="status" />
-                    Weaver Quick View
-                  </h2>
-                </div>
-                <dl className={styles.dashboardStatusGrid}>
-                  <div>
-                    <dt>Role</dt>
-                    <dd>{roleLabel}</dd>
-                  </div>
-                  <div>
-                    <dt>Status</dt>
-                    <dd>{campaign.status}</dd>
-                  </div>
-                  <div>
-                    <dt>Party</dt>
-                    <dd>{campaign.characters.length}</dd>
-                  </div>
-                  <div>
-                    <dt>World date</dt>
-                    <dd>{campaign.currentWorldDateLabel ?? 'Not set'}</dd>
-                  </div>
-                </dl>
-                {canManageCampaign ? (
-                  <Link
-                    className={styles.dashboardPrimaryLink}
-                    href={manageCampaignHref}
-                  >
-                    Manage Campaign
-                  </Link>
-                ) : null}
-              </>
-            ) : (
-              <>
-                <div className={styles.dashboardPanelHeader}>
-                  <h2 id="campaign-quick-view">
-                    {campaign.role === 'SPECTATOR'
-                      ? 'Threadwatcher'
-                      : 'Your Character'}
-                  </h2>
-                </div>
-                <p className={styles.dashboardEmptyCopy}>
-                  {campaign.role === 'SPECTATOR'
-                    ? 'You are observing this Campaign without an active Character.'
-                    : 'You entered this Campaign without an active Character context.'}
-                </p>
-                {canChooseCharacter ? (
-                  <Link
-                    className={styles.dashboardPrimaryLink}
-                    href={`/character?world=${worldId}&campaign=${campaign.id}`}
-                  >
-                    Choose or add your Character
-                  </Link>
-                ) : null}
-              </>
             )}
           </section>
+
+          <aside className={styles.nowRail}>
+            <section className={styles.focusPanel} id="next">
+              <span>What is next?</span>
+              <h2>What&apos;s Next</h2>
+              <p>
+                {campaign.currentFocus ||
+                  'No current focus has been shared. Follow the world in front of you.'}
+              </p>
+            </section>
+
+            {campaign.description ? (
+              <section className={styles.weaverPanel}>
+                <span>Latest from Weaver</span>
+                <p>{campaign.description}</p>
+              </section>
+            ) : null}
+
+            {selectedCharacter ? (
+              <Link
+                className={styles.characterCallout}
+                href={`/character/${selectedCharacter.worldCharacterId}?campaign=${campaign.id}`}
+                id="character"
+              >
+                <span className={styles.characterPortrait}>
+                  <Image
+                    src={
+                      selectedCharacter.image || uiAssets.fallbacks.character
+                    }
+                    alt=""
+                    fill
+                    sizes="64px"
+                  />
+                </span>
+                <span>
+                  <small>Your Character</small>
+                  <strong>{selectedCharacter.name}</strong>
+                  <em>Open overview →</em>
+                </span>
+              </Link>
+            ) : null}
+
+            <section className={styles.partyPanel} id="party">
+              <div className={styles.sectionHeadingCompact}>
+                <h2>Party</h2>
+                <span>{campaign.characters.length}</span>
+              </div>
+              {campaign.characters.length === 0 ? (
+                <p className={styles.emptyNow}>
+                  No active Campaign Characters.
+                </p>
+              ) : (
+                <div className={styles.compactParty}>
+                  {campaign.characters.map((character) => (
+                    <span title={character.name} key={character.id}>
+                      <Image
+                        src={character.image || uiAssets.fallbacks.character}
+                        alt={character.name}
+                        fill
+                        sizes="42px"
+                      />
+                    </span>
+                  ))}
+                </div>
+              )}
+            </section>
+          </aside>
+
+          {campaign.canUpdateCurrentLocation ? (
+            <section className={styles.weaverWorkspace}>
+              <div className={styles.sectionHeading}>
+                <div>
+                  <span>Shared context</span>
+                  <h2>Campaign controls</h2>
+                </div>
+                <small>
+                  {campaign.canEditSharedInfo
+                    ? 'Weaver workspace'
+                    : 'Granted Chronicler capability'}
+                </small>
+              </div>
+              <CampaignContextControls
+                endpoint={contextEndpoint}
+                locations={now.locationChoices}
+                currentLocationId={now.currentLocation?.id ?? null}
+                currentFocus={campaign.currentFocus}
+                canUpdateFocus={campaign.canEditSharedInfo}
+              />
+              {canCaptureWorldContent ? (
+                <div className={styles.captureRegion}>
+                  <div>
+                    <span>Capture now, enrich later</span>
+                    <p>
+                      Create a minimal Campaign-visible Person or Place. Add
+                      detail and connections from the entity workspace later.
+                    </p>
+                  </div>
+                  <QuickEntityCapture
+                    worldId={worldId}
+                    campaignId={campaign.id}
+                  />
+                </div>
+              ) : null}
+            </section>
+          ) : null}
         </div>
       </AppPage>
     </AuthenticatedAppShell>

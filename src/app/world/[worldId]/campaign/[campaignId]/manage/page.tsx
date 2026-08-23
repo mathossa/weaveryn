@@ -266,7 +266,9 @@ export default async function CampaignManagePage({
                 Promote, demote, or remove existing members, or create a
                 single-use invitation. A Threadwatcher also receives read-only
                 access to the host World, but only sees Campaigns they actually
-                belong to.
+                belong to. Chronicler remains a Threadwalker capability rather
+                than a separate role; only the Campaign owner can grant or
+                revoke it.
               </p>
               <RoleHelp targetKind="Campaign" />
               <h3>Members</h3>

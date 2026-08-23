@@ -41,10 +41,10 @@ Common actions should remain direct. A player who already knows which character
 and campaign they want should be able to get back into play with one clear action.
 Administrative concepts should appear only when they are useful.
 
-### No scrolling on main pages
+### Focused main workspaces
 
-A main Weaveryn page should fit inside the available viewport. The page body does
-not become a long scrolling document.
+A main Weaveryn page should answer one clear question and avoid becoming a long
+stack of equally weighted dashboard modules.
 
 When more information exists than fits on the page, use:
 
@@ -54,13 +54,13 @@ When more information exists than fits on the page, use:
 - pagination
 - search and filters
 - a dedicated detail screen
-- internal scrolling inside a bounded content area
+- limited natural scrolling where it keeps phone interaction simpler
+- internal scrolling inside a bounded content area when appropriate
 
 A note editor, entity description, inventory list, or similar contained panel may
-scroll internally. **The main page itself should not scroll.**
-
-This applies across desktop, tablet, and phone layouts. Smaller screens should
-recompose the same experience rather than simply creating an endlessly tall page.
+scroll internally. Desktop workspaces should normally fit their primary job into
+the viewport. The player phone companion may scroll naturally, but the composition
+must stay short and should prefer switching views over an endlessly stacked page.
 
 ---
 
@@ -225,8 +225,8 @@ highlighted so the resume action is immediately obvious.
 A **More characters** action expands the same selection page to expose the
 remaining entries. It does not force the user through a separate selection wizard.
 
-The fixed-page rule still applies: the expanded state must be designed as a bounded
-layout rather than a long page body.
+The expanded state is a dedicated browser with search, World filtering, recent or
+A–Z sorting, and the same card language. It must not depend on a carousel.
 
 ### Weaver entry
 
@@ -262,22 +262,29 @@ The card also provides a way to switch to another manageable World or Campaign.
 Entering a Campaign as a character should not land on a generic administration
 screen or force the player immediately into a full character sheet.
 
-The default Campaign landing page is **session/current-adventure focused**.
+The default Campaign landing page is **Campaign Now**. It works fully without an
+active Scene or Session and answers three questions in order:
+
+1. Where am I?
+2. What is around me?
+3. What is next?
 
 It should make the current situation understandable at a glance, using information
 such as:
 
 - current location
 - current party
-- current objective or active threads
+- short current focus or active threads
 - recent events
 - relevant map area
 - recent notes or discoveries
 - quick character status/actions
 - shortcuts to the full character page and other Campaign tools
 
-The exact widgets depend on the Campaign and Ruleset, but the purpose remains the
-same: **show what matters now**.
+Only real available data appears. Empty roadmap modules are omitted. Current
+Location exists on the Campaign independently of Scenes; a Scene may later add a
+focused experience but never unlock normal Campaign play. See
+`LIVING_WORLD_UX.md` for the current foundation and follow-up boundary.
 
 ![Session-focused Campaign concept](images/vision-2.0/session-hub.webp)
 

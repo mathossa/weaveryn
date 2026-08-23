@@ -1,6 +1,7 @@
 .shell {
   position: relative;
-  min-height: 100dvh;
+  min-height: 0;
+  flex: 1 0 auto;
   background: var(--ui-canvas);
   color: var(--ui-text);
   isolation: isolate;

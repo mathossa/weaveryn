@@ -174,6 +174,27 @@ The model should also remain compatible with future timeline branches. Different
 
 Campaign-specific gameplay state and player knowledge are not automatically promoted into canonical World history.
 
+### Current Campaign Context
+
+A Campaign may reference a nullable canonical Current Location through
+`Campaign.currentLocationId -> WorldEntity`. The entity must belong to the
+Campaign's World and use the existing `location` entity type. This invariant is
+validated by backend/application services; a client-supplied ID is never trusted.
+
+Current Location is independent of Scenes. Normal Campaign play and Campaign Now
+must work when no Scene or Session exists. Deleting the referenced WorldEntity
+sets Current Location to null.
+
+`Campaign.currentFocus` is nullable, short, player-visible text answering “What’s
+Next?”. It is not an Objective, Quest, or task domain and must not accumulate
+objective lifecycle behavior.
+
+Player-facing Current Location and Around You projections pass through the normal
+WorldEntity and EntityRelationship visibility authorization for the requesting
+user and Campaign context. The raw relation never authorizes hidden entity details.
+Around You is derived only from real visible relationships connected to the
+visible Current Location.
+
 ### Campaign Membership
 
 Campaign roles describe participation rather than ownership:
@@ -188,6 +209,13 @@ SPECTATOR
 There is no `OWNER` CampaignRole.
 
 The Campaign owner receives a `GM` membership when the Campaign is created. A Campaign ownership transfer also ensures that the new owner has a `GM` membership.
+
+CampaignMembership also carries an extensible typed capability set. Capabilities
+do not create new roles and do not imply access to hidden content. The first
+capability, `UPDATE_CURRENT_LOCATION`, may be granted to a `PLAYER`
+(Threadwalker). Existing Campaign membership-management authority—the Campaign
+owner—alone may grant or revoke capabilities. `GM` and `ASSISTANT_GM` retain their
+normal Campaign-management authority without needing this player capability.
 
 ### Rulesets
 

@@ -5,7 +5,15 @@ import styles from './character-sort-control.module.css'
 
 export type CharacterSortMode = 'recent' | 'alphabetical'
 
-export function CharacterSortControl({ value }: { value: CharacterSortMode }) {
+export function CharacterSortControl({
+  value,
+  query,
+  world,
+}: {
+  value: CharacterSortMode
+  query?: string
+  world?: string
+}) {
   const router = useRouter()
 
   return (
@@ -16,7 +24,10 @@ export function CharacterSortControl({ value }: { value: CharacterSortMode }) {
         onChange={(event) => {
           const next = event.target.value as CharacterSortMode
           document.cookie = `weaveryn-character-sort=${next}; Path=/; Max-Age=31536000; SameSite=Lax`
-          router.replace(`/select?show=all&sort=${next}`, { scroll: false })
+          const parameters = new URLSearchParams({ show: 'all', sort: next })
+          if (query) parameters.set('q', query)
+          if (world) parameters.set('world', world)
+          router.replace(`/select?${parameters.toString()}`, { scroll: false })
         }}
       >
         <option value="recent">Recently opened</option>

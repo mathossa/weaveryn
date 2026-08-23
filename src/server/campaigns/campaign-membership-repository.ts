@@ -1,10 +1,12 @@
 import type { CampaignRole } from './campaign-role'
+import type { CampaignCapability } from './campaign-capability'
 
 export interface CampaignMembershipRecord {
   id: string
   campaignId: string
   userId: string
   role: CampaignRole
+  capabilities: CampaignCapability[]
   joinedAt: Date
   updatedAt: Date
 }
@@ -36,6 +38,11 @@ export interface CampaignMembershipRepository {
     campaignId: string,
     userId: string,
     role: CampaignRole,
+  ): Promise<CampaignMembershipRecord | null>
+  updateCampaignMembershipCapabilities(
+    campaignId: string,
+    userId: string,
+    capabilities: CampaignCapability[],
   ): Promise<CampaignMembershipRecord | null>
   hasActiveCampaignCharacterForUser?(
     campaignId: string,
