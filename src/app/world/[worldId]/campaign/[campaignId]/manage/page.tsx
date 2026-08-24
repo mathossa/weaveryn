@@ -1,337 +1,247 @@
+import Image from 'next/image'
 import Link from 'next/link'
-import { headers } from 'next/headers'
-import { notFound } from 'next/navigation'
-import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
-import { MembershipInviteManager } from '@/components/invitations/membership-invite-manager'
-import { MembershipManager } from '@/components/memberships/membership-manager'
-import { RoleHelp } from '@/components/memberships/role-help'
-import { campaignRoleLabel } from '@/lib/role-labels'
-import { requireAuthenticatedUser } from '@/server/auth'
-import {
-  CAMPAIGN_ROLES,
-  getCampaignOverview,
-  listCampaignMembershipsForManagement,
-} from '@/server/campaigns'
-import { membershipInvitationService } from '@/server/invitations'
-import { listEntryPreferences } from '@/server/selection'
-import {
-  CampaignDeleteControl,
-  CampaignLifecycleControls,
-} from '../_components/campaign-lifecycle-controls'
-import { RemoveCampaignCharacterButton } from '../_components/remove-campaign-character-button'
-import { CampaignForm } from '../../_components/campaign-form'
+import { uiAssets } from '@/lib/ui-assets'
+import { CampaignDashboardIcon } from '../_components/campaign-dashboard-icon'
 import styles from '../../campaign.module.css'
+import { availableCampaignManagementSections } from './_lib/campaign-management-sections'
+import {
+  loadCampaignManagementPage,
+  type CampaignManagementSearchParams,
+} from './_lib/campaign-management-page'
 
 interface CampaignManagePageProps {
   params: Promise<{ worldId: string; campaignId: string }>
-  searchParams: Promise<{
-    character?: string | string[]
-    mode?: string | string[]
-  }>
+  searchParams: Promise<CampaignManagementSearchParams>
 }
 
-function characterFromCampaignReferer(
-  referer: string | null,
-  worldId: string,
-  campaignId: string,
-) {
-  if (!referer) return undefined
-
-  try {
-    const url = new URL(referer)
-    if (url.pathname !== `/world/${worldId}/campaign/${campaignId}`) {
-      return undefined
-    }
-
-    return url.searchParams.get('character') ?? undefined
-  } catch {
-    return undefined
-  }
+function countLabel(count: number, singular: string) {
+  return `${count} ${singular}${count === 1 ? '' : 's'}`
 }
 
 export default async function CampaignManagePage({
   params,
   searchParams,
 }: CampaignManagePageProps) {
-  const [{ worldId, campaignId }, query, requestHeaders] = await Promise.all([
-    params,
-    searchParams,
-    headers(),
-  ])
-  const user = await requireAuthenticatedUser(new Headers(requestHeaders))
-  const [campaign, entryPreferences] = await Promise.all([
-    getCampaignOverview(worldId, campaignId, user.id),
-    listEntryPreferences(user.id),
-  ])
-  if (!campaign) notFound()
-
-  const canManageCampaign =
-    campaign.canEditSharedInfo ||
-    campaign.canEditName ||
-    campaign.canManageMembers ||
-    campaign.canDelete
-  if (!canManageCampaign) notFound()
-
-  const [campaignInvitations, campaignMembers] = campaign.canManageMembers
-    ? await Promise.all([
-        membershipInvitationService.listCampaignInvitations({
-          actorUserId: user.id,
-          campaignId: campaign.id,
-        }),
-        listCampaignMembershipsForManagement(campaign.id, user.id),
-      ])
-    : [[], null]
-
-  const explicitWeaverMode = query.mode === 'weaver'
-  const requestedCharacterId =
-    typeof query.character === 'string' ? query.character : undefined
-  const referredCharacterId = explicitWeaverMode
-    ? undefined
-    : characterFromCampaignReferer(
-        requestHeaders.get('referer'),
-        worldId,
-        campaignId,
-      )
-  const latestCampaignPreference =
-    requestedCharacterId || referredCharacterId || explicitWeaverMode
-      ? undefined
-      : entryPreferences
-          .filter(
-            (preference) =>
-              preference.campaignId === campaign.id && preference.lastUsedAt,
-          )
-          .sort(
-            (left, right) =>
-              (right.lastUsedAt?.getTime() ?? 0) -
-              (left.lastUsedAt?.getTime() ?? 0),
-          )[0]
-  const preferredCharacterId = explicitWeaverMode
-    ? undefined
-    : (requestedCharacterId ??
-      referredCharacterId ??
-      (latestCampaignPreference?.kind === 'CHARACTER'
-        ? (latestCampaignPreference.worldCharacterId ?? undefined)
-        : undefined))
-  const selectedCharacter = preferredCharacterId
-    ? campaign.characters.find(
-        (character) =>
-          character.worldCharacterId === preferredCharacterId &&
-          character.ownedByCurrentUser,
-      )
-    : undefined
-  const campaignHref = explicitWeaverMode
-    ? `/world/${worldId}/campaign/${campaign.id}?mode=weaver`
-    : selectedCharacter
-      ? `/world/${worldId}/campaign/${campaign.id}?character=${selectedCharacter.worldCharacterId}`
-      : `/world/${worldId}/campaign/${campaign.id}`
-
-  const ownerLabel = campaign.owner.displayName ?? `@${campaign.owner.username}`
-  const roleLabel = campaignRoleLabel(campaign.role)
+  const data = await loadCampaignManagementPage(params, searchParams)
+  const { campaign } = data
+  const sections = new Set(availableCampaignManagementSections(campaign))
+  const characterNames = campaign.characters
+    .slice(0, 3)
+    .map((character) => character.name)
+    .join(', ')
 
   return (
-    <AuthenticatedAppShell
-      user={user}
-      context={{
-        world: { label: campaign.world.name, href: `/world/${worldId}` },
-        campaign: {
-          label: campaign.name,
-          href: campaignHref,
-        },
-        ...(selectedCharacter
-          ? {
-              character: {
-                label: selectedCharacter.name,
-                href: `/character/${selectedCharacter.worldCharacterId}?campaign=${campaign.id}`,
-              },
-            }
-          : {}),
-      }}
-    >
-      <AppPage
-        eyebrow="Campaign management"
-        title={`Manage ${campaign.name}`}
-        description="Configure the Campaign without turning the Campaign landing page into an administration screen."
-        wide
-        actions={
-          <div className={styles.formActions}>
-            <Link className={styles.secondary} href={campaignHref}>
-              Back to Campaign
-            </Link>
-            <Link
-              className={styles.secondary}
-              href={`/world/${worldId}/campaign`}
+    <AuthenticatedAppShell user={data.user} context={data.shellContext}>
+      <main className={styles.managementHub}>
+        <Link className={styles.managementBackLink} href={data.campaignHref}>
+          ← Back to Campaign
+        </Link>
+
+        <header className={styles.managementHero}>
+          <Image
+            className={styles.managementHeroImage}
+            src={uiAssets.fallbacks.campaign}
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 760px) 100vw, 92rem"
+          />
+          <div className={styles.managementHeroShade} />
+          <div className={styles.managementHeroCopy}>
+            <span className={styles.managementEyebrow}>Manage Campaign</span>
+            <h1>{campaign.name}</h1>
+            <div
+              className={styles.managementContext}
+              aria-label="Campaign management context"
             >
-              Change Campaign
-            </Link>
+              <span>
+                <CampaignDashboardIcon name="map" />
+                {campaign.world.name}
+              </span>
+              <span>
+                <i
+                  className={styles.managementStatusDot}
+                  data-status={campaign.status}
+                  aria-hidden="true"
+                />
+                {data.statusLabel}
+              </span>
+              <span>
+                <CampaignDashboardIcon name="manage" />
+                You are {data.roleLabel}
+              </span>
+              <span>
+                <CampaignDashboardIcon name="entities" />
+                {countLabel(campaign.memberCount, 'member')}
+              </span>
+              <span>
+                <CampaignDashboardIcon name="party" />
+                {countLabel(campaign.characters.length, 'character')}
+              </span>
+            </div>
           </div>
-        }
-      >
-        <div className={styles.stack}>
-          <div className={styles.infoGrid}>
-            <section className={styles.panel}>
-              <h2>Campaign context</h2>
-              <p>
-                <strong>World:</strong> {campaign.world.name}
-              </p>
-              <p>
-                <strong>Owner:</strong> {ownerLabel}
-                {campaign.isOwner ? ' (you)' : ''}
-              </p>
-              <p>
-                <strong>Your role:</strong> {roleLabel}
-              </p>
-              <p>
-                <strong>Status:</strong> {campaign.status}
-              </p>
-              {selectedCharacter ? (
-                <p>
-                  <strong>Entered as:</strong> {selectedCharacter.name}
-                </p>
-              ) : null}
-            </section>
+        </header>
 
-            <section className={styles.panel}>
-              <h2>World time</h2>
-              <p>
-                <strong>Label:</strong>{' '}
-                {campaign.currentWorldDateLabel ?? 'Not set'}
-              </p>
-              <p>
-                <strong>Position:</strong>{' '}
-                {campaign.currentWorldPosition ?? 'Not set'}
-              </p>
-              <p className={styles.meta}>
-                The World calendar/date-system wizard is tracked in #69.
-              </p>
-            </section>
-          </div>
-
-          {campaign.canDelete ? (
-            <section className={styles.panel}>
-              <h2>Campaign ownership &amp; lifecycle</h2>
-              <CampaignLifecycleControls
-                worldId={worldId}
-                campaignId={campaign.id}
-                campaignName={campaign.name}
-                ownerLabel={ownerLabel}
-                status={campaign.status}
-                canTransferOwnership={campaign.canTransferOwnership}
-                canEnd={campaign.canEnd}
-                canArchive={campaign.canArchive}
-                transferTargets={(campaignMembers ?? []).filter(
-                  (member) => member.userId !== campaign.owner.id,
-                )}
-              />
-            </section>
-          ) : null}
-
-          {campaign.canEditSharedInfo ? (
-            <section className={styles.panel}>
-              <h2>General Campaign settings</h2>
-              {!campaign.canEditName ? (
-                <div className={styles.notice}>
-                  As {roleLabel}, you can update shared Campaign information and
-                  World time. Renaming and ownership/lifecycle management remain
-                  owner-only.
-                </div>
-              ) : null}
-              <CampaignForm
-                mode="edit"
-                worldId={worldId}
-                campaignId={campaign.id}
-                canEditName={campaign.canEditName}
-                initialName={campaign.name}
-                initialDescription={campaign.description}
-                initialWorldPosition={campaign.currentWorldPosition}
-                initialWorldDateLabel={campaign.currentWorldDateLabel}
-              />
-            </section>
-          ) : null}
-
-          <section className={styles.panel}>
-            <h2>Campaign Characters</h2>
-            <p className={styles.meta}>
-              Character participation is separate from Campaign membership.
-              Removing participation keeps the portable Character and
-              WorldCharacter intact.
-            </p>
-            {campaign.characters.length === 0 ? (
-              <p>No active Campaign Characters are attached yet.</p>
-            ) : (
-              <div className={styles.party}>
-                {campaign.characters.map((character) => (
-                  <div className={styles.partyItem} key={character.id}>
-                    <div>
-                      <strong>{character.name}</strong>
-                      <span className={styles.meta}>
-                        {' · '}
-                        {character.owner.displayName ??
-                          `@${character.owner.username}`}
-                        {character.ownedByCurrentUser
-                          ? ' · your Character'
-                          : ''}
-                      </span>
-                    </div>
-                    {campaign.canEditSharedInfo ? (
-                      <RemoveCampaignCharacterButton
-                        campaignCharacterId={character.id}
-                        characterName={character.name}
-                      />
-                    ) : null}
-                  </div>
-                ))}
+        <section
+          className={styles.managementGrid}
+          aria-label="Campaign management options"
+        >
+          {sections.has('details') ? (
+            <article className={styles.managementCard}>
+              <div className={styles.managementCardHeader}>
+                <span>
+                  <CampaignDashboardIcon name="status" />
+                </span>
+                <h2>Campaign details</h2>
               </div>
-            )}
-          </section>
+              <div className={styles.managementCardBody}>
+                <strong>{campaign.name}</strong>
+                <p>
+                  {campaign.description ||
+                    'Add a short description for this Campaign.'}
+                </p>
+              </div>
+              <Link
+                className={styles.managementCardAction}
+                href={data.managementHref('details')}
+              >
+                Edit details <span aria-hidden>→</span>
+              </Link>
+            </article>
+          ) : null}
 
-          {campaign.canManageMembers ? (
-            <section className={styles.panel}>
-              <h2>Campaign membership</h2>
-              <p className={styles.meta}>
-                Promote, demote, or remove existing members, or create a
-                single-use invitation. A Threadwatcher also receives read-only
-                access to the host World, but only sees Campaigns they actually
-                belong to. Chronicler remains a Threadwalker capability rather
-                than a separate role; only the Campaign owner can grant or
-                revoke it.
-              </p>
-              <RoleHelp targetKind="Campaign" />
-              <h3>Members</h3>
-              <MembershipManager
-                endpoint={`/api/v1/worlds/${worldId}/campaigns/${campaign.id}/members`}
-                roles={CAMPAIGN_ROLES}
-                targetKind="Campaign"
-                initialMembers={campaignMembers ?? []}
-              />
-              <h3>Invite someone</h3>
-              <MembershipInviteManager
-                endpoint={`/api/v1/worlds/${worldId}/campaigns/${campaign.id}/invitations`}
-                roles={CAMPAIGN_ROLES}
-                targetKind="Campaign"
-                initialInvitations={campaignInvitations.map((invitation) => ({
-                  id: invitation.id,
-                  role: invitation.role,
-                  expiresAt: invitation.expiresAt.toISOString(),
-                }))}
-              />
-            </section>
+          {sections.has('members') ? (
+            <article className={styles.managementCard}>
+              <div className={styles.managementCardHeader}>
+                <span>
+                  <CampaignDashboardIcon name="entities" />
+                </span>
+                <h2>Members &amp; roles</h2>
+              </div>
+              <div className={styles.managementCardBody}>
+                <strong>
+                  {countLabel(campaign.memberCount, 'Campaign member')}
+                </strong>
+                <p>
+                  Manage membership roles and existing invitation links while
+                  keeping Character participation separate.
+                </p>
+              </div>
+              <Link
+                className={styles.managementCardAction}
+                href={data.managementHref('members')}
+              >
+                Manage members <span aria-hidden>→</span>
+              </Link>
+            </article>
           ) : null}
-          {campaign.canDelete ? (
-            <section className={`${styles.panel} ${styles.dangerZone}`}>
-              <h2>Danger zone</h2>
-              <p className={styles.meta}>
-                Permanently delete this Campaign and its scoped participation.
-              </p>
-              <CampaignDeleteControl
-                worldId={worldId}
-                campaignId={campaign.id}
-                campaignName={campaign.name}
-              />
-            </section>
+
+          {sections.has('characters') ? (
+            <article className={styles.managementCard}>
+              <div className={styles.managementCardHeader}>
+                <span>
+                  <CampaignDashboardIcon name="party" />
+                </span>
+                <h2>Characters</h2>
+              </div>
+              <div className={styles.managementCardBody}>
+                <strong>
+                  {countLabel(campaign.characters.length, 'active character')}
+                </strong>
+                {campaign.characters.length > 0 ? (
+                  <>
+                    <div
+                      className={styles.managementCharacterPreview}
+                      aria-hidden="true"
+                    >
+                      {campaign.characters.slice(0, 4).map((character) => (
+                        <span key={character.id}>
+                          <Image
+                            src={
+                              character.image || uiAssets.fallbacks.character
+                            }
+                            alt=""
+                            fill
+                            sizes="2.5rem"
+                          />
+                        </span>
+                      ))}
+                    </div>
+                    <p>
+                      {characterNames}
+                      {campaign.characters.length > 3 ? ', and more' : ''}
+                    </p>
+                  </>
+                ) : (
+                  <p>No Characters are participating yet.</p>
+                )}
+              </div>
+              <Link
+                className={styles.managementCardAction}
+                href={data.managementHref('characters')}
+              >
+                Manage characters <span aria-hidden>→</span>
+              </Link>
+            </article>
           ) : null}
-        </div>
-      </AppPage>
+
+          {sections.has('time') ? (
+            <article className={styles.managementCard}>
+              <div className={styles.managementCardHeader}>
+                <span>
+                  <CampaignDashboardIcon name="timeline" />
+                </span>
+                <h2>World time</h2>
+              </div>
+              <div className={styles.managementCardBody}>
+                <strong>
+                  {campaign.currentWorldDateLabel || 'World date not set'}
+                </strong>
+                <p>
+                  Timeline position {campaign.currentWorldPosition || 'not set'}
+                </p>
+              </div>
+              <Link
+                className={styles.managementCardAction}
+                href={data.managementHref('time')}
+              >
+                Manage time <span aria-hidden>→</span>
+              </Link>
+            </article>
+          ) : null}
+
+          {sections.has('advanced') ? (
+            <article className={styles.managementCard}>
+              <div className={styles.managementCardHeader}>
+                <span>
+                  <CampaignDashboardIcon name="manage" />
+                </span>
+                <h2>Advanced</h2>
+              </div>
+              <dl className={styles.managementSummary}>
+                <div>
+                  <dt>Owner</dt>
+                  <dd>
+                    {data.ownerLabel}
+                    {campaign.isOwner ? ' (you)' : ''}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>{data.statusLabel}</dd>
+                </div>
+              </dl>
+              <Link
+                className={styles.managementCardAction}
+                href={data.managementHref('advanced')}
+              >
+                Manage advanced options <span aria-hidden>→</span>
+              </Link>
+            </article>
+          ) : null}
+        </section>
+      </main>
     </AuthenticatedAppShell>
   )
 }

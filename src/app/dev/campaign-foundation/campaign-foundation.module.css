@@ -41,7 +41,8 @@
 
 .context,
 .actionCard,
-.campaigns {
+.campaigns,
+.visualReview {
   border: 1px solid color-mix(in srgb, var(--foreground) 13%, transparent);
   border-radius: 16px;
   background: color-mix(in srgb, var(--background) 94%, var(--foreground) 3%);
@@ -58,7 +59,8 @@
 
 .context h2,
 .actionCard h2,
-.campaigns h2 {
+.campaigns h2,
+.visualReview h2 {
   margin: 6px 0 8px;
   font-size: 1.2rem;
 }
@@ -201,6 +203,50 @@
   font-size: 0.72rem;
 }
 
+.visualReview {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+  padding: 22px;
+}
+
+.visualReview > p {
+  max-width: 760px;
+  margin: 0;
+  color: color-mix(in srgb, var(--foreground) 66%, transparent);
+  line-height: 1.6;
+}
+
+.visualReview > code {
+  width: fit-content;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  border-radius: 8px;
+  padding: 7px 9px;
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+  font-size: 0.78rem;
+}
+
+.visualReviewGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.visualReviewGrid article {
+  border-radius: 12px;
+  padding: 16px;
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+
+.visualReviewGrid ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: color-mix(in srgb, var(--foreground) 66%, transparent);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
 @media (max-width: 760px) {
   .page {
     padding: 28px 14px 48px;
@@ -221,7 +267,8 @@
 
   .workspace,
   .campaignGrid,
-  .lifecycleActions {
+  .lifecycleActions,
+  .visualReviewGrid {
     grid-template-columns: 1fr;
   }
 }

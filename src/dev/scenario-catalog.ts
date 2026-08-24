@@ -154,9 +154,9 @@ export const devScenarioCatalog = [
     title: 'Campaign foundation',
     domain: 'Campaigns',
     purpose:
-      'Exercise Campaign creation, independent ownership, atomic ownership transfer, owner-only end/archive/delete, archived read-only persistence, Character-preserving deletion, main-timeline context, and secure living-World context through real services.',
+      'Exercise Campaign creation, independent ownership, atomic ownership transfer, owner-only end/archive/delete, archived read-only persistence, Character-preserving deletion, main-timeline context, secure living-World context, and the Campaign management UI review checklist.',
     href: '/dev/campaign-foundation',
-    issueNumbers: [15, 53],
+    issueNumbers: [15, 53, 138],
     prerequisites: [
       'Dedicated development database',
       'Applied Prisma migrations',

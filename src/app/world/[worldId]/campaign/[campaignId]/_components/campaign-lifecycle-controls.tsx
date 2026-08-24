@@ -12,19 +12,24 @@ interface TransferTarget {
   role: string
 }
 
+interface OwnershipProps {
+  worldId: string
+  campaignId: string
+  campaignName: string
+  canTransferOwnership: boolean
+  transferTargets: TransferTarget[]
+}
+
 interface LifecycleProps {
   worldId: string
   campaignId: string
   campaignName: string
-  ownerLabel: string
   status: 'ACTIVE' | 'ENDED' | 'ARCHIVED'
-  canTransferOwnership: boolean
   canEnd: boolean
   canArchive: boolean
-  transferTargets: TransferTarget[]
 }
 
-type LifecycleAction = 'transfer' | 'end' | 'archive'
+type LifecycleAction = 'end' | 'archive'
 
 async function responseError(response: Response, fallback: string) {
   const body = (await response.json().catch(() => null)) as {
@@ -33,28 +38,148 @@ async function responseError(response: Response, fallback: string) {
   return body?.error?.message ?? fallback
 }
 
-export function CampaignLifecycleControls({
+export function CampaignOwnershipTransferControl({
   worldId,
   campaignId,
   campaignName,
-  ownerLabel,
-  status,
   canTransferOwnership,
-  canEnd,
-  canArchive,
   transferTargets,
-}: LifecycleProps) {
+}: OwnershipProps) {
   const router = useRouter()
   const [targetUserId, setTargetUserId] = useState(
     transferTargets[0]?.userId ?? '',
   )
-  const [confirming, setConfirming] = useState<LifecycleAction | null>(null)
+  const [confirming, setConfirming] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const target = useMemo(
     () => transferTargets.find((value) => value.userId === targetUserId),
     [targetUserId, transferTargets],
   )
+
+  async function transferOwnership() {
+    setPending(true)
+    setError(null)
+    try {
+      const response = await fetch(
+        `/api/v1/worlds/${encodeURIComponent(worldId)}/campaigns/${encodeURIComponent(campaignId)}/transfer`,
+        {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ targetUserId }),
+        },
+      )
+      if (!response.ok) {
+        setError(
+          await responseError(response, 'Could not transfer this Campaign.'),
+        )
+        return
+      }
+      setConfirming(false)
+      router.refresh()
+    } catch {
+      setError('Could not transfer this Campaign.')
+    } finally {
+      setPending(false)
+    }
+  }
+
+  if (!canTransferOwnership) return null
+
+  return (
+    <div className={styles.lifecycleControls}>
+      <div className={styles.lifecycleAction}>
+        <div className={styles.field}>
+          <label htmlFor="campaign-transfer-target">New owner</label>
+          <select
+            id="campaign-transfer-target"
+            value={targetUserId}
+            disabled={pending || transferTargets.length === 0}
+            onChange={(event) => setTargetUserId(event.target.value)}
+          >
+            {transferTargets.map((member) => (
+              <option key={member.userId} value={member.userId}>
+                {member.displayName ?? `@${member.username}`} · {member.role}
+              </option>
+            ))}
+          </select>
+        </div>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={pending || !target}
+          onClick={() => {
+            setError(null)
+            setConfirming(true)
+          }}
+        >
+          Transfer ownership
+        </Button>
+        {transferTargets.length === 0 ? (
+          <p className={styles.meta}>
+            Add a Campaign member before transferring ownership.
+          </p>
+        ) : null}
+      </div>
+
+      {confirming ? (
+        <div
+          className={styles.lifecycleConfirm}
+          role="group"
+          aria-label="Transfer Campaign confirmation"
+        >
+          <strong>
+            Transfer {campaignName} to{' '}
+            {target?.displayName ??
+              (target ? `@${target.username}` : 'this member')}
+            ?
+          </strong>
+          <p>
+            The selected member becomes the Campaign owner and is promoted to
+            Weaver. Your existing Campaign membership is preserved.
+          </p>
+          <div className={styles.formActions}>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={pending}
+              onClick={() => setConfirming(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={pending}
+              onClick={() => void transferOwnership()}
+            >
+              {pending ? 'Working…' : 'Confirm transfer'}
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {error ? (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+export function CampaignLifecycleControls({
+  worldId,
+  campaignId,
+  campaignName,
+  status,
+  canEnd,
+  canArchive,
+}: LifecycleProps) {
+  const router = useRouter()
+  const [confirming, setConfirming] = useState<LifecycleAction | null>(null)
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const endpoint = `/api/v1/worlds/${encodeURIComponent(worldId)}/campaigns/${encodeURIComponent(campaignId)}`
 
   async function perform(action: LifecycleAction) {
@@ -64,12 +189,6 @@ export function CampaignLifecycleControls({
       const response = await fetch(`${endpoint}/${action}`, {
         method: 'POST',
         credentials: 'same-origin',
-        ...(action === 'transfer'
-          ? {
-              headers: { 'content-type': 'application/json' },
-              body: JSON.stringify({ targetUserId }),
-            }
-          : {}),
       })
       if (!response.ok) {
         setError(
@@ -86,16 +205,8 @@ export function CampaignLifecycleControls({
     }
   }
 
-  function openConfirmation(action: LifecycleAction) {
-    setError(null)
-    setConfirming(action)
-  }
-
   return (
     <div className={styles.lifecycleControls}>
-      <p>
-        <strong>Owner:</strong> {ownerLabel}
-      </p>
       <p>
         <strong>Status:</strong> {status}
       </p>
@@ -107,46 +218,15 @@ export function CampaignLifecycleControls({
         </div>
       ) : null}
 
-      {canTransferOwnership ? (
-        <div className={styles.lifecycleAction}>
-          <div className={styles.field}>
-            <label htmlFor="campaign-transfer-target">New owner</label>
-            <select
-              id="campaign-transfer-target"
-              value={targetUserId}
-              disabled={pending || transferTargets.length === 0}
-              onChange={(event) => setTargetUserId(event.target.value)}
-            >
-              {transferTargets.map((member) => (
-                <option key={member.userId} value={member.userId}>
-                  {member.displayName ?? `@${member.username}`} · {member.role}
-                </option>
-              ))}
-            </select>
-          </div>
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={pending || !target}
-            onClick={() => openConfirmation('transfer')}
-          >
-            Transfer ownership
-          </Button>
-          {transferTargets.length === 0 ? (
-            <p className={styles.meta}>
-              Add a Campaign member before transferring ownership through this
-              screen.
-            </p>
-          ) : null}
-        </div>
-      ) : null}
-
       {canEnd ? (
         <Button
           type="button"
-          variant="secondary"
+          variant="danger"
           disabled={pending}
-          onClick={() => openConfirmation('end')}
+          onClick={() => {
+            setError(null)
+            setConfirming('end')
+          }}
         >
           End Campaign
         </Button>
@@ -155,9 +235,12 @@ export function CampaignLifecycleControls({
       {canArchive ? (
         <Button
           type="button"
-          variant="secondary"
+          variant="danger"
           disabled={pending}
-          onClick={() => openConfirmation('archive')}
+          onClick={() => {
+            setError(null)
+            setConfirming('archive')
+          }}
         >
           Archive Campaign
         </Button>
@@ -170,18 +253,14 @@ export function CampaignLifecycleControls({
           aria-label={`${confirming} Campaign confirmation`}
         >
           <strong>
-            {confirming === 'transfer'
-              ? `Transfer ${campaignName} to ${target?.displayName ?? (target ? `@${target.username}` : 'this member')}?`
-              : confirming === 'end'
-                ? `End ${campaignName}?`
-                : `Archive ${campaignName}?`}
+            {confirming === 'end'
+              ? `End ${campaignName}?`
+              : `Archive ${campaignName}?`}
           </strong>
           <p>
-            {confirming === 'transfer'
-              ? 'The selected member becomes the authoritative Campaign owner and is promoted to GM. Your existing Campaign membership is preserved.'
-              : confirming === 'end'
-                ? 'The Campaign stops active play, but it still blocks World deletion until its owner explicitly archives or deletes it. Its World, timeline, memberships, Characters, and Campaign data remain intact.'
-                : 'The Campaign becomes historical and read-only. It remains linked to the World until the explicit World deletion workflow snapshots and detaches it.'}
+            {confirming === 'end'
+              ? 'The Campaign stops active play, but it still blocks World deletion until its owner explicitly archives or deletes it. Its World, timeline, memberships, Characters, and Campaign data remain intact.'
+              : 'The Campaign becomes historical and read-only. It remains linked to the World until the explicit World deletion workflow snapshots and detaches it.'}
           </p>
           <div className={styles.formActions}>
             <Button
@@ -194,16 +273,15 @@ export function CampaignLifecycleControls({
             </Button>
             <Button
               type="button"
+              variant="danger"
               disabled={pending}
               onClick={() => void perform(confirming)}
             >
               {pending
                 ? 'Working…'
-                : confirming === 'transfer'
-                  ? 'Confirm transfer'
-                  : confirming === 'end'
-                    ? 'Confirm end Campaign'
-                    : 'Confirm archive Campaign'}
+                : confirming === 'end'
+                  ? 'Confirm end Campaign'
+                  : 'Confirm archive Campaign'}
             </Button>
           </div>
         </div>

@@ -49,6 +49,28 @@
   min-width: 0;
 }
 
+.backLink {
+  margin-bottom: 1rem;
+}
+
+.backLink a {
+  color: var(--ui-accent-hover);
+  font-size: 0.82rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.backLink a:hover {
+  color: var(--ui-text);
+}
+
+.backLink a:focus-visible {
+  border-radius: 0.2rem;
+
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
 .eyebrow {
   margin: 0 0 0.4rem;
   color: var(--ui-accent);

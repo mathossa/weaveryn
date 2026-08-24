@@ -54,7 +54,7 @@ export function CampaignFoundationLab() {
         <ScenarioNavigation issueNumbers={metadata.issueNumbers} />
 
         <header className={styles.header}>
-          <span>Development only · Issue #15</span>
+          <span>Development only · Issues #15, #53 &amp; #138</span>
           <h1>Campaign foundation laboratory</h1>
           <p>
             Create a playable Campaign inside a persisted World, confirm that
@@ -319,6 +319,57 @@ export function CampaignFoundationLab() {
               No Campaign rows. Use the create action or run all checks.
             </p>
           )}
+        </section>
+
+        <section
+          className={styles.visualReview}
+          aria-labelledby="management-ui-review"
+        >
+          <div className={styles.sectionHeading}>
+            <div>
+              <span>Issue #138 visual review</span>
+              <h2 id="management-ui-review">Campaign management routes</h2>
+            </div>
+            <strong>Manual · production UI</strong>
+          </div>
+          <p>
+            Use a Campaign available to your signed-in account, then inspect the
+            hub and every focused route without changing the deterministic
+            service fixture above.
+          </p>
+          <code>/world/[worldId]/campaign/[campaignId]/manage</code>
+          <div className={styles.visualReviewGrid}>
+            <article>
+              <strong>Management hub</strong>
+              <ul>
+                <li>Cards are the only section navigation; no tabs appear.</li>
+                <li>Advanced is summary-only with no destructive controls.</li>
+                <li>Empty and populated Character summaries remain legible.</li>
+              </ul>
+            </article>
+            <article>
+              <strong>Focused routes</strong>
+              <ul>
+                <li>
+                  Details, Members, Characters, Time, and Advanced reload.
+                </li>
+                <li>
+                  Advanced contains ownership and lifecycle confirmations.
+                </li>
+                <li>Delegated managers see no owner-only destinations.</li>
+              </ul>
+            </article>
+            <article>
+              <strong>Responsive widths</strong>
+              <ul>
+                <li>Phone: one column with no horizontal overflow.</li>
+                <li>Tablet: two-column hub where space permits.</li>
+                <li>
+                  1920×1080 and 2560×1440 use the workspace intentionally.
+                </li>
+              </ul>
+            </article>
+          </div>
         </section>
 
         <ScenarioResultPanels result={result} />

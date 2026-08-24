@@ -7,6 +7,7 @@ import styles from '../campaign.module.css'
 interface CampaignFormProps {
   mode: 'create' | 'edit'
   worldId: string
+  section?: 'all' | 'details' | 'time'
   campaignId?: string
   canEditName?: boolean
   initialName?: string
@@ -18,6 +19,7 @@ interface CampaignFormProps {
 export function CampaignForm({
   mode,
   worldId,
+  section = 'all',
   campaignId,
   canEditName = true,
   initialName = '',
@@ -28,6 +30,8 @@ export function CampaignForm({
   const router = useRouter()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const showsDetails = section !== 'time'
+  const showsTime = section !== 'details'
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -36,10 +40,22 @@ export function CampaignForm({
 
     const form = new FormData(event.currentTarget)
     const body = {
-      ...(canEditName ? { name: String(form.get('name') ?? '') } : {}),
-      description: String(form.get('description') ?? ''),
-      currentWorldPosition: String(form.get('currentWorldPosition') ?? ''),
-      currentWorldDateLabel: String(form.get('currentWorldDateLabel') ?? ''),
+      ...(showsDetails && canEditName
+        ? { name: String(form.get('name') ?? '') }
+        : {}),
+      ...(showsDetails
+        ? { description: String(form.get('description') ?? '') }
+        : {}),
+      ...(showsTime
+        ? {
+            currentWorldPosition: String(
+              form.get('currentWorldPosition') ?? '',
+            ),
+            currentWorldDateLabel: String(
+              form.get('currentWorldDateLabel') ?? '',
+            ),
+          }
+        : {}),
     }
 
     const url =
@@ -77,7 +93,7 @@ export function CampaignForm({
 
   return (
     <form className={styles.form} onSubmit={submit}>
-      {canEditName ? (
+      {showsDetails && canEditName ? (
         <div className={styles.field}>
           <label htmlFor="campaign-name">Campaign name</label>
           <input
@@ -90,42 +106,43 @@ export function CampaignForm({
         </div>
       ) : null}
 
-      <div className={styles.field}>
-        <label htmlFor="campaign-description">Description</label>
-        <textarea
-          id="campaign-description"
-          name="description"
-          defaultValue={initialDescription ?? ''}
-        />
-      </div>
+      {showsDetails ? (
+        <div className={styles.field}>
+          <label htmlFor="campaign-description">Description</label>
+          <textarea
+            id="campaign-description"
+            name="description"
+            defaultValue={initialDescription ?? ''}
+          />
+        </div>
+      ) : null}
 
-      <div className={styles.field}>
-        <label htmlFor="campaign-date-label">World date label</label>
-        <input
-          id="campaign-date-label"
-          name="currentWorldDateLabel"
-          required
-          defaultValue={initialWorldDateLabel ?? ''}
-          placeholder="14 Emberwane, 812"
-        />
-      </div>
+      {showsTime ? (
+        <>
+          <div className={styles.field}>
+            <label htmlFor="campaign-date-label">World date label</label>
+            <input
+              id="campaign-date-label"
+              name="currentWorldDateLabel"
+              required
+              defaultValue={initialWorldDateLabel ?? ''}
+              placeholder="14 Emberwane, 812"
+            />
+          </div>
 
-      <div className={styles.field}>
-        <label htmlFor="campaign-position">Timeline position</label>
-        <input
-          id="campaign-position"
-          name="currentWorldPosition"
-          required
-          inputMode="decimal"
-          defaultValue={initialWorldPosition ?? ''}
-          placeholder="142.5"
-        />
-      </div>
-
-      <p className={styles.meta}>
-        These two date fields are temporary. World calendar configuration will
-        replace them in #69.
-      </p>
+          <div className={styles.field}>
+            <label htmlFor="campaign-position">Timeline position</label>
+            <input
+              id="campaign-position"
+              name="currentWorldPosition"
+              required
+              inputMode="decimal"
+              defaultValue={initialWorldPosition ?? ''}
+              placeholder="142.5"
+            />
+          </div>
+        </>
+      ) : null}
 
       {error ? <p className={styles.error}>{error}</p> : null}
 
@@ -135,7 +152,11 @@ export function CampaignForm({
             ? 'Saving…'
             : mode === 'create'
               ? 'Create Campaign'
-              : 'Save Campaign'}
+              : section === 'details'
+                ? 'Save details'
+                : section === 'time'
+                  ? 'Save World time'
+                  : 'Save Campaign'}
         </button>
       </div>
     </form>

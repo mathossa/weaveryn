@@ -860,3 +860,505 @@
     grid-template-columns: 1fr;
   }
 }
+.managementHub {
+  width: min(100%, 104rem);
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.25rem, 3vw, 2.25rem) clamp(1rem, 3vw, 2.5rem) 4rem;
+}
+
+.managementBackLink {
+  width: fit-content;
+  border-radius: 0.2rem;
+  color: var(--ui-accent-hover);
+  font-size: 0.82rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.managementBackLink:hover {
+  color: var(--ui-text);
+}
+
+.managementBackLink:focus-visible,
+.managementCardAction:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+.managementHero {
+  position: relative;
+  min-height: clamp(15rem, 27vw, 21rem);
+  overflow: hidden;
+  display: flex;
+  align-items: end;
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 30%, var(--ui-border));
+  border-radius: var(--ui-radius-panel);
+  padding: clamp(1.25rem, 4vw, 2.75rem);
+  background: var(--ui-panel-strong);
+  box-shadow: var(--ui-shadow-panel);
+  isolation: isolate;
+}
+
+.managementHeroImage {
+  z-index: -3;
+  object-fit: cover;
+  object-position: 72% center;
+  filter: saturate(0.72) contrast(1.08) brightness(0.7);
+}
+
+.managementHeroShade {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(3, 7, 14, 0.99) 0%,
+      rgba(3, 7, 14, 0.92) 34%,
+      rgba(3, 7, 14, 0.5) 62%,
+      rgba(3, 7, 14, 0.16) 100%
+    ),
+    linear-gradient(0deg, rgba(3, 7, 14, 0.94), transparent 65%);
+}
+
+.managementHeroCopy {
+  width: min(100%, 52rem);
+  display: grid;
+  gap: 0.65rem;
+}
+
+.managementEyebrow,
+.advancedSectionHeading > span {
+  color: var(--ui-accent);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.managementHero h1 {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2.65rem, 6vw, 5rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 0.96;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.managementContext {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 1rem;
+  margin-top: 0.2rem;
+  color: color-mix(in srgb, var(--ui-text) 76%, var(--ui-text-muted));
+  font-size: 0.78rem;
+}
+
+.managementContext span {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.managementContext svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--ui-accent);
+}
+
+.managementStatusDot {
+  width: 0.42rem;
+  height: 0.42rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--ui-text-muted);
+  box-shadow: 0 0 0 0.2rem
+    color-mix(in srgb, var(--ui-text-muted) 12%, transparent);
+}
+
+.managementStatusDot[data-status='ACTIVE'] {
+  background: var(--ui-success);
+  box-shadow: 0 0 0 0.2rem
+    color-mix(in srgb, var(--ui-success) 13%, transparent);
+}
+
+.managementStatusDot[data-status='ENDED'] {
+  background: var(--ui-accent);
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--ui-accent) 13%, transparent);
+}
+
+.managementGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.managementCard {
+  min-width: 0;
+  min-height: 17rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid color-mix(in srgb, var(--ui-border) 84%, transparent);
+  border-top-color: color-mix(in srgb, var(--ui-accent) 32%, var(--ui-border));
+  border-radius: 1rem;
+  padding: 1.15rem;
+  background:
+    radial-gradient(
+      circle at 0% 0%,
+      color-mix(in srgb, var(--ui-accent) 7%, transparent),
+      transparent 42%
+    ),
+    color-mix(in srgb, var(--ui-panel-strong) 94%, transparent);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.2);
+}
+
+.managementCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.managementCardHeader > span {
+  width: 2.55rem;
+  height: 2.55rem;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 38%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ui-accent) 9%, transparent);
+  color: var(--ui-accent);
+}
+
+.managementCardHeader svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.managementCardHeader h2,
+.advancedSectionHeading h2,
+.managementSectionHeading h2 {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 600;
+}
+
+.managementCardHeader h2 {
+  font-size: 1.18rem;
+}
+
+.managementCardBody {
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.managementCardBody strong {
+  color: var(--ui-accent-hover);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.managementCardBody p,
+.supportingCopy,
+.managementEmptyState p {
+  margin: 0;
+  color: var(--ui-text-muted);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.managementCardBody p {
+  font-size: 0.86rem;
+}
+
+.managementCardAction {
+  width: fit-content;
+  min-height: 2.55rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  align-self: end;
+  margin-top: auto;
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 55%, var(--ui-border));
+  border-radius: var(--ui-radius-control);
+  padding: 0.58rem 0.8rem;
+  background: color-mix(in srgb, var(--ui-accent) 7%, transparent);
+  color: var(--ui-accent-hover);
+  font-size: 0.78rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.managementCardAction:hover {
+  border-color: var(--ui-accent);
+  background: color-mix(in srgb, var(--ui-accent) 13%, transparent);
+}
+
+.managementCharacterPreview {
+  display: flex;
+  padding-left: 0.25rem;
+}
+
+.managementCharacterPreview > span {
+  position: relative;
+  width: 2.55rem;
+  height: 2.55rem;
+  overflow: hidden;
+  margin-left: -0.25rem;
+  border: 2px solid var(--ui-panel-strong);
+  border-radius: 50%;
+  background: var(--ui-control-surface);
+}
+
+.managementCharacterPreview img,
+.managementCharacterPortrait img {
+  object-fit: cover;
+}
+
+.managementSummary {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.managementSummary > div {
+  display: grid;
+  grid-template-columns: minmax(5rem, 0.4fr) minmax(0, 1fr);
+  gap: 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ui-border) 65%, transparent);
+  padding-bottom: 0.65rem;
+}
+
+.managementSummary dt {
+  color: var(--ui-text-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.managementSummary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.focusedManagementPanel {
+  display: grid;
+  gap: 1.2rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  padding: clamp(1rem, 3vw, 1.5rem);
+  background: var(--ui-panel-strong);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.18);
+}
+
+.supportingCopy {
+  font-size: 0.88rem;
+}
+
+.managementCurrentValues {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.managementCurrentValues > div {
+  display: grid;
+  gap: 0.3rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  padding: 0.9rem;
+  background: var(--ui-control-surface);
+}
+
+.managementCurrentValues span {
+  color: var(--ui-text-muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.managementCurrentValues strong {
+  overflow-wrap: anywhere;
+}
+
+.managementSectionHeading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.managementSectionHeading > div {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.managementSectionHeading > strong {
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 38%, var(--ui-border));
+  border-radius: 50%;
+  color: var(--ui-accent-hover);
+}
+
+.managementCharacterList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.managementCharacterRow {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.85rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  padding: 0.75rem;
+  background: var(--ui-control-surface);
+}
+
+.managementCharacterPortrait {
+  position: relative;
+  width: 3.5rem;
+  height: 3.5rem;
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: 50%;
+  background: var(--ui-panel-strong);
+}
+
+.managementCharacterRow > div {
+  min-width: 0;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.managementCharacterRow > div > strong,
+.managementCharacterRow > div > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.managementCharacterRow > div > span {
+  color: var(--ui-text-muted);
+  font-size: 0.78rem;
+}
+
+.managementEmptyState {
+  display: grid;
+  gap: 0.35rem;
+  border: 1px dashed var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.advancedManagementStack {
+  width: min(100%, 68rem);
+  display: grid;
+  gap: 1rem;
+}
+
+.advancedSectionHeading {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.advancedSectionHeading h2 {
+  font-size: 1.35rem;
+}
+
+.highImpactPanel {
+  border-color: color-mix(in srgb, var(--ui-danger) 35%, var(--ui-border));
+}
+
+@media (max-width: 1050px) {
+  .managementGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .managementHero {
+    min-height: 18rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .managementHub {
+    gap: 0.8rem;
+    padding: 1rem 0.75rem 2.5rem;
+  }
+
+  .managementHero {
+    min-height: 22rem;
+    padding: 1.1rem;
+  }
+
+  .managementHeroImage {
+    object-position: 64% center;
+  }
+
+  .managementHeroShade {
+    background:
+      linear-gradient(0deg, rgba(3, 7, 14, 0.98), rgba(3, 7, 14, 0.34) 84%),
+      linear-gradient(90deg, rgba(3, 7, 14, 0.82), transparent);
+  }
+
+  .managementHero h1 {
+    font-size: clamp(2.5rem, 13vw, 3.65rem);
+  }
+
+  .managementGrid,
+  .managementCurrentValues {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .managementCard {
+    min-height: 14.5rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .managementContext {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .managementContext span {
+    align-items: start;
+  }
+
+  .managementCharacterRow {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .managementCharacterRow > :last-child {
+    grid-column: 1 / -1;
+  }
+
+  .managementCharacterRow > :last-child button {
+    width: 100%;
+  }
+
+  .managementSummary > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.2rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .managementContext {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
