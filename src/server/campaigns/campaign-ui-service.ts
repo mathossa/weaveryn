@@ -8,6 +8,10 @@ import {
   filterWorldEntitiesForCampaignContext,
 } from '../world-entities/world-entity-campaign-context'
 import { worldEntityService } from '../world-entities/world-entity-service'
+import {
+  hasWorldPermission,
+  WORLD_PERMISSIONS,
+} from '../worlds/world-permissions'
 
 export interface CampaignChoice {
   id: string
@@ -126,7 +130,16 @@ export async function getWorldCampaignSelection(
   if (!world) return null
 
   const worldRole = world.memberships[0]?.role ?? null
-  const canCreateCampaign = world.ownerId === userId || worldRole === 'ADMIN'
+  const canCreateCampaign = hasWorldPermission(
+    {
+      worldId,
+      ownerId: world.ownerId,
+      userId,
+      isOwner: world.ownerId === userId,
+      role: worldRole,
+    },
+    WORLD_PERMISSIONS.CREATE_CAMPAIGN,
+  )
 
   return {
     world: { id: world.id, name: world.name },
