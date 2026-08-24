@@ -48,6 +48,13 @@ const CUSTOM_ENTITY_ID = '20000000-0000-4000-8000-000000000019'
 const RELATIONSHIP_ID = '20000000-0000-4000-8000-000000000020'
 const CROSS_WORLD_RELATIONSHIP_ID = '20000000-0000-4000-8000-000000000021'
 const CAMPAIGN_RELATIONSHIP_ID = '20000000-0000-4000-8000-000000000022'
+const PERSON_FALLBACK_ID = '20000000-0000-4000-8000-000000000023'
+const ITEM_FALLBACK_ID = '20000000-0000-4000-8000-000000000024'
+const EVENT_FALLBACK_ID = '20000000-0000-4000-8000-000000000025'
+const DEITY_FALLBACK_ID = '20000000-0000-4000-8000-000000000026'
+const CREATURE_FALLBACK_ID = '20000000-0000-4000-8000-000000000027'
+const QUEST_FALLBACK_ID = '20000000-0000-4000-8000-000000000028'
+const GENERIC_FALLBACK_ID = '20000000-0000-4000-8000-000000000029'
 
 const people = [
   {
@@ -259,6 +266,49 @@ async function createEntities() {
     name: 'Lantern Guild',
     data: { focus: 'exploration' },
   })
+  await serviceWithId(PERSON_FALLBACK_ID).createEntity({
+    actorUserId: OWNER_ID,
+    worldId: PRIMARY_WORLD_ID,
+    type: 'person',
+    name: 'Mira Ashfall',
+    data: { role: 'wayfinder' },
+  })
+  await serviceWithId(ITEM_FALLBACK_ID).createEntity({
+    actorUserId: OWNER_ID,
+    worldId: PRIMARY_WORLD_ID,
+    type: 'item',
+    name: 'Glass Compass',
+  })
+  await serviceWithId(EVENT_FALLBACK_ID).createEntity({
+    actorUserId: OWNER_ID,
+    worldId: PRIMARY_WORLD_ID,
+    type: 'event',
+    name: 'The Emberfall',
+  })
+  await serviceWithId(DEITY_FALLBACK_ID).createEntity({
+    actorUserId: OWNER_ID,
+    worldId: PRIMARY_WORLD_ID,
+    type: 'deity',
+    name: 'The Listening Stone',
+  })
+  await serviceWithId(CREATURE_FALLBACK_ID).createEntity({
+    actorUserId: OWNER_ID,
+    worldId: PRIMARY_WORLD_ID,
+    type: 'creature',
+    name: 'Mossback Stalker',
+  })
+  await serviceWithId(QUEST_FALLBACK_ID).createEntity({
+    actorUserId: OWNER_ID,
+    worldId: PRIMARY_WORLD_ID,
+    type: 'quest',
+    name: 'Road to Hollow Spire',
+  })
+  await serviceWithId(GENERIC_FALLBACK_ID).createEntity({
+    actorUserId: OWNER_ID,
+    worldId: PRIMARY_WORLD_ID,
+    type: 'Thread Echo',
+    name: 'Uncatalogued Resonance',
+  })
   await serviceWithId(OTHER_WORLD_ENTITY_ID).createEntity({
     actorUserId: OWNER_ID,
     worldId: SECONDARY_WORLD_ID,
@@ -325,6 +375,10 @@ async function createVisibilityEntities() {
     relationshipType: 'STORES',
     label: 'Kept at camp',
   })
+  await prisma.campaign.update({
+    where: { id: CAMPAIGN_ID },
+    data: { currentLocationId: CAMPAIGN_ENTITY_ID },
+  })
 }
 
 async function updateEntity() {
@@ -387,13 +441,13 @@ async function runAll() {
   checks.push({
     id: 'create',
     title: 'World entities are created through the real service',
-    status: state?.entities.length === 3 ? 'passed' : 'failed',
+    status: state?.entities.length === 10 ? 'passed' : 'failed',
     actor: 'Elara and Marek',
-    target: 'Two Aldorath entities and one Veyra entity',
-    expected: '3 persisted ruleset-agnostic entities',
+    target: 'Nine Aldorath fallback examples and one Veyra control entity',
+    expected: '10 persisted ruleset-agnostic entities',
     actual: `${state?.entities.length ?? 0} entities`,
     detail:
-      'Owner and MEMBER both use World EDIT_CONTENT authorization; normal World-context creation defaults to WORLD visibility.',
+      'The fixture includes no-image Person, Location, Organization, Item, Event, Deity, Creature, Quest, and unknown custom types while keeping runtime types data-driven.',
   })
 
   await createVisibilityEntities()
