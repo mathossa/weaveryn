@@ -160,7 +160,19 @@ World deletion is therefore blocked while any active Campaign exists, regardless
 
 If the World owner no longer wants responsibility for a World that still hosts active Campaigns, they may transfer or relinquish World ownership rather than delete the World or another user's Campaign.
 
-When a World is deleted after all active Campaigns have been resolved, ended or archived Campaigns owned by other users must not be destroyed by database cascade. They are detached from the deleted World through an explicit archival workflow and retain a limited immutable World snapshot needed to understand their historical Campaign context. A detached archived Campaign no longer participates in live World resolution.
+Ending and archiving are distinct owner-only transitions. `ACTIVE -> ENDED`
+stops active play without deleting or detaching World, timeline, membership, or
+CampaignCharacter state. An `ENDED` Campaign must still be explicitly archived
+or deleted by its Campaign owner before its attached World may be deleted.
+`ENDED -> ARCHIVED` makes the Campaign historical and read-only but normally
+keeps the live World/timeline links until World deletion is actually requested.
+
+During explicit World deletion, only already `ARCHIVED` Campaigns are preserved
+and detached. The workflow records an immutable snapshot of World identity,
+timeline identity, and final Campaign context; then it clears `worldId`,
+`timelineId`, and `currentLocationId`. The Campaign survives and no longer
+participates in live World resolution. The World owner never gains authority to
+archive, detach, or delete another user's Campaign merely to delete the World.
 
 ### Temporal Context
 
@@ -380,9 +392,20 @@ A World owner does not gain authority to delete another user's Campaign simply b
 
 If active Campaigns remain and the World owner wants to leave, the owner may transfer or relinquish World ownership. Relinquishment leaves the World orphaned while preserving its ID, content, timelines, and Campaign relationships so active Campaigns can continue.
 
-Inactive or archived independently user-owned content must still be handled deliberately during eventual World deletion. User-owned Characters must not be destroyed because their containing World is deleted. Ended or archived Campaigns are preserved through the explicit snapshot-and-detachment workflow rather than an accidental database cascade.
+Independently user-owned content must still be handled deliberately during
+eventual World deletion. Attached `ENDED` Campaigns block the deletion workflow
+until their owners archive or delete them. Already `ARCHIVED` Campaigns are
+preserved through the explicit snapshot-and-detachment workflow rather than an
+accidental database cascade.
 
-Deleting a Campaign may remove Campaign-specific memberships and participation records but must not delete the underlying Character identity.
+Ending or archiving a Campaign does not delete its CampaignCharacters,
+WorldCharacters, or portable Characters. Explicit Campaign deletion removes
+Campaign-scoped memberships, invitations, preferences, and CampaignCharacter
+participation through their deliberate referential actions, but preserves the
+underlying Character, WorldCharacter, World, and independent WorldEntity
+identity. If the World itself is later deleted, World-scoped WorldCharacters
+and their CampaignCharacter links follow the World lifecycle, while portable
+Character identity remains user-owned and survives.
 
 User accounts must never be deleted as a consequence of deleting World or Campaign content.
 
@@ -475,7 +498,7 @@ Ruleset
 23. A Campaign ownership transfer is initiated only by the current owner and is atomic.
 24. Campaign-only World access does not imply World membership or World editing rights.
 25. MVP timeline ordering uses authoritative canonical World positions; human-facing date notation is resolved separately and normal authoring does not depend on entering raw numeric positions.
-26. Ended or archived Campaigns are detached through an explicit snapshot workflow when their World is deleted.
+26. Ended Campaigns require owner resolution before World deletion; already archived Campaigns are snapshotted and detached by the explicit World-deletion workflow.
 27. A WorldCharacter has at most one linked Character-backed WorldEntity, and both must belong to the same World.
 28. Character-backed WorldEntity name/image presentation derives from Character/WorldCharacter authority rather than an independently editable duplicate.
 29. Campaign-only visibility of a Character-backed entity derives from that WorldCharacter's participation in an authorized Campaign and does not grant general World access.

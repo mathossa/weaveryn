@@ -1,8 +1,10 @@
 import type { WorldAuthorizationRepository } from '../worlds/world-permissions'
 import type {
   CampaignMembershipRecord,
+  CampaignMembershipCampaignReference,
   CreateCampaignMembershipInput,
 } from './campaign-membership-repository'
+import type { ArchivedWorldSnapshot } from './campaign-archive'
 
 export const CAMPAIGN_STATUSES = ['ACTIVE', 'ENDED', 'ARCHIVED'] as const
 
@@ -17,6 +19,7 @@ export interface CampaignRecord {
   timelineId: string | null
   currentWorldPosition: string | null
   currentWorldDateLabel: string | null
+  archivedWorldSnapshot: ArchivedWorldSnapshot | null
   status: CampaignStatus
   createdAt: Date
   updatedAt: Date
@@ -62,6 +65,36 @@ export interface CampaignRepository extends WorldAuthorizationRepository {
   createCampaignMembership(
     input: CreateCampaignMembershipInput,
   ): Promise<CampaignMembershipRecord>
+  findCampaignById(
+    campaignId: string,
+  ): Promise<CampaignMembershipCampaignReference | null>
+  userExists(userId: string): Promise<boolean>
+  findCampaignMembership(
+    campaignId: string,
+    userId: string,
+  ): Promise<CampaignMembershipRecord | null>
+  upsertCampaignGmMembership(
+    campaignId: string,
+    userId: string,
+  ): Promise<CampaignMembershipRecord>
+  updateCampaignOwner(
+    campaignId: string,
+    worldId: string | null,
+    currentOwnerId: string,
+    newOwnerId: string,
+  ): Promise<CampaignRecord | null>
+  updateCampaignStatus(
+    campaignId: string,
+    worldId: string | null,
+    ownerId: string,
+    currentStatus: CampaignStatus,
+    newStatus: CampaignStatus,
+  ): Promise<CampaignRecord | null>
+  deleteOwnedCampaign(
+    campaignId: string,
+    worldId: string | null,
+    ownerId: string,
+  ): Promise<boolean>
   findCampaignForUser(
     campaignId: string,
     userId: string,

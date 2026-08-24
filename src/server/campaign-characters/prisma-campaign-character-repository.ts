@@ -47,7 +47,7 @@ export class PrismaCampaignCharacterRepository implements CampaignCharacterRepos
   findCampaignById(id: string) {
     return this.db.campaign.findUnique({
       where: { id },
-      select: { id: true, worldId: true, ownerId: true },
+      select: { id: true, worldId: true, ownerId: true, status: true },
     })
   }
 
@@ -112,7 +112,7 @@ export class PrismaCampaignCharacterRepository implements CampaignCharacterRepos
     input: UpdateCampaignCharacterRecordInput,
   ) {
     const result = await this.db.campaignCharacter.updateMany({
-      where: { id },
+      where: { id, campaign: { status: { not: 'ARCHIVED' } } },
       data: {
         ...input,
         sheetData: input.sheetData as Prisma.InputJsonValue | undefined,
@@ -125,8 +125,11 @@ export class PrismaCampaignCharacterRepository implements CampaignCharacterRepos
 
   async deleteCampaignCharacter(id: string) {
     return (
-      (await this.db.campaignCharacter.deleteMany({ where: { id } })).count ===
-      1
+      (
+        await this.db.campaignCharacter.deleteMany({
+          where: { id, campaign: { status: { not: 'ARCHIVED' } } },
+        })
+      ).count === 1
     )
   }
 }

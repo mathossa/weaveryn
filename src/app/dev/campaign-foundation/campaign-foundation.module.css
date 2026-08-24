@@ -82,6 +82,20 @@
   background: color-mix(in srgb, var(--foreground) 5%, transparent);
 }
 
+.lifecycleCard {
+  grid-column: 1 / -1;
+}
+
+.lifecycleActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.lifecycleActions button {
+  margin-top: 0;
+}
 .context dt,
 .campaignGrid dt {
   color: color-mix(in srgb, var(--foreground) 55%, transparent);
@@ -206,7 +220,8 @@
   }
 
   .workspace,
-  .campaignGrid {
+  .campaignGrid,
+  .lifecycleActions {
     grid-template-columns: 1fr;
   }
 }

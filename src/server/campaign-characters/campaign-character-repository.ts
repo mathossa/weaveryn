@@ -22,6 +22,7 @@ export interface CampaignReference {
   id: string
   worldId: string | null
   ownerId: string
+  status: 'ACTIVE' | 'ENDED' | 'ARCHIVED'
 }
 
 export interface CreateCampaignCharacterRecordInput {

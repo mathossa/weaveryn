@@ -48,6 +48,10 @@ export interface CampaignOverview {
   canEditName: boolean
   canEditSharedInfo: boolean
   canManageMembers: boolean
+  canTransferOwnership: boolean
+  canEnd: boolean
+  canArchive: boolean
+  canDelete: boolean
   canUpdateCurrentLocation: boolean
   characters: CampaignOverviewCharacter[]
 }
@@ -224,6 +228,10 @@ export async function getCampaignOverview(
     canEditName: campaign.status !== 'ARCHIVED' && isOwner,
     canEditSharedInfo,
     canManageMembers: campaign.status !== 'ARCHIVED' && isOwner,
+    canTransferOwnership: campaign.status !== 'ARCHIVED' && isOwner,
+    canEnd: campaign.status === 'ACTIVE' && isOwner,
+    canArchive: campaign.status === 'ENDED' && isOwner,
+    canDelete: isOwner,
     canUpdateCurrentLocation:
       campaign.status !== 'ARCHIVED' &&
       (canEditSharedInfo ||

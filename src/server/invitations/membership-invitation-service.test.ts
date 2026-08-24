@@ -352,7 +352,12 @@ function fixture() {
     updatedAt: now,
   })
 
-  campaignMemberships.campaigns.set(campaignId, { id: campaignId, ownerId })
+  campaignMemberships.campaigns.set(campaignId, {
+    id: campaignId,
+    worldId,
+    ownerId,
+    status: 'ACTIVE',
+  })
   campaignMemberships.users.add(inviteeId)
   campaignMemberships.memberships.set(`${campaignId}:${adminId}`, {
     id: 'campaign-gm-membership',

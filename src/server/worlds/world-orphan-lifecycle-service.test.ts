@@ -29,7 +29,12 @@ function createTransactionMock() {
       count: vi.fn(),
       deleteMany: vi.fn(),
     },
-    campaign: { findFirst: vi.fn(), count: vi.fn() },
+    campaign: {
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      count: vi.fn(),
+      updateMany: vi.fn(),
+    },
   }
 }
 
@@ -54,7 +59,9 @@ describe('World orphan lifecycle service', () => {
     transaction.worldMembership.count.mockResolvedValue(0)
     transaction.worldMembership.deleteMany.mockResolvedValue({ count: 0 })
     transaction.campaign.findFirst.mockResolvedValue(null)
+    transaction.campaign.findMany.mockResolvedValue([])
     transaction.campaign.count.mockResolvedValue(0)
+    transaction.campaign.updateMany.mockResolvedValue({ count: 1 })
     prismaMock.$transaction.mockImplementation(
       async (callback: TransactionCallback) => callback(transaction),
     )
@@ -210,8 +217,62 @@ describe('World orphan lifecycle service', () => {
     expect(transaction.world.deleteMany).not.toHaveBeenCalled()
   })
 
-  it('requires ended or archived Campaigns to be resolved before cleanup', async () => {
+  it('requires ended Campaigns to be explicitly archived or deleted by their owner', async () => {
     transaction.campaign.count.mockResolvedValueOnce(0).mockResolvedValueOnce(1)
+
+    await expect(cleanupOrphanedWorld(WORLD_ID)).rejects.toMatchObject({
+      code: 'ORPHANED_WORLD_CLEANUP_BLOCKED_BY_ENDED_CAMPAIGNS',
+    })
+    expect(transaction.campaign.findMany).not.toHaveBeenCalled()
+    expect(transaction.world.deleteMany).not.toHaveBeenCalled()
+  })
+
+  it('snapshots and detaches archived Campaigns before deleting the orphaned World', async () => {
+    transaction.campaign.findMany.mockResolvedValue([
+      {
+        id: 'archived-campaign',
+        currentWorldPosition: 142.5,
+        currentWorldDateLabel: '14 Emberwane, 812',
+        world: {
+          id: WORLD_ID,
+          name: 'Preserved World',
+          description: 'A remembered place.',
+        },
+        timeline: { id: 'timeline-1', name: 'Main timeline' },
+        currentLocation: { id: 'location-1', name: 'Highwatch' },
+      },
+    ])
+
+    await expect(cleanupOrphanedWorld(WORLD_ID)).resolves.toBeUndefined()
+
+    expect(transaction.campaign.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: 'archived-campaign',
+        worldId: WORLD_ID,
+        status: 'ARCHIVED',
+      },
+      data: {
+        archivedWorldSnapshot: expect.objectContaining({
+          version: 1,
+          world: expect.objectContaining({ name: 'Preserved World' }),
+          finalContext: expect.objectContaining({
+            worldPosition: '142.5',
+            worldDateLabel: '14 Emberwane, 812',
+          }),
+        }),
+        worldId: null,
+        timelineId: null,
+        currentLocationId: null,
+      },
+    })
+    expect(transaction.world.deleteMany).toHaveBeenCalled()
+  })
+
+  it('fails closed if a non-archived Campaign reference remains after detachment', async () => {
+    transaction.campaign.count
+      .mockResolvedValueOnce(0)
+      .mockResolvedValueOnce(0)
+      .mockResolvedValueOnce(1)
 
     await expect(cleanupOrphanedWorld(WORLD_ID)).rejects.toMatchObject({
       code: 'ORPHANED_WORLD_CLEANUP_REQUIRES_CAMPAIGN_RESOLUTION',

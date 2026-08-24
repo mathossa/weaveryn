@@ -65,10 +65,14 @@ being deleted. World ownership does not grant deletion authority over a
 Campaign owned by another user.
 
 The Campaign owner always has the functional `GM` role. A World may only be
-deleted after all active Campaigns have been ended, transferred as necessary,
-or deleted. Ended or archived Campaigns are preserved using a limited immutable
-World snapshot and are detached from the deleted World through an explicit
-workflow.
+deleted after active Campaigns have been ended or deleted by their owners and
+attached ended Campaigns have then been explicitly archived or deleted. Ending
+and archiving preserve Campaign data and Character participation; archival makes
+normal management read-only. During explicit World deletion, already archived
+Campaigns receive a limited immutable World/timeline/final-context snapshot and
+are detached before the World is removed. Explicit Campaign deletion removes
+Campaign participation while preserving portable Character, WorldCharacter,
+World, and independent WorldEntity identity.
 
 Current Location is a visible `location` WorldEntity in the Campaign World and is
 not dependent on a Scene. Player-facing location and Around You data continue to

@@ -1,50 +1,13 @@
 import { NextResponse } from 'next/server'
-import { AuthDomainError, requireAuthenticatedUser } from '@/server/auth'
+import { requireAuthenticatedUser } from '@/server/auth'
 import {
-  CampaignDomainError,
-  CampaignInputError,
   campaignService,
   getCampaignOverview,
   parseCampaignManagementInput,
 } from '@/server/campaigns'
+import { campaignApiErrorResponse } from './_lib/campaign-response'
 
 export const runtime = 'nodejs'
-
-function errorResponse(error: unknown) {
-  if (error instanceof AuthDomainError) {
-    return NextResponse.json(
-      { error: { code: error.code, message: error.message } },
-      { status: 401 },
-    )
-  }
-  if (error instanceof CampaignInputError) {
-    return NextResponse.json(
-      { error: { code: 'INVALID_CAMPAIGN_INPUT', message: error.message } },
-      { status: 400 },
-    )
-  }
-  if (error instanceof CampaignDomainError) {
-    if (error.code === 'CAMPAIGN_LOCATION_INVALID') {
-      return NextResponse.json(
-        { error: { code: error.code, message: error.message } },
-        { status: 400 },
-      )
-    }
-    return NextResponse.json(
-      { error: { code: error.code, message: error.message } },
-      { status: 403 },
-    )
-  }
-  return NextResponse.json(
-    {
-      error: {
-        code: 'CAMPAIGN_OPERATION_FAILED',
-        message: 'Campaign operation failed.',
-      },
-    },
-    { status: 500 },
-  )
-}
 
 interface RouteContext {
   params: Promise<{ worldId: string; campaignId: string }>
@@ -67,7 +30,7 @@ export async function GET(request: Request, context: RouteContext) {
     }
     return NextResponse.json({ campaign })
   } catch (error) {
-    return errorResponse(error)
+    return campaignApiErrorResponse(error)
   }
 }
 
@@ -100,6 +63,23 @@ export async function PATCH(request: Request, context: RouteContext) {
     )
     return NextResponse.json({ campaign })
   } catch (error) {
-    return errorResponse(error)
+    return campaignApiErrorResponse(error)
+  }
+}
+
+export async function DELETE(request: Request, context: RouteContext) {
+  try {
+    const [{ worldId, campaignId }, user] = await Promise.all([
+      context.params,
+      requireAuthenticatedUser(request.headers),
+    ])
+    await campaignService.deleteCampaign({
+      campaignId,
+      worldId,
+      actorUserId: user.id,
+    })
+    return new NextResponse(null, { status: 204 })
+  } catch (error) {
+    return campaignApiErrorResponse(error)
   }
 }

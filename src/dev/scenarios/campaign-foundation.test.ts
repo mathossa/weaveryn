@@ -8,6 +8,14 @@ describe('Campaign foundation scenario action validation', () => {
     { action: 'create-campaign', actor: 'WORLD_MEMBER' },
     { action: 'update-admin-campaign', actor: 'CAMPAIGN_OWNER' },
     { action: 'update-admin-campaign', actor: 'WORLD_OWNER' },
+    { action: 'transfer-admin-campaign', actor: 'CURRENT_CAMPAIGN_OWNER' },
+    { action: 'transfer-admin-campaign', actor: 'WORLD_OWNER' },
+    { action: 'end-admin-campaign', actor: 'CURRENT_CAMPAIGN_OWNER' },
+    { action: 'end-admin-campaign', actor: 'WORLD_OWNER' },
+    { action: 'archive-admin-campaign', actor: 'CURRENT_CAMPAIGN_OWNER' },
+    { action: 'archive-admin-campaign', actor: 'WORLD_OWNER' },
+    { action: 'delete-admin-campaign', actor: 'CURRENT_CAMPAIGN_OWNER' },
+    { action: 'delete-admin-campaign', actor: 'WORLD_OWNER' },
   ])('accepts the allowlisted action $action for $actor', (action) => {
     expect(isCampaignFoundationAction(action)).toBe(true)
   })
@@ -16,6 +24,8 @@ describe('Campaign foundation scenario action validation', () => {
     null,
     {},
     { action: 'create-campaign', actor: 'OUTSIDER' },
+    { action: 'end-admin-campaign', actor: 'WORLD_MEMBER' },
+    { action: 'archive-admin-campaign', actor: 'CAMPAIGN_OWNER' },
     { action: 'delete-campaign', actor: 'WORLD_OWNER' },
     {
       action: 'create-campaign',

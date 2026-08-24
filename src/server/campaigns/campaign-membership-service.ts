@@ -1,4 +1,5 @@
 import {
+  campaignArchivedReadOnly,
   campaignMembershipAlreadyExists,
   campaignMembershipForbidden,
   campaignMembershipHasActiveCharacter,
@@ -51,6 +52,9 @@ export async function assertCampaignMembershipManager(
 ) {
   const campaign = await repository.findCampaignById(campaignId)
   if (!campaign) throw campaignNotFound(campaignId)
+  if (campaign.status === 'ARCHIVED') {
+    throw campaignArchivedReadOnly(campaignId)
+  }
   if (campaign.ownerId !== actorUserId) {
     throw campaignMembershipForbidden(campaignId, actorUserId)
   }

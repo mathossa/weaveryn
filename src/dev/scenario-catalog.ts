@@ -154,7 +154,7 @@ export const devScenarioCatalog = [
     title: 'Campaign foundation',
     domain: 'Campaigns',
     purpose:
-      'Exercise Campaign creation, loading, independent ownership, main-timeline context, typed player capabilities, secure Current Location, player-visible focus, and visibility-derived Around You through real services.',
+      'Exercise Campaign creation, independent ownership, atomic ownership transfer, owner-only end/archive/delete, archived read-only persistence, Character-preserving deletion, main-timeline context, and secure living-World context through real services.',
     href: '/dev/campaign-foundation',
     issueNumbers: [15, 53],
     prerequisites: [

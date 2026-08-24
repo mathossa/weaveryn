@@ -6,6 +6,7 @@ import type {
   CampaignCreateActor,
   CampaignFoundationAction,
   CampaignFoundationState,
+  CampaignLifecycleActor,
   CampaignUpdateActor,
 } from '@/dev/scenarios/campaign-foundation'
 import {
@@ -26,6 +27,9 @@ export function CampaignFoundationLab() {
     useState<CampaignCreateActor>('WORLD_OWNER')
   const [updateActor, setUpdateActor] =
     useState<CampaignUpdateActor>('CAMPAIGN_OWNER')
+  const [lifecycleActor, setLifecycleActor] = useState<CampaignLifecycleActor>(
+    'CURRENT_CAMPAIGN_OWNER',
+  )
   const { result, isBusy, perform } = useDevScenario<
     CampaignFoundationState,
     CampaignFoundationAction
@@ -40,7 +44,7 @@ export function CampaignFoundationLab() {
   const selectedCampaignExists = state?.campaigns.some(
     (campaign) => campaign.id === selectedCampaignId,
   )
-  const adminCampaignExists = state?.campaigns.some(
+  const adminCampaign = state?.campaigns.find(
     (campaign) => campaign.id === adminCampaignId,
   )
 
@@ -154,7 +158,7 @@ export function CampaignFoundationLab() {
             </select>
             <button
               type="button"
-              disabled={isBusy || !adminCampaignExists}
+              disabled={isBusy || !adminCampaign}
               onClick={() =>
                 void perform({
                   action: 'update-admin-campaign',
@@ -164,6 +168,93 @@ export function CampaignFoundationLab() {
             >
               {isBusy ? 'Working…' : 'Advance name, position, and date'}
             </button>
+          </section>
+
+          <section
+            className={`${styles.actionCard} ${styles.lifecycleCard}`}
+            aria-labelledby="lifecycle-title"
+          >
+            <span>Owner-only lifecycle</span>
+            <h2 id="lifecycle-title">Transfer, end, archive, or delete</h2>
+            <p>
+              Create Ada’s Campaign first. Use the current Campaign owner to
+              advance the workflow, or choose Wren to verify that owning the
+              parent World grants no Campaign lifecycle authority.
+            </p>
+            <label htmlFor="campaign-lifecycle-actor">Acting user</label>
+            <select
+              id="campaign-lifecycle-actor"
+              value={lifecycleActor}
+              disabled={isBusy}
+              onChange={(event) =>
+                setLifecycleActor(event.target.value as CampaignLifecycleActor)
+              }
+            >
+              <option value="CURRENT_CAMPAIGN_OWNER">
+                Current Campaign owner (should succeed)
+              </option>
+              <option value="WORLD_OWNER">
+                Wren · World owner only (should fail)
+              </option>
+            </select>
+            <div className={styles.lifecycleActions}>
+              <button
+                type="button"
+                disabled={
+                  isBusy ||
+                  !adminCampaign ||
+                  adminCampaign.status === 'ARCHIVED'
+                }
+                onClick={() =>
+                  void perform({
+                    action: 'transfer-admin-campaign',
+                    actor: lifecycleActor,
+                  })
+                }
+              >
+                Transfer to alternate fixture member
+              </button>
+              <button
+                type="button"
+                disabled={
+                  isBusy || !adminCampaign || adminCampaign.status !== 'ACTIVE'
+                }
+                onClick={() =>
+                  void perform({
+                    action: 'end-admin-campaign',
+                    actor: lifecycleActor,
+                  })
+                }
+              >
+                End Campaign
+              </button>
+              <button
+                type="button"
+                disabled={
+                  isBusy || !adminCampaign || adminCampaign.status !== 'ENDED'
+                }
+                onClick={() =>
+                  void perform({
+                    action: 'archive-admin-campaign',
+                    actor: lifecycleActor,
+                  })
+                }
+              >
+                Archive Campaign
+              </button>
+              <button
+                type="button"
+                disabled={isBusy || !adminCampaign}
+                onClick={() =>
+                  void perform({
+                    action: 'delete-admin-campaign',
+                    actor: lifecycleActor,
+                  })
+                }
+              >
+                Delete Campaign
+              </button>
+            </div>
           </section>
         </div>
 
@@ -206,6 +297,17 @@ export function CampaignFoundationLab() {
                       <dd>
                         {campaign.currentLocationId ?? 'No Current Location'} ·{' '}
                         {campaign.currentFocus ?? 'No current focus'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Campaign memberships</dt>
+                      <dd>
+                        {campaign.memberships
+                          .map(
+                            (membership) =>
+                              `${membership.userId}: ${membership.role}`,
+                          )
+                          .join(' · ')}
                       </dd>
                     </div>
                   </dl>

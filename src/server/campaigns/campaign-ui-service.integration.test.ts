@@ -143,6 +143,10 @@ describe('Campaign UI projections', () => {
       canEditName: true,
       canEditSharedInfo: true,
       canManageMembers: true,
+      canTransferOwnership: true,
+      canEnd: true,
+      canArchive: false,
+      canDelete: true,
     })
 
     const gmOverview = await getCampaignOverview(worldId, campaign.id, gm.id)
@@ -152,6 +156,10 @@ describe('Campaign UI projections', () => {
       canEditName: false,
       canEditSharedInfo: true,
       canManageMembers: false,
+      canTransferOwnership: false,
+      canEnd: false,
+      canArchive: false,
+      canDelete: false,
     })
 
     const playerOverview = await getCampaignOverview(
@@ -165,6 +173,56 @@ describe('Campaign UI projections', () => {
       canEditName: false,
       canEditSharedInfo: false,
       canManageMembers: false,
+    })
+
+    await campaignService.endCampaign({
+      campaignId: campaign.id,
+      worldId,
+      actorUserId: campaignOwner.id,
+    })
+    await expect(
+      getCampaignOverview(worldId, campaign.id, campaignOwner.id),
+    ).resolves.toMatchObject({
+      status: 'ENDED',
+      canEditName: true,
+      canEditSharedInfo: true,
+      canManageMembers: true,
+      canTransferOwnership: true,
+      canEnd: false,
+      canArchive: true,
+      canDelete: true,
+    })
+
+    await campaignService.archiveCampaign({
+      campaignId: campaign.id,
+      worldId,
+      actorUserId: campaignOwner.id,
+    })
+    await expect(
+      getCampaignOverview(worldId, campaign.id, campaignOwner.id),
+    ).resolves.toMatchObject({
+      status: 'ARCHIVED',
+      canEditName: false,
+      canEditSharedInfo: false,
+      canManageMembers: false,
+      canTransferOwnership: false,
+      canEnd: false,
+      canArchive: false,
+      canDelete: true,
+      canUpdateCurrentLocation: false,
+    })
+    await expect(
+      getCampaignOverview(worldId, campaign.id, gm.id),
+    ).resolves.toMatchObject({
+      status: 'ARCHIVED',
+      canEditName: false,
+      canEditSharedInfo: false,
+      canManageMembers: false,
+      canTransferOwnership: false,
+      canEnd: false,
+      canArchive: false,
+      canDelete: false,
+      canUpdateCurrentLocation: false,
     })
   })
 })

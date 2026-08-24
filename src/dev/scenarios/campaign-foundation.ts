@@ -2,9 +2,19 @@ export type CampaignCreateActor = 'WORLD_OWNER' | 'WORLD_ADMIN' | 'WORLD_MEMBER'
 
 export type CampaignUpdateActor = 'CAMPAIGN_OWNER' | 'WORLD_OWNER'
 
+export type CampaignLifecycleActor = 'CURRENT_CAMPAIGN_OWNER' | 'WORLD_OWNER'
+
 export type CampaignFoundationAction =
   | { action: 'create-campaign'; actor: CampaignCreateActor }
   | { action: 'update-admin-campaign'; actor: CampaignUpdateActor }
+  | {
+      action:
+        | 'transfer-admin-campaign'
+        | 'end-admin-campaign'
+        | 'archive-admin-campaign'
+        | 'delete-admin-campaign'
+      actor: CampaignLifecycleActor
+    }
 
 export interface CampaignFoundationState {
   world: {
@@ -32,6 +42,10 @@ export interface CampaignFoundationState {
     currentLocationId: string | null
     currentFocus: string | null
     status: 'ACTIVE' | 'ENDED' | 'ARCHIVED'
+    memberships: Array<{
+      userId: string
+      role: 'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR'
+    }>
   }>
 }
 
@@ -55,8 +69,16 @@ export function isCampaignFoundationAction(
     )
   }
 
+  if (request.action === 'update-admin-campaign') {
+    return request.actor === 'CAMPAIGN_OWNER' || request.actor === 'WORLD_OWNER'
+  }
+
   return (
-    request.action === 'update-admin-campaign' &&
-    (request.actor === 'CAMPAIGN_OWNER' || request.actor === 'WORLD_OWNER')
+    (request.action === 'transfer-admin-campaign' ||
+      request.action === 'end-admin-campaign' ||
+      request.action === 'archive-admin-campaign' ||
+      request.action === 'delete-admin-campaign') &&
+    (request.actor === 'CURRENT_CAMPAIGN_OWNER' ||
+      request.actor === 'WORLD_OWNER')
   )
 }
