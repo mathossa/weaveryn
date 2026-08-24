@@ -137,7 +137,10 @@ export default async function WorldEntityDetailPage({
               worldId={worldId}
               entityId={entity.id}
               className={styles.detailBanner}
-              src={entity.image || uiAssets.backgrounds.entityBanner.src}
+              src={
+                entity.image ||
+                uiAssets.resolveEntityFallbackArtwork(entity.type)
+              }
               focusX={entity.imageFocusX}
               focusY={entity.imageFocusY}
               alt={`${entity.name} artwork`}
