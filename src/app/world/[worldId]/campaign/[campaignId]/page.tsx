@@ -178,7 +178,14 @@ export default async function CampaignOverviewPage({
           <section className={styles.locationHero} id="now">
             <Image
               className={styles.locationImage}
-              src={now.currentLocation?.image || uiAssets.fallbacks.campaign}
+              src={
+                now.currentLocation
+                  ? now.currentLocation.image ||
+                    uiAssets.resolveEntityFallbackArtwork(
+                      now.currentLocation.type,
+                    )
+                  : uiAssets.fallbacks.campaign
+              }
               alt=""
               fill
               priority
@@ -244,7 +251,8 @@ export default async function CampaignOverviewPage({
                     <span className={styles.aroundPortrait}>
                       <Image
                         src={
-                          entity.image || uiAssets.backgrounds.entityBanner.src
+                          entity.image ||
+                          uiAssets.resolveEntityFallbackArtwork(entity.type)
                         }
                         alt=""
                         fill
