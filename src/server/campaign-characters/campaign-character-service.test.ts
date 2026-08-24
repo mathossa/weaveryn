@@ -4,6 +4,7 @@ import { CampaignCharacterService } from './campaign-character-service'
 import {
   CampaignCharacterRepositoryConflictError,
   type CampaignCharacterRecord,
+  type CampaignReference,
   type CampaignCharacterRepository,
   type CreateCampaignCharacterRecordInput,
   type UpdateCampaignCharacterRecordInput,
@@ -27,12 +28,33 @@ class Repository implements CampaignCharacterRepository {
   characters = new Map([
     [characterId, { id: characterId, ownerUserId: characterOwnerId }],
   ])
-  campaigns = new Map([
-    [campaignOneId, { id: campaignOneId, worldId: worldOneId, ownerId: gmId }],
-    [campaignTwoId, { id: campaignTwoId, worldId: worldOneId, ownerId: gmId }],
+  campaigns = new Map<string, CampaignReference>([
+    [
+      campaignOneId,
+      {
+        id: campaignOneId,
+        worldId: worldOneId,
+        ownerId: gmId,
+        status: 'ACTIVE' as const,
+      },
+    ],
+    [
+      campaignTwoId,
+      {
+        id: campaignTwoId,
+        worldId: worldOneId,
+        ownerId: gmId,
+        status: 'ACTIVE' as const,
+      },
+    ],
     [
       otherWorldCampaignId,
-      { id: otherWorldCampaignId, worldId: worldTwoId, ownerId: gmId },
+      {
+        id: otherWorldCampaignId,
+        worldId: worldTwoId,
+        ownerId: gmId,
+        status: 'ACTIVE' as const,
+      },
     ],
   ])
   worldCharacters = new Map([
@@ -310,5 +332,47 @@ describe('CampaignCharacterService', () => {
     expect(repository.characters.get(characterId)).toMatchObject({
       ownerUserId: characterOwnerId,
     })
+  })
+
+  it('preserves archived CampaignCharacter state for reads while rejecting mutations', async () => {
+    const { service, repository } = harness()
+    const created = await service.createCampaignCharacter({
+      actorUserId: gmId,
+      worldCharacterId,
+      campaignId: campaignOneId,
+      sheetData: { gold: 12 },
+    })
+    repository.campaigns.set(campaignOneId, {
+      id: campaignOneId,
+      worldId: worldOneId,
+      ownerId: gmId,
+      status: 'ARCHIVED',
+    })
+
+    await expect(
+      service.loadCampaignCharacter(created.id, gmId),
+    ).resolves.toMatchObject({ id: created.id, sheetData: { gold: 12 } })
+    await expect(
+      service.createCampaignCharacter({
+        actorUserId: gmId,
+        worldCharacterId,
+        campaignId: campaignOneId,
+      }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_ARCHIVED_READ_ONLY' })
+    await expect(
+      service.updateCampaignCharacter(created.id, gmId, {
+        sheetData: { gold: 99 },
+      }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_ARCHIVED_READ_ONLY' })
+    await expect(
+      service.removeCampaignCharacter(created.id, gmId),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_ARCHIVED_READ_ONLY' })
+
+    expect(repository.records).toEqual([
+      expect.objectContaining({
+        id: created.id,
+        sheetData: { gold: 12 },
+      }),
+    ])
   })
 })

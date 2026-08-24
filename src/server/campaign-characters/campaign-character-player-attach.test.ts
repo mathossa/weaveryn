@@ -38,7 +38,9 @@ class Repository implements CampaignCharacterRepository {
     return null
   }
   async findCampaignById(id: string) {
-    return id === campaignId ? { id, worldId, ownerId: gmId } : null
+    return id === campaignId
+      ? { id, worldId, ownerId: gmId, status: 'ACTIVE' as const }
+      : null
   }
   async findCampaignMembership(id: string, userId: string) {
     if (id !== campaignId) return null

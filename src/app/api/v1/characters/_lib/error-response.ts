@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { AuthDomainError } from '@/server/auth'
 import { CampaignCharacterDomainError } from '@/server/campaign-characters'
+import { CampaignDomainError } from '@/server/campaigns'
 import { CharacterDomainError, CharacterInputError } from '@/server/characters'
 import { WorldDomainError } from '@/server/worlds'
 
@@ -14,6 +15,9 @@ export function characterApiErrorResponse(error: unknown) {
   }
   if (error instanceof CharacterInputError) {
     return jsonError('INVALID_CHARACTER_INPUT', error.message, 400)
+  }
+  if (error instanceof CampaignDomainError) {
+    return jsonError(error.code, error.message, 409)
   }
   if (error instanceof CharacterDomainError) {
     const status =

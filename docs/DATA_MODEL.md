@@ -164,7 +164,14 @@ ENDED
 ARCHIVED
 ```
 
-Only `ACTIVE` Campaigns resolve live World state and block World deletion. `ENDED` Campaigns may be archived through an explicit lifecycle operation. `ARCHIVED` Campaigns are historical and read-only except for lifecycle/export operations.
+Only `ACTIVE` Campaigns resolve live World state and trigger the active-Campaign
+deletion blocker. `ACTIVE -> ENDED` preserves all Campaign relationships and
+data. An attached `ENDED` Campaign still prevents the explicit World-deletion
+workflow from completing until its owner archives or deletes it.
+`ENDED -> ARCHIVED` makes the Campaign historical and read-only; normal archive
+does not immediately detach it. When its World is explicitly deleted, an
+already `ARCHIVED` Campaign is snapshotted, detached, and preserved without
+resolving further live World state.
 
 Relations:
 
@@ -193,6 +200,11 @@ Constraints:
 - the Campaign owner controls ending or deleting their Campaign, subject to normal authorization rules
 - only the current Campaign owner may transfer Campaign ownership
 - ownership transfer is atomic, and the new owner must be or become a Campaign member with role `GM`
+- explicit Campaign deletion removes Campaign-scoped memberships, invitations,
+  entry preferences, entity-type support records, and CampaignCharacters using
+  their documented referential actions
+- Campaign deletion preserves User, Character, WorldCharacter, World, and
+  independently World-owned WorldEntity identity
 - Campaign-specific data must not leak across authorization boundaries
 - Current Location must belong to the Campaign World and use the existing
   `location` WorldEntity type; backend/application validation is authoritative
@@ -200,7 +212,15 @@ Constraints:
 - deleting the referenced Current Location sets `currentLocationId` to null
 - when Ruleset functionality is enabled, changing RulesetVersion requires an explicit migration process
 
-Inactive or archived Campaign preservation during eventual World deletion uses an explicit snapshot-and-detachment workflow. `archivedWorldSnapshot` stores the limited immutable World context required to understand the Campaign history, after which `worldId` and `timelineId` may become `null`. A detached Campaign is archival only and no longer resolves live World state. This must not rely on an accidental database cascade or weaken the rule that active Campaigns always retain a valid World and timeline.
+Archived Campaign preservation during eventual World deletion uses an explicit
+snapshot-and-detachment workflow. `archivedWorldSnapshot` stores only immutable
+World identity (`id`, name, optional description), timeline identity (`id` and
+name), and the Campaign's final World position/date/location identity. The
+workflow then clears `worldId`, `timelineId`, and `currentLocationId`. A detached
+Campaign is archival only and no longer resolves live World state. Attached
+`ENDED` Campaigns are not silently archived or detached by a World owner; they
+require explicit Campaign-owner resolution. None of this relies on accidental
+Campaign cascade behavior or weakens the active World/timeline invariant.
 
 ---
 
@@ -420,6 +440,13 @@ Constraints:
 - Campaign-specific progression and mechanics are independent between Campaigns
 - after Ruleset functionality is introduced, `sheetData` conforms to the Campaign's active RulesetVersion
 - cross-World participation is forbidden and enforced by backend/domain logic
+- ending or archiving preserves CampaignCharacter participation and state
+- an archived Campaign permits historical reads but rejects normal
+  CampaignCharacter creation, update, and removal
+- explicit Campaign deletion removes its CampaignCharacters but not their
+  WorldCharacters or portable Characters
+- World deletion separately removes World-scoped WorldCharacters and therefore
+  their participation links, while portable Character identity survives
 
 ---
 
@@ -1017,7 +1044,7 @@ Ruleset
 22. A Character has at most one WorldCharacter per World.
 23. A Campaign owner always has a `GM` CampaignMembership.
 24. Active Campaigns require both a valid `worldId` and a WorldTimeline from that World.
-25. Detached archived Campaigns use an immutable World snapshot and do not resolve live World state.
+25. Ended Campaigns require owner resolution before World deletion; detached archived Campaigns use an immutable World snapshot and do not resolve live World state. Ending and archiving preserve CampaignCharacter state; explicit Campaign deletion removes participation but preserves Character and WorldCharacter identity.
 26. Campaign- or player-targeted visibility must identify the target Campaign or User.
 27. Account deletion resolves owned Worlds, Campaigns, and Characters explicitly before removing the User.
 28. A WorldCharacter has at most one linked Character-backed WorldEntity, and the link must remain within one World.

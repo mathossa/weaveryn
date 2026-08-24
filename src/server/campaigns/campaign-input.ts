@@ -1,3 +1,6 @@
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export interface CampaignFormInput {
   name: string
   description: string | null
@@ -94,4 +97,21 @@ export function parseCampaignManagementInput(
     description: descriptionValue(input.description),
     ...timelineValues(input),
   }
+}
+
+export interface CampaignOwnershipTransferInput {
+  targetUserId: string
+}
+
+export function parseCampaignOwnershipTransferInput(
+  value: unknown,
+): CampaignOwnershipTransferInput {
+  const input = inputObject(value)
+  if (
+    typeof input.targetUserId !== 'string' ||
+    !UUID_PATTERN.test(input.targetUserId)
+  ) {
+    throw new CampaignInputError('Target user must be a valid UUID.')
+  }
+  return { targetUserId: input.targetUserId }
 }

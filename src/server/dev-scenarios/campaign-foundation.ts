@@ -37,6 +37,10 @@ const WORLD_MEMBER_ID = '15000000-0000-4000-8000-00000000000c'
 const OWNER_CAMPAIGN_ID = '15000000-0000-4000-8000-000000000010'
 const ADMIN_CAMPAIGN_ID = '15000000-0000-4000-8000-000000000011'
 const MEMBER_CAMPAIGN_ID = '15000000-0000-4000-8000-000000000012'
+const CHARACTER_ID = '15000000-0000-4000-8000-000000000020'
+const WORLD_CHARACTER_ID = '15000000-0000-4000-8000-000000000021'
+const CAMPAIGN_CHARACTER_ID = '15000000-0000-4000-8000-000000000022'
+const CHARACTER_NAME = 'Marun (Campaign lifecycle fixture)'
 const WORLD_NAME = 'Aldorath Campaign Laboratory'
 const OWNER_CAMPAIGN_NAME = 'The Crownless Road'
 const ADMIN_CAMPAIGN_NAME = 'Ashes of Aldorath'
@@ -104,6 +108,15 @@ function actorDetails(actor: CampaignCreateActor) {
   }
 }
 
+function campaignOwnerMatchesFixture(campaignId: string, ownerId: string) {
+  if (campaignId === OWNER_CAMPAIGN_ID) return ownerId === WORLD_OWNER_ID
+  if (campaignId === MEMBER_CAMPAIGN_ID) return ownerId === WORLD_MEMBER_ID
+  if (campaignId === ADMIN_CAMPAIGN_ID) {
+    return ownerId === WORLD_ADMIN_ID || ownerId === WORLD_MEMBER_ID
+  }
+  return false
+}
+
 async function assertCampaignFixturesOwned(
   transaction: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
 ) {
@@ -117,17 +130,11 @@ async function assertCampaignFixturesOwned(
     },
   })
 
-  const expectedOwners = new Map([
-    [OWNER_CAMPAIGN_ID, WORLD_OWNER_ID],
-    [ADMIN_CAMPAIGN_ID, WORLD_ADMIN_ID],
-    [MEMBER_CAMPAIGN_ID, WORLD_MEMBER_ID],
-  ])
-
   for (const campaign of campaigns) {
     if (
       campaign.description !== metadata.fixtureNamespace ||
       campaign.worldId !== WORLD_ID ||
-      campaign.ownerId !== expectedOwners.get(campaign.id)
+      !campaignOwnerMatchesFixture(campaign.id, campaign.ownerId)
     ) {
       throw new FixtureOwnershipError(
         `Campaign ${campaign.id} is not owned by this development scenario.`,
@@ -149,6 +156,52 @@ async function deleteCampaignFixtures(
   })
 }
 
+async function deleteCharacterFixture(
+  transaction: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
+) {
+  const [character, worldCharacter] = await Promise.all([
+    transaction.character.findUnique({
+      where: { id: CHARACTER_ID },
+      select: { ownerUserId: true, name: true },
+    }),
+    transaction.worldCharacter.findUnique({
+      where: { id: WORLD_CHARACTER_ID },
+      select: { characterId: true, worldId: true },
+    }),
+  ])
+  if (
+    character &&
+    (character.ownerUserId !== WORLD_MEMBER_ID ||
+      character.name !== CHARACTER_NAME)
+  ) {
+    throw new FixtureOwnershipError(
+      `Character ${CHARACTER_ID} is not owned by this development scenario.`,
+    )
+  }
+  if (
+    worldCharacter &&
+    (worldCharacter.characterId !== CHARACTER_ID ||
+      worldCharacter.worldId !== WORLD_ID)
+  ) {
+    throw new FixtureOwnershipError(
+      `WorldCharacter ${WORLD_CHARACTER_ID} is not owned by this development scenario.`,
+    )
+  }
+  await transaction.worldCharacter.deleteMany({
+    where: {
+      id: WORLD_CHARACTER_ID,
+      characterId: CHARACTER_ID,
+      worldId: WORLD_ID,
+    },
+  })
+  await transaction.character.deleteMany({
+    where: {
+      id: CHARACTER_ID,
+      ownerUserId: WORLD_MEMBER_ID,
+      name: CHARACTER_NAME,
+    },
+  })
+}
 async function readState(): Promise<CampaignFoundationState | null> {
   const [world, timeline, people, memberships, campaigns] = await Promise.all([
     prisma.world.findUnique({
@@ -170,6 +223,12 @@ async function readState(): Promise<CampaignFoundationState | null> {
     }),
     prisma.campaign.findMany({
       where: { id: { in: [...campaignIds] } },
+      include: {
+        memberships: {
+          select: { userId: true, role: true },
+          orderBy: { userId: 'asc' },
+        },
+      },
       orderBy: { id: 'asc' },
     }),
   ])
@@ -191,17 +250,11 @@ async function readState(): Promise<CampaignFoundationState | null> {
     )
   }
 
-  const expectedOwners = new Map([
-    [OWNER_CAMPAIGN_ID, WORLD_OWNER_ID],
-    [ADMIN_CAMPAIGN_ID, WORLD_ADMIN_ID],
-    [MEMBER_CAMPAIGN_ID, WORLD_MEMBER_ID],
-  ])
-
   for (const campaign of campaigns) {
     if (
       campaign.description !== metadata.fixtureNamespace ||
       campaign.worldId !== WORLD_ID ||
-      campaign.ownerId !== expectedOwners.get(campaign.id)
+      !campaignOwnerMatchesFixture(campaign.id, campaign.ownerId)
     ) {
       throw new FixtureOwnershipError(
         `Campaign ${campaign.id} is not owned by this development scenario.`,
@@ -236,6 +289,7 @@ async function readState(): Promise<CampaignFoundationState | null> {
       currentWorldPosition: campaign.currentWorldPosition?.toString() ?? null,
       currentWorldDateLabel: campaign.currentWorldDateLabel,
       currentLocationId: campaign.currentLocationId,
+      memberships: campaign.memberships,
       currentFocus: campaign.currentFocus,
       status: campaign.status,
     })),
@@ -245,6 +299,7 @@ async function readState(): Promise<CampaignFoundationState | null> {
 async function resetFixture() {
   await prisma.$transaction(async (transaction) => {
     await deleteCampaignFixtures(transaction)
+    await deleteCharacterFixture(transaction)
     await assertWorldFixtureOwned(transaction, fixture)
     await transaction.world.deleteMany({
       where: { id: WORLD_ID, description: metadata.fixtureNamespace },
@@ -546,6 +601,223 @@ async function runAcceptanceChecks() {
       : 'One or more Campaign context, capability, or visibility expectations differed.',
   })
 
+  await resetFixture()
+  const transferTarget = await createCampaignFor('WORLD_ADMIN')
+  await campaignMembershipService.addMember({
+    actorUserId: WORLD_ADMIN_ID,
+    campaignId: transferTarget.id,
+    userId: WORLD_MEMBER_ID,
+    role: 'PLAYER',
+  })
+  const transferred = await campaignService.transferOwnership({
+    campaignId: transferTarget.id,
+    worldId: WORLD_ID,
+    actorUserId: WORLD_ADMIN_ID,
+    targetUserId: WORLD_MEMBER_ID,
+  })
+  const transferredMembership =
+    await prisma.campaignMembership.findUniqueOrThrow({
+      where: {
+        campaignId_userId: {
+          campaignId: transferTarget.id,
+          userId: WORLD_MEMBER_ID,
+        },
+      },
+    })
+  const transferPassed =
+    transferred.ownerId === WORLD_MEMBER_ID &&
+    transferredMembership.role === 'GM' &&
+    transferredMembership.capabilities.length === 0
+  checks.push({
+    id: 'campaign-owner-transfer',
+    title: 'Campaign owner transfers authority and the target becomes GM',
+    status: transferPassed ? 'passed' : 'failed',
+    actor: 'Ada (Campaign owner)',
+    target: 'Mira (existing Threadwalker)',
+    expected: `owner ${WORLD_MEMBER_ID}; GM membership`,
+    actual: `owner ${transferred.ownerId}; role ${transferredMembership.role}`,
+    detail: transferPassed
+      ? 'The production transfer service atomically updated authoritative ownership and normalized Campaign participation.'
+      : 'Ownership or target membership did not match the transfer contract.',
+  })
+
+  await resetFixture()
+  const protectedLifecycle = await createCampaignFor('WORLD_ADMIN')
+  let worldOwnerTransferError: string | null = null
+  let nonOwnerLifecycleError: string | null = null
+  try {
+    await campaignService.transferOwnership({
+      campaignId: protectedLifecycle.id,
+      worldId: WORLD_ID,
+      actorUserId: WORLD_OWNER_ID,
+      targetUserId: WORLD_MEMBER_ID,
+    })
+  } catch (error) {
+    if (error instanceof CampaignDomainError) {
+      worldOwnerTransferError = error.code
+    } else {
+      throw error
+    }
+  }
+  try {
+    await campaignService.endCampaign({
+      campaignId: protectedLifecycle.id,
+      worldId: WORLD_ID,
+      actorUserId: WORLD_MEMBER_ID,
+    })
+  } catch (error) {
+    if (error instanceof CampaignDomainError) {
+      nonOwnerLifecycleError = error.code
+    } else {
+      throw error
+    }
+  }
+  const protectedAfterRejections = await prisma.campaign.findUniqueOrThrow({
+    where: { id: protectedLifecycle.id },
+  })
+  const rejectionPassed =
+    worldOwnerTransferError === 'CAMPAIGN_OWNERSHIP_TRANSFER_FORBIDDEN' &&
+    nonOwnerLifecycleError === 'CAMPAIGN_LIFECYCLE_FORBIDDEN' &&
+    protectedAfterRejections.ownerId === WORLD_ADMIN_ID &&
+    protectedAfterRejections.status === 'ACTIVE'
+  checks.push({
+    id: 'campaign-lifecycle-authority',
+    title:
+      'World authority and ordinary membership do not grant lifecycle authority',
+    status: rejectionPassed ? 'passed' : 'failed',
+    actor: 'Wren (World owner) and Mira (non-owner)',
+    target: ADMIN_CAMPAIGN_NAME,
+    expected:
+      'CAMPAIGN_OWNERSHIP_TRANSFER_FORBIDDEN and CAMPAIGN_LIFECYCLE_FORBIDDEN',
+    actual: `${worldOwnerTransferError ?? 'no transfer error'}; ${nonOwnerLifecycleError ?? 'no lifecycle error'}`,
+    domainErrorCode: worldOwnerTransferError,
+    detail: rejectionPassed
+      ? 'Both requests were rejected and the active Campaign remained owned by Ada.'
+      : 'One authorization boundary or persisted field differed.',
+  })
+
+  await resetFixture()
+  const archiveTarget = await createCampaignFor('WORLD_ADMIN')
+  await campaignMembershipService.addMember({
+    actorUserId: WORLD_ADMIN_ID,
+    campaignId: archiveTarget.id,
+    userId: WORLD_MEMBER_ID,
+    role: 'PLAYER',
+  })
+  const ended = await campaignService.endCampaign({
+    campaignId: archiveTarget.id,
+    worldId: WORLD_ID,
+    actorUserId: WORLD_ADMIN_ID,
+  })
+  const archived = await campaignService.archiveCampaign({
+    campaignId: archiveTarget.id,
+    worldId: WORLD_ID,
+    actorUserId: WORLD_ADMIN_ID,
+  })
+  let archivedEditError: string | null = null
+  try {
+    await campaignService.updateCampaign(archiveTarget.id, WORLD_ADMIN_ID, {
+      name: 'Mutated archive',
+    })
+  } catch (error) {
+    if (error instanceof CampaignDomainError) {
+      archivedEditError = error.code
+    } else {
+      throw error
+    }
+  }
+  const archivedPersisted = await prisma.campaign.findUniqueOrThrow({
+    where: { id: archiveTarget.id },
+    include: { memberships: true },
+  })
+  const archivePassed =
+    ended.status === 'ENDED' &&
+    archived.status === 'ARCHIVED' &&
+    archivedPersisted.status === 'ARCHIVED' &&
+    archivedPersisted.worldId === WORLD_ID &&
+    archivedPersisted.timelineId === TIMELINE_ID &&
+    archivedPersisted.memberships.length === 2 &&
+    archivedEditError === 'CAMPAIGN_UPDATE_FORBIDDEN'
+  checks.push({
+    id: 'campaign-end-archive-persistence',
+    title: 'Owner ends and archives without losing historical Campaign state',
+    status: archivePassed ? 'passed' : 'failed',
+    actor: 'Ada (Campaign owner)',
+    target: ADMIN_CAMPAIGN_NAME,
+    expected:
+      'ACTIVE → ENDED → ARCHIVED; attached data preserved; edits rejected',
+    actual: `${ended.status} → ${archived.status}; ${archivedPersisted.memberships.length} memberships; ${archivedEditError ?? 'edit allowed'}`,
+    domainErrorCode: archivedEditError,
+    detail: archivePassed
+      ? 'Archival preserved World/timeline context and memberships while making normal edits read-only.'
+      : 'The lifecycle transition, persistence, or read-only guard differed.',
+  })
+
+  await resetFixture()
+  const deleteTarget = await createCampaignFor('WORLD_ADMIN')
+  await prisma.character.create({
+    data: {
+      id: CHARACTER_ID,
+      ownerUserId: WORLD_MEMBER_ID,
+      name: CHARACTER_NAME,
+    },
+  })
+  await prisma.worldCharacter.create({
+    data: {
+      id: WORLD_CHARACTER_ID,
+      characterId: CHARACTER_ID,
+      worldId: WORLD_ID,
+    },
+  })
+  await prisma.campaignCharacter.create({
+    data: {
+      id: CAMPAIGN_CHARACTER_ID,
+      worldCharacterId: WORLD_CHARACTER_ID,
+      campaignId: deleteTarget.id,
+      sheetData: { scenario: metadata.fixtureNamespace },
+    },
+  })
+  await campaignService.deleteCampaign({
+    campaignId: deleteTarget.id,
+    worldId: WORLD_ID,
+    actorUserId: WORLD_ADMIN_ID,
+  })
+  const [
+    deletedCampaign,
+    deletedParticipation,
+    portableCharacter,
+    worldCharacter,
+    preservedWorld,
+  ] = await Promise.all([
+    prisma.campaign.findUnique({ where: { id: deleteTarget.id } }),
+    prisma.campaignCharacter.findUnique({
+      where: { id: CAMPAIGN_CHARACTER_ID },
+    }),
+    prisma.character.findUnique({ where: { id: CHARACTER_ID } }),
+    prisma.worldCharacter.findUnique({ where: { id: WORLD_CHARACTER_ID } }),
+    prisma.world.findUnique({ where: { id: WORLD_ID } }),
+  ])
+  const deletionPassed =
+    deletedCampaign === null &&
+    deletedParticipation === null &&
+    portableCharacter !== null &&
+    worldCharacter !== null &&
+    preservedWorld !== null
+  checks.push({
+    id: 'campaign-delete-preserves-character-identity',
+    title:
+      'Campaign deletion removes participation but preserves Character identities',
+    status: deletionPassed ? 'passed' : 'failed',
+    actor: 'Ada (Campaign owner)',
+    target: ADMIN_CAMPAIGN_NAME,
+    expected:
+      'Campaign and CampaignCharacter deleted; Character, WorldCharacter, and World preserved',
+    actual: `Campaign ${deletedCampaign ? 'present' : 'deleted'}; participation ${deletedParticipation ? 'present' : 'deleted'}; Character ${portableCharacter ? 'preserved' : 'missing'}; WorldCharacter ${worldCharacter ? 'preserved' : 'missing'}`,
+    detail: deletionPassed
+      ? 'The production delete service removed only Campaign-scoped records.'
+      : 'A portable or World-scoped identity did not survive deletion.',
+  })
+  await prisma.$transaction(deleteCharacterFixture)
   return checks
 }
 
@@ -574,6 +846,7 @@ export const campaignFoundationScenario: DevScenario<
   async cleanup() {
     const cleanup = await prisma.$transaction(async (transaction) => {
       const campaignDeletion = await deleteCampaignFixtures(transaction)
+      await deleteCharacterFixture(transaction)
       const summary = await cleanupWorldFixture(transaction, fixture)
 
       if (campaignDeletion.count > 0) {
@@ -637,33 +910,109 @@ export const campaignFoundationScenario: DevScenario<
       }
     }
 
+    if (request.action === 'update-admin-campaign') {
+      const actorId =
+        request.actor === 'CAMPAIGN_OWNER' ? WORLD_ADMIN_ID : WORLD_OWNER_ID
+      const actorName =
+        request.actor === 'CAMPAIGN_OWNER'
+          ? 'Ada (Campaign owner and World Admin)'
+          : 'Wren (World owner)'
+      const campaign = await campaignService.updateCampaign(
+        ADMIN_CAMPAIGN_ID,
+        actorId,
+        {
+          name: UPDATED_ADMIN_CAMPAIGN_NAME,
+          currentWorldPosition: UPDATED_POSITION,
+          currentWorldDateLabel: UPDATED_DATE_LABEL,
+        },
+      )
+
+      return {
+        ok: true,
+        message: `${actorName} updated the Campaign through the production service.`,
+        activity: {
+          action: request.action,
+          actor: actorName,
+          target: ADMIN_CAMPAIGN_NAME,
+          expected: UPDATED_ADMIN_CAMPAIGN_NAME,
+          actual: campaign.name,
+          status:
+            campaign.name === UPDATED_ADMIN_CAMPAIGN_NAME ? 'passed' : 'failed',
+        },
+      }
+    }
+
+    const current = await prisma.campaign.findUnique({
+      where: { id: ADMIN_CAMPAIGN_ID },
+      select: { ownerId: true, status: true },
+    })
+    if (!current) {
+      throw new CampaignDomainError(
+        'CAMPAIGN_NOT_FOUND',
+        `Campaign ${ADMIN_CAMPAIGN_ID} was not found.`,
+      )
+    }
     const actorId =
-      request.actor === 'CAMPAIGN_OWNER' ? WORLD_ADMIN_ID : WORLD_OWNER_ID
+      request.actor === 'CURRENT_CAMPAIGN_OWNER'
+        ? current.ownerId
+        : WORLD_OWNER_ID
     const actorName =
-      request.actor === 'CAMPAIGN_OWNER'
-        ? 'Ada (Campaign owner and World Admin)'
-        : 'Wren (World owner)'
-    const campaign = await campaignService.updateCampaign(
-      ADMIN_CAMPAIGN_ID,
-      actorId,
-      {
-        name: UPDATED_ADMIN_CAMPAIGN_NAME,
-        currentWorldPosition: UPDATED_POSITION,
-        currentWorldDateLabel: UPDATED_DATE_LABEL,
-      },
-    )
+      request.actor === 'CURRENT_CAMPAIGN_OWNER'
+        ? 'Current Campaign owner'
+        : 'Wren (World owner, not Campaign owner)'
+    let actual: string
+    let expected: string
+
+    if (request.action === 'transfer-admin-campaign') {
+      const targetUserId =
+        current.ownerId === WORLD_MEMBER_ID ? WORLD_ADMIN_ID : WORLD_MEMBER_ID
+      const campaign = await campaignService.transferOwnership({
+        campaignId: ADMIN_CAMPAIGN_ID,
+        worldId: WORLD_ID,
+        actorUserId: actorId,
+        targetUserId,
+      })
+      actual = `owner ${campaign.ownerId}`
+      expected = `owner ${targetUserId}`
+    } else if (request.action === 'end-admin-campaign') {
+      const campaign = await campaignService.endCampaign({
+        campaignId: ADMIN_CAMPAIGN_ID,
+        worldId: WORLD_ID,
+        actorUserId: actorId,
+      })
+      actual = campaign.status
+      expected = 'ENDED'
+    } else if (request.action === 'archive-admin-campaign') {
+      const campaign = await campaignService.archiveCampaign({
+        campaignId: ADMIN_CAMPAIGN_ID,
+        worldId: WORLD_ID,
+        actorUserId: actorId,
+      })
+      actual = campaign.status
+      expected = 'ARCHIVED'
+    } else {
+      await campaignService.deleteCampaign({
+        campaignId: ADMIN_CAMPAIGN_ID,
+        worldId: WORLD_ID,
+        actorUserId: actorId,
+      })
+      actual = 'deleted'
+      expected = 'deleted'
+    }
 
     return {
       ok: true,
-      message: `${actorName} updated the Campaign through the production service.`,
+      message: `${actorName} completed ${request.action} through the production service.`,
       activity: {
         action: request.action,
         actor: actorName,
         target: ADMIN_CAMPAIGN_NAME,
-        expected: UPDATED_ADMIN_CAMPAIGN_NAME,
-        actual: campaign.name,
+        expected,
+        actual,
         status:
-          campaign.name === UPDATED_ADMIN_CAMPAIGN_NAME ? 'passed' : 'failed',
+          actual === expected || actual.includes(expected)
+            ? 'passed'
+            : 'failed',
       },
     }
   },
@@ -673,22 +1022,38 @@ export const campaignFoundationScenario: DevScenario<
         ? (action as Record<string, unknown>)
         : null
 
-    if (
-      error instanceof CampaignDomainError &&
-      error.code === 'CAMPAIGN_UPDATE_FORBIDDEN'
-    ) {
+    if (error instanceof CampaignDomainError) {
       const expectedRejection =
-        request?.action === 'update-admin-campaign' &&
-        request.actor === 'WORLD_OWNER'
+        request?.actor === 'WORLD_OWNER' &&
+        ((request.action === 'update-admin-campaign' &&
+          error.code === 'CAMPAIGN_UPDATE_FORBIDDEN') ||
+          error.code === 'CAMPAIGN_OWNERSHIP_TRANSFER_FORBIDDEN' ||
+          error.code === 'CAMPAIGN_LIFECYCLE_FORBIDDEN' ||
+          error.code === 'CAMPAIGN_DELETE_FORBIDDEN')
+      const status =
+        error.code === 'CAMPAIGN_NOT_FOUND'
+          ? 404
+          : error.code === 'CAMPAIGN_INVALID_STATUS_TRANSITION' ||
+              error.code === 'CAMPAIGN_ARCHIVED_READ_ONLY'
+            ? 409
+            : 403
       return {
         code: error.code,
         message: error.message,
-        status: 403,
+        status,
         activity: {
-          action: 'update-admin-campaign',
-          actor: 'Wren (World owner)',
+          action:
+            typeof request?.action === 'string'
+              ? request.action
+              : 'campaign-lifecycle',
+          actor:
+            request?.actor === 'WORLD_OWNER'
+              ? 'Wren (World owner, not Campaign owner)'
+              : 'Current Campaign owner',
           target: ADMIN_CAMPAIGN_NAME,
-          expected: 'CAMPAIGN_UPDATE_FORBIDDEN',
+          expected: expectedRejection
+            ? error.code
+            : 'Valid lifecycle transition',
           actual: error.code,
           domainErrorCode: error.code,
           status: expectedRejection ? 'passed' : 'failed',

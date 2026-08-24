@@ -12,6 +12,7 @@ import type {
   CampaignMembershipRecord,
   CreateCampaignMembershipInput,
 } from './campaign-membership-repository'
+import { CAMPAIGN_ROLES } from './campaign-role'
 import { CampaignService } from './campaign-service'
 
 const worldId = '00000000-0000-4000-8000-000000000001'
@@ -37,11 +38,28 @@ class InMemoryCampaignRepository implements CampaignRepository {
   }
   campaigns: CampaignRecord[] = []
   campaignMemberships: CampaignMembershipRecord[] = []
+  users = new Set([
+    ownerId,
+    adminId,
+    memberId,
+    outsiderId,
+    campaignMemberId,
+    gmId,
+  ])
+  failNextOwnerUpdate = false
 
-  runInTransaction<T>(
+  async runInTransaction<T>(
     operation: (repository: CampaignRepository) => Promise<T>,
   ): Promise<T> {
-    return operation(this)
+    const campaignSnapshot = structuredClone(this.campaigns)
+    const membershipSnapshot = structuredClone(this.campaignMemberships)
+    try {
+      return await operation(this)
+    } catch (error) {
+      this.campaigns = campaignSnapshot
+      this.campaignMemberships = membershipSnapshot
+      throw error
+    }
   }
 
   async findWorldById(requestedWorldId: string) {
@@ -74,6 +92,7 @@ class InMemoryCampaignRepository implements CampaignRepository {
     const campaign: CampaignRecord = {
       ...input,
       description: input.description ?? null,
+      archivedWorldSnapshot: null,
       status: 'ACTIVE',
       createdAt: now,
       updatedAt: now,
@@ -92,6 +111,117 @@ class InMemoryCampaignRepository implements CampaignRepository {
     }
     this.campaignMemberships.push(membership)
     return membership
+  }
+
+  async findCampaignById(requestedCampaignId: string) {
+    const campaign = this.campaigns.find(
+      (candidate) => candidate.id === requestedCampaignId,
+    )
+    return campaign
+      ? {
+          id: campaign.id,
+          worldId: campaign.worldId,
+          ownerId: campaign.ownerId,
+          status: campaign.status,
+        }
+      : null
+  }
+
+  async userExists(userId: string) {
+    return this.users.has(userId)
+  }
+
+  async findCampaignMembership(requestedCampaignId: string, userId: string) {
+    return (
+      this.campaignMemberships.find(
+        (membership) =>
+          membership.campaignId === requestedCampaignId &&
+          membership.userId === userId,
+      ) ?? null
+    )
+  }
+
+  async upsertCampaignGmMembership(
+    requestedCampaignId: string,
+    userId: string,
+  ) {
+    const existing = await this.findCampaignMembership(
+      requestedCampaignId,
+      userId,
+    )
+    if (existing) {
+      existing.role = 'GM'
+      existing.capabilities = []
+      existing.updatedAt = now
+      return existing
+    }
+    return this.createCampaignMembership({
+      campaignId: requestedCampaignId,
+      userId,
+      role: 'GM',
+    })
+  }
+
+  async updateCampaignOwner(
+    requestedCampaignId: string,
+    requestedWorldId: string | null,
+    currentOwnerId: string,
+    newOwnerId: string,
+  ) {
+    if (this.failNextOwnerUpdate) {
+      this.failNextOwnerUpdate = false
+      return null
+    }
+    const campaign = this.campaigns.find(
+      (candidate) =>
+        candidate.id === requestedCampaignId &&
+        candidate.worldId === requestedWorldId &&
+        candidate.ownerId === currentOwnerId &&
+        candidate.status !== 'ARCHIVED',
+    )
+    if (!campaign) return null
+    campaign.ownerId = newOwnerId
+    campaign.updatedAt = now
+    return campaign
+  }
+
+  async updateCampaignStatus(
+    requestedCampaignId: string,
+    requestedWorldId: string | null,
+    requestedOwnerId: string,
+    currentStatus: CampaignRecord['status'],
+    newStatus: CampaignRecord['status'],
+  ) {
+    const campaign = this.campaigns.find(
+      (candidate) =>
+        candidate.id === requestedCampaignId &&
+        candidate.worldId === requestedWorldId &&
+        candidate.ownerId === requestedOwnerId &&
+        candidate.status === currentStatus,
+    )
+    if (!campaign) return null
+    campaign.status = newStatus
+    campaign.updatedAt = now
+    return campaign
+  }
+
+  async deleteOwnedCampaign(
+    requestedCampaignId: string,
+    requestedWorldId: string | null,
+    requestedOwnerId: string,
+  ) {
+    const index = this.campaigns.findIndex(
+      (candidate) =>
+        candidate.id === requestedCampaignId &&
+        candidate.worldId === requestedWorldId &&
+        candidate.ownerId === requestedOwnerId,
+    )
+    if (index < 0) return false
+    this.campaigns.splice(index, 1)
+    this.campaignMemberships = this.campaignMemberships.filter(
+      (membership) => membership.campaignId !== requestedCampaignId,
+    )
+    return true
   }
 
   async findCampaignForUser(requestedCampaignId: string, userId: string) {
@@ -324,15 +454,178 @@ describe('CampaignService', () => {
   })
 
   it('rejects non-owner and archived owner-only Campaign updates', async () => {
-    const { service } = createHarness()
+    const { repository, service } = createHarness()
     const campaign = await service.createCampaign(createInput(adminId))
     await expect(
       service.updateCampaign(campaign.id, ownerId, { name: 'Taken over' }),
     ).rejects.toMatchObject({ code: 'CAMPAIGN_UPDATE_FORBIDDEN' })
 
-    campaign.status = 'ARCHIVED'
+    repository.campaigns[0]!.status = 'ARCHIVED'
     await expect(
       service.updateCampaign(campaign.id, adminId, { name: 'Reopened' }),
     ).rejects.toMatchObject({ code: 'CAMPAIGN_UPDATE_FORBIDDEN' })
+  })
+
+  it.each(['PLAYER', 'ASSISTANT_GM'] as const)(
+    'promotes an existing %s membership to GM during ownership transfer',
+    async (role) => {
+      const { repository, service } = createHarness()
+      const campaign = await service.createCampaign(createInput(adminId))
+      await repository.createCampaignMembership({
+        campaignId,
+        userId: campaignMemberId,
+        role,
+      })
+
+      const transferred = await service.transferOwnership({
+        campaignId,
+        worldId,
+        actorUserId: adminId,
+        targetUserId: campaignMemberId,
+      })
+
+      expect(transferred.ownerId).toBe(campaignMemberId)
+      expect(
+        await repository.findCampaignMembership(campaignId, campaignMemberId),
+      ).toMatchObject({ role: 'GM', capabilities: [] })
+      expect(
+        await repository.findCampaignMembership(campaignId, adminId),
+      ).toMatchObject({ role: 'GM' })
+      expect(CAMPAIGN_ROLES).not.toContain('OWNER')
+      expect(campaign.ownerId).toBe(campaignMemberId)
+    },
+  )
+
+  it('creates a GM membership when ownership transfers to a non-member', async () => {
+    const { repository, service } = createHarness()
+    await service.createCampaign(createInput(adminId))
+
+    await service.transferOwnership({
+      campaignId,
+      worldId,
+      actorUserId: adminId,
+      targetUserId: campaignMemberId,
+    })
+
+    expect(
+      await repository.findCampaignMembership(campaignId, campaignMemberId),
+    ).toMatchObject({ role: 'GM', capabilities: [] })
+  })
+
+  it('does not let the World owner or an unrelated user transfer Campaign ownership', async () => {
+    const { service } = createHarness()
+    await service.createCampaign(createInput(adminId))
+
+    for (const actorUserId of [ownerId, outsiderId]) {
+      await expect(
+        service.transferOwnership({
+          campaignId,
+          worldId,
+          actorUserId,
+          targetUserId: campaignMemberId,
+        }),
+      ).rejects.toMatchObject({
+        code: 'CAMPAIGN_OWNERSHIP_TRANSFER_FORBIDDEN',
+      })
+    }
+  })
+
+  it('rejects same-owner and archived ownership transfers', async () => {
+    const { repository, service } = createHarness()
+    await service.createCampaign(createInput(adminId))
+
+    await expect(
+      service.transferOwnership({
+        campaignId,
+        worldId,
+        actorUserId: adminId,
+        targetUserId: adminId,
+      }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_SAME_OWNER' })
+
+    repository.campaigns[0]!.status = 'ARCHIVED'
+    await expect(
+      service.transferOwnership({
+        campaignId,
+        worldId,
+        actorUserId: adminId,
+        targetUserId: campaignMemberId,
+      }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_ARCHIVED_READ_ONLY' })
+  })
+
+  it('rolls back the membership promotion if the guarded owner update loses a race', async () => {
+    const { repository, service } = createHarness()
+    await service.createCampaign(createInput(adminId))
+    await repository.createCampaignMembership({
+      campaignId,
+      userId: campaignMemberId,
+      role: 'PLAYER',
+    })
+    repository.failNextOwnerUpdate = true
+
+    await expect(
+      service.transferOwnership({
+        campaignId,
+        worldId,
+        actorUserId: adminId,
+        targetUserId: campaignMemberId,
+      }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_STATE_CHANGED' })
+
+    expect(repository.campaigns[0]?.ownerId).toBe(adminId)
+    expect(
+      await repository.findCampaignMembership(campaignId, campaignMemberId),
+    ).toMatchObject({ role: 'PLAYER' })
+  })
+
+  it('enforces owner-only ACTIVE to ENDED to ARCHIVED transitions', async () => {
+    const { service } = createHarness()
+    await service.createCampaign(createInput(adminId))
+
+    await expect(
+      service.endCampaign({ campaignId, worldId, actorUserId: ownerId }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_LIFECYCLE_FORBIDDEN' })
+
+    await expect(
+      service.archiveCampaign({
+        campaignId,
+        worldId,
+        actorUserId: adminId,
+      }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_INVALID_STATUS_TRANSITION' })
+
+    await expect(
+      service.endCampaign({ campaignId, worldId, actorUserId: adminId }),
+    ).resolves.toMatchObject({ status: 'ENDED' })
+    await expect(
+      service.archiveCampaign({
+        campaignId,
+        worldId,
+        actorUserId: adminId,
+      }),
+    ).resolves.toMatchObject({ status: 'ARCHIVED' })
+
+    await expect(
+      service.endCampaign({ campaignId, worldId, actorUserId: adminId }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_INVALID_STATUS_TRANSITION' })
+  })
+
+  it('allows only the Campaign owner to delete the Campaign scope', async () => {
+    const { repository, service } = createHarness()
+    await service.createCampaign(createInput(adminId))
+
+    await expect(
+      service.deleteCampaign({ campaignId, worldId, actorUserId: ownerId }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_DELETE_FORBIDDEN' })
+    expect(repository.campaigns).toHaveLength(1)
+
+    await service.deleteCampaign({
+      campaignId,
+      worldId,
+      actorUserId: adminId,
+    })
+    expect(repository.campaigns).toHaveLength(0)
+    expect(repository.campaignMemberships).toHaveLength(0)
   })
 })

@@ -22,6 +22,7 @@ class InMemoryCampaignMembershipRepository implements CampaignMembershipReposito
   private readonly memberships = new Map<string, CampaignMembershipRecord>()
   private readonly activeCharacterUsers = new Set<string>()
   private sequence = 0
+  status: 'ACTIVE' | 'ENDED' | 'ARCHIVED' = 'ACTIVE'
 
   addUser(userId: string) {
     this.users.add(userId)
@@ -43,7 +44,12 @@ class InMemoryCampaignMembershipRepository implements CampaignMembershipReposito
   findCampaignById(campaignId: string) {
     return Promise.resolve(
       campaignId === CAMPAIGN_ID
-        ? { id: CAMPAIGN_ID, ownerId: OWNER_ID }
+        ? {
+            id: CAMPAIGN_ID,
+            worldId: null,
+            ownerId: OWNER_ID,
+            status: this.status,
+          }
         : null,
     )
   }
@@ -361,5 +367,46 @@ describe('CampaignMembershipService', () => {
         role: 'OWNER' as CampaignRole,
       }),
     ).rejects.toMatchObject({ code: 'INVALID_CAMPAIGN_ROLE' })
+  })
+
+  it('keeps archived Campaign membership state read-only', async () => {
+    repository.status = 'ARCHIVED'
+
+    await expect(
+      service.addMember({
+        actorUserId: OWNER_ID,
+        campaignId: CAMPAIGN_ID,
+        userId: TARGET_ID,
+        role: 'PLAYER',
+      }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_ARCHIVED_READ_ONLY' })
+    await expect(
+      service.changeMemberRole({
+        actorUserId: OWNER_ID,
+        campaignId: CAMPAIGN_ID,
+        userId: PLAYER_ID,
+        role: 'GM',
+      }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_ARCHIVED_READ_ONLY' })
+    await expect(
+      service.setMemberCapability({
+        actorUserId: OWNER_ID,
+        campaignId: CAMPAIGN_ID,
+        userId: PLAYER_ID,
+        capability: 'UPDATE_CURRENT_LOCATION',
+        enabled: true,
+      }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_ARCHIVED_READ_ONLY' })
+    await expect(
+      service.removeMember({
+        actorUserId: OWNER_ID,
+        campaignId: CAMPAIGN_ID,
+        userId: PLAYER_ID,
+      }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_ARCHIVED_READ_ONLY' })
+
+    await expect(
+      repository.findCampaignMembership(CAMPAIGN_ID, PLAYER_ID),
+    ).resolves.toMatchObject({ role: 'PLAYER' })
   })
 })

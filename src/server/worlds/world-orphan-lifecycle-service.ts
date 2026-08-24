@@ -1,8 +1,10 @@
 import { prisma } from '../../lib/prisma'
+import { detachArchivedCampaignsForWorldDeletion } from '../campaigns/campaign-world-detachment'
 import {
   notWorldOwner,
   orphanedWorldChanged,
   orphanedWorldCleanupBlockedByActiveCampaigns,
+  orphanedWorldCleanupBlockedByEndedCampaigns,
   orphanedWorldCleanupBlockedBySuccessor,
   orphanedWorldCleanupRequiresCampaignResolution,
   worldNotFound,
@@ -148,22 +150,32 @@ export function createWorldOrphanLifecycleService(
         if (!world) throw worldNotFound(worldId, 'World not found')
         if (world.ownerId !== null) throw worldNotOrphaned(worldId)
 
-        const [activeCampaignCount, successor, campaignCount] =
+        const [activeCampaignCount, endedCampaignCount, successor] =
           await Promise.all([
             transaction.campaign.count({
               where: { worldId, status: 'ACTIVE' },
+            }),
+            transaction.campaign.count({
+              where: { worldId, status: 'ENDED' },
             }),
             transaction.worldMembership.findFirst({
               where: { worldId, role: { in: ['ADMIN', 'MEMBER'] } },
               select: { id: true },
             }),
-            transaction.campaign.count({ where: { worldId } }),
           ])
 
         if (activeCampaignCount > 0) {
           throw orphanedWorldCleanupBlockedByActiveCampaigns(worldId)
         }
         if (successor) throw orphanedWorldCleanupBlockedBySuccessor(worldId)
+        if (endedCampaignCount > 0) {
+          throw orphanedWorldCleanupBlockedByEndedCampaigns(worldId)
+        }
+
+        await detachArchivedCampaignsForWorldDeletion(transaction, worldId)
+        const campaignCount = await transaction.campaign.count({
+          where: { worldId },
+        })
         if (campaignCount > 0) {
           throw orphanedWorldCleanupRequiresCampaignResolution(worldId)
         }

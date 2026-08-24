@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
+import { campaignArchivedReadOnly } from '@/server/campaigns/campaign-errors'
 import type {
   CampaignCharacterData,
   CampaignCharacterRecord,
@@ -51,8 +52,10 @@ export class CampaignCharacterService {
 
   async createCampaignCharacter(input: CreateCampaignCharacterInput) {
     return this.repository.runInTransaction(async (repository) => {
-      const campaign = await repository.findCampaignById(input.campaignId)
-      if (!campaign) throw campaignCharacterCampaignNotFound(input.campaignId)
+      const campaign = await this.assertMutableCampaign(
+        repository,
+        input.campaignId,
+      )
 
       const isManager = await this.isManager(
         repository,
@@ -145,6 +148,7 @@ export class CampaignCharacterService {
     return this.repository.runInTransaction(async (repository) => {
       const value = await repository.findCampaignCharacterWithOwner(id)
       if (!value) throw campaignCharacterNotFound(id)
+      await this.assertMutableCampaign(repository, value.campaignId)
       if (!(await this.canUpdateState(repository, actorUserId, value))) {
         throw campaignCharacterPermissionDenied(value.campaignId, actorUserId)
       }
@@ -164,6 +168,7 @@ export class CampaignCharacterService {
     return this.repository.runInTransaction(async (repository) => {
       const value = await repository.findCampaignCharacterWithOwner(id)
       if (!value) throw campaignCharacterNotFound(id)
+      await this.assertMutableCampaign(repository, value.campaignId)
       if (
         !(await this.canRemoveParticipation(repository, actorUserId, value))
       ) {
@@ -173,6 +178,18 @@ export class CampaignCharacterService {
         throw campaignCharacterNotFound(id)
       }
     })
+  }
+
+  private async assertMutableCampaign(
+    repository: CampaignCharacterRepository,
+    campaignId: string,
+  ) {
+    const campaign = await repository.findCampaignById(campaignId)
+    if (!campaign) throw campaignCharacterCampaignNotFound(campaignId)
+    if (campaign.status === 'ARCHIVED') {
+      throw campaignArchivedReadOnly(campaignId)
+    }
+    return campaign
   }
 
   private async canReadState(

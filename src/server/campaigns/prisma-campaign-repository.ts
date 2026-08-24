@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient } from '../../generated/prisma/client'
 import { MAIN_WORLD_TIMELINE_NAME } from '../worlds/world-timelines'
 import type { WorldMembershipRecord } from '../worlds/world-membership-repository'
+import { assertArchivedWorldSnapshot } from './campaign-archive'
 import {
   CampaignMembershipRepositoryConflictError,
   type CampaignMembershipRecord,
@@ -27,12 +28,18 @@ function toCampaignRecord(campaign: {
   timelineId: string | null
   currentWorldPosition: Prisma.Decimal | null
   currentWorldDateLabel: string | null
+  archivedWorldSnapshot: unknown
   status: CampaignRecord['status']
   createdAt: Date
   updatedAt: Date
 }): CampaignRecord {
+  if (campaign.archivedWorldSnapshot !== null) {
+    assertArchivedWorldSnapshot(campaign.archivedWorldSnapshot)
+  }
+
   return {
     ...campaign,
+    archivedWorldSnapshot: campaign.archivedWorldSnapshot,
     currentWorldPosition: campaign.currentWorldPosition?.toString() ?? null,
   }
 }
@@ -217,8 +224,76 @@ export class PrismaCampaignRepository implements CampaignRepository {
   findCampaignById(campaignId: string) {
     return this.client.campaign.findUnique({
       where: { id: campaignId },
-      select: { id: true, ownerId: true },
+      select: { id: true, worldId: true, ownerId: true, status: true },
     })
+  }
+
+  upsertCampaignGmMembership(campaignId: string, userId: string) {
+    return this.client.campaignMembership.upsert({
+      where: { campaignId_userId: { campaignId, userId } },
+      update: { role: 'GM', capabilities: [] },
+      create: { campaignId, userId, role: 'GM' },
+    })
+  }
+
+  async updateCampaignOwner(
+    campaignId: string,
+    worldId: string | null,
+    currentOwnerId: string,
+    newOwnerId: string,
+  ): Promise<CampaignRecord | null> {
+    const result = await this.client.campaign.updateMany({
+      where: {
+        id: campaignId,
+        worldId,
+        ownerId: currentOwnerId,
+        status: { not: 'ARCHIVED' },
+      },
+      data: { ownerId: newOwnerId },
+    })
+    if (result.count !== 1) return null
+
+    return toCampaignRecord(
+      await this.client.campaign.findUniqueOrThrow({
+        where: { id: campaignId },
+      }),
+    )
+  }
+
+  async updateCampaignStatus(
+    campaignId: string,
+    worldId: string | null,
+    ownerId: string,
+    currentStatus: CampaignRecord['status'],
+    newStatus: CampaignRecord['status'],
+  ): Promise<CampaignRecord | null> {
+    const result = await this.client.campaign.updateMany({
+      where: {
+        id: campaignId,
+        worldId,
+        ownerId,
+        status: currentStatus,
+      },
+      data: { status: newStatus },
+    })
+    if (result.count !== 1) return null
+
+    return toCampaignRecord(
+      await this.client.campaign.findUniqueOrThrow({
+        where: { id: campaignId },
+      }),
+    )
+  }
+
+  async deleteOwnedCampaign(
+    campaignId: string,
+    worldId: string | null,
+    ownerId: string,
+  ) {
+    const result = await this.client.campaign.deleteMany({
+      where: { id: campaignId, worldId, ownerId },
+    })
+    return result.count === 1
   }
 
   async userExists(userId: string): Promise<boolean> {

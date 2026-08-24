@@ -409,6 +409,7 @@ model Campaign {
   currentLocationId     String?        @db.Uuid
   currentLocation       WorldEntity?   @relation("CampaignCurrentLocation", fields: [currentLocationId], references: [id], onDelete: SetNull)
   currentFocus          String?
+  archivedWorldSnapshot Json?
   status                CampaignStatus @default(ACTIVE)
 
   memberships                CampaignMembership[]

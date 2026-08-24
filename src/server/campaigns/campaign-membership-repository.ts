@@ -13,7 +13,9 @@ export interface CampaignMembershipRecord {
 
 export interface CampaignMembershipCampaignReference {
   id: string
+  worldId: string | null
   ownerId: string
+  status: 'ACTIVE' | 'ENDED' | 'ARCHIVED'
 }
 
 export interface CreateCampaignMembershipInput {

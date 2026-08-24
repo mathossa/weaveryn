@@ -17,6 +17,7 @@ export type WorldDomainErrorCode =
   | 'ORPHANED_WORLD_CHANGED'
   | 'ORPHANED_WORLD_CLEANUP_BLOCKED_BY_ACTIVE_CAMPAIGNS'
   | 'ORPHANED_WORLD_CLEANUP_BLOCKED_BY_SUCCESSOR'
+  | 'ORPHANED_WORLD_CLEANUP_BLOCKED_BY_ENDED_CAMPAIGNS'
   | 'ORPHANED_WORLD_CLEANUP_REQUIRES_CAMPAIGN_RESOLUTION'
 
 export class WorldDomainError extends Error {
@@ -149,6 +150,13 @@ export function orphanedWorldCleanupBlockedBySuccessor(worldId: string) {
   return new WorldDomainError(
     'ORPHANED_WORLD_CLEANUP_BLOCKED_BY_SUCCESSOR',
     `Orphaned World ${worldId} cannot be removed while an eligible successor exists.`,
+  )
+}
+
+export function orphanedWorldCleanupBlockedByEndedCampaigns(worldId: string) {
+  return new WorldDomainError(
+    'ORPHANED_WORLD_CLEANUP_BLOCKED_BY_ENDED_CAMPAIGNS',
+    `Orphaned World ${worldId} still has ended Campaigns. Their owners must explicitly archive or delete them before World removal.`,
   )
 }
 

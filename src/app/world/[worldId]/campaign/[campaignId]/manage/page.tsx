@@ -15,6 +15,10 @@ import {
 } from '@/server/campaigns'
 import { membershipInvitationService } from '@/server/invitations'
 import { listEntryPreferences } from '@/server/selection'
+import {
+  CampaignDeleteControl,
+  CampaignLifecycleControls,
+} from '../_components/campaign-lifecycle-controls'
 import { RemoveCampaignCharacterButton } from '../_components/remove-campaign-character-button'
 import { CampaignForm } from '../../_components/campaign-form'
 import styles from '../../campaign.module.css'
@@ -65,7 +69,8 @@ export default async function CampaignManagePage({
   const canManageCampaign =
     campaign.canEditSharedInfo ||
     campaign.canEditName ||
-    campaign.canManageMembers
+    campaign.canManageMembers ||
+    campaign.canDelete
   if (!canManageCampaign) notFound()
 
   const [campaignInvitations, campaignMembers] = campaign.canManageMembers
@@ -202,6 +207,25 @@ export default async function CampaignManagePage({
             </section>
           </div>
 
+          {campaign.canDelete ? (
+            <section className={styles.panel}>
+              <h2>Campaign ownership &amp; lifecycle</h2>
+              <CampaignLifecycleControls
+                worldId={worldId}
+                campaignId={campaign.id}
+                campaignName={campaign.name}
+                ownerLabel={ownerLabel}
+                status={campaign.status}
+                canTransferOwnership={campaign.canTransferOwnership}
+                canEnd={campaign.canEnd}
+                canArchive={campaign.canArchive}
+                transferTargets={(campaignMembers ?? []).filter(
+                  (member) => member.userId !== campaign.owner.id,
+                )}
+              />
+            </section>
+          ) : null}
+
           {campaign.canEditSharedInfo ? (
             <section className={styles.panel}>
               <h2>General Campaign settings</h2>
@@ -249,10 +273,12 @@ export default async function CampaignManagePage({
                           : ''}
                       </span>
                     </div>
-                    <RemoveCampaignCharacterButton
-                      campaignCharacterId={character.id}
-                      characterName={character.name}
-                    />
+                    {campaign.canEditSharedInfo ? (
+                      <RemoveCampaignCharacterButton
+                        campaignCharacterId={character.id}
+                        characterName={character.name}
+                      />
+                    ) : null}
                   </div>
                 ))}
               </div>
@@ -288,6 +314,19 @@ export default async function CampaignManagePage({
                   role: invitation.role,
                   expiresAt: invitation.expiresAt.toISOString(),
                 }))}
+              />
+            </section>
+          ) : null}
+          {campaign.canDelete ? (
+            <section className={`${styles.panel} ${styles.dangerZone}`}>
+              <h2>Danger zone</h2>
+              <p className={styles.meta}>
+                Permanently delete this Campaign and its scoped participation.
+              </p>
+              <CampaignDeleteControl
+                worldId={worldId}
+                campaignId={campaign.id}
+                campaignName={campaign.name}
               />
             </section>
           ) : null}
