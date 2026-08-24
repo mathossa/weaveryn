@@ -20,7 +20,8 @@
     "prisma:generate": "prisma generate",
     "weaveryn": "node scripts/weaveryn-admin.mjs",
     "perf:core": "node scripts/measure-core-flow.mjs",
-    "validate": "npm run format:check && npm run lint && npm run prisma:validate && npm run prisma:generate && npm run typecheck && npm test && npm run build"
+    "validate": "npm run format:check && npm run lint && npm run prisma:validate && npm run prisma:generate && npm run typecheck && npm test && npm run build",
+    "test:e2e": "node scripts/run-e2e.mjs"
   },
   "dependencies": {
     "@better-auth/prisma-adapter": "1.6.25",
@@ -32,6 +33,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

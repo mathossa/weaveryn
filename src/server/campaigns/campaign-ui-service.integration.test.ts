@@ -69,7 +69,7 @@ describe('Campaign UI projections', () => {
         id: id(),
         worldId,
         userId: campaignOwner.id,
-        role: 'ADMIN',
+        role: 'MEMBER',
       },
     })
 
@@ -116,6 +116,21 @@ describe('Campaign UI projections', () => {
     expect(worldOwnerSelection).toMatchObject({
       canCreateCampaign: true,
       campaigns: [],
+    })
+
+    const memberSelection = await getWorldCampaignSelection(
+      worldId,
+      campaignOwner.id,
+    )
+    expect(memberSelection).toMatchObject({
+      canCreateCampaign: true,
+      campaigns: [
+        {
+          id: campaign.id,
+          role: 'GM',
+          isOwner: true,
+        },
+      ],
     })
 
     const playerSelection = await getWorldCampaignSelection(worldId, player.id)

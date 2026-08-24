@@ -12,7 +12,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:17
@@ -29,6 +29,7 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgresql://weaveryn:unused@127.0.0.1:5432/weaveryn_test
+      E2E_DATABASE_URL: postgresql://weaveryn:unused@127.0.0.1:5432/weaveryn_test
       DEV_DATABASE_NAME: weaveryn_test
       BETTER_AUTH_SECRET: ci-only-better-auth-secret-change-me-1234567890
       BETTER_AUTH_URL: http://localhost:3000
@@ -45,14 +46,32 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
       - name: Apply database migrations
         run: npx prisma migrate deploy
 
       - name: Validate repository
         run: npm run validate
 
-      - name: Run authentication integration test
+      - name: Run integration tests
         run: npm run test:integration
+
+      - name: Run persisted MVP browser journey
+        id: e2e
+        run: npm run test:e2e -- --skip-build
+
+      - name: Upload E2E failure artifacts
+        if: failure() && steps.e2e.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-failure-artifacts
+          path: |
+            playwright-report/
+            test-results/playwright/
+          if-no-files-found: ignore
+          retention-days: 7
 
   container:
     runs-on: ubuntu-latest

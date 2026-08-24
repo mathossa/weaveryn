@@ -96,6 +96,8 @@ Useful commands:
 npm run format        # apply Prettier formatting
 npm run lint          # ESLint
 npm test              # unit tests
+npm run test:integration  # PostgreSQL integration tests
+E2E_DATABASE_URL=... npm run test:e2e  # production browser journey
 npm run typecheck     # Next route types + TypeScript
 npm run build         # production build
 npm run weaveryn -- --help  # instance administration CLI
@@ -148,6 +150,8 @@ npm run weaveryn -- --help  # instance administration CLI
   database safety, and validation workflow.
 - [Code Conventions](docs/development/CODE_CONVENTIONS.md) — source organization,
   boundaries, validation, errors, and testing conventions.
+- [End-to-end MVP Backbone Testing](docs/development/E2E_TESTING.md) — production
+  browser journey, disposable-database guardrails, cleanup, and failure artifacts.
 - [Visual Acceptance Testing](docs/development/VISUAL_TESTING.md) — `/dev` scenario
   lifecycle, fixture rules, cleanup, and safety requirements.
 - [Tech Stack](docs/TECH_STACK.md) — selected technologies and technical rationale.
