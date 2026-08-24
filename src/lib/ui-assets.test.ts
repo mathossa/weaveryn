@@ -53,7 +53,7 @@ describe('resolveEntityFallbackArtwork', () => {
     )
   })
 
-  it.each(['', '   ', 'Astral Beacon', 'Custom Lore']) (
+  it.each(['', '   ', 'Astral Beacon', 'Custom Lore'])(
     'uses Generic artwork for blank or unknown type %j',
     (entityType) => {
       expect(resolveEntityFallbackArtwork(entityType)).toBe(
