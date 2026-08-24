@@ -149,7 +149,8 @@ export function EntityForm({
     () => (typeChoice === '__custom__' ? customType.trim() : typeChoice),
     [customType, typeChoice],
   )
-  const previewImage = image.trim() || uiAssets.backgrounds.entityBanner.src
+  const previewImage =
+    image.trim() || uiAssets.resolveEntityFallbackArtwork(entityType)
 
   function updateField(id: string, patch: Partial<EditableField>) {
     setFields((current) =>
