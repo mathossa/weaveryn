@@ -71,3 +71,40 @@ describe('resolveEntityFallbackArtwork', () => {
     },
   )
 })
+
+describe('entity artwork choices', () => {
+  it.each([
+    'person',
+    'location',
+    'organization',
+    'item',
+    'event',
+    'deity',
+    'creature',
+    'quest',
+    'Astral Beacon',
+  ])('exposes six creator-selectable choices for %s', (entityType) => {
+    const choices = uiAssets.resolveEntityArtworkChoices(entityType)
+
+    expect(choices).toHaveLength(6)
+    expect(uiAssets.resolveEntityFallbackArtwork(entityType)).toBe(
+      choices[0]?.src,
+    )
+    expect(
+      choices.every((choice) => uiAssets.isEntityArtworkSource(choice.src)),
+    ).toBe(true)
+  })
+
+  it('keeps Character on its existing fallback without entity artwork choices', () => {
+    expect(uiAssets.resolveEntityArtworkChoices('Character')).toEqual([])
+    expect(uiAssets.resolveEntityFallbackArtwork('Character')).toBe(
+      uiAssets.fallbacks.character,
+    )
+  })
+
+  it('does not treat arbitrary image URLs as built-in choices', () => {
+    expect(
+      uiAssets.isEntityArtworkSource('https://example.com/portrait.webp'),
+    ).toBe(false)
+  })
+})

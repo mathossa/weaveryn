@@ -347,6 +347,15 @@ test('persists and protects the complete MVP backbone', async ({
 
     await ownerPage.goto(`/world/${ids.primaryWorldId}/entities/create`)
     await ownerPage.getByLabel('Type').selectOption('location')
+    const entityArtworkChoices = ownerPage.getByRole('button', {
+      name: /^(Default artwork|Artwork option [2-6]):/,
+    })
+    await expect(entityArtworkChoices).toHaveCount(6)
+    await expect(
+      ownerPage.getByRole('button', { name: /^Default artwork:/ }),
+    ).toHaveAttribute('aria-pressed', 'true')
+    await expectNoHorizontalOverflow(ownerPage)
+    await capture(ownerPage, testInfo, 'entity-artwork-picker')
     await ownerPage.getByLabel('Name').fill(fixture.location.name)
     await ownerPage.getByLabel('Description').fill(fixture.location.description)
     await ownerPage.getByRole('button', { name: 'Create entity' }).click()
@@ -359,6 +368,11 @@ test('persists and protects the complete MVP backbone', async ({
 
     await ownerPage.goto(`/world/${ids.primaryWorldId}/entities/create`)
     await ownerPage.getByLabel('Type').selectOption('organization')
+    const fourthArtwork = ownerPage.getByRole('button', {
+      name: /^Artwork option 4:/,
+    })
+    await fourthArtwork.click()
+    await expect(fourthArtwork).toHaveAttribute('aria-pressed', 'true')
     await ownerPage.getByLabel('Name').fill(fixture.organization.name)
     await ownerPage
       .getByLabel('Description')
@@ -379,6 +393,11 @@ test('persists and protects the complete MVP backbone', async ({
       /^\/world\/[^/]+\/entities\/([^/]+)$/,
       'Organization entity ID',
     )
+    const selectedArtwork = await prisma.worldEntity.findUnique({
+      where: { id: ids.organizationEntityId },
+      select: { image: true },
+    })
+    expect(selectedArtwork?.image).toBe('/images/entities/organization-04.webp')
     const relationships = await requestJson<{
       relationships: Array<{ id: string; label: string | null }>
     }>(

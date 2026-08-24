@@ -6,53 +6,61 @@ user-provided artwork.
 
 ## Asset groups
 
-| Group                    | Location                                | Intended use                                           |
-| ------------------------ | --------------------------------------- | ------------------------------------------------------ |
-| Brand                    | `public/images/brand`                   | Header, authentication, and navigation branding        |
-| Backgrounds              | `public/images/backgrounds`             | App shell, authentication, entity screens, and banners |
-| World fallback           | `public/images/worlds/default.webp`     | World cards, headers, and empty image state            |
-| Campaign fallback        | `public/images/campaigns/default.webp`  | Campaign cards, headers, and empty image state         |
-| Character fallback       | `public/images/characters/default.webp` | Character cards, avatars, and empty image state        |
-| World entity fallbacks   | `public/images/entities`                | Semantic defaults for World entities without artwork   |
+| Group                | Location                                | Intended use                                           |
+| -------------------- | --------------------------------------- | ------------------------------------------------------ |
+| Brand                | `public/images/brand`                   | Header, authentication, and navigation branding        |
+| Backgrounds          | `public/images/backgrounds`             | App shell, authentication, entity screens, and banners |
+| World fallback       | `public/images/worlds/default.webp`     | World cards, headers, and empty image state            |
+| Campaign fallback    | `public/images/campaigns/default.webp`  | Campaign cards, headers, and empty image state         |
+| Character fallback   | `public/images/characters/default.webp` | Character cards, avatars, and empty image state        |
+| World entity artwork | `public/images/entities`                | Six selectable images per semantic World entity type   |
 
 The World, Campaign, and Character `default.webp` files remain their stable shared
 fallback paths. World entity artwork is different: the UI resolves a semantic
 fallback from the entity's runtime type while keeping `WorldEntity.type` free-form.
 
-## World entity semantic fallbacks
+## World entity artwork and semantic fallbacks
 
-`src/lib/ui-assets.ts` owns the shared `resolveEntityFallbackArtwork()` resolver.
-Screens must prefer an entity's explicit image first and call the resolver only when
-that image is empty.
+`src/lib/ui-assets.ts` centrally registers six artwork choices for each
+supported World entity category. The create/edit form shows the choices for the
+current runtime type and saves options 2–6 through the existing nullable
+`WorldEntity.image` value. Choosing **Default** leaves that value empty so the
+first choice remains the type-aware fallback. A custom image path or URL still
+takes precedence over every built-in fallback.
 
-| Runtime type / safe alias                         | Default asset                                |
-| ------------------------------------------------- | -------------------------------------------- |
-| `character`                                       | Existing Character fallback                  |
-| `person`, `npc`, `Person / NPC`                   | `public/images/entities/person.webp`         |
-| `location`                                        | `public/images/entities/location.webp`       |
-| `organization`, `faction`, `Faction / Organization` | `public/images/entities/organization.webp` |
-| `item`                                            | `public/images/entities/item.webp`           |
-| `event`                                           | `public/images/entities/event.webp`          |
-| `deity`                                           | `public/images/entities/deity.webp`          |
-| `creature`                                        | `public/images/entities/creature.webp`       |
-| `quest`, `story object`, `Quest / story object`   | `public/images/entities/quest.webp`          |
-| blank or any unknown/custom type                  | `public/images/entities/generic.webp`        |
+`resolveEntityFallbackArtwork()` supplies the first registered choice only when
+an entity has no saved image. `resolveEntityArtworkChoices()` supplies the six
+creator-selectable choices without turning the free-form entity type into an enum.
+
+| Runtime type / safe alias                           | Default and selectable files              |
+| --------------------------------------------------- | ----------------------------------------- |
+| `character`                                         | Existing Character fallback; no choices   |
+| `person`, `npc`, `Person / NPC`                     | `person-01.webp` through `-06.webp`       |
+| `location`                                          | `location-01.webp` through `-06.webp`     |
+| `organization`, `faction`, `Faction / Organization` | `organization-01.webp` through `-06.webp` |
+| `item`                                              | `item-01.webp` through `-06.webp`         |
+| `event`                                             | `event-01.webp` through `-06.webp`        |
+| `deity`                                             | `deity-01.webp` through `-06.webp`        |
+| `creature`                                          | `creature-01.webp` through `-06.webp`     |
+| `quest`, `story object`, `Quest / story object`     | `quest-01.webp` through `-06.webp`        |
+| blank or any unknown/custom type                    | `Generic-01.webp` through `-06.webp`      |
 
 Matching is case-insensitive, trims surrounding whitespace, and tolerates harmless
 spacing or separator differences. It deliberately does not use broad fuzzy matching,
-so a custom type such as `Questmaster` or `NPC Guild` stays custom and receives the
-Generic fallback rather than being silently reclassified.
+so a custom type such as `Questmaster` or `NPC Guild` remains custom and uses
+the Generic collection.
 
-The semantic artwork is presentation-only. Adding or changing a fallback does not
-change entity persistence, authorization, visibility, custom type registration, or
-turn `WorldEntity.type` into an enum.
+Artwork selection is presentation-only. It does not change entity persistence,
+authorization, visibility, custom type registration, or the free-form nature of
+`WorldEntity.type`. Built-in selection reuses the existing image field and does
+not introduce a schema or storage service.
 
 ### Entity workspace banner
 
 `public/images/backgrounds/entity-banner.webp` is page-level atmosphere for the
 World entity workspace. It is used as the compact decorative banner above the entity
-browser and as the browser empty-state background. It is **not** a generic entity
-fallback; unknown custom types use `entities/generic.webp` instead.
+browser and as the browser empty-state background. It is not an entity fallback;
+unknown custom types use `Generic-01.webp` when no image is saved.
 
 ## Code-configurable presentation
 
@@ -138,7 +146,9 @@ The artwork follows the Weaveryn direction established by the concept screens:
 - clean image content without baked-in UI, typography, borders, logos, or
   watermarks
 
-The nine semantic World entity defaults are 1536×1024 WebP files. The entity
-workspace banner is 2160×720 WebP. Final production files are metadata-stripped and
-kept below 250 KB each so the defaults remain lightweight while still supporting
-responsive crops.
+Each semantic category has six metadata-stripped WebP choices, and every file is
+kept below 250 KB. Native source dimensions are retained: Person artwork is
+868×1158 except option 2 at 543×724; Location, Organization, Event, and Deity are
+724×543; Item is 627×627; Creature is 506×506; Quest and Generic are 768×512. The
+workspace banner is 1086×362. Components use constrained cover crops and stored
+focal points so these portrait, square, and landscape sources remain responsive.

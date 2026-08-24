@@ -125,6 +125,7 @@ async function readState(): Promise<WorldEntitiesScenarioState | null> {
           worldId: true,
           type: true,
           name: true,
+          image: true,
           data: true,
           visibilityScope: true,
           visibilityCampaignId: true,
@@ -364,6 +365,7 @@ async function createVisibilityEntities() {
     worldId: PRIMARY_WORLD_ID,
     type: 'Astral Beacon',
     name: 'North Beacon',
+    image: '/images/entities/Generic-03.webp',
     data: { active: true, height: 82 },
   })
   await serviceWithId(CAMPAIGN_RELATIONSHIP_ID).createRelationship({

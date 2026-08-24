@@ -307,6 +307,64 @@
   gap: 0.55rem;
 }
 
+.artworkChoices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.artworkChoice {
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-control-surface);
+  color: var(--ui-text);
+  font: inherit;
+  text-align: left;
+}
+
+.artworkChoice:hover,
+.artworkChoice[aria-pressed='true'] {
+  border-color: var(--ui-accent);
+}
+
+.artworkChoice[aria-pressed='true'] {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ui-accent) 28%, transparent);
+}
+
+.artworkThumbnail {
+  position: relative;
+  min-height: 7rem;
+  overflow: hidden;
+  background: var(--ui-panel-strong);
+}
+
+.artworkThumbnail img {
+  object-fit: cover;
+}
+
+.artworkChoiceCopy {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+  padding: 0.65rem;
+}
+
+.artworkChoiceCopy strong,
+.artworkChoiceCopy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artworkChoiceCopy small {
+  color: var(--ui-text-muted);
+}
+
 .focusPreview {
   position: relative;
   min-height: 15rem;
@@ -526,6 +584,10 @@
 
   .detailWorkspace {
     grid-template-columns: minmax(0, 1.2fr) minmax(17rem, 0.8fr);
+  }
+
+  .artworkChoices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .customFieldRow {

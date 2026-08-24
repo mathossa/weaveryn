@@ -7,80 +7,121 @@ export type UiArtwork = Readonly<{
   height: number
 }>
 
-const entityFallbacks = {
+type EntityArtworkBase = Pick<UiArtwork, 'slug' | 'name' | 'alt'>
+
+const entityArtworkBases = {
   person: {
     slug: 'person',
     name: 'The Many Faces',
-    src: '/images/entities/person.webp',
-    alt: 'Several varied fantasy people gathered in warm light',
-    width: 1536,
-    height: 1024,
+    alt: 'Fantasy person or non-player character portrait',
   },
   location: {
     slug: 'location',
     name: 'A Place in the World',
-    src: '/images/entities/location.webp',
-    alt: 'Fantasy settlement and keep in a mountain valley',
-    width: 1536,
-    height: 1024,
+    alt: 'Fantasy location landscape or settlement',
   },
   organization: {
     slug: 'organization',
     name: 'The Convening',
-    src: '/images/entities/organization.webp',
-    alt: 'Fantasy council gathered around a map table',
-    width: 1536,
-    height: 1024,
+    alt: 'Organized fantasy gathering or council',
   },
   item: {
     slug: 'item',
     name: 'Relic of the Unknown',
-    src: '/images/entities/item.webp',
-    alt: 'Ornate blue-crystal fantasy relic on a dark map table',
-    width: 1536,
-    height: 1024,
+    alt: 'Original fantasy item or relic',
   },
   event: {
     slug: 'event',
     name: 'The Turning Hour',
-    src: '/images/entities/event.webp',
-    alt: 'Travelers witnessing a celestial event over a dark landscape',
-    width: 1536,
-    height: 1024,
+    alt: 'People witnessing a consequential fantasy event',
   },
   deity: {
     slug: 'deity',
     name: 'The Silent Divinity',
-    src: '/images/entities/deity.webp',
-    alt: 'Monumental otherworldly stone divinity in a cavernous sanctuary',
-    width: 1536,
-    height: 1024,
+    alt: 'Monumental religiously neutral fantasy divinity',
   },
   creature: {
     slug: 'creature',
     name: 'Beyond the Firelight',
-    src: '/images/entities/creature.webp',
-    alt: 'Original pale horned fantasy beast in a shadowed forest',
-    width: 1536,
-    height: 1024,
+    alt: 'Original fantasy creature in a natural landscape',
   },
   quest: {
     slug: 'quest',
     name: 'The Road Ahead',
-    src: '/images/entities/quest.webp',
-    alt: 'Lantern-bearing traveler facing a distant tower at dusk',
-    width: 1536,
-    height: 1024,
+    alt: 'Fantasy route, threshold, or distant destination',
   },
   generic: {
     slug: 'generic',
     name: 'The Unwritten Archive',
-    src: '/images/entities/generic.webp',
-    alt: 'Candlelit archive with an open codex and connected points of light',
-    width: 1536,
-    height: 1024,
+    alt: 'Unlabeled fantasy archive or collection of records',
   },
-} as const satisfies Record<string, UiArtwork>
+} as const satisfies Record<string, EntityArtworkBase>
+
+type EntityArtworkKind = keyof typeof entityArtworkBases
+
+const entityArtworkDimensions = {
+  person: [
+    [868, 1158],
+    [543, 724],
+    [868, 1158],
+    [868, 1158],
+    [868, 1158],
+    [868, 1158],
+  ],
+  location: Array.from({ length: 6 }, () => [724, 543] as const),
+  organization: Array.from({ length: 6 }, () => [724, 543] as const),
+  item: Array.from({ length: 6 }, () => [627, 627] as const),
+  event: Array.from({ length: 6 }, () => [724, 543] as const),
+  deity: Array.from({ length: 6 }, () => [724, 543] as const),
+  creature: Array.from({ length: 6 }, () => [506, 506] as const),
+  quest: Array.from({ length: 6 }, () => [768, 512] as const),
+  generic: Array.from({ length: 6 }, () => [768, 512] as const),
+} as const satisfies Record<
+  EntityArtworkKind,
+  readonly (readonly [number, number])[]
+>
+
+const entityArtworkFileSlugs = {
+  person: 'person',
+  location: 'location',
+  organization: 'organization',
+  item: 'item',
+  event: 'event',
+  deity: 'deity',
+  creature: 'creature',
+  quest: 'quest',
+  generic: 'Generic',
+} as const satisfies Record<EntityArtworkKind, string>
+
+const entityArtwork = Object.fromEntries(
+  (Object.keys(entityArtworkBases) as EntityArtworkKind[]).map((kind) => {
+    const base = entityArtworkBases[kind]
+    const fileSlug = entityArtworkFileSlugs[kind]
+    const choices = entityArtworkDimensions[kind].map(
+      ([width, height], index): UiArtwork => {
+        const option = index + 1
+        const suffix = String(option).padStart(2, '0')
+        return {
+          ...base,
+          slug: kind + '-' + suffix,
+          name: option === 1 ? base.name : base.name + ' · Option ' + option,
+          src: '/images/entities/' + fileSlug + '-' + suffix + '.webp',
+          alt: base.alt + ' (option ' + option + ' of 6)',
+          width,
+          height,
+        }
+      },
+    )
+    return [kind, choices]
+  }),
+) as unknown as Record<EntityArtworkKind, readonly UiArtwork[]>
+
+const entityFallbacks = Object.fromEntries(
+  (Object.keys(entityArtwork) as EntityArtworkKind[]).map((kind) => [
+    kind,
+    entityArtwork[kind][0],
+  ]),
+) as unknown as Record<EntityArtworkKind, UiArtwork>
 
 const generalFallbacks = {
   world: '/images/worlds/default.webp',
@@ -96,35 +137,61 @@ function normalizeEntityArtworkType(value: string) {
     .trim()
 }
 
-export function resolveEntityFallbackArtwork(entityType: string): string {
+function resolveEntityArtworkKind(
+  entityType: string,
+): EntityArtworkKind | 'character' {
   switch (normalizeEntityArtworkType(entityType)) {
     case 'character':
-      return generalFallbacks.character
+      return 'character'
     case 'person':
     case 'npc':
     case 'person npc':
-      return entityFallbacks.person.src
+      return 'person'
     case 'location':
-      return entityFallbacks.location.src
+      return 'location'
     case 'organization':
     case 'faction':
     case 'faction organization':
-      return entityFallbacks.organization.src
+      return 'organization'
     case 'item':
-      return entityFallbacks.item.src
+      return 'item'
     case 'event':
-      return entityFallbacks.event.src
+      return 'event'
     case 'deity':
-      return entityFallbacks.deity.src
+      return 'deity'
     case 'creature':
-      return entityFallbacks.creature.src
+      return 'creature'
     case 'quest':
     case 'story object':
     case 'quest story object':
-      return entityFallbacks.quest.src
+      return 'quest'
     default:
-      return entityFallbacks.generic.src
+      return 'generic'
   }
+}
+
+export function resolveEntityArtworkChoices(
+  entityType: string,
+): readonly UiArtwork[] {
+  const kind = resolveEntityArtworkKind(entityType)
+  return kind === 'character' ? [] : entityArtwork[kind]
+}
+
+export function resolveEntityFallbackArtwork(entityType: string): string {
+  const kind = resolveEntityArtworkKind(entityType)
+  return kind === 'character'
+    ? generalFallbacks.character
+    : entityFallbacks[kind].src
+}
+
+const entityArtworkSources = new Set(
+  Object.values(entityArtwork).flatMap((choices) =>
+    choices.map((artwork) => artwork.src),
+  ),
+)
+
+export function isEntityArtworkSource(value: string) {
+  return entityArtworkSources.has(value.trim())
 }
 
 export const uiAssets = {
@@ -152,11 +219,14 @@ export const uiAssets = {
     entityBanner: {
       src: '/images/backgrounds/entity-banner.webp',
       alt: 'Candlelit cartographer hall with maps, shelves, and artifacts',
-      width: 2160,
-      height: 720,
+      width: 1086,
+      height: 362,
     },
   },
+  entityArtwork,
   entityFallbacks,
   fallbacks: generalFallbacks,
+  isEntityArtworkSource,
+  resolveEntityArtworkChoices,
   resolveEntityFallbackArtwork,
 } as const
