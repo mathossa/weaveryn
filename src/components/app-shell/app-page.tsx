@@ -6,6 +6,7 @@ export interface AppPageProps {
   eyebrow?: string
   description?: ReactNode
   actions?: ReactNode
+  backLink?: ReactNode
   children?: ReactNode
   /** Layout density for the page's outer frame. */
   layout?: 'readable' | 'wide' | 'workspace'
@@ -19,6 +20,7 @@ export function AppPage({
   title,
   eyebrow,
   description,
+  backLink,
   actions,
   children,
   layout,
@@ -33,6 +35,7 @@ export function AppPage({
     >
       <header className={styles.header}>
         <div className={styles.headingGroup}>
+          {backLink ? <div className={styles.backLink}>{backLink}</div> : null}
           {eyebrow ? <p className={styles.eyebrow}>{eyebrow}</p> : null}
           <h1>{title}</h1>
           {description ? (

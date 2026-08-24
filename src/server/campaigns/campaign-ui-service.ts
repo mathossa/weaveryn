@@ -53,6 +53,7 @@ export interface CampaignOverview {
   canArchive: boolean
   canDelete: boolean
   canUpdateCurrentLocation: boolean
+  memberCount: number
   characters: CampaignOverviewCharacter[]
 }
 
@@ -169,6 +170,7 @@ export async function getCampaignOverview(
       owner: {
         select: { id: true, username: true, displayName: true },
       },
+      _count: { select: { memberships: true } },
       memberships: {
         where: { userId },
         select: { role: true, capabilities: true },
@@ -239,6 +241,7 @@ export async function getCampaignOverview(
           (campaign.memberships[0]?.capabilities ?? []).includes(
             'UPDATE_CURRENT_LOCATION',
           ))),
+    memberCount: campaign._count.memberships,
     characters: campaign.campaignCharacters.map((campaignCharacter) => ({
       id: campaignCharacter.id,
       worldCharacterId: campaignCharacter.worldCharacter.id,

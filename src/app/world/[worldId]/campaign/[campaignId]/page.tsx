@@ -85,7 +85,8 @@ export default async function CampaignOverviewPage({
   const canManageCampaign =
     campaign.canEditSharedInfo ||
     campaign.canEditName ||
-    campaign.canManageMembers
+    campaign.canManageMembers ||
+    campaign.canDelete
   const isWeaverContext =
     !selectedCharacter &&
     (campaign.isOwner ||

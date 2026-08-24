@@ -140,6 +140,7 @@ describe('Campaign UI projections', () => {
     expect(ownerOverview).toMatchObject({
       isOwner: true,
       role: 'GM',
+      memberCount: 3,
       canEditName: true,
       canEditSharedInfo: true,
       canManageMembers: true,
@@ -173,6 +174,32 @@ describe('Campaign UI projections', () => {
       canEditName: false,
       canEditSharedInfo: false,
       canManageMembers: false,
+    })
+
+    await campaignService.updateCampaignManagement(
+      campaign.id,
+      campaignOwner.id,
+      { description: 'A focused details update.' },
+    )
+    await expect(
+      getCampaignOverview(worldId, campaign.id, campaignOwner.id),
+    ).resolves.toMatchObject({
+      name: 'Ashes of Aldorath',
+      description: 'A focused details update.',
+      currentWorldPosition: '142.5',
+      currentWorldDateLabel: '14 Emberwane, 812',
+    })
+
+    await campaignService.updateCampaignManagement(campaign.id, gm.id, {
+      currentWorldPosition: '143',
+      currentWorldDateLabel: '15 Emberwane, 812',
+    })
+    await expect(
+      getCampaignOverview(worldId, campaign.id, campaignOwner.id),
+    ).resolves.toMatchObject({
+      description: 'A focused details update.',
+      currentWorldPosition: '143',
+      currentWorldDateLabel: '15 Emberwane, 812',
     })
 
     await campaignService.endCampaign({

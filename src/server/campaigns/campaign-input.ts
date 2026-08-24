@@ -10,9 +10,9 @@ export interface CampaignFormInput {
 
 export interface CampaignManagementInput {
   name?: string
-  description: string | null
-  currentWorldPosition: string
-  currentWorldDateLabel: string
+  description?: string | null
+  currentWorldPosition?: string
+  currentWorldDateLabel?: string
 }
 
 export class CampaignInputError extends Error {
@@ -81,22 +81,45 @@ export function parseCampaignManagementInput(
   value: unknown,
 ): CampaignManagementInput {
   const input = inputObject(value)
-  const name =
-    input.name === undefined
-      ? undefined
-      : requiredString(input.name, 'Campaign name')
+  const output: CampaignManagementInput = {}
 
-  if (name && name.length > 120) {
-    throw new CampaignInputError(
-      'Campaign name must be 120 characters or fewer.',
+  if (input.name !== undefined) {
+    const name = requiredString(input.name, 'Campaign name')
+    if (name.length > 120) {
+      throw new CampaignInputError(
+        'Campaign name must be 120 characters or fewer.',
+      )
+    }
+    output.name = name
+  }
+
+  if (input.description !== undefined) {
+    output.description = descriptionValue(input.description)
+  }
+
+  if (input.currentWorldPosition !== undefined) {
+    const currentWorldPosition = requiredString(
+      input.currentWorldPosition,
+      'Timeline position',
+    )
+    if (!Number.isFinite(Number(currentWorldPosition))) {
+      throw new CampaignInputError('Timeline position must be numeric.')
+    }
+    output.currentWorldPosition = currentWorldPosition
+  }
+
+  if (input.currentWorldDateLabel !== undefined) {
+    output.currentWorldDateLabel = requiredString(
+      input.currentWorldDateLabel,
+      'World date label',
     )
   }
 
-  return {
-    ...(name === undefined ? {} : { name }),
-    description: descriptionValue(input.description),
-    ...timelineValues(input),
+  if (Object.keys(output).length === 0) {
+    throw new CampaignInputError('At least one Campaign field is required.')
   }
+
+  return output
 }
 
 export interface CampaignOwnershipTransferInput {

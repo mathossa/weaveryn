@@ -27,6 +27,10 @@ describe('development scenario catalog', () => {
       issueNumbers: [12, 34],
       availability: 'available',
     })
+    expect(requireDevScenarioMetadata('campaign-foundation')).toMatchObject({
+      issueNumbers: [15, 53, 138],
+      availability: 'available',
+    })
     expect(getDevScenarioMetadata('world-update-example')).toBeDefined()
   })
 })
