@@ -1,70 +1,104 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" fill="none">
   <defs>
     <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f1d89a"/>
-      <stop offset="0.34" stop-color="#c99745"/>
-      <stop offset="0.68" stop-color="#8a5d25"/>
-      <stop offset="1" stop-color="#d8ae61"/>
+      <stop offset="0" stop-color="#fff0b8"/>
+      <stop offset="0.22" stop-color="#e4bd67"/>
+      <stop offset="0.52" stop-color="#aa702c"/>
+      <stop offset="0.78" stop-color="#6e431d"/>
+      <stop offset="1" stop-color="#d7a853"/>
     </linearGradient>
     <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#344f99"/>
-      <stop offset="0.52" stop-color="#172959"/>
-      <stop offset="1" stop-color="#5a4a91"/>
+      <stop offset="0" stop-color="#506dcc"/>
+      <stop offset="0.32" stop-color="#263f94"/>
+      <stop offset="0.68" stop-color="#172452"/>
+      <stop offset="1" stop-color="#4f3f8d"/>
     </linearGradient>
     <linearGradient id="violet" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#5a397d"/>
-      <stop offset="0.5" stop-color="#272456"/>
-      <stop offset="1" stop-color="#75509a"/>
+      <stop offset="0" stop-color="#7a4d9a"/>
+      <stop offset="0.48" stop-color="#38265f"/>
+      <stop offset="1" stop-color="#8b5aa5"/>
     </linearGradient>
-    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="2.4" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <radialGradient id="pearl">
+      <stop offset="0" stop-color="#fff9db"/>
+      <stop offset="0.38" stop-color="#d8d2c6"/>
+      <stop offset="0.72" stop-color="#9b8e78"/>
+      <stop offset="1" stop-color="#443725"/>
+    </radialGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/>
+      <feOffset dy="3" result="o"/>
+      <feColorMatrix in="o" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .72 0" result="s"/>
+      <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
 
-  <rect x="29" y="29" width="1142" height="442" rx="16" stroke="url(#gold)" stroke-width="2" opacity=".82"/>
-  <rect x="42" y="42" width="1116" height="416" rx="12" stroke="#715226" stroke-width="1" opacity=".72"/>
+  <!-- dark underlay gives the woven strands weight against bright artwork -->
+  <path d="M70 43H1130M70 457H1130M43 70V430M1157 70V430" stroke="#080b18" stroke-width="34" stroke-linecap="round" opacity=".92"/>
 
-  <!-- Woven horizontal strands -->
-  <path d="M84 47C150 30 214 62 278 47S407 31 472 47 603 63 668 47 797 31 862 47s128 15 254 0" stroke="url(#blue)" stroke-width="12" stroke-linecap="round" opacity=".92"/>
-  <path d="M84 47C150 66 214 32 278 47s129 18 194 0 131-17 196 0 129 18 194 0 128-17 254 0" stroke="url(#violet)" stroke-width="6" stroke-linecap="round" opacity=".9"/>
-  <path d="M84 47C150 39 214 55 278 47s129-8 194 0 131 8 196 0 129-8 194 0 128 8 254 0" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+  <!-- broad indigo ribbon -->
+  <path d="M70 43C170 18 250 68 350 43S530 18 630 43 810 68 910 43s120-18 220 0" stroke="url(#blue)" stroke-width="25" stroke-linecap="round"/>
+  <path d="M70 457C170 432 250 482 350 457s180-25 280 0 180 25 280 0 120-18 220 0" stroke="url(#blue)" stroke-width="25" stroke-linecap="round"/>
+  <path d="M43 70C18 145 68 205 43 280s-18 95 0 150" stroke="url(#blue)" stroke-width="25" stroke-linecap="round"/>
+  <path d="M1157 70C1132 145 1182 205 1157 280s-18 95 0 150" stroke="url(#blue)" stroke-width="25" stroke-linecap="round"/>
 
-  <path d="M84 453C150 436 214 468 278 453s129-16 194 0 131 16 196 0 129-16 194 0 128 15 254 0" stroke="url(#blue)" stroke-width="12" stroke-linecap="round" opacity=".92"/>
-  <path d="M84 453C150 472 214 438 278 453s129 18 194 0 131-17 196 0 129 18 194 0 128-17 254 0" stroke="url(#violet)" stroke-width="6" stroke-linecap="round" opacity=".9"/>
-  <path d="M84 453C150 445 214 461 278 453s129-8 194 0 131 8 196 0 129-8 194 0 128 8 254 0" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+  <!-- purple companion strand crossing the blue ribbon -->
+  <path d="M70 43C150 69 235 17 320 43s170 26 255 0 170-26 255 0 180 25 300 0" stroke="url(#violet)" stroke-width="11" stroke-linecap="round"/>
+  <path d="M70 457C150 483 235 431 320 457s170 26 255 0 170-26 255 0 180 25 300 0" stroke="url(#violet)" stroke-width="11" stroke-linecap="round"/>
+  <path d="M43 70C69 135 17 205 43 270s26 110 0 160" stroke="url(#violet)" stroke-width="11" stroke-linecap="round"/>
+  <path d="M1157 70C1183 135 1131 205 1157 270s26 110 0 160" stroke="url(#violet)" stroke-width="11" stroke-linecap="round"/>
 
-  <!-- Woven vertical strands -->
-  <path d="M47 84C31 132 62 178 47 226s-16 96 0 144 16 82 0 46" stroke="url(#blue)" stroke-width="12" stroke-linecap="round" opacity=".92"/>
-  <path d="M47 84C65 132 32 178 47 226s18 96 0 144-16 82 0 46" stroke="url(#violet)" stroke-width="6" stroke-linecap="round" opacity=".9"/>
-  <path d="M47 84C39 132 55 178 47 226s-8 96 0 144 8 82 0 46" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+  <!-- gold cord woven over the colored ribbons -->
+  <path d="M70 43C160 28 250 58 340 43s180-15 270 0 180 15 270 0 160-12 250 0" stroke="#5b3717" stroke-width="12" stroke-linecap="round"/>
+  <path d="M70 43C160 28 250 58 340 43s180-15 270 0 180 15 270 0 160-12 250 0" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M70 457C160 442 250 472 340 457s180-15 270 0 180 15 270 0 160-12 250 0" stroke="#5b3717" stroke-width="12" stroke-linecap="round"/>
+  <path d="M70 457C160 442 250 472 340 457s180-15 270 0 180 15 270 0 160-12 250 0" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M43 70C28 140 58 210 43 280s-12 105 0 150" stroke="#5b3717" stroke-width="12" stroke-linecap="round"/>
+  <path d="M43 70C28 140 58 210 43 280s-12 105 0 150" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M1157 70C1142 140 1172 210 1157 280s-12 105 0 150" stroke="#5b3717" stroke-width="12" stroke-linecap="round"/>
+  <path d="M1157 70C1142 140 1172 210 1157 280s-12 105 0 150" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
 
-  <path d="M1153 84C1137 132 1168 178 1153 226s-16 96 0 144 16 82 0 46" stroke="url(#blue)" stroke-width="12" stroke-linecap="round" opacity=".92"/>
-  <path d="M1153 84C1171 132 1138 178 1153 226s18 96 0 144-16 82 0 46" stroke="url(#violet)" stroke-width="6" stroke-linecap="round" opacity=".9"/>
-  <path d="M1153 84C1145 132 1161 178 1153 226s-8 96 0 144 8 82 0 46" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+  <!-- small highlight thread -->
+  <path d="M76 35C170 23 250 52 340 38s180-13 270 0 180 14 270 0 160-10 244 0" stroke="#ffe7a2" stroke-width="2" stroke-linecap="round" opacity=".82"/>
+  <path d="M76 449C170 437 250 466 340 452s180-13 270 0 180 14 270 0 160-10 244 0" stroke="#ffe7a2" stroke-width="2" stroke-linecap="round" opacity=".72"/>
 
-  <!-- Corner knots -->
-  <g stroke="url(#gold)" stroke-width="4" filter="url(#glow)">
-    <path d="M47 47l20-18 20 18-20 18-20-18Z" fill="#1b2556"/>
-    <path d="M1133 47l20-18 20 18-20 18-20-18Z" fill="#1b2556"/>
-    <path d="M47 453l20-18 20 18-20 18-20-18Z" fill="#1b2556"/>
-    <path d="M1133 453l20-18 20 18-20 18-20-18Z" fill="#1b2556"/>
+  <!-- ornate corner knots, deliberately compact so border-image preserves them -->
+  <g filter="url(#shadow)">
+    <g transform="translate(46 46)">
+      <path d="M0-34 12-15 34-17 18 0 34 17 12 15 0 34-12 15-34 17-18 0-34-17-12-15Z" fill="url(#gold)" stroke="#5b3717" stroke-width="4"/>
+      <path d="M0-25 9-10 25-12 13 0 25 12 9 10 0 25-9 10-25 12-13 0-25-12-9-10Z" fill="#253a89" stroke="#d6a955" stroke-width="3"/>
+      <circle r="9" fill="url(#pearl)" stroke="#8b642d" stroke-width="3"/>
+    </g>
+    <g transform="translate(1154 46)">
+      <path d="M0-34 12-15 34-17 18 0 34 17 12 15 0 34-12 15-34 17-18 0-34-17-12-15Z" fill="url(#gold)" stroke="#5b3717" stroke-width="4"/>
+      <path d="M0-25 9-10 25-12 13 0 25 12 9 10 0 25-9 10-25 12-13 0-25-12-9-10Z" fill="#253a89" stroke="#d6a955" stroke-width="3"/>
+      <circle r="9" fill="url(#pearl)" stroke="#8b642d" stroke-width="3"/>
+    </g>
+    <g transform="translate(46 454)">
+      <path d="M0-34 12-15 34-17 18 0 34 17 12 15 0 34-12 15-34 17-18 0-34-17-12-15Z" fill="url(#gold)" stroke="#5b3717" stroke-width="4"/>
+      <path d="M0-25 9-10 25-12 13 0 25 12 9 10 0 25-9 10-25 12-13 0-25-12-9-10Z" fill="#253a89" stroke="#d6a955" stroke-width="3"/>
+      <circle r="9" fill="url(#pearl)" stroke="#8b642d" stroke-width="3"/>
+    </g>
+    <g transform="translate(1154 454)">
+      <path d="M0-34 12-15 34-17 18 0 34 17 12 15 0 34-12 15-34 17-18 0-34-17-12-15Z" fill="url(#gold)" stroke="#5b3717" stroke-width="4"/>
+      <path d="M0-25 9-10 25-12 13 0 25 12 9 10 0 25-9 10-25 12-13 0-25-12-9-10Z" fill="#253a89" stroke="#d6a955" stroke-width="3"/>
+      <circle r="9" fill="url(#pearl)" stroke="#8b642d" stroke-width="3"/>
+    </g>
   </g>
-  <g fill="#e5c77f" stroke="#7e5925" stroke-width="2">
-    <circle cx="67" cy="47" r="7"/>
-    <circle cx="1153" cy="47" r="7"/>
-    <circle cx="67" cy="453" r="7"/>
-    <circle cx="1153" cy="453" r="7"/>
+
+  <!-- centre weave knots echo the reference frame without dominating the content -->
+  <g filter="url(#shadow)">
+    <g transform="translate(600 43)">
+      <path d="M0-28 16-10 32 0 16 10 0 28-16 10-32 0-16-10Z" fill="#20336f" stroke="#6a451e" stroke-width="7"/>
+      <path d="M0-24 12-8 26 0 12 8 0 24-12 8-26 0-12-8Z" fill="none" stroke="url(#gold)" stroke-width="6"/>
+      <path d="M-15-15 15 15M15-15-15 15" stroke="#dcb762" stroke-width="4" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(600 457)">
+      <path d="M0-28 16-10 32 0 16 10 0 28-16 10-32 0-16-10Z" fill="#20336f" stroke="#6a451e" stroke-width="7"/>
+      <path d="M0-24 12-8 26 0 12 8 0 24-12 8-26 0-12-8Z" fill="none" stroke="url(#gold)" stroke-width="6"/>
+      <path d="M-15-15 15 15M15-15-15 15" stroke="#dcb762" stroke-width="4" stroke-linecap="round"/>
+    </g>
   </g>
 
-  <!-- Centre knots -->
-  <g filter="url(#glow)">
-    <path d="M600 25l17 22-17 22-17-22 17-22Z" fill="#1c2d67" stroke="url(#gold)" stroke-width="4"/>
-    <path d="M600 431l17 22-17 22-17-22 17-22Z" fill="#1c2d67" stroke="url(#gold)" stroke-width="4"/>
-    <path d="M25 250l22-17 22 17-22 17-22-17Z" fill="#1c2d67" stroke="url(#gold)" stroke-width="4"/>
-    <path d="M1131 250l22-17 22 17-22 17-22-17Z" fill="#1c2d67" stroke="url(#gold)" stroke-width="4"/>
-  </g>
-
-  <!-- Fine gold thread -->
-  <path d="M84 58H1116M84 442H1116M58 84V416M1142 84V416" stroke="#d6ad62" stroke-width="1" opacity=".58"/>
+  <!-- subtle inner gold hairline -->
+  <rect x="60" y="60" width="1080" height="380" rx="8" stroke="#c79d52" stroke-width="2" opacity=".48"/>
 </svg>
