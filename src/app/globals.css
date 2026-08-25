@@ -55,19 +55,43 @@ body {
     gap: 0.58rem !important;
   }
 
-  /* Recent Character cards use the same woven border language. */
+  /* Recent Character cards use a deliberately substantial woven frame. */
   section:has(#secondary-entry-heading)
     section[aria-labelledby='recent-characters']
     a[aria-label^='Enter '],
   section:has(#secondary-entry-heading)
     section[aria-labelledby='recent-characters']
     a[aria-label^='Open '] {
-    border: 10px solid transparent !important;
+    border: 18px solid transparent !important;
     border-image-source: url('/images/ui/weaveryn-woven-frame.svg') !important;
     border-image-slice: 72 !important;
-    border-image-width: 10px !important;
+    border-image-width: 18px !important;
+    border-image-outset: 0.05 !important;
     border-image-repeat: stretch !important;
     border-radius: 0.72rem !important;
+  }
+
+  /* The first/current Character is the hero entry: same frame language,
+     substantially heavier weight and a warmer outer glow. */
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='recent-characters']
+    > div:last-child
+    > div
+    > :first-child
+    a[aria-label^='Enter '],
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='recent-characters']
+    > div:last-child
+    > div
+    > :first-child
+    a[aria-label^='Open '] {
+    border-width: 24px !important;
+    border-image-width: 24px !important;
+    border-image-outset: 0.07 !important;
+    box-shadow:
+      0 1.4rem 3.6rem rgba(0, 0, 0, 0.38),
+      0 0 0 1px rgba(226, 188, 111, 0.28),
+      0 0 2.6rem rgba(213, 166, 82, 0.2) !important;
   }
 
   section:has(#secondary-entry-heading)
@@ -230,6 +254,11 @@ body {
   }
 
   /* Utilities stay compact but the card height remains content-driven. */
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='launcher-utilities-heading'] {
+    padding-bottom: 0.8rem !important;
+  }
+
   section:has(#secondary-entry-heading)
     section[aria-labelledby='launcher-utilities-heading']
     > div:last-child {
