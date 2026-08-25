@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f1d89a"/>
+      <stop offset="0.34" stop-color="#c99745"/>
+      <stop offset="0.68" stop-color="#8a5d25"/>
+      <stop offset="1" stop-color="#d8ae61"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#344f99"/>
+      <stop offset="0.52" stop-color="#172959"/>
+      <stop offset="1" stop-color="#5a4a91"/>
+    </linearGradient>
+    <linearGradient id="violet" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5a397d"/>
+      <stop offset="0.5" stop-color="#272456"/>
+      <stop offset="1" stop-color="#75509a"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect x="29" y="29" width="1142" height="442" rx="16" stroke="url(#gold)" stroke-width="2" opacity=".82"/>
+  <rect x="42" y="42" width="1116" height="416" rx="12" stroke="#715226" stroke-width="1" opacity=".72"/>
+
+  <!-- Woven horizontal strands -->
+  <path d="M84 47C150 30 214 62 278 47S407 31 472 47 603 63 668 47 797 31 862 47s128 15 254 0" stroke="url(#blue)" stroke-width="12" stroke-linecap="round" opacity=".92"/>
+  <path d="M84 47C150 66 214 32 278 47s129 18 194 0 131-17 196 0 129 18 194 0 128-17 254 0" stroke="url(#violet)" stroke-width="6" stroke-linecap="round" opacity=".9"/>
+  <path d="M84 47C150 39 214 55 278 47s129-8 194 0 131 8 196 0 129-8 194 0 128 8 254 0" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+
+  <path d="M84 453C150 436 214 468 278 453s129-16 194 0 131 16 196 0 129-16 194 0 128 15 254 0" stroke="url(#blue)" stroke-width="12" stroke-linecap="round" opacity=".92"/>
+  <path d="M84 453C150 472 214 438 278 453s129 18 194 0 131-17 196 0 129 18 194 0 128-17 254 0" stroke="url(#violet)" stroke-width="6" stroke-linecap="round" opacity=".9"/>
+  <path d="M84 453C150 445 214 461 278 453s129-8 194 0 131 8 196 0 129-8 194 0 128 8 254 0" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Woven vertical strands -->
+  <path d="M47 84C31 132 62 178 47 226s-16 96 0 144 16 82 0 46" stroke="url(#blue)" stroke-width="12" stroke-linecap="round" opacity=".92"/>
+  <path d="M47 84C65 132 32 178 47 226s18 96 0 144-16 82 0 46" stroke="url(#violet)" stroke-width="6" stroke-linecap="round" opacity=".9"/>
+  <path d="M47 84C39 132 55 178 47 226s-8 96 0 144 8 82 0 46" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+
+  <path d="M1153 84C1137 132 1168 178 1153 226s-16 96 0 144 16 82 0 46" stroke="url(#blue)" stroke-width="12" stroke-linecap="round" opacity=".92"/>
+  <path d="M1153 84C1171 132 1138 178 1153 226s18 96 0 144-16 82 0 46" stroke="url(#violet)" stroke-width="6" stroke-linecap="round" opacity=".9"/>
+  <path d="M1153 84C1145 132 1161 178 1153 226s-8 96 0 144 8 82 0 46" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Corner knots -->
+  <g stroke="url(#gold)" stroke-width="4" filter="url(#glow)">
+    <path d="M47 47l20-18 20 18-20 18-20-18Z" fill="#1b2556"/>
+    <path d="M1133 47l20-18 20 18-20 18-20-18Z" fill="#1b2556"/>
+    <path d="M47 453l20-18 20 18-20 18-20-18Z" fill="#1b2556"/>
+    <path d="M1133 453l20-18 20 18-20 18-20-18Z" fill="#1b2556"/>
+  </g>
+  <g fill="#e5c77f" stroke="#7e5925" stroke-width="2">
+    <circle cx="67" cy="47" r="7"/>
+    <circle cx="1153" cy="47" r="7"/>
+    <circle cx="67" cy="453" r="7"/>
+    <circle cx="1153" cy="453" r="7"/>
+  </g>
+
+  <!-- Centre knots -->
+  <g filter="url(#glow)">
+    <path d="M600 25l17 22-17 22-17-22 17-22Z" fill="#1c2d67" stroke="url(#gold)" stroke-width="4"/>
+    <path d="M600 431l17 22-17 22-17-22 17-22Z" fill="#1c2d67" stroke="url(#gold)" stroke-width="4"/>
+    <path d="M25 250l22-17 22 17-22 17-22-17Z" fill="#1c2d67" stroke="url(#gold)" stroke-width="4"/>
+    <path d="M1131 250l22-17 22 17-22 17-22-17Z" fill="#1c2d67" stroke="url(#gold)" stroke-width="4"/>
+  </g>
+
+  <!-- Fine gold thread -->
+  <path d="M84 58H1116M84 442H1116M58 84V416M1142 84V416" stroke="#d6ad62" stroke-width="1" opacity=".58"/>
+</svg>
