@@ -49,15 +49,18 @@
     padding: 0 !important;
   }
 
-  /* Character artwork is full-bleed. The ornamental artwork is now only an
-     overlay and never participates in card geometry, so there is no dark
-     border box between the image and the frame. */
+  /* Character artwork is full-bleed. This selector intentionally includes the
+     recent-characters section so it outranks the older global border-image
+     rule. The supplied artwork is rendered exactly once by the overlay below. */
   :global(section):has(:global(#secondary-entry-heading))
+    :global(section[aria-labelledby='recent-characters'])
     .ornamentFrame
     .ornamentCard {
     overflow: hidden !important;
     border: 0 !important;
+    border-width: 0 !important;
     border-image: none !important;
+    border-image-source: none !important;
     border-radius: 0.8rem !important;
     background: #050811 !important;
   }
@@ -73,8 +76,8 @@
     inset: 0 !important;
   }
 
-  /* Paint the exact supplied frame above the image without consuming layout
-     space. All three Character cards use the same 22px visual girth. */
+  /* Paint the exact supplied frame above the full-bleed image without
+     consuming layout space. All three Character cards share one frame girth. */
   .characterFrameOverlay {
     position: absolute;
     inset: 0;
@@ -95,6 +98,7 @@
 
   /* Selected/current Character: same frame, halo only. */
   :global(section):has(:global(#secondary-entry-heading))
+    :global(section[aria-labelledby='recent-characters'])
     .ornamentFrame:first-child
     .ornamentCard {
     box-shadow:
@@ -133,10 +137,12 @@
     }
   }
 
+  /* Keep the bookmark comfortably inside the ornamental corner treatment.
+     It remains above the frame and moves with the whole card on hover. */
   .ornamentFrame > button {
     z-index: 6 !important;
-    top: 1.25rem !important;
-    right: 1.25rem !important;
+    top: 2.1rem !important;
+    right: 2.1rem !important;
   }
 }
 
