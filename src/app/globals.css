@@ -45,3 +45,267 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Desktop /select frame language. The section IDs make this intentionally
+   local to the launcher while the SVG border itself remains reusable. */
+@media (min-width: 981px) {
+  section:has(#secondary-entry-heading) > header + div > div {
+    grid-template-rows: minmax(0, 1fr) auto auto auto !important;
+    align-content: stretch !important;
+    gap: 0.58rem !important;
+  }
+
+  /* Recent Character cards use the same woven border language. */
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='recent-characters']
+    a[aria-label^='Enter '],
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='recent-characters']
+    a[aria-label^='Open '] {
+    border: 10px solid transparent !important;
+    border-image-source: url('/images/ui/weaveryn-woven-frame.svg') !important;
+    border-image-slice: 72 !important;
+    border-image-width: 10px !important;
+    border-image-repeat: stretch !important;
+    border-radius: 0.72rem !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='recent-characters']
+    a[aria-label^='Enter ']::before,
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='recent-characters']
+    a[aria-label^='Enter ']::after,
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='recent-characters']
+    a[aria-label^='Open ']::before,
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='recent-characters']
+    a[aria-label^='Open ']::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  /* Weaver / Threadwatcher: dynamic cards with one scalable frame, no inset
+     rectangle. Their scenic backgrounds continue to live underneath. */
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='secondary-entry-heading']
+    > div {
+    height: auto !important;
+    align-items: stretch !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    border: 12px solid transparent !important;
+    border-image-source: url('/images/ui/weaveryn-woven-frame.svg') !important;
+    border-image-slice: 72 !important;
+    border-image-width: 12px !important;
+    border-image-repeat: stretch !important;
+    border-radius: 0.72rem !important;
+    box-shadow:
+      0 0.75rem 1.9rem rgba(0, 0, 0, 0.25),
+      0 0 1.2rem color-mix(in srgb, var(--ui-accent) 7%, transparent) !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div::after {
+    display: none !important;
+    background: none !important;
+    box-shadow: none !important;
+    content: none !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div
+    > a:first-child {
+    height: auto !important;
+    min-height: 6.6rem !important;
+    grid-template-columns: 3.2rem minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    padding: 0.82rem 1.15rem !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div:first-child
+    > a:first-child {
+    padding-right: 9rem !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div
+    > a:first-child
+    > span:first-child {
+    width: 3.2rem !important;
+    height: 3.2rem !important;
+    align-self: center !important;
+    border-color: color-mix(in srgb, var(--ui-accent) 44%, #27365f) !important;
+    background:
+      radial-gradient(circle at 50% 38%, rgba(206, 171, 101, 0.12), transparent 58%),
+      rgba(5, 10, 22, 0.66) !important;
+    color: color-mix(in srgb, var(--ui-accent) 74%, #8e87b7) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(71, 85, 151, 0.2),
+      0 0 1rem rgba(39, 48, 103, 0.3) !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div
+    > a:first-child
+    > span:nth-child(2) {
+    align-self: center !important;
+    gap: 0.16rem !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div
+    > a:first-child
+    > span:nth-child(2)
+    > span:nth-of-type(1) {
+    color: #b99555 !important;
+    font-size: 0.58rem !important;
+    letter-spacing: 0.14em !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div
+    > a:first-child
+    > span:nth-child(2)
+    > strong {
+    color: #d8ccb6 !important;
+    font-size: clamp(1.34rem, 1.35vw, 1.62rem) !important;
+    font-weight: 600 !important;
+    line-height: 1.06 !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div:first-child
+    > a:first-child
+    > span:nth-child(2)
+    > span:nth-of-type(3) {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 0.38rem !important;
+    margin-top: 0.3rem !important;
+    color: #b9ad95 !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div:first-child
+    > a:first-child
+    > span:nth-child(2)
+    > span:nth-of-type(3)
+    > small {
+    color: #aa8448 !important;
+  }
+
+  section:has(#secondary-entry-heading) a[href='/world?mode=weaver'] {
+    right: 1.35rem !important;
+    bottom: 1.05rem !important;
+    color: #b4955f !important;
+  }
+
+  /* Utilities stay compact but the card height remains content-driven. */
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child {
+    align-items: stretch !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child
+    > div {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    border: 8px solid transparent !important;
+    border-image-source: url('/images/ui/weaveryn-woven-frame.svg') !important;
+    border-image-slice: 72 !important;
+    border-image-width: 8px !important;
+    border-image-repeat: stretch !important;
+    border-radius: 0.6rem !important;
+    background: linear-gradient(
+      180deg,
+      rgba(8, 12, 24, 0.58),
+      rgba(3, 6, 13, 0.34)
+    ) !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child
+    > div::after {
+    display: none !important;
+    background: none !important;
+    content: none !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child
+    > div
+    > a {
+    height: auto !important;
+    min-height: 3.2rem !important;
+    grid-template-columns: 1.8rem minmax(0, 1fr) auto !important;
+    gap: 0.55rem !important;
+    padding: 0.38rem 0.58rem !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child
+    > div
+    > a
+    > span:first-child {
+    width: 1.8rem !important;
+    height: 1.8rem !important;
+    color: #b49257 !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child
+    > div
+    > a
+    > span:nth-child(2)
+    > strong {
+    color: #cfc2aa !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+  }
+
+  section:has(#secondary-entry-heading)
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child
+    > div
+    > a
+    > span:last-child {
+    color: #9d814e !important;
+  }
+}
