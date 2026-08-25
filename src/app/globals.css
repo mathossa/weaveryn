@@ -55,24 +55,25 @@ body {
     gap: 0.58rem !important;
   }
 
-  /* Recent Character cards use a deliberately substantial woven frame. */
+  /* All recent Characters share one organic ornamental frame and one girth. */
   section:has(#secondary-entry-heading)
     section[aria-labelledby='recent-characters']
     a[aria-label^='Enter '],
   section:has(#secondary-entry-heading)
     section[aria-labelledby='recent-characters']
     a[aria-label^='Open '] {
-    border: 18px solid transparent !important;
-    border-image-source: url('/images/ui/weaveryn-woven-frame.svg') !important;
-    border-image-slice: 72 !important;
-    border-image-width: 18px !important;
-    border-image-outset: 0.05 !important;
+    border: 22px solid transparent !important;
+    border-image-source: url('/images/ui/weaveryn-character-frame.svg') !important;
+    border-image-slice: 96 !important;
+    border-image-width: 22px !important;
+    border-image-outset: 0.06 !important;
     border-image-repeat: stretch !important;
-    border-radius: 0.72rem !important;
+    border-radius: 0.8rem !important;
+    box-shadow: 0 1.1rem 2.9rem rgba(0, 0, 0, 0.3) !important;
   }
 
-  /* The first/current Character is the hero entry: same frame language,
-     substantially heavier weight and a warmer outer glow. */
+  /* The first/current Character uses the exact same frame and thickness.
+     Selection is communicated only with a warm golden halo. */
   section:has(#secondary-entry-heading)
     section[aria-labelledby='recent-characters']
     > div:last-child
@@ -85,13 +86,13 @@ body {
     > div
     > :first-child
     a[aria-label^='Open '] {
-    border-width: 24px !important;
-    border-image-width: 24px !important;
-    border-image-outset: 0.07 !important;
     box-shadow:
-      0 1.4rem 3.6rem rgba(0, 0, 0, 0.38),
-      0 0 0 1px rgba(226, 188, 111, 0.28),
-      0 0 2.6rem rgba(213, 166, 82, 0.2) !important;
+      0 1.45rem 3.8rem rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(236, 202, 127, 0.28),
+      0 0 1.5rem rgba(233, 187, 91, 0.25),
+      0 0 3.6rem rgba(224, 165, 67, 0.22),
+      0 0 5.8rem rgba(189, 124, 35, 0.11) !important;
+    filter: saturate(1.05) brightness(1.02);
   }
 
   section:has(#secondary-entry-heading)
