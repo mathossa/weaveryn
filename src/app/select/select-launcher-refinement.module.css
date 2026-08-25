@@ -3,8 +3,7 @@
   position: relative;
 }
 
-/* Browse mode should be calm and utilitarian: keep hover transitions, but stop
-   the continuous ambient/reveal animations used by the landing launcher. */
+/* Browse mode stays calm and utilitarian. */
 .browserMode,
 .browserMode *,
 .browserMode *::before,
@@ -14,9 +13,6 @@
   animation: none !important;
 }
 
-/* Character-card ornaments are launcher-only. The ornament class lives in a
-   different CSS module, so target the rendered card links rather than trying
-   to reference that module-local class here. */
 .browserMode a::before,
 .browserMode a::after {
   display: none !important;
@@ -89,8 +85,55 @@
 }
 
 @media (min-width: 981px) {
-  /* Keep Character entry as the hero, then give Weaver/Threadwatcher a true
-     second tier and move utilities into a quieter full-width row below. */
+  /* Header + footer are 74px + 2.35rem (+ footer border). Keep the launcher
+     exactly inside that remaining viewport instead of producing a tiny scroll. */
+  .launcherMode.launcherMode {
+    height: calc(100dvh - 74px - 2.35rem - 1px) !important;
+    overflow: hidden !important;
+  }
+
+  /* Use the approved app-shell artwork more visibly on the launcher and keep
+     the centre quiet enough for the entry cards. */
+  .launcherMode::before {
+    inset: 0 !important;
+    background:
+      linear-gradient(90deg, rgba(2, 5, 10, 0.86), rgba(2, 5, 10, 0.34) 36%, rgba(2, 5, 10, 0.56) 74%, rgba(2, 5, 10, 0.9)),
+      linear-gradient(180deg, rgba(3, 6, 12, 0.28), rgba(2, 4, 9, 0.64) 58%, rgba(2, 4, 9, 0.92)),
+      url('/images/backgrounds/app-shell.webp') center 44% / cover no-repeat !important;
+    opacity: 0.72 !important;
+    transform: none !important;
+  }
+
+  .launcherMode::after {
+    background:
+      radial-gradient(circle at 16% 18%, color-mix(in srgb, var(--ui-accent) 12%, transparent), transparent 25rem),
+      radial-gradient(circle at 76% 30%, rgba(54, 77, 112, 0.12), transparent 32rem),
+      linear-gradient(180deg, transparent 54%, rgba(1, 3, 7, 0.54)) !important;
+  }
+
+  .launcherMode > header {
+    min-height: 3.55rem;
+    margin-bottom: 0.8rem !important;
+  }
+
+  /* The visible desktop launcher title is an SVG treatment while the real H1
+     remains in the DOM for accessibility and navigation. */
+  .launcherMode > header h1 {
+    width: min(31rem, 46vw);
+    height: 3.55rem;
+    overflow: hidden;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 760 108'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23fff3cc'/%3E%3Cstop offset='.42' stop-color='%23e7c778'/%3E%3Cstop offset='1' stop-color='%23936a2d'/%3E%3C/linearGradient%3E%3Cfilter id='s'%3E%3CfeDropShadow dx='0' dy='2' stdDeviation='2.2' flood-color='%23000000' flood-opacity='.72'/%3E%3C/filter%3E%3C/defs%3E%3Ctext x='2' y='82' font-family='Georgia,Times New Roman,serif' font-size='76' font-weight='600' letter-spacing='-2' fill='url(%23g)' stroke='%236e4c20' stroke-width='.8' paint-order='stroke' filter='url(%23s)'%3EReturn%20to%20the%20Weave%3C/text%3E%3C/svg%3E") left center / contain no-repeat;
+    color: transparent !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    text-shadow: none !important;
+  }
+
+  .launcherMode > header::after {
+    bottom: -0.35rem !important;
+    width: min(30rem, 48vw) !important;
+  }
+
   .launcherMode.launcherMode > div > div {
     grid-template-areas:
       'stories'
@@ -99,12 +142,12 @@
       'actions' !important;
     grid-template-columns: minmax(0, 1fr) !important;
     grid-template-rows:
-      minmax(24rem, 1fr)
+      minmax(0, 1fr)
       auto
-      minmax(8.75rem, auto)
+      9.2rem
       auto !important;
     align-content: stretch !important;
-    gap: 0.8rem !important;
+    gap: 0.65rem !important;
   }
 
   .launcherMode.launcherMode
@@ -120,7 +163,41 @@
     > div:has(> #secondary-entry-heading) {
     grid-area: secondary-heading !important;
     margin: 0 !important;
-    padding-inline: 0.15rem;
+    padding-inline: 0.1rem;
+  }
+
+  /* Section headings use a small SVG ornament so they read as part of the same
+     visual language as the card frames instead of plain dashboard labels. */
+  .launcherMode .secondaryHeading::before,
+  .launcherMode .secondaryHeading::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--ui-accent) 34%, transparent)
+    ) !important;
+  }
+
+  .launcherMode .secondaryHeading h2,
+  .launcherMode .utilityHeading h2 {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.78rem !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase;
+  }
+
+  .launcherMode .secondaryHeading h2::before,
+  .launcherMode .utilityHeading h2::before {
+    width: 2.4rem;
+    height: 0.72rem;
+    flex: 0 0 auto;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 24'%3E%3Cpath d='M2 12h34M60 12h34' stroke='%23b88a43' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M48 4l4 8-4 8-4-8z' fill='none' stroke='%23e4c176' stroke-width='1.5'/%3E%3C/svg%3E") center / contain no-repeat;
+    content: '';
+  }
+
+  .launcherMode .secondaryHeading > span {
+    display: none;
   }
 
   .launcherMode.launcherMode
@@ -132,27 +209,71 @@
   }
 
   .launcherMode.launcherMode
-    > div
-    > div
-    > section[aria-labelledby='launcher-utilities-heading'] {
-    grid-area: actions !important;
-    min-height: 0;
-    padding-top: 0.15rem;
-  }
-
-  .launcherMode.launcherMode
     section[aria-labelledby='secondary-entry-heading']
     > div {
     height: 100% !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 1rem !important;
+    gap: 0.9rem !important;
   }
 
   .launcherMode.launcherMode
     section[aria-labelledby='secondary-entry-heading']
     > div
     > div {
+    position: relative;
     height: 100%;
+    overflow: hidden;
+    border-color: color-mix(in srgb, var(--ui-accent) 42%, var(--ui-border)) !important;
+    background: transparent !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.025),
+      0 0.75rem 2rem rgba(0, 0, 0, 0.22) !important;
+  }
+
+  /* Scenic approved artwork makes the alternate entry modes feel intentional
+     without adding new bespoke art assets. */
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div::before {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      linear-gradient(90deg, rgba(4, 9, 18, 0.95), rgba(4, 9, 18, 0.66) 46%, rgba(4, 9, 18, 0.2)),
+      linear-gradient(180deg, rgba(3, 7, 14, 0.12), rgba(2, 5, 10, 0.82)),
+      url('/images/backgrounds/app-shell.webp') 72% 54% / cover no-repeat;
+    content: '';
+    opacity: 0.88;
+    pointer-events: none;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div:last-child::before {
+    background:
+      linear-gradient(90deg, rgba(12, 7, 22, 0.95), rgba(12, 7, 22, 0.66) 46%, rgba(12, 7, 22, 0.18)),
+      linear-gradient(180deg, rgba(8, 5, 16, 0.08), rgba(4, 3, 10, 0.84)),
+      url('/images/backgrounds/auth-shell.webp') 68% 52% / cover no-repeat;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div::after {
+    position: absolute;
+    inset: 0.55rem;
+    z-index: 1;
+    border: 1px solid color-mix(in srgb, var(--ui-accent) 26%, transparent);
+    border-radius: calc(var(--ui-radius-panel) - 0.34rem);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--ui-accent) 58%, transparent) 0 16%, transparent 16% 100%) top left / 100% 1px no-repeat,
+      linear-gradient(180deg, color-mix(in srgb, var(--ui-accent) 48%, transparent) 0 24%, transparent 24% 100%) top left / 1px 100% no-repeat,
+      linear-gradient(90deg, transparent 0 78%, color-mix(in srgb, var(--ui-accent) 38%, transparent) 78% 100%) bottom right / 100% 1px no-repeat,
+      linear-gradient(180deg, transparent 0 72%, color-mix(in srgb, var(--ui-accent) 38%, transparent) 72% 100%) bottom right / 1px 100% no-repeat;
+    content: '';
+    pointer-events: none;
   }
 
   .launcherMode.launcherMode
@@ -160,10 +281,13 @@
     > div
     > div
     > a:first-child {
+    position: relative;
+    z-index: 2;
     height: 100% !important;
-    min-height: 8.75rem !important;
+    min-height: 9.2rem !important;
     align-content: center;
-    padding: 1rem 1.1rem !important;
+    padding: 0.95rem 1.15rem !important;
+    background: transparent !important;
   }
 
   .launcherMode.launcherMode
@@ -171,19 +295,95 @@
     > div
     > div
     > a:first-child
-    > span:nth-child(2)
-    > strong {
-    font-size: clamp(1.08rem, 1.05vw, 1.28rem) !important;
+    > span:first-child {
+    width: 3.7rem !important;
+    height: 3.7rem !important;
+    border-color: color-mix(in srgb, var(--ui-accent) 56%, var(--ui-border)) !important;
+    background: rgba(4, 8, 16, 0.56);
+    box-shadow: 0 0 1.3rem color-mix(in srgb, var(--ui-accent) 10%, transparent);
+    font-size: 1.22rem !important;
+  }
+
+  .launcherMode .modeKicker {
+    display: none !important;
+  }
+
+  .launcherMode .modeCopy {
+    gap: 0.26rem !important;
+  }
+
+  .launcherMode .modeCopy > strong {
+    font-size: clamp(1.35rem, 1.4vw, 1.68rem) !important;
+    letter-spacing: -0.01em;
+    text-shadow: 0 0.12em 1rem rgba(0, 0, 0, 0.68);
+  }
+
+  .launcherMode .modeDescription {
+    max-width: 31rem;
+    color: color-mix(in srgb, var(--ui-text) 78%, var(--ui-text-muted)) !important;
+    font-size: 0.76rem !important;
+    line-height: 1.4;
+  }
+
+  /* Keep only the useful resume destination on Weaver. Remove the duplicated
+     RESUME label and remove Threadwatcher's explanatory context entirely. */
+  .launcherMode .modeContext {
+    display: flex !important;
+    width: max-content;
+    max-width: 72%;
+    margin-top: 0.28rem;
+    border: 1px solid color-mix(in srgb, var(--ui-accent) 34%, var(--ui-border));
+    border-radius: 0.3rem;
+    padding: 0.22rem 0.48rem;
+    background: rgba(3, 7, 14, 0.6);
+    color: var(--ui-accent-hover) !important;
+    font-size: 0.66rem;
+  }
+
+  .launcherMode .modeContext small {
+    display: none;
   }
 
   .launcherMode.launcherMode
     section[aria-labelledby='secondary-entry-heading']
     > div
+    > div:last-child
+    .modeContext {
+    display: none !important;
+  }
+
+  .launcherMode .changeWeaver {
+    right: 1rem;
+    bottom: 0.72rem;
+    padding: 0;
+    background: none !important;
+    color: var(--ui-accent-hover);
+    font-size: 0 !important;
+  }
+
+  .launcherMode .changeWeaver::after {
+    content: 'Change world →';
+    font-size: 0.7rem;
+  }
+
+  .launcherMode.launcherMode
     > div
-    > a:first-child
-    > span:nth-child(2)
-    span {
-    line-height: 1.42;
+    > div
+    > section[aria-labelledby='launcher-utilities-heading'] {
+    grid-area: actions !important;
+    min-height: 0;
+    padding-top: 0.05rem;
+  }
+
+  .launcherMode .utilityHeading {
+    justify-content: flex-start;
+    gap: 0.6rem;
+    border-bottom-color: color-mix(in srgb, var(--ui-accent) 24%, transparent);
+    padding-bottom: 0.25rem;
+  }
+
+  .launcherMode .utilityHeading > span {
+    display: none;
   }
 
   .launcherMode.launcherMode
@@ -192,7 +392,7 @@
     height: auto !important;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     grid-template-rows: auto !important;
-    gap: 0.8rem !important;
+    gap: 0.65rem !important;
   }
 
   .launcherMode.launcherMode
@@ -200,19 +400,34 @@
     > div:last-child
     > div
     > a {
-    min-height: 4.85rem !important;
-    padding: 0.65rem 0.75rem !important;
+    min-height: 4.35rem !important;
+    padding: 0.52rem 0.65rem !important;
+  }
+
+  /* The focused Character uses the exact same ornament frame as its siblings;
+     focus is communicated with a restrained outer glow only. */
+  .launcherMode .resumeEntry,
+  .launcherMode.launcherMode
+    section[aria-labelledby='recent-characters']
+    > div:last-child
+    > div
+    > :first-child
+    .characterCard {
+    border-color: color-mix(in srgb, var(--ui-border) 72%, transparent) !important;
+    box-shadow:
+      0 1.15rem 3rem rgba(0, 0, 0, 0.3),
+      0 0 1.35rem color-mix(in srgb, var(--ui-accent) 10%, transparent) !important;
   }
 }
 
 @media (min-width: 981px) and (max-height: 900px) {
   .launcherMode.launcherMode > div > div {
     grid-template-rows:
-      minmax(20rem, 1fr)
+      minmax(0, 1fr)
       auto
-      minmax(7.5rem, auto)
+      7.8rem
       auto !important;
-    gap: 0.65rem !important;
+    gap: 0.52rem !important;
   }
 
   .launcherMode.launcherMode
@@ -220,8 +435,8 @@
     > div
     > div
     > a:first-child {
-    min-height: 7.5rem !important;
-    padding-block: 0.8rem !important;
+    min-height: 7.8rem !important;
+    padding-block: 0.72rem !important;
   }
 
   .launcherMode.launcherMode
@@ -229,8 +444,8 @@
     > div:last-child
     > div
     > a {
-    min-height: 4.4rem !important;
-    padding-block: 0.55rem !important;
+    min-height: 3.95rem !important;
+    padding-block: 0.42rem !important;
   }
 }
 
@@ -303,9 +518,6 @@
     min-width: 0 !important;
   }
 
-  /* Recent characters, Weaver/Threadwatcher and utility actions are all
-     single-column on a phone. This deliberately overrides both the legacy
-     launcher grid and the desktop polish layer. */
   .launcherMode section > div,
   .launcherMode section > div > div,
   .browserMode section > div,
