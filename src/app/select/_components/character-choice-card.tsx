@@ -75,6 +75,7 @@ export function CharacterChoiceCard({
             </span>
           </span>
         </span>
+        <span className={fixStyles.characterFrameOverlay} aria-hidden="true" />
       </TrackedEntryLink>
       <PinEntryButton
         worldCharacterId={character.id}
