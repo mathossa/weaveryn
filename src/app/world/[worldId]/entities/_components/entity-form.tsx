@@ -9,6 +9,7 @@ import type {
   WorldEntityUiRecord,
 } from '@/server/world-entities'
 import styles from '../entity.module.css'
+import { EntityArtworkPicker } from './entity-artwork-picker'
 import { ImageFocusPicker } from './image-focus-picker'
 import { RelationshipTypeInput } from './relationship-type-input'
 import { VisibilityFields, type VisibilityValue } from './visibility-fields'
@@ -149,7 +150,9 @@ export function EntityForm({
     () => (typeChoice === '__custom__' ? customType.trim() : typeChoice),
     [customType, typeChoice],
   )
-  const previewImage = image.trim() || uiAssets.backgrounds.entityBanner.src
+  const artworkChoices = uiAssets.resolveEntityArtworkChoices(entityType)
+  const previewImage =
+    image.trim() || uiAssets.resolveEntityFallbackArtwork(entityType)
 
   function updateField(id: string, patch: Partial<EditableField>) {
     setFields((current) =>
@@ -261,7 +264,10 @@ export function EntityForm({
           <span>Type</span>
           <select
             value={typeChoice}
-            onChange={(event) => setTypeChoice(event.target.value)}
+            onChange={(event) => {
+              if (uiAssets.isEntityArtworkSource(image)) setImage('')
+              setTypeChoice(event.target.value)
+            }}
           >
             {entityTypes.map((choice) => (
               <option
@@ -296,16 +302,37 @@ export function EntityForm({
             onChange={(event) => setName(event.target.value)}
           />
         </label>
+      </div>
+
+      <section className={styles.formSection}>
+        <div className={styles.sectionHeading}>
+          <div>
+            <h2>Artwork</h2>
+            <p>
+              Choose one of six built-in images. The first is the automatic
+              fallback when no image is saved.
+            </p>
+          </div>
+        </div>
+        <EntityArtworkPicker
+          choices={artworkChoices}
+          image={image}
+          onChange={(selectedImage) => {
+            setImage(selectedImage)
+            setImageFocusX(50)
+            setImageFocusY(50)
+          }}
+        />
         <label className={styles.field}>
-          <span>Image URL (optional)</span>
+          <span>Image path or URL (optional)</span>
           <input
             maxLength={2000}
             value={image}
             onChange={(event) => setImage(event.target.value)}
-            placeholder="Default type artwork is used when empty"
+            placeholder="Leave empty to use the first artwork option"
           />
         </label>
-      </div>
+      </section>
 
       <section className={styles.formSection}>
         <div className={styles.sectionHeading}>

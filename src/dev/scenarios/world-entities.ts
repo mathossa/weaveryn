@@ -14,6 +14,7 @@ export interface WorldEntitiesScenarioState {
     worldId: string
     type: string
     name: string
+    image: string | null
     data: unknown
     visibilityScope: 'WORLD' | 'CAMPAIGN' | 'GM' | 'PLAYER' | 'PRIVATE'
     visibilityCampaignId: string | null

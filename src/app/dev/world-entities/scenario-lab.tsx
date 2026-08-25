@@ -73,12 +73,12 @@ export function WorldEntitiesLab() {
     <main className="dev-page">
       <ScenarioNavigation issueNumbers={metadata.issueNumbers} />
       <header>
-        <span>Development only · Issues #20 and #55</span>
+        <span>Development only · Issues #20, #55, and #114</span>
         <h1>World entities and relationships</h1>
         <p>
-          Exercise generic World content, simple structured data, reusable
-          custom types, MVP visibility, explicit graph relationships, same-World
-          validation, and backend authorization.
+          Exercise generic World content, six-option artwork selection, semantic
+          fallbacks, reusable custom types, MVP visibility, explicit graph
+          relationships, same-World validation, and backend authorization.
         </p>
       </header>
       <ScenarioLifecycleControls
@@ -102,6 +102,7 @@ export function WorldEntitiesLab() {
                 <li key={entity.id}>
                   <strong>{entity.name}</strong> · {entity.type} ·{' '}
                   <strong>{entity.visibilityScope}</strong> ·{' '}
+                  <code>{entity.image ?? 'semantic fallback'}</code> ·{' '}
                   <code>{JSON.stringify(entity.data)}</code>
                 </li>
               ))}

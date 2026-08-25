@@ -82,10 +82,23 @@ export function EntityBrowser({
 
       <div className={styles.entityList}>
         {filtered.length === 0 ? (
-          <div className={styles.emptyState}>
-            {entities.length === 0
-              ? 'No World entities are visible in this context yet.'
-              : 'No entities match this search and filter.'}
+          <div
+            className={styles.emptyState}
+            style={{
+              minHeight: '12rem',
+              display: 'grid',
+              placeItems: 'center',
+              borderRadius: 'var(--ui-radius-control)',
+              backgroundImage: `linear-gradient(rgba(8, 10, 15, 0.78), rgba(8, 10, 15, 0.9)), url("${uiAssets.backgrounds.entityBanner.src}")`,
+              backgroundPosition: 'center',
+              backgroundSize: 'cover',
+            }}
+          >
+            <span>
+              {entities.length === 0
+                ? 'No World entities are visible in this context yet.'
+                : 'No entities match this search and filter.'}
+            </span>
           </div>
         ) : (
           filtered.map((entity) => (
@@ -101,7 +114,10 @@ export function EntityBrowser({
             >
               <FocalImage
                 className={styles.entityArt}
-                src={entity.image || uiAssets.backgrounds.entityBanner.src}
+                src={
+                  entity.image ||
+                  uiAssets.resolveEntityFallbackArtwork(entity.type)
+                }
                 focusX={entity.imageFocusX}
                 focusY={entity.imageFocusY}
               />

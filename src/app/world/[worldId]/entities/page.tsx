@@ -6,6 +6,7 @@ import {
   requestedCharacterContext,
   withCharacterContext,
 } from '@/lib/campaign-context'
+import { uiAssets } from '@/lib/ui-assets'
 import { getWorldEntityBrowseWorkspace } from '@/server/world-entities'
 import { loadWorldPageUser } from '../../_lib/load-world-user'
 import { EntityBrowser } from './_components/entity-browser'
@@ -104,6 +105,19 @@ export default async function WorldEntitiesPage({
             or targeted visibility.
           </div>
         ) : null}
+        <div
+          aria-hidden="true"
+          style={{
+            minHeight: 'clamp(5.5rem, 8vw, 8rem)',
+            marginBottom: '1rem',
+            overflow: 'hidden',
+            border: '1px solid var(--ui-border)',
+            borderRadius: 'var(--ui-radius-panel)',
+            backgroundImage: `linear-gradient(90deg, rgba(7, 9, 14, 0.38), rgba(7, 9, 14, 0.08), rgba(7, 9, 14, 0.38)), url("${uiAssets.backgrounds.entityBanner.src}")`,
+            backgroundPosition: 'center',
+            backgroundSize: 'cover',
+          }}
+        />
         <EntityBrowser
           worldId={worldId}
           campaignId={campaignId}
