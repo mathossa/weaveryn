@@ -49,29 +49,35 @@
     padding: 0 !important;
   }
 
-  /* Keep the artwork and its shade extending beneath the 22px ornamental
-     border. The card still clips at its outer edge, so the frame masks the
-     image naturally instead of exposing the dark card background. */
+  /* Character artwork is full-bleed. The ornamental artwork is now only an
+     overlay and never participates in card geometry, so there is no dark
+     border box between the image and the frame. */
+  :global(section):has(:global(#secondary-entry-heading))
+    .ornamentFrame
+    .ornamentCard {
+    overflow: hidden !important;
+    border: 0 !important;
+    border-image: none !important;
+    border-radius: 0.8rem !important;
+    background: #050811 !important;
+  }
+
   .ornamentFrame .ornamentCard > img {
-    top: -22px !important;
-    left: -22px !important;
-    right: auto !important;
-    bottom: auto !important;
-    width: calc(100% + 44px) !important;
-    height: calc(100% + 44px) !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
     max-width: none !important;
   }
 
   .ornamentFrame .ornamentCard > img + span[aria-hidden='true'] {
-    inset: -22px !important;
+    inset: 0 !important;
   }
 
-  /* Repaint the exact supplied frame above the artwork. This overlay is the
-     visible frame; the underlying border-image continues to define card
-     geometry while the image can safely extend beneath it. */
+  /* Paint the exact supplied frame above the image without consuming layout
+     space. All three Character cards use the same 22px visual girth. */
   .characterFrameOverlay {
     position: absolute;
-    inset: -22px;
+    inset: 0;
     z-index: 4;
     display: block;
     box-sizing: border-box;
@@ -83,19 +89,20 @@
     pointer-events: none;
   }
 
-  /* Every recent Character uses the same frame girth. The selected/current
-     Character is differentiated by halo only, never by a thicker border. */
-  .ornamentFrame .ornamentCard {
-    border: 14px solid transparent !important;
-    border-image-source: url('/images/ui/weaveryn-woven-frame.svg') !important;
-    border-image-slice: 72 !important;
-    border-image-width: 14px !important;
-    border-image-repeat: stretch !important;
-    border-radius: 0.72rem !important;
-  }
-
   .ornamentFrame:first-child {
     z-index: 3;
+  }
+
+  /* Selected/current Character: same frame, halo only. */
+  :global(section):has(:global(#secondary-entry-heading))
+    .ornamentFrame:first-child
+    .ornamentCard {
+    box-shadow:
+      0 1.45rem 3.8rem rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(236, 202, 127, 0.28),
+      0 0 1.5rem rgba(233, 187, 91, 0.25),
+      0 0 3.6rem rgba(224, 165, 67, 0.22),
+      0 0 5.8rem rgba(189, 124, 35, 0.11) !important;
   }
 
   .ornamentFrame:first-child .characterFrameOverlay {
@@ -104,14 +111,8 @@
       drop-shadow(0 0 1.4rem rgba(222, 164, 64, 0.24));
   }
 
-  .ornamentFrame:first-child .ornamentCard {
-    box-shadow:
-      0 1.55rem 3.8rem rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(219, 177, 91, 0.22),
-      0 0 2.8rem rgba(201, 151, 67, 0.2) !important;
-  }
-
-  /* The old CSS ornament is replaced by the scalable border-image. */
+  /* Disable the older generated CSS ornament so only the supplied artwork is
+     visible around Character cards. */
   .ornamentFrame::before,
   .ornamentFrame::after,
   .ornamentFrame .ornamentCard::before,
