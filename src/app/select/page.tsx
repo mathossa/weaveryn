@@ -215,11 +215,11 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
     latestUsedAt > 0 && weaverResume?.lastUsedAt?.getTime() === latestUsedAt
 
   return (
-    <AuthenticatedAppShell user={user}>
+    <AuthenticatedAppShell user={user} variant="launcher">
       <AppPage
         title={showAll ? 'Browse the Weave' : 'Return to the Weave'}
         layout="workspace"
-        className={`${styles.launcherPage} ${polishStyles.polishedLauncher} ${showAll ? `${styles.expandedLauncher} ${polishStyles.browserLauncher} ${refineStyles.browserMode}` : `${polishStyles.compactLauncher} ${refineStyles.launcherMode}`}`}
+        className={`${styles.launcherPage} ${polishStyles.polishedLauncher} ${!hasCharacterSection && !showAll ? polishStyles.emptyLauncher : ''} ${showAll ? `${styles.expandedLauncher} ${polishStyles.browserLauncher} ${refineStyles.browserMode}` : `${polishStyles.compactLauncher} ${refineStyles.launcherMode}`}`}
         actions={
           allCharacterEntries.length > 3 ? (
             <Link
@@ -233,6 +233,18 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
         }
       >
         <div className={`${styles.stack} ${polishStyles.stack}`}>
+          {!hasAnyEntry ? (
+            <div className={polishStyles.emptyState}>
+              <StatusPanel tone="empty" title="Your weave is ready to begin">
+                <p>
+                  You do not have a Character, Campaign role, or manageable
+                  World yet. Create a Character, join an invite, or enter as
+                  Weaver to begin a World.
+                </p>
+              </StatusPanel>
+            </div>
+          ) : null}
+
           {hasCharacterSection ? (
             <section
               className={`${styles.section} ${polishStyles.recentStories}`}
@@ -392,30 +404,45 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
             >
               <div className={styles.roleGrid}>
                 <div
-                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${refineStyles.uniformEntryFrame} ${weaverHighlighted ? `${styles.resumeEntry} ${polishStyles.resumeEntry}` : ''}`}
+                  className={`${styles.weaverCard} ${polishStyles.modePanel} ${weaverHighlighted ? `${styles.resumeEntry} ${polishStyles.resumeEntry}` : ''}`}
                 >
                   <TrackedEntryLink
-                    className={`${styles.weaverMainAction} ${polishStyles.entryTile} ${refineStyles.uniformEntryTile} ${weaverResume ? refineStyles.weaverResumeTile : ''}`}
+                    className={`${styles.weaverMainAction} ${polishStyles.modeLink} ${weaverResume ? refineStyles.weaverResumeTile : ''}`}
                     href={weaverResumeHref ?? '/world?mode=weaver'}
                     tracking={weaverResumeTracking}
                   >
-                    <span className={styles.weaverGlyph} aria-hidden="true">
+                    <span
+                      className={`${styles.weaverGlyph} ${polishStyles.modeGlyph}`}
+                      aria-hidden="true"
+                    >
                       ✦
                     </span>
-                    <span className={styles.weaverCopy}>
+                    <span
+                      className={`${styles.weaverCopy} ${polishStyles.modeCopy}`}
+                    >
+                      <span className={polishStyles.modeKicker}>
+                        Shape the story
+                      </span>
                       <strong>Weaver</strong>
+                      <span className={polishStyles.modeDescription}>
+                        Return behind the veil to guide a World and its
+                        Campaigns.
+                      </span>
                       {weaverResume ? (
-                        <span className={refineStyles.resumeCopy}>
+                        <span className={polishStyles.modeContext}>
+                          <small>Resume</small>
                           <span>
-                            Continue {weaverResume.world.name}
-                            {weaverResume.campaign ? ' —' : ''}
+                            {weaverResume.world.name}
+                            {weaverResume.campaign
+                              ? ` · ${weaverResume.campaign.name}`
+                              : ''}
                           </span>
-                          {weaverResume.campaign ? (
-                            <span>{weaverResume.campaign.name}</span>
-                          ) : null}
                         </span>
                       ) : (
-                        <span>Choose a World to shape and manage.</span>
+                        <span className={polishStyles.modeContext}>
+                          <small>Begin</small>
+                          <span>Choose a World to shape and manage.</span>
+                        </span>
                       )}
                     </span>
                     <span className={styles.weaverArrow} aria-hidden="true">
@@ -433,19 +460,31 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                 </div>
 
                 <div
-                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${refineStyles.uniformEntryFrame}`}
+                  className={`${styles.weaverCard} ${polishStyles.modePanel}`}
                 >
                   <Link
-                    className={`${styles.weaverMainAction} ${polishStyles.entryTile} ${refineStyles.uniformEntryTile}`}
+                    className={`${styles.weaverMainAction} ${polishStyles.modeLink}`}
                     href="/world?mode=threadwatcher"
                   >
-                    <span className={styles.weaverGlyph} aria-hidden="true">
+                    <span
+                      className={`${styles.weaverGlyph} ${polishStyles.modeGlyph}`}
+                      aria-hidden="true"
+                    >
                       ◉
                     </span>
-                    <span className={styles.weaverCopy}>
+                    <span
+                      className={`${styles.weaverCopy} ${polishStyles.modeCopy}`}
+                    >
+                      <span className={polishStyles.modeKicker}>
+                        Observe the story
+                      </span>
                       <strong>Threadwatcher</strong>
-                      <span>
-                        Observe a Campaign without taking a Character.
+                      <span className={polishStyles.modeDescription}>
+                        Follow a Campaign without entering as a Character.
+                      </span>
+                      <span className={polishStyles.modeContext}>
+                        <small>Entry</small>
+                        <span>Choose a visible read-only Campaign.</span>
                       </span>
                     </span>
                     <span className={styles.weaverArrow} aria-hidden="true">
@@ -457,27 +496,22 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
             </section>
           ) : null}
 
-          {!hasAnyEntry ? (
-            <StatusPanel tone="empty" title="Your weave is ready to begin">
-              <p>
-                You do not have a Character, Campaign role, or manageable World
-                yet. Create a Character, join an invite, or enter as Weaver to
-                begin a World.
-              </p>
-            </StatusPanel>
-          ) : null}
-
           {!showAll ? (
             <section
               className={`${styles.section} ${styles.entryActions} ${polishStyles.managementActions}`}
-              aria-labelledby="secondary-entry-heading"
+              aria-labelledby="launcher-utilities-heading"
             >
+              <div className={polishStyles.utilityHeading}>
+                <h2 id="launcher-utilities-heading">Utilities</h2>
+                <span>Create, join, or tend your identities</span>
+              </div>
+
               <div className={styles.actions}>
                 <div
-                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${refineStyles.uniformEntryFrame}`}
+                  className={`${styles.weaverCard} ${polishStyles.utilityFrame}`}
                 >
                   <Link
-                    className={`${styles.weaverMainAction} ${polishStyles.entryTile} ${refineStyles.uniformEntryTile}`}
+                    className={`${styles.weaverMainAction} ${polishStyles.utilityLink}`}
                     href="/select/create-character"
                   >
                     <span className={styles.weaverGlyph} aria-hidden="true">
@@ -494,10 +528,10 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                 </div>
 
                 <div
-                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${refineStyles.uniformEntryFrame}`}
+                  className={`${styles.weaverCard} ${polishStyles.utilityFrame}`}
                 >
                   <Link
-                    className={`${styles.weaverMainAction} ${polishStyles.entryTile} ${refineStyles.uniformEntryTile}`}
+                    className={`${styles.weaverMainAction} ${polishStyles.utilityLink}`}
                     href="/select/join"
                   >
                     <span className={styles.weaverGlyph} aria-hidden="true">
@@ -514,10 +548,10 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                 </div>
 
                 <div
-                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${refineStyles.uniformEntryFrame}`}
+                  className={`${styles.weaverCard} ${polishStyles.utilityFrame}`}
                 >
                   <Link
-                    className={`${styles.weaverMainAction} ${polishStyles.entryTile} ${refineStyles.uniformEntryTile}`}
+                    className={`${styles.weaverMainAction} ${polishStyles.utilityLink}`}
                     href="/character"
                   >
                     <span className={styles.weaverGlyph} aria-hidden="true">

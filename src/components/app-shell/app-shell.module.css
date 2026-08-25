@@ -21,6 +21,11 @@
   filter: saturate(0.82) brightness(0.55);
 }
 
+.launcherBackgroundImage {
+  opacity: 0.46;
+  filter: saturate(0.76) contrast(1.08) brightness(0.64);
+}
+
 .backgroundVeil {
   position: absolute;
   inset: 0;
@@ -32,6 +37,23 @@
       rgba(4, 7, 12, 0.9) 62%,
       rgba(3, 5, 9, 0.97)
     );
+}
+
+.launcherBackgroundVeil {
+  background:
+    radial-gradient(
+      ellipse at 50% 42%,
+      rgba(5, 8, 14, 0.74) 0 24%,
+      rgba(4, 7, 12, 0.48) 52%,
+      rgba(2, 4, 8, 0.9) 100%
+    ),
+    radial-gradient(
+      circle at 16% 24%,
+      rgba(201, 165, 102, 0.08),
+      transparent 25rem
+    ),
+    linear-gradient(180deg, rgba(3, 5, 9, 0.46), rgba(2, 4, 8, 0.88));
+  box-shadow: inset 0 0 13rem rgba(0, 0, 0, 0.66);
 }
 
 .header {
@@ -51,6 +73,50 @@
   background: color-mix(in srgb, var(--ui-panel-strong) 94%, black 6%);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(18px);
+}
+
+.launcherHeader {
+  grid-template-columns: minmax(11rem, 0.8fr) minmax(12rem, 2fr) minmax(
+      10rem,
+      0.8fr
+    );
+  border-bottom-color: color-mix(
+    in srgb,
+    var(--ui-accent) 18%,
+    var(--ui-border)
+  );
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--ui-panel-strong) 96%, black),
+    color-mix(in srgb, var(--ui-panel-strong) 91%, black)
+  );
+}
+
+.launcherThread {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--ui-accent) 36%, transparent) 22%,
+    color-mix(in srgb, var(--ui-accent) 18%, transparent) 50%,
+    color-mix(in srgb, var(--ui-accent) 36%, transparent) 78%,
+    transparent
+  );
+}
+
+.launcherThread::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.4rem;
+  height: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 58%, transparent);
+  background: color-mix(in srgb, var(--ui-panel-strong) 96%, black);
+  content: '';
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 
 .brand {
@@ -81,12 +147,20 @@
   filter: drop-shadow(0 0 14px rgba(201, 165, 102, 0.2));
 }
 
-.brandName {
+.brandWordmark {
+  display: block;
+  width: auto;
+  max-width: min(9.5rem, 20vw);
+  height: 1.5rem;
+  object-fit: contain;
+  object-position: left center;
+  color: var(--ui-text);
   font-family: Georgia, 'Times New Roman', serif;
   font-size: clamp(1.25rem, 2vw, 1.55rem);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.045em;
+  line-height: 1.5rem;
+  text-shadow: 0 0 1.2rem color-mix(in srgb, var(--ui-accent) 18%, transparent);
 }
 
 .desktopContext {
@@ -527,8 +601,11 @@ a.contextEntry:hover {
     height: 2.35rem;
   }
 
-  .brandName {
+  .brandWordmark {
+    max-width: 7rem;
+    height: 1.25rem;
     font-size: 1.05rem;
+    line-height: 1.25rem;
   }
 
   .contextTrail,
@@ -575,7 +652,7 @@ a.contextEntry:hover {
 }
 
 @media (min-width: 641px) and (max-width: 760px) {
-  .brandName,
+  .brandWordmark,
   .profileName,
   .profileChevron {
     display: none;
@@ -600,7 +677,7 @@ a.contextEntry:hover {
     height: 2.25rem;
   }
 
-  .brandName,
+  .brandWordmark,
   .desktopContext,
   .profileName,
   .profileChevron {
@@ -622,6 +699,10 @@ a.contextEntry:hover {
     color: var(--ui-text);
     font: inherit;
     cursor: pointer;
+  }
+
+  .launcherHeader .mobileContextButton {
+    display: none;
   }
 
   .mobileContextButton:hover {

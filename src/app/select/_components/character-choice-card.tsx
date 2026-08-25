@@ -26,7 +26,7 @@ export function CharacterChoiceCard({
   const destination = campaign
     ? `/world/${character.worldId}/campaign/${campaign.id}?character=${character.id}`
     : `/character/${character.id}`
-  const contextLabel = campaign?.name ?? 'No campaign'
+  const contextLabel = campaign?.name ?? 'No Campaign'
 
   return (
     <div className={`${styles.characterCardFrame} ${fixStyles.ornamentFrame}`}>
@@ -59,18 +59,19 @@ export function CharacterChoiceCard({
         <span
           className={`${styles.characterCopy} ${polishStyles.characterCopy}`}
         >
-          <strong>{character.name}</strong>
-          <span className={styles.characterCampaign}>{contextLabel}</span>
-          <span className={styles.characterWorldTime}>
-            <span>{character.worldName}</span>
-            <span>{campaign?.currentWorldDateLabel ?? 'Time not set'}</span>
-          </span>
-          <span className={polishStyles.characterFooter}>
-            <span className={styles.characterMembers}>
-              {campaign ? `${campaign.memberCount} members` : 'No party yet'}
+          <strong className={styles.characterName}>{character.name}</strong>
+          <span className={styles.characterContext}>
+            <span className={styles.characterContextRow}>
+              <small>Campaign</small>
+              <span className={styles.characterCampaignName}>
+                {contextLabel}
+              </span>
             </span>
-            <span className={polishStyles.continueAction} aria-hidden="true">
-              Continue <span>→</span>
+            <span className={styles.characterContextRow}>
+              <small>World</small>
+              <span className={styles.characterWorldName}>
+                {character.worldName}
+              </span>
             </span>
           </span>
         </span>

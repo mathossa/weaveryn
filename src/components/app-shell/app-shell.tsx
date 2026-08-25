@@ -6,12 +6,14 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react'
 import { BrandLogo } from '@/components/ui/brand-logo'
+import { BrandWordmark } from '@/components/ui/brand-wordmark'
 import { uiAssets } from '@/lib/ui-assets'
 import styles from './app-shell.module.css'
 import switcherStyles from './context-switcher.module.css'
 
 export type AppShellContextKind = 'world' | 'campaign' | 'character'
 export type AppShellContextMode = 'weaver' | 'threadwatcher'
+export type AppShellVariant = 'default' | 'launcher'
 
 export interface AppShellContextLink {
   id?: string
@@ -36,6 +38,7 @@ export interface AppShellProps {
   children: ReactNode
   user: AppShellUser
   context?: AppShellContext
+  variant?: AppShellVariant
 }
 
 interface ContextItem extends AppShellContextLink {
@@ -383,7 +386,12 @@ function DesktopContextEntry({
   )
 }
 
-export function AppShell({ children, user, context }: AppShellProps) {
+export function AppShell({
+  children,
+  user,
+  context,
+  variant = 'default',
+}: AppShellProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [accountOpen, setAccountOpen] = useState(false)
@@ -572,51 +580,63 @@ export function AppShell({ children, user, context }: AppShellProps) {
           fill
           loading="eager"
           sizes="100vw"
-          className={styles.backgroundImage}
+          className={`${styles.backgroundImage} ${variant === 'launcher' ? styles.launcherBackgroundImage : ''}`}
         />
-        <div className={styles.backgroundVeil} />
+        <div
+          className={`${styles.backgroundVeil} ${variant === 'launcher' ? styles.launcherBackgroundVeil : ''}`}
+        />
       </div>
 
-      <header className={styles.header}>
+      <header
+        className={`${styles.header} ${variant === 'launcher' ? styles.launcherHeader : ''}`}
+      >
         <Link
           className={styles.brand}
           href="/select"
           aria-label="Weaveryn home"
         >
           <BrandLogo className={styles.brandLogo} />
-          <span className={styles.brandName}>Weaveryn</span>
+          <BrandWordmark className={styles.brandWordmark} />
         </Link>
 
-        <nav className={styles.desktopContext} aria-label="Current context">
-          {switcherKind && !contextOpen ? (
-            <button
-              type="button"
-              className={styles.dismissLayer}
-              tabIndex={-1}
-              aria-label="Close context switcher"
-              onClick={() => setSwitcherKind(null)}
-            />
-          ) : null}
-          <div className={styles.contextTrail}>
-            {contextKinds.map((kind) => {
-              const canSwitch = canSwitchContext(kind, identifiers, contextMode)
-              return (
-                <div className={styles.contextTrailSlot} key={kind}>
-                  <DesktopContextEntry
-                    kind={kind}
-                    item={context?.[kind]}
-                    canSwitch={canSwitch}
-                    open={switcherKind === kind}
-                    state={contextOptions[kind] ?? { status: 'idle' }}
-                    onToggle={() => toggleSwitcher(kind)}
-                    onSelect={selectContextOption}
-                    onRetry={() => void loadContextOptions(kind, true)}
-                  />
-                </div>
-              )
-            })}
-          </div>
-        </nav>
+        {variant === 'launcher' ? (
+          <span className={styles.launcherThread} aria-hidden="true" />
+        ) : (
+          <nav className={styles.desktopContext} aria-label="Current context">
+            {switcherKind && !contextOpen ? (
+              <button
+                type="button"
+                className={styles.dismissLayer}
+                tabIndex={-1}
+                aria-label="Close context switcher"
+                onClick={() => setSwitcherKind(null)}
+              />
+            ) : null}
+            <div className={styles.contextTrail}>
+              {contextKinds.map((kind) => {
+                const canSwitch = canSwitchContext(
+                  kind,
+                  identifiers,
+                  contextMode,
+                )
+                return (
+                  <div className={styles.contextTrailSlot} key={kind}>
+                    <DesktopContextEntry
+                      kind={kind}
+                      item={context?.[kind]}
+                      canSwitch={canSwitch}
+                      open={switcherKind === kind}
+                      state={contextOptions[kind] ?? { status: 'idle' }}
+                      onToggle={() => toggleSwitcher(kind)}
+                      onSelect={selectContextOption}
+                      onRetry={() => void loadContextOptions(kind, true)}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+          </nav>
+        )}
 
         <button
           type="button"

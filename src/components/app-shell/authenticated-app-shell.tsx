@@ -3,18 +3,20 @@ import { redirect } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { getAuthenticatedUser, type AuthenticatedUser } from '@/server/auth'
 import { AppShell } from './app-shell'
-import type { AppShellContext } from './app-shell'
+import type { AppShellContext, AppShellVariant } from './app-shell'
 
 export interface AuthenticatedAppShellProps {
   children: ReactNode
   context?: AppShellContext
   user?: AuthenticatedUser
+  variant?: AppShellVariant
 }
 
 export async function AuthenticatedAppShell({
   children,
   context,
   user: suppliedUser,
+  variant,
 }: AuthenticatedAppShellProps) {
   const user =
     suppliedUser ?? (await getAuthenticatedUser(new Headers(await headers())))
@@ -28,6 +30,7 @@ export async function AuthenticatedAppShell({
         email: user.email,
       }}
       context={context}
+      variant={variant}
     >
       {children}
     </AppShell>

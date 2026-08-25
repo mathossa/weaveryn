@@ -14,10 +14,6 @@
   animation: none !important;
 }
 
-:global(header):has(+ :global(main) .browserMode)::before {
-  animation: none !important;
-}
-
 /* Character-card ornaments are launcher-only. The ornament class lives in a
    different CSS module, so target the rendered card links rather than trying
    to reference that module-local class here. */

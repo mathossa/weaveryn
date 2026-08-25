@@ -33,12 +33,19 @@ export function PortableCharacterChoiceCard({
         aria-hidden="true"
       />
       <span className={`${styles.characterCopy} ${polishStyles.characterCopy}`}>
-        <strong>{character.name}</strong>
-        <span>Portable Character</span>
-        <span className={polishStyles.characterFooter}>
-          <span className={styles.characterMeta}>Not in a World yet</span>
-          <span className={polishStyles.continueAction} aria-hidden="true">
-            Open <span>→</span>
+        <strong className={styles.characterName}>{character.name}</strong>
+        <span className={styles.characterContext}>
+          <span className={styles.characterContextRow}>
+            <small>Character</small>
+            <span className={styles.characterCampaignName}>
+              Portable identity
+            </span>
+          </span>
+          <span className={styles.characterContextRow}>
+            <small>World</small>
+            <span className={styles.characterWorldName}>
+              Not yet woven into a World
+            </span>
           </span>
         </span>
       </span>

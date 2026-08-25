@@ -132,6 +132,33 @@ async function createCampaign(
   return result.body.campaign
 }
 
+async function expectSharedFooterAlignment(page: Page) {
+  const alignment = await page.evaluate(() => {
+    const main = document.querySelector<HTMLElement>('main > section')
+    const footer = document.querySelector<HTMLElement>('[data-app-footer-grid]')
+    if (!main || !footer) throw new Error('Shared layout grid was not found.')
+
+    const mainRect = main.getBoundingClientRect()
+    const footerRect = footer.getBoundingClientRect()
+    const mainStyle = getComputedStyle(main)
+    const footerStyle = getComputedStyle(footer)
+    return {
+      mainLeft: mainRect.left + Number.parseFloat(mainStyle.paddingLeft),
+      mainRight: mainRect.right - Number.parseFloat(mainStyle.paddingRight),
+      footerLeft: footerRect.left + Number.parseFloat(footerStyle.paddingLeft),
+      footerRight:
+        footerRect.right - Number.parseFloat(footerStyle.paddingRight),
+    }
+  })
+
+  expect(
+    Math.abs(alignment.mainLeft - alignment.footerLeft),
+  ).toBeLessThanOrEqual(1)
+  expect(
+    Math.abs(alignment.mainRight - alignment.footerRight),
+  ).toBeLessThanOrEqual(1)
+}
+
 async function assertUnavailableRoutes(
   page: Page,
   worldId: string,
@@ -216,6 +243,16 @@ test('persists and protects the complete MVP backbone', async ({
       fixture.users.owner,
     )
     ownerContext = owner.context
+    await expect(
+      owner.page.getByRole('heading', { name: 'Return to the Weave' }),
+    ).toBeVisible()
+    await expect(
+      owner.page.getByRole('heading', {
+        name: 'Your weave is ready to begin',
+      }),
+    ).toBeVisible()
+    await expectNoHorizontalOverflow(owner.page)
+    await capture(owner.page, testInfo, 'selection-empty')
     await owner.page.close()
     memberContext = await registerThroughApi(
       browser,
@@ -490,6 +527,43 @@ test('persists and protects the complete MVP backbone', async ({
     await expect(
       ownerPage.getByText(fixture.character.name).first(),
     ).toBeVisible()
+    const primaryEntry = ownerPage.getByRole('link', {
+      name: `Enter ${fixture.primaryCampaign.name} as ${fixture.character.name} in ${fixture.primaryWorld.name}`,
+    })
+    await expect(
+      primaryEntry.getByText('Campaign', { exact: true }),
+    ).toBeVisible()
+    await expect(primaryEntry.getByText('World', { exact: true })).toBeVisible()
+    await expect(
+      primaryEntry.getByText('Continue', { exact: true }),
+    ).toHaveCount(0)
+    await expect(primaryEntry.getByText(/members?/i)).toHaveCount(0)
+    await expect(
+      primaryEntry.getByText('12 Emberwane', { exact: true }),
+    ).toHaveCount(0)
+    await expect(
+      ownerPage.getByRole('heading', { name: 'Other paths through the Weave' }),
+    ).toBeVisible()
+    await expect(
+      ownerPage.getByRole('link', { name: /\bWeaver\b/ }),
+    ).toBeVisible()
+    await expect(
+      ownerPage.getByRole('link', { name: /Threadwatcher/ }),
+    ).toBeVisible()
+    await expect(ownerPage.getByRole('link', { name: 'Change' })).toBeVisible()
+    await expect(
+      ownerPage.getByRole('heading', { name: 'Utilities' }),
+    ).toBeVisible()
+    await expect(
+      ownerPage.getByRole('button', { name: 'Unpin entry' }),
+    ).toBeVisible()
+    await expect(
+      ownerPage.getByRole('navigation', { name: 'Current context' }),
+    ).toHaveCount(0)
+    await expect(ownerPage.getByText('THE WEAVE', { exact: true })).toHaveCount(
+      0,
+    )
+    await expectNoHorizontalOverflow(ownerPage)
     await capture(ownerPage, testInfo, 'selection-screen')
     await ownerPage.goto(`/world/${ids.primaryWorldId}`)
     await expect(
@@ -1065,6 +1139,15 @@ test('persists and protects the complete MVP backbone', async ({
     )
 
     await ownerPage.setViewportSize({ width: 390, height: 844 })
+    await ownerPage.goto('/select')
+    await expect(
+      ownerPage.getByRole('heading', { name: 'Return to the Weave' }),
+    ).toBeVisible()
+    await expect(
+      ownerPage.getByRole('button', { name: 'Choose Entity' }),
+    ).not.toBeVisible()
+    await expectNoHorizontalOverflow(ownerPage)
+    await capture(ownerPage, testInfo, 'selection-390x844')
     await ownerPage.goto(
       `/world/${ids.primaryWorldId}/campaign/${ids.primaryCampaignId}?mode=weaver`,
     )
@@ -1091,6 +1174,12 @@ test('persists and protects the complete MVP backbone', async ({
     await mobileCloseButton.click()
 
     await ownerPage.setViewportSize({ width: 820, height: 1180 })
+    await ownerPage.goto('/select')
+    await expect(
+      ownerPage.getByRole('heading', { name: 'Return to the Weave' }),
+    ).toBeVisible()
+    await expectNoHorizontalOverflow(ownerPage)
+    await capture(ownerPage, testInfo, 'selection-820x1180')
     await ownerPage.goto(
       `/world/${ids.primaryWorldId}/entities/${ids.organizationEntityId}`,
     )
@@ -1109,10 +1198,35 @@ test('persists and protects the complete MVP backbone', async ({
     await ownerPage.getByRole('button', { name: 'Close' }).click()
 
     await ownerPage.setViewportSize({ width: 1920, height: 1080 })
+    await ownerPage.goto('/select')
+    await expect(
+      ownerPage.getByRole('heading', { name: 'Return to the Weave' }),
+    ).toBeVisible()
+    await expectNoHorizontalOverflow(ownerPage)
+    await expectSharedFooterAlignment(ownerPage)
+    await capture(ownerPage, testInfo, 'selection-1920x1080')
+    await ownerPage.goto('/select?show=all')
+    await expect(
+      ownerPage.getByRole('heading', { name: 'Browse the Weave' }),
+    ).toBeVisible()
+    await expect(ownerPage.getByLabel('Search')).toBeVisible()
+    await expect(
+      ownerPage.getByRole('combobox', { name: /^World/ }),
+    ).toBeVisible()
+    await expect(ownerPage.getByLabel('Sort')).toBeVisible()
+    await expectNoHorizontalOverflow(ownerPage)
+    await capture(ownerPage, testInfo, 'selection-browse-all-1920x1080')
     await ownerPage.goto(`/world/${ids.primaryWorldId}/entities`)
     await expectNoHorizontalOverflow(ownerPage)
 
     await ownerPage.setViewportSize({ width: 2560, height: 1440 })
+    await ownerPage.goto('/select')
+    await expect(
+      ownerPage.getByRole('heading', { name: 'Return to the Weave' }),
+    ).toBeVisible()
+    await expectNoHorizontalOverflow(ownerPage)
+    await expectSharedFooterAlignment(ownerPage)
+    await capture(ownerPage, testInfo, 'selection-2560x1440')
     await ownerPage.goto(
       `/world/${ids.primaryWorldId}/campaign/${ids.primaryCampaignId}/manage?mode=weaver`,
       { waitUntil: 'domcontentloaded' },

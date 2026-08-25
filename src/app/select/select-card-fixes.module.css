@@ -66,7 +66,7 @@
   .ornamentFrame:first-child .ornamentCard::after {
     position: absolute;
     top: 0.68rem;
-    left: 1.4rem;
+    left: 50%;
     z-index: 4;
     width: 6rem;
     height: 1px;
@@ -81,7 +81,7 @@
       color-mix(in srgb, var(--ui-accent) 32%, transparent);
     pointer-events: none;
     content: '';
-    animation: alignedFeaturedThread 6.5s ease-in-out infinite;
+    transform: translateX(-50%);
   }
 
   /* Keep every bookmark on the same visual baseline. The featured bookmark is
@@ -98,24 +98,5 @@
 @media (max-width: 760px) {
   :global(main):has(.pageCardMarker) > :global(section) > :global(header) {
     margin-bottom: 2rem !important;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ornamentFrame:first-child .ornamentCard::after {
-    animation: none !important;
-  }
-}
-
-@keyframes alignedFeaturedThread {
-  0%,
-  100% {
-    left: 1.4rem;
-    opacity: 0.28;
-  }
-
-  50% {
-    left: calc(100% - 8.2rem);
-    opacity: 0.95;
   }
 }

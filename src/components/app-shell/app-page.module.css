@@ -12,8 +12,8 @@
   width: min(100%, 160rem);
   padding-top: 1.5rem;
   padding-bottom: 0;
-  padding-right: clamp(1.25rem, 3vw, 4rem);
-  padding-left: clamp(1.25rem, 3vw, 4rem);
+  padding-right: var(--ui-workspace-gutter);
+  padding-left: var(--ui-workspace-gutter);
 }
 
 .workspace .header {

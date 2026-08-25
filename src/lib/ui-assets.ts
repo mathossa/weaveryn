@@ -6,6 +6,12 @@ export type UiArtwork = Readonly<{
   width: number
   height: number
 }>
+export type UiBrandArtwork = Readonly<{
+  src: string
+  alt: string
+  width: number
+  height: number
+}>
 
 type EntityArtworkBase = Pick<UiArtwork, 'slug' | 'name' | 'alt'>
 
@@ -194,6 +200,10 @@ export function isEntityArtworkSource(value: string) {
   return entityArtworkSources.has(value.trim())
 }
 
+// The round logo and horizontal wordmark are intentionally separate brand
+// concepts. Keep this nullable until an approved wordmark asset is supplied.
+const brandWordmark: UiBrandArtwork | null = null
+
 export const uiAssets = {
   brand: {
     logo: {
@@ -202,6 +212,7 @@ export const uiAssets = {
       width: 1269,
       height: 1240,
     },
+    wordmark: brandWordmark,
   },
   backgrounds: {
     appShell: {

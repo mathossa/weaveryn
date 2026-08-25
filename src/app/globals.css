@@ -23,6 +23,7 @@
   --ui-radius-panel: 1.25rem;
   --ui-shadow-panel: 0 24px 80px rgba(0, 0, 0, 0.48);
   --ui-focus-ring: 0 0 0 3px rgba(216, 180, 112, 0.3);
+  --ui-workspace-gutter: clamp(1.25rem, 3vw, 4rem);
 }
 
 @theme inline {
