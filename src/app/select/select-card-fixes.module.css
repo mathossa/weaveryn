@@ -13,6 +13,10 @@
   position: relative;
 }
 
+.characterFrameOverlay {
+  display: none;
+}
+
 /* Give the title/action row more breathing room before the character cards.
    This applies to both the normal launcher and Browse all characters. */
 :global(main):has(.pageCardMarker) > :global(section) > :global(header) {
@@ -45,8 +49,42 @@
     padding: 0 !important;
   }
 
-  /* Every recent Character uses the woven SVG border. Keep it thicker than
-     the utility cards so Character entry remains the launcher hero. */
+  /* Keep the artwork and its shade extending beneath the 22px ornamental
+     border. The card still clips at its outer edge, so the frame masks the
+     image naturally instead of exposing the dark card background. */
+  .ornamentFrame .ornamentCard > img {
+    top: -22px !important;
+    left: -22px !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: calc(100% + 44px) !important;
+    height: calc(100% + 44px) !important;
+    max-width: none !important;
+  }
+
+  .ornamentFrame .ornamentCard > img + span[aria-hidden='true'] {
+    inset: -22px !important;
+  }
+
+  /* Repaint the exact supplied frame above the artwork. This overlay is the
+     visible frame; the underlying border-image continues to define card
+     geometry while the image can safely extend beneath it. */
+  .characterFrameOverlay {
+    position: absolute;
+    inset: -22px;
+    z-index: 4;
+    display: block;
+    box-sizing: border-box;
+    border: 22px solid transparent;
+    border-image-source: url('/images/ui/weaveryn-character-frame.svg');
+    border-image-slice: 96;
+    border-image-width: 22px;
+    border-image-repeat: stretch;
+    pointer-events: none;
+  }
+
+  /* Every recent Character uses the same frame girth. The selected/current
+     Character is differentiated by halo only, never by a thicker border. */
   .ornamentFrame .ornamentCard {
     border: 14px solid transparent !important;
     border-image-source: url('/images/ui/weaveryn-woven-frame.svg') !important;
@@ -56,15 +94,17 @@
     border-radius: 0.72rem !important;
   }
 
-  /* The first/recent Character uses the same frame language, only with more
-     visual weight and glow so it clearly reads as the current path. */
   .ornamentFrame:first-child {
     z-index: 3;
   }
 
+  .ornamentFrame:first-child .characterFrameOverlay {
+    filter:
+      drop-shadow(0 0 0.55rem rgba(245, 204, 113, 0.42))
+      drop-shadow(0 0 1.4rem rgba(222, 164, 64, 0.24));
+  }
+
   .ornamentFrame:first-child .ornamentCard {
-    border-width: 16px !important;
-    border-image-width: 16px !important;
     box-shadow:
       0 1.55rem 3.8rem rgba(0, 0, 0, 0.4),
       0 0 0 1px rgba(219, 177, 91, 0.22),
@@ -93,6 +133,7 @@
   }
 
   .ornamentFrame > button {
+    z-index: 6 !important;
     top: 1.25rem !important;
     right: 1.25rem !important;
   }
