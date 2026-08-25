@@ -180,7 +180,11 @@ body {
     align-self: center !important;
     border-color: color-mix(in srgb, var(--ui-accent) 44%, #27365f) !important;
     background:
-      radial-gradient(circle at 50% 38%, rgba(206, 171, 101, 0.12), transparent 58%),
+      radial-gradient(
+        circle at 50% 38%,
+        rgba(206, 171, 101, 0.12),
+        transparent 58%
+      ),
       rgba(5, 10, 22, 0.66) !important;
     color: color-mix(in srgb, var(--ui-accent) 74%, #8e87b7) !important;
     box-shadow:

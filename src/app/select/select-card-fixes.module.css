@@ -110,8 +110,7 @@
   }
 
   .ornamentFrame:first-child .characterFrameOverlay {
-    filter:
-      drop-shadow(0 0 0.55rem rgba(245, 204, 113, 0.42))
+    filter: drop-shadow(0 0 0.55rem rgba(245, 204, 113, 0.42))
       drop-shadow(0 0 1.4rem rgba(222, 164, 64, 0.24));
   }
 
