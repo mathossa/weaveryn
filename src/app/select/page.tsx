@@ -20,6 +20,7 @@ import { PortableCharacterChoiceCard } from './_components/portable-character-ch
 import { loadSelectionPageData } from './_lib/load-selection-page-data'
 import refineStyles from './select-launcher-refinement.module.css'
 import polishStyles from './select-polish.module.css'
+import utilityStyles from './select-utility-paths.module.css'
 import styles from './select.module.css'
 
 interface SelectPageProps {
@@ -500,7 +501,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
 
           {!showAll ? (
             <section
-              className={`${styles.section} ${styles.entryActions} ${polishStyles.managementActions}`}
+              className={`${styles.section} ${styles.entryActions} ${polishStyles.managementActions} ${utilityStyles.utilityScope}`}
               aria-labelledby="launcher-utilities-heading"
             >
               <div className={polishStyles.utilityHeading}>
