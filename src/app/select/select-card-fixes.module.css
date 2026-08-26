@@ -174,7 +174,7 @@
       :global(section[aria-labelledby='secondary-entry-heading'])
       > :global(div)
       > :global(div):hover {
-      transform: translateY(-5px);
+      transform: translateY(-5px) !important;
     }
   }
 
