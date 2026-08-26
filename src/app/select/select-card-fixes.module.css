@@ -20,7 +20,9 @@
   overflow: hidden;
 }
 
-.characterFrameOverlay {
+.characterFrameOverlay,
+.frameCorner,
+.frameOrnament {
   display: none;
 }
 
@@ -38,7 +40,7 @@
 }
 
 .characterInnerCopy {
-  /* Desktop placement is applied with the ornamental frame below. */
+  /* Desktop placement is applied with the simplified frame below. */
 }
 
 /* Give the title/action row more breathing room before the character cards.
@@ -48,8 +50,8 @@
 }
 
 @media (min-width: 981px) {
-  /* The section titles remain in the accessibility tree, but visually the
-     launcher now uses only the divider lines between its tiers. */
+  /* Keep the compact launcher dividers without visually repeating the section
+     headings inside the page. */
   :global(section):has(.pageCardMarker) :global(#secondary-entry-heading),
   :global(section):has(.pageCardMarker) :global(#launcher-utilities-heading) {
     position: absolute !important;
@@ -73,10 +75,9 @@
     padding: 0 !important;
   }
 
-  /* The outer link stays transparent so the ornate image can extend naturally.
-     All Character artwork/copy is now placed in a dedicated inner viewport.
-     That viewport is the hard clipping boundary: nothing from the portrait can
-     ever render through the transparent space outside the frame. */
+  /* Recent Character cards use a simple line-and-corner frame. The portrait is
+     clipped a couple of pixels inside that frame so it can never escape through
+     transparent ornament areas when the whole card lifts on hover. */
   :global(section):has(:global(#secondary-entry-heading))
     :global(section[aria-labelledby='recent-characters'])
     .ornamentFrame
@@ -92,8 +93,9 @@
   }
 
   .ornamentFrame .characterContentClip {
-    inset: 9% 4.8% 10.5%;
-    border-radius: 0.75rem;
+    inset: 2px;
+    z-index: 0;
+    border-radius: calc(0.86rem - 2px);
     background: #050811;
     isolation: isolate;
   }
@@ -110,47 +112,117 @@
     inset: 0 !important;
   }
 
-  /* The copy is positioned relative to the clipped inner viewport, not to the
-     outer decorative frame. This keeps the name and metadata away from the
-     needle rail while preserving the current card proportions. */
   .characterInnerCopy {
-    inset: auto 1.35rem 1.25rem 1.35rem !important;
+    inset: auto 1.35rem 2.15rem 1.35rem !important;
     padding: 0 !important;
   }
 
-  /* Render the complete transparent frame as one image instead of a 9-slice
-     border. This keeps the currently preferred girth while removing the hard
-     rectangular join/seam artifacts that border-image produced around the
-     rails, diamond and needle. */
+  .ornamentFrame:first-child .characterInnerCopy {
+    bottom: 2.9rem !important;
+  }
+
+  /* A restrained gold line connects the corner pieces. The frame is now made
+     from independent ornaments so none of the center details are stretched by
+     different card widths. */
   .characterFrameOverlay {
     position: absolute;
     inset: 0;
     z-index: 4;
     display: block;
     box-sizing: border-box;
-    background: url('/images/ui/weaveryn-character-frame.webp') center / 100% 100%
-      no-repeat;
+    border: 1px solid color-mix(in srgb, var(--ui-accent) 72%, #8b6732);
+    border-radius: 0.86rem;
+    box-shadow: inset 0 0 0 1px rgba(255, 224, 157, 0.025);
     pointer-events: none;
-    transform: translateZ(0);
-    backface-visibility: hidden;
   }
 
-  .ornamentFrame:first-child {
-    z-index: 3;
+  .frameCorner {
+    position: absolute;
+    display: block;
+    width: 3.25rem;
+    height: 3.25rem;
+    background: url('/images/ui/weaveryn-character-corner.webp') top left /
+      contain no-repeat;
+    transform-origin: center;
   }
 
-  /* Selected/current Character: keep the glow on the ornament rather than on
-     the rectangular link surface. */
+  .frameCornerTopLeft {
+    top: -0.15rem;
+    left: -0.15rem;
+  }
+
+  .frameCornerTopRight {
+    top: -0.15rem;
+    right: -0.15rem;
+    transform: rotate(90deg);
+  }
+
+  .frameCornerBottomRight {
+    right: -0.15rem;
+    bottom: -0.15rem;
+    transform: rotate(180deg);
+  }
+
+  .frameCornerBottomLeft {
+    bottom: -0.15rem;
+    left: -0.15rem;
+    transform: rotate(270deg);
+  }
+
+  .frameOrnament {
+    position: absolute;
+    left: 50%;
+    z-index: 1;
+    display: block;
+    pointer-events: none;
+  }
+
+  .frameTopOrnament {
+    top: -1.2rem;
+    width: 2.35rem;
+    height: 2.8rem;
+    background: url('/images/ui/weaveryn-character-ornament-small.webp') center /
+      contain no-repeat;
+    transform: translateX(-50%);
+  }
+
+  .frameBottomOrnament {
+    bottom: -1.2rem;
+    width: 2.35rem;
+    height: 2.8rem;
+    background: url('/images/ui/weaveryn-character-ornament-small.webp') center /
+      contain no-repeat;
+    transform: translateX(-50%) rotate(180deg);
+  }
+
+  /* The featured first Character gets the same top ornament as the smaller
+     cards and only one larger, wider ornament at the bottom. Its larger card
+     size is the selection emphasis; there is deliberately no extra aura. */
+  .ornamentFrame:first-child .frameCorner {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .ornamentFrame:first-child .frameTopOrnament {
+    top: -1.35rem;
+    width: 2.75rem;
+    height: 3.3rem;
+  }
+
+  .ornamentFrame:first-child .frameBottomOrnament {
+    bottom: -2.15rem;
+    width: 10rem;
+    height: 4.6rem;
+    background-image: url('/images/ui/weaveryn-character-ornament-featured-bottom.webp');
+    transform: translateX(-50%);
+  }
+
   :global(section):has(:global(#secondary-entry-heading))
     :global(section[aria-labelledby='recent-characters'])
     .ornamentFrame:first-child
     .ornamentCard {
+    border: 0 !important;
     box-shadow: none !important;
-  }
-
-  .ornamentFrame:first-child .characterFrameOverlay {
-    filter: drop-shadow(0 0 0.65rem rgba(245, 204, 113, 0.48))
-      drop-shadow(0 0 1.55rem rgba(222, 164, 64, 0.28));
   }
 
   .ornamentCard:focus-visible {
@@ -158,12 +230,11 @@
   }
 
   .ornamentCard:focus-visible .characterFrameOverlay {
-    filter: drop-shadow(0 0 0.65rem rgba(245, 204, 113, 0.52))
-      drop-shadow(0 0 1.5rem rgba(222, 164, 64, 0.3));
+    outline: 2px solid color-mix(in srgb, var(--ui-accent) 72%, transparent);
+    outline-offset: 3px;
   }
 
-  /* Browse All intentionally uses the plain compact Character cards. The
-     ornate launcher frame is reserved for the three recent entries. */
+  /* Browse All intentionally keeps the plain compact Character cards. */
   :global(section):has(:global(#all-characters)) .characterFrameOverlay {
     display: none !important;
   }
@@ -186,8 +257,7 @@
     padding: 1rem !important;
   }
 
-  /* Disable the older generated CSS ornament so only the supplied artwork is
-     visible around Character cards. */
+  /* Disable older generated CSS ornament layers. */
   .ornamentFrame::before,
   .ornamentFrame::after,
   .ornamentFrame .ornamentCard::before,
@@ -197,7 +267,7 @@
   }
 
   /* Weaver and Threadwatcher use the same physical hover lift as Character
-     frames. The full panel moves, including the Weaver change-world affordance. */
+     frames. The full panel moves, including the Weaver change-world action. */
   :global(main):has(.pageCardMarker)
     :global(section[aria-labelledby='secondary-entry-heading'])
     > :global(div)
@@ -206,9 +276,6 @@
     will-change: transform;
   }
 
-  /* Move the complete Character frame on hover. The portrait itself no longer
-     zooms independently; only the full card/frame lifts, so content cannot rise
-     through the ornamental boundary. */
   @media (hover: hover) {
     .ornamentFrame:hover {
       transform: translateY(-5px);
@@ -230,12 +297,17 @@
     }
   }
 
-  /* Keep the bookmark comfortably inside the ornamental corner treatment.
-     It remains above the frame and moves with the whole card on hover. */
+  /* Keep the bookmark inside the decorated corner without competing with the
+     top-center ornament. */
   .ornamentFrame > button {
     z-index: 6 !important;
-    top: 2.1rem !important;
-    right: 2.1rem !important;
+    top: 1.45rem !important;
+    right: 1.45rem !important;
+  }
+
+  .ornamentFrame:first-child > button {
+    top: 1.75rem !important;
+    right: 1.75rem !important;
   }
 
   :global(section):has(:global(#all-characters)) .ornamentFrame > button {
