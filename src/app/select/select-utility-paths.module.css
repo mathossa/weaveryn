@@ -1,24 +1,39 @@
-.utilityScope.utilityScope.utilityScope > div:last-child {
+.utilityScope.utilityScope.utilityScope.utilityScope {
+  margin-bottom: clamp(0.95rem, 1.6vh, 1.35rem) !important;
+  padding-bottom: 0.18rem !important;
+}
+
+.utilityScope.utilityScope.utilityScope.utilityScope > div:last-child {
   height: auto !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   grid-template-rows: auto !important;
   gap: 0.65rem !important;
 }
 
-.utilityScope.utilityScope.utilityScope > div:last-child > div {
+/* Match the World page path links: no enclosing card, no rounded outline,
+   just a restrained top rail above each path. */
+.utilityScope.utilityScope.utilityScope.utilityScope > div:last-child > div {
   overflow: visible !important;
   border: 0 !important;
+  border-image: none !important;
   border-radius: 0 !important;
+  outline: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
+  transition: transform 230ms cubic-bezier(0.2, 0.75, 0.25, 1) !important;
+  will-change: transform;
 }
 
-.utilityScope.utilityScope.utilityScope > div:last-child > div::after {
+.utilityScope.utilityScope.utilityScope.utilityScope > div:last-child > div::before,
+.utilityScope.utilityScope.utilityScope.utilityScope > div:last-child > div::after {
   display: none !important;
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
   content: none !important;
 }
 
-.utilityScope.utilityScope.utilityScope > div:last-child > div > a {
+.utilityScope.utilityScope.utilityScope.utilityScope > div:last-child > div > a {
   display: grid !important;
   min-height: 0 !important;
   grid-template-columns: minmax(0, 1fr) !important;
@@ -27,7 +42,9 @@
   border: 0 !important;
   border-top: 1px solid
     color-mix(in srgb, var(--ui-accent) 34%, var(--ui-border)) !important;
+  border-image: none !important;
   border-radius: 0 !important;
+  outline: 0 !important;
   padding: 0.9rem 0.75rem !important;
   background: transparent !important;
   color: inherit !important;
@@ -35,7 +52,10 @@
   text-decoration: none !important;
 }
 
-.utilityScope.utilityScope.utilityScope > div:last-child > div > a::before {
+.utilityScope.utilityScope.utilityScope.utilityScope
+  > div:last-child
+  > div
+  > a::before {
   position: static !important;
   display: block !important;
   width: auto !important;
@@ -49,33 +69,33 @@
   text-transform: uppercase !important;
 }
 
-.utilityScope.utilityScope.utilityScope
+.utilityScope.utilityScope.utilityScope.utilityScope
   > div:last-child
   > div:nth-child(1)
   > a::before {
   content: 'New identity' !important;
 }
 
-.utilityScope.utilityScope.utilityScope
+.utilityScope.utilityScope.utilityScope.utilityScope
   > div:last-child
   > div:nth-child(2)
   > a::before {
   content: 'Join the weave' !important;
 }
 
-.utilityScope.utilityScope.utilityScope
+.utilityScope.utilityScope.utilityScope.utilityScope
   > div:last-child
   > div:nth-child(3)
   > a::before {
   content: 'Your characters' !important;
 }
 
-.utilityScope.utilityScope.utilityScope
+.utilityScope.utilityScope.utilityScope.utilityScope
   > div:last-child
   > div
   > a
   > span:first-child,
-.utilityScope.utilityScope.utilityScope
+.utilityScope.utilityScope.utilityScope.utilityScope
   > div:last-child
   > div
   > a
@@ -83,7 +103,7 @@
   display: none !important;
 }
 
-.utilityScope.utilityScope.utilityScope
+.utilityScope.utilityScope.utilityScope.utilityScope
   > div:last-child
   > div
   > a
@@ -92,7 +112,7 @@
   gap: 0.2rem !important;
 }
 
-.utilityScope.utilityScope.utilityScope
+.utilityScope.utilityScope.utilityScope.utilityScope
   > div:last-child
   > div
   > a
@@ -105,7 +125,7 @@
   line-height: 1.2 !important;
 }
 
-.utilityScope.utilityScope.utilityScope
+.utilityScope.utilityScope.utilityScope.utilityScope
   > div:last-child
   > div
   > a
@@ -121,13 +141,26 @@
 }
 
 @media (hover: hover) {
-  .utilityScope.utilityScope.utilityScope > div:last-child > div > a:hover {
+  .utilityScope.utilityScope.utilityScope.utilityScope
+    > div:last-child
+    > div:hover {
+    transform: translateY(-5px);
+  }
+
+  .utilityScope.utilityScope.utilityScope.utilityScope
+    > div:last-child
+    > div:hover
+    > a {
     background: color-mix(in srgb, var(--ui-accent) 7%, transparent) !important;
   }
 }
 
 @media (max-width: 760px) {
-  .utilityScope.utilityScope.utilityScope > div:last-child {
+  .utilityScope.utilityScope.utilityScope.utilityScope {
+    margin-bottom: 1rem !important;
+  }
+
+  .utilityScope.utilityScope.utilityScope.utilityScope > div:last-child {
     grid-template-columns: 1fr !important;
   }
 }
