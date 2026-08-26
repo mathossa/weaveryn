@@ -138,9 +138,154 @@
     content: none !important;
   }
 
-  /* Move the complete Character frame on hover. The pin/bookmark is a sibling
-     of the link, so animating the outer frame makes both move as one object. */
+  /* Utilities mirror the World overview path links: a simple accent rail,
+     a small uppercase context line, serif action name, and muted description. */
+  :global(main):has(.pageCardMarker)
+    :global(section[aria-labelledby='launcher-utilities-heading'])
+    > :global(div:last-child)
+    > :global(div) {
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  :global(main):has(.pageCardMarker)
+    :global(section[aria-labelledby='launcher-utilities-heading'])
+    > :global(div:last-child)
+    > :global(div)::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  :global(main):has(.pageCardMarker)
+    :global(section[aria-labelledby='launcher-utilities-heading'])
+    > :global(div:last-child)
+    > :global(div)
+    > :global(a) {
+    display: grid !important;
+    min-height: 0 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 0.2rem !important;
+    border: 0 !important;
+    border-top: 1px solid
+      color-mix(in srgb, var(--ui-accent) 34%, var(--ui-border)) !important;
+    border-radius: 0 !important;
+    padding: 0.9rem 0.75rem !important;
+    background: transparent !important;
+    color: inherit !important;
+    box-shadow: none !important;
+    text-decoration: none !important;
+  }
+
+  :global(main):has(.pageCardMarker)
+    :global(section[aria-labelledby='launcher-utilities-heading'])
+    > :global(div:last-child)
+    > :global(div)
+    > :global(a)::before {
+    position: static !important;
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    background: none !important;
+    color: var(--ui-accent) !important;
+    font-size: 0.64rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    line-height: 1.2 !important;
+    text-transform: uppercase !important;
+  }
+
+  :global(main):has(.pageCardMarker)
+    :global(section[aria-labelledby='launcher-utilities-heading'])
+    > :global(div:last-child)
+    > :global(div:nth-child(1))
+    > :global(a)::before {
+    content: 'New identity' !important;
+  }
+
+  :global(main):has(.pageCardMarker)
+    :global(section[aria-labelledby='launcher-utilities-heading'])
+    > :global(div:last-child)
+    > :global(div:nth-child(2))
+    > :global(a)::before {
+    content: 'Join the weave' !important;
+  }
+
+  :global(main):has(.pageCardMarker)
+    :global(section[aria-labelledby='launcher-utilities-heading'])
+    > :global(div:last-child)
+    > :global(div:nth-child(3))
+    > :global(a)::before {
+    content: 'Your characters' !important;
+  }
+
+  :global(main):has(.pageCardMarker)
+    :global(section[aria-labelledby='launcher-utilities-heading'])
+    > :global(div:last-child)
+    > :global(div)
+    > :global(a)
+    > :global(span:first-child),
+  :global(main):has(.pageCardMarker)
+    :global(section[aria-labelledby='launcher-utilities-heading'])
+    > :global(div:last-child)
+    > :global(div)
+    > :global(a)
+    > :global(span:last-child) {
+    display: none !important;
+  }
+
+  :global(main):has(.pageCardMarker)
+    :global(section[aria-labelledby='launcher-utilities-heading'])
+    > :global(div:last-child)
+    > :global(div)
+    > :global(a)
+    > :global(span:nth-child(2)) {
+    display: grid !important;
+    gap: 0.2rem !important;
+  }
+
+  :global(main):has(.pageCardMarker)
+    :global(section[aria-labelledby='launcher-utilities-heading'])
+    > :global(div:last-child)
+    > :global(div)
+    > :global(a)
+    > :global(span:nth-child(2))
+    > :global(strong) {
+    color: var(--ui-text) !important;
+    font-family: Georgia, 'Times New Roman', serif !important;
+    font-size: 1.15rem !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+  }
+
+  :global(main):has(.pageCardMarker)
+    :global(section[aria-labelledby='launcher-utilities-heading'])
+    > :global(div:last-child)
+    > :global(div)
+    > :global(a)
+    > :global(span:nth-child(2))
+    > :global(span) {
+    display: block !important;
+    overflow: visible !important;
+    color: var(--ui-text-muted) !important;
+    font-size: 0.78rem !important;
+    line-height: 1.45 !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+  }
+
   @media (hover: hover) {
+    :global(main):has(.pageCardMarker)
+      :global(section[aria-labelledby='launcher-utilities-heading'])
+      > :global(div:last-child)
+      > :global(div)
+      > :global(a):hover {
+      background: color-mix(in srgb, var(--ui-accent) 7%, transparent) !important;
+    }
+
     .ornamentFrame:hover {
       transform: translateY(-5px);
     }
