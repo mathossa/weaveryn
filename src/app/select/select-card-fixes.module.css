@@ -118,7 +118,9 @@
   }
 
   .ornamentFrame:first-child .characterInnerCopy {
-    bottom: 2.9rem !important;
+    right: 1.35rem !important;
+    bottom: 3.1rem !important;
+    left: 1.55rem !important;
   }
 
   /* A restrained gold line connects the corner pieces. The frame is now made
@@ -139,33 +141,33 @@
   .frameCorner {
     position: absolute;
     display: block;
-    width: 3.25rem;
-    height: 3.25rem;
+    width: 2.85rem;
+    height: 2.85rem;
     background: url('/images/ui/weaveryn-character-corner.webp') top left /
       contain no-repeat;
     transform-origin: center;
   }
 
   .frameCornerTopLeft {
-    top: -0.15rem;
-    left: -0.15rem;
+    top: -0.12rem;
+    left: -0.12rem;
   }
 
   .frameCornerTopRight {
-    top: -0.15rem;
-    right: -0.15rem;
+    top: -0.12rem;
+    right: -0.12rem;
     transform: rotate(90deg);
   }
 
   .frameCornerBottomRight {
-    right: -0.15rem;
-    bottom: -0.15rem;
+    right: -0.12rem;
+    bottom: -0.12rem;
     transform: rotate(180deg);
   }
 
   .frameCornerBottomLeft {
-    bottom: -0.15rem;
-    left: -0.15rem;
+    bottom: -0.12rem;
+    left: -0.12rem;
     transform: rotate(270deg);
   }
 
@@ -178,18 +180,18 @@
   }
 
   .frameTopOrnament {
-    top: -1.2rem;
-    width: 2.35rem;
-    height: 2.8rem;
+    top: -1.35rem;
+    width: 2.65rem;
+    height: 3.15rem;
     background: url('/images/ui/weaveryn-character-ornament-small.webp') center /
       contain no-repeat;
     transform: translateX(-50%);
   }
 
   .frameBottomOrnament {
-    bottom: -1.2rem;
-    width: 2.35rem;
-    height: 2.8rem;
+    bottom: -1.35rem;
+    width: 2.65rem;
+    height: 3.15rem;
     background: url('/images/ui/weaveryn-character-ornament-small.webp') center /
       contain no-repeat;
     transform: translateX(-50%) rotate(180deg);
@@ -199,18 +201,18 @@
      cards and only one larger, wider ornament at the bottom. Its larger card
      size is the selection emphasis; there is deliberately no extra aura. */
   .ornamentFrame:first-child .frameCorner {
-    width: 4rem;
-    height: 4rem;
+    width: 3.45rem;
+    height: 3.45rem;
   }
 
   .ornamentFrame:first-child .frameTopOrnament {
-    top: -1.35rem;
-    width: 2.75rem;
-    height: 3.3rem;
+    top: -1.45rem;
+    width: 3rem;
+    height: 3.55rem;
   }
 
   .ornamentFrame:first-child .frameBottomOrnament {
-    bottom: -2.15rem;
+    bottom: -2.4rem;
     width: 10rem;
     height: 4.6rem;
     background-image: url('/images/ui/weaveryn-character-ornament-featured-bottom.webp');
