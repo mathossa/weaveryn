@@ -95,7 +95,7 @@
   .ornamentFrame .characterContentClip {
     inset: 2px;
     z-index: 0;
-    border-radius: calc(0.86rem - 2px);
+    border-radius: calc(0.9rem - 2px);
     background: #050811;
     isolation: isolate;
   }
@@ -118,14 +118,12 @@
   }
 
   .ornamentFrame:first-child .characterInnerCopy {
-    right: 1.35rem !important;
-    bottom: 3.1rem !important;
-    left: 1.55rem !important;
+    inset: auto 1.55rem 3.1rem 1.55rem !important;
   }
 
-  /* A restrained gold line connects the corner pieces. The frame is now made
-     from independent ornaments so none of the center details are stretched by
-     different card widths. */
+  /* A restrained gold line connects the corner pieces. The frame is made from
+     independent ornaments so none of the center details are stretched by card
+     width. Each ornament fills its own box so its painted edge meets the line. */
   .characterFrameOverlay {
     position: absolute;
     inset: 0;
@@ -133,67 +131,68 @@
     display: block;
     box-sizing: border-box;
     border: 1px solid color-mix(in srgb, var(--ui-accent) 72%, #8b6732);
-    border-radius: 0.86rem;
+    border-radius: 0.9rem;
     box-shadow: inset 0 0 0 1px rgba(255, 224, 157, 0.025);
     pointer-events: none;
   }
 
   .frameCorner {
     position: absolute;
+    z-index: 5;
     display: block;
-    width: 2.85rem;
-    height: 2.85rem;
-    background: url('/images/ui/weaveryn-character-corner.webp') top left /
-      contain no-repeat;
+    width: 3.55rem;
+    height: 3.55rem;
+    background: url('/images/ui/weaveryn-character-corner.webp') center / 100% 100%
+      no-repeat;
     transform-origin: center;
   }
 
   .frameCornerTopLeft {
-    top: -0.12rem;
-    left: -0.12rem;
+    top: -0.06rem;
+    left: -0.06rem;
   }
 
   .frameCornerTopRight {
-    top: -0.12rem;
-    right: -0.12rem;
+    top: -0.06rem;
+    right: -0.06rem;
     transform: rotate(90deg);
   }
 
   .frameCornerBottomRight {
-    right: -0.12rem;
-    bottom: -0.12rem;
+    right: -0.06rem;
+    bottom: -0.06rem;
     transform: rotate(180deg);
   }
 
   .frameCornerBottomLeft {
-    bottom: -0.12rem;
-    left: -0.12rem;
+    bottom: -0.06rem;
+    left: -0.06rem;
     transform: rotate(270deg);
   }
 
   .frameOrnament {
     position: absolute;
     left: 50%;
-    z-index: 1;
+    z-index: 5;
     display: block;
     pointer-events: none;
   }
 
   .frameTopOrnament {
-    top: -1.35rem;
-    width: 2.65rem;
-    height: 3.15rem;
+    top: -1.34rem;
+    width: 2.7rem;
+    height: 3.2rem;
     background: url('/images/ui/weaveryn-character-ornament-small.webp') center /
-      contain no-repeat;
+      100% 100% no-repeat;
     transform: translateX(-50%);
   }
 
   .frameBottomOrnament {
-    bottom: -1.35rem;
-    width: 2.65rem;
-    height: 3.15rem;
+    bottom: -1.34rem;
+    width: 2.7rem;
+    height: 3.2rem;
     background: url('/images/ui/weaveryn-character-ornament-small.webp') center /
-      contain no-repeat;
+      100% 100% no-repeat;
     transform: translateX(-50%) rotate(180deg);
   }
 
@@ -201,21 +200,24 @@
      cards and only one larger, wider ornament at the bottom. Its larger card
      size is the selection emphasis; there is deliberately no extra aura. */
   .ornamentFrame:first-child .frameCorner {
-    width: 3.45rem;
-    height: 3.45rem;
+    width: 4.15rem;
+    height: 4.15rem;
   }
 
   .ornamentFrame:first-child .frameTopOrnament {
-    top: -1.45rem;
+    top: -1.48rem;
     width: 3rem;
     height: 3.55rem;
   }
 
   .ornamentFrame:first-child .frameBottomOrnament {
-    bottom: -2.4rem;
-    width: 10rem;
-    height: 4.6rem;
+    bottom: -2.28rem;
+    width: 10.35rem;
+    height: 4.85rem;
     background-image: url('/images/ui/weaveryn-character-ornament-featured-bottom.webp');
+    background-position: center;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
     transform: translateX(-50%);
   }
 
