@@ -5,6 +5,7 @@
 .ornamentFrame {
   position: relative;
   min-width: 0;
+  overflow: visible;
   transition: transform 230ms cubic-bezier(0.2, 0.75, 0.25, 1);
   will-change: transform;
 }
@@ -15,6 +16,19 @@
 
 .characterFrameOverlay {
   display: none;
+}
+
+.characterMeta {
+  gap: 0.34rem !important;
+}
+
+.characterMetaRow {
+  grid-template-columns: 5.2rem minmax(0, 1fr) !important;
+  gap: 0.72rem !important;
+}
+
+.characterMetaRow > small {
+  white-space: nowrap;
 }
 
 /* Give the title/action row more breathing room before the character cards.
@@ -49,9 +63,8 @@
     padding: 0 !important;
   }
 
-  /* Character artwork is full-bleed. This selector intentionally includes the
-     recent-characters section so it outranks the older global border-image
-     rule. The supplied artwork is rendered exactly once by the overlay below. */
+  /* Character artwork is full-bleed. The frame is rendered by a dedicated
+     overlay so World and portable Character cards use the exact same asset. */
   :global(section):has(:global(#secondary-entry-heading))
     :global(section[aria-labelledby='recent-characters'])
     .ornamentFrame
@@ -76,8 +89,8 @@
     inset: 0 !important;
   }
 
-  /* Paint the exact supplied frame above the full-bleed image without
-     consuming layout space. All three Character cards share one frame girth. */
+  /* Paint the transparent WebP above the full-bleed image without consuming
+     layout space. The asymmetric bottom slice protects the needle ornament. */
   .characterFrameOverlay {
     position: absolute;
     inset: 0;
@@ -88,6 +101,7 @@
     border-image-source: url('/images/ui/weaveryn-character-frame.webp');
     border-image-slice: 150 155 210 155;
     border-image-width: 20px;
+    border-image-outset: 0.05;
     border-image-repeat: stretch;
     pointer-events: none;
   }
@@ -124,6 +138,44 @@
     content: none !important;
   }
 
+  /* Retire the old woven border-image treatment for Weaver/Threadwatcher and
+     utilities. Keep their scenic/module styling, but use a restrained border
+     so these secondary paths do not compete with Character portraits. */
+  :global(main):has(.pageCardMarker)
+    :global(section):has(:global(#secondary-entry-heading))
+    :global(section[aria-labelledby='secondary-entry-heading'])
+    > :global(div)
+    > :global(div) {
+    border: 1px solid
+      color-mix(in srgb, var(--ui-accent) 34%, var(--ui-border)) !important;
+    border-image: none !important;
+    border-image-source: none !important;
+    border-radius: 0.85rem !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.018),
+      0 0.72rem 1.8rem rgba(0, 0, 0, 0.22) !important;
+  }
+
+  :global(main):has(.pageCardMarker)
+    :global(section):has(:global(#secondary-entry-heading))
+    :global(section[aria-labelledby='secondary-entry-heading'])
+    > :global(div)
+    > :global(div)::after {
+    display: block !important;
+  }
+
+  :global(main):has(.pageCardMarker)
+    :global(section):has(:global(#secondary-entry-heading))
+    :global(section[aria-labelledby='launcher-utilities-heading'])
+    > :global(div:last-child)
+    > :global(div) {
+    border: 1px solid
+      color-mix(in srgb, var(--ui-border) 82%, transparent) !important;
+    border-image: none !important;
+    border-image-source: none !important;
+    border-radius: 0.7rem !important;
+  }
+
   /* Move the complete Character frame on hover. The pin/bookmark is a sibling
      of the link, so animating the outer frame makes both move as one object. */
   @media (hover: hover) {
@@ -148,5 +200,10 @@
 @media (max-width: 760px) {
   :global(main):has(.pageCardMarker) > :global(section) > :global(header) {
     margin-bottom: 2rem !important;
+  }
+
+  .characterMetaRow {
+    grid-template-columns: 4.8rem minmax(0, 1fr) !important;
+    gap: 0.6rem !important;
   }
 }
