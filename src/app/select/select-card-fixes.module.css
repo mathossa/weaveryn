@@ -31,6 +31,10 @@
   white-space: nowrap;
 }
 
+.characterInnerCopy {
+  /* Desktop placement is applied with the ornamental frame below. */
+}
+
 /* Give the title/action row more breathing room before the character cards.
    This applies to both the normal launcher and Browse all characters. */
 :global(main):has(.pageCardMarker) > :global(section) > :global(header) {
@@ -64,8 +68,9 @@
   }
 
   /* The Character card itself stays visually transparent. Only the portrait
-     and shade are clipped just inside the ornamental frame, preventing the
-     underlying rectangular card surface from peeking outside the artwork. */
+     and shade are visible inside the inner opening of the ornament. Keeping
+     the artwork away from the transparent corners/bottom padding prevents the
+     hard rectangular image edge from appearing as square breaks in the frame. */
   :global(section):has(:global(#secondary-entry-heading))
     :global(section[aria-labelledby='recent-characters'])
     .ornamentFrame
@@ -85,18 +90,25 @@
     width: 100% !important;
     height: 100% !important;
     max-width: none !important;
-    clip-path: inset(4px round 0.72rem);
+    clip-path: inset(18px 18px 56px 18px round 0.9rem);
   }
 
   .ornamentFrame .ornamentCard > img + span[aria-hidden='true'] {
     inset: 0 !important;
-    clip-path: inset(4px round 0.72rem);
+    clip-path: inset(18px 18px 56px 18px round 0.9rem);
   }
 
-  /* The source slices are intentionally much shallower than before. Their
-     scale now stays close to the scale of the horizontal edge strip, which
-     keeps the top diamond and bottom needle from becoming unnaturally wide.
-     The deeper bottom slice/width keeps the full needle visible. */
+  /* Keep the name and Character context clear of the lower-left corner and
+     needle rail. This also keeps the copy inside the same visual opening as
+     the portrait instead of sitting underneath the ornament. */
+  .characterInnerCopy {
+    inset: auto 3.4rem 4.8rem 3.75rem !important;
+    padding: 0 !important;
+  }
+
+  /* Keep the current frame girth and proportions. The image is intentionally
+     rendered without a fractional outset so the browser does not resample the
+     border joins onto subpixels, which can show as tiny block/seam artifacts. */
   .characterFrameOverlay {
     position: absolute;
     inset: 0;
@@ -107,9 +119,11 @@
     border-image-source: url('/images/ui/weaveryn-character-frame.webp');
     border-image-slice: 64 64 180 64;
     border-image-width: 30px 30px 82px 30px;
-    border-image-outset: 0.04;
+    border-image-outset: 0;
     border-image-repeat: stretch;
     pointer-events: none;
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
 
   .ornamentFrame:first-child {
