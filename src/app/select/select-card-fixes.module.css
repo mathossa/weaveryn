@@ -63,19 +63,21 @@
     padding: 0 !important;
   }
 
-  /* Character artwork is full-bleed. The frame is rendered by a dedicated
-     overlay so World and portable Character cards use the exact same asset. */
+  /* The Character card itself stays visually transparent. Only the portrait
+     and shade are clipped just inside the ornamental frame, preventing the
+     underlying rectangular card surface from peeking outside the artwork. */
   :global(section):has(:global(#secondary-entry-heading))
     :global(section[aria-labelledby='recent-characters'])
     .ornamentFrame
     .ornamentCard {
-    overflow: hidden !important;
+    overflow: visible !important;
     border: 0 !important;
     border-width: 0 !important;
     border-image: none !important;
     border-image-source: none !important;
-    border-radius: 0.8rem !important;
-    background: #050811 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
   }
 
   .ornamentFrame .ornamentCard > img {
@@ -83,25 +85,29 @@
     width: 100% !important;
     height: 100% !important;
     max-width: none !important;
+    clip-path: inset(4px round 0.72rem);
   }
 
   .ornamentFrame .ornamentCard > img + span[aria-hidden='true'] {
     inset: 0 !important;
+    clip-path: inset(4px round 0.72rem);
   }
 
-  /* Paint the transparent WebP above the full-bleed image without consuming
-     layout space. The asymmetric bottom slice protects the needle ornament. */
+  /* The source slices are intentionally much shallower than before. Their
+     scale now stays close to the scale of the horizontal edge strip, which
+     keeps the top diamond and bottom needle from becoming unnaturally wide.
+     The deeper bottom slice/width keeps the full needle visible. */
   .characterFrameOverlay {
     position: absolute;
     inset: 0;
     z-index: 4;
     display: block;
     box-sizing: border-box;
-    border: 20px solid transparent;
+    border: 30px solid transparent;
     border-image-source: url('/images/ui/weaveryn-character-frame.webp');
-    border-image-slice: 150 155 210 155;
-    border-image-width: 20px;
-    border-image-outset: 0.05;
+    border-image-slice: 64 64 180 64;
+    border-image-width: 30px 30px 82px 30px;
+    border-image-outset: 0.04;
     border-image-repeat: stretch;
     pointer-events: none;
   }
@@ -110,22 +116,27 @@
     z-index: 3;
   }
 
-  /* Selected/current Character: same frame, halo only. */
+  /* Selected/current Character: keep the glow on the ornament rather than on
+     the rectangular link surface. */
   :global(section):has(:global(#secondary-entry-heading))
     :global(section[aria-labelledby='recent-characters'])
     .ornamentFrame:first-child
     .ornamentCard {
-    box-shadow:
-      0 1.45rem 3.8rem rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(236, 202, 127, 0.28),
-      0 0 1.5rem rgba(233, 187, 91, 0.25),
-      0 0 3.6rem rgba(224, 165, 67, 0.22),
-      0 0 5.8rem rgba(189, 124, 35, 0.11) !important;
+    box-shadow: none !important;
   }
 
   .ornamentFrame:first-child .characterFrameOverlay {
-    filter: drop-shadow(0 0 0.55rem rgba(245, 204, 113, 0.42))
-      drop-shadow(0 0 1.4rem rgba(222, 164, 64, 0.24));
+    filter: drop-shadow(0 0 0.65rem rgba(245, 204, 113, 0.48))
+      drop-shadow(0 0 1.55rem rgba(222, 164, 64, 0.28));
+  }
+
+  .ornamentCard:focus-visible {
+    box-shadow: none !important;
+  }
+
+  .ornamentCard:focus-visible .characterFrameOverlay {
+    filter: drop-shadow(0 0 0.65rem rgba(245, 204, 113, 0.52))
+      drop-shadow(0 0 1.5rem rgba(222, 164, 64, 0.3));
   }
 
   /* Disable the older generated CSS ornament so only the supplied artwork is
@@ -138,6 +149,16 @@
     content: none !important;
   }
 
+  /* Weaver and Threadwatcher use the same physical hover lift as Character
+     frames. The full panel moves, including the Weaver change-world affordance. */
+  :global(main):has(.pageCardMarker)
+    :global(section[aria-labelledby='secondary-entry-heading'])
+    > :global(div)
+    > :global(div) {
+    transition: transform 230ms cubic-bezier(0.2, 0.75, 0.25, 1) !important;
+    will-change: transform;
+  }
+
   /* Move the complete Character frame on hover. The pin/bookmark is a sibling
      of the link, so animating the outer frame makes both move as one object. */
   @media (hover: hover) {
@@ -147,6 +168,13 @@
 
     .ornamentFrame:hover .ornamentCard {
       transform: translateZ(0) !important;
+    }
+
+    :global(main):has(.pageCardMarker)
+      :global(section[aria-labelledby='secondary-entry-heading'])
+      > :global(div)
+      > :global(div):hover {
+      transform: translateY(-5px);
     }
   }
 
