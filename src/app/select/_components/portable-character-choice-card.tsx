@@ -63,7 +63,26 @@ export function PortableCharacterChoiceCard({
             </span>
           </span>
         </span>
-        <span className={fixStyles.characterFrameOverlay} aria-hidden="true" />
+        <span className={fixStyles.characterFrameOverlay} aria-hidden="true">
+          <span
+            className={`${fixStyles.frameCorner} ${fixStyles.frameCornerTopLeft}`}
+          />
+          <span
+            className={`${fixStyles.frameCorner} ${fixStyles.frameCornerTopRight}`}
+          />
+          <span
+            className={`${fixStyles.frameCorner} ${fixStyles.frameCornerBottomRight}`}
+          />
+          <span
+            className={`${fixStyles.frameCorner} ${fixStyles.frameCornerBottomLeft}`}
+          />
+          <span
+            className={`${fixStyles.frameOrnament} ${fixStyles.frameTopOrnament}`}
+          />
+          <span
+            className={`${fixStyles.frameOrnament} ${fixStyles.frameBottomOrnament}`}
+          />
+        </span>
       </TrackedEntryLink>
       <PinEntryButton characterId={character.id} pinned={pinned} />
     </div>
