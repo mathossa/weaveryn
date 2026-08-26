@@ -4,15 +4,22 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import styles from '../select.module.css'
 
+type PinEntryTarget =
+  | {
+      worldCharacterId: string
+      campaignId?: string | null
+      characterId?: never
+    }
+  | {
+      characterId: string
+      worldCharacterId?: never
+      campaignId?: never
+    }
+
 export function PinEntryButton({
-  worldCharacterId,
-  campaignId,
   pinned,
-}: {
-  worldCharacterId: string
-  campaignId?: string | null
-  pinned: boolean
-}) {
+  ...target
+}: PinEntryTarget & { pinned: boolean }) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [isPinned, setIsPinned] = useState(pinned)
@@ -24,14 +31,21 @@ export function PinEntryButton({
     setIsPinned(nextPinned)
 
     try {
+      const body =
+        'characterId' in target
+          ? {
+              characterId: target.characterId,
+              pinned: nextPinned,
+            }
+          : {
+              worldCharacterId: target.worldCharacterId,
+              campaignId: target.campaignId ?? null,
+              pinned: nextPinned,
+            }
       const response = await fetch('/api/v1/selection/preferences', {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          worldCharacterId,
-          campaignId: campaignId ?? null,
-          pinned: nextPinned,
-        }),
+        body: JSON.stringify(body),
       })
 
       if (!response.ok) {
