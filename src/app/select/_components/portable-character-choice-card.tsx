@@ -37,7 +37,7 @@ export function PortableCharacterChoiceCard({
           aria-hidden="true"
         />
         <span
-          className={`${styles.characterCopy} ${polishStyles.characterCopy}`}
+          className={`${styles.characterCopy} ${polishStyles.characterCopy} ${fixStyles.characterInnerCopy}`}
         >
           <strong className={styles.characterName}>{character.name}</strong>
           <span
