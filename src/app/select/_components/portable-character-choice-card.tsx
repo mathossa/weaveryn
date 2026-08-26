@@ -24,39 +24,41 @@ export function PortableCharacterChoiceCard({
         tracking={{ kind: 'PORTABLE_CHARACTER', characterId: character.id }}
         ariaLabel={`Open portable Character ${character.name}`}
       >
-        <Image
-          className={`${styles.characterImage} ${polishStyles.characterImage}`}
-          src={character.image || uiAssets.fallbacks.character}
-          alt=""
-          fill
-          sizes="(max-width: 760px) 100vw, 33vw"
-          loading={eager ? 'eager' : 'lazy'}
-        />
-        <span
-          className={`${styles.characterShade} ${polishStyles.characterShade}`}
-          aria-hidden="true"
-        />
-        <span
-          className={`${styles.characterCopy} ${polishStyles.characterCopy} ${fixStyles.characterInnerCopy}`}
-        >
-          <strong className={styles.characterName}>{character.name}</strong>
+        <span className={fixStyles.characterContentClip}>
+          <Image
+            className={`${styles.characterImage} ${polishStyles.characterImage}`}
+            src={character.image || uiAssets.fallbacks.character}
+            alt=""
+            fill
+            sizes="(max-width: 760px) 100vw, 33vw"
+            loading={eager ? 'eager' : 'lazy'}
+          />
           <span
-            className={`${styles.characterContext} ${fixStyles.characterMeta}`}
+            className={`${styles.characterShade} ${polishStyles.characterShade}`}
+            aria-hidden="true"
+          />
+          <span
+            className={`${styles.characterCopy} ${polishStyles.characterCopy} ${fixStyles.characterInnerCopy}`}
           >
+            <strong className={styles.characterName}>{character.name}</strong>
             <span
-              className={`${styles.characterContextRow} ${fixStyles.characterMetaRow}`}
+              className={`${styles.characterContext} ${fixStyles.characterMeta}`}
             >
-              <small>Character</small>
-              <span className={styles.characterCampaignName}>
-                Portable identity
+              <span
+                className={`${styles.characterContextRow} ${fixStyles.characterMetaRow}`}
+              >
+                <small>Character</small>
+                <span className={styles.characterCampaignName}>
+                  Portable identity
+                </span>
               </span>
-            </span>
-            <span
-              className={`${styles.characterContextRow} ${fixStyles.characterMetaRow}`}
-            >
-              <small>World</small>
-              <span className={styles.characterWorldName}>
-                Not yet woven into a World
+              <span
+                className={`${styles.characterContextRow} ${fixStyles.characterMetaRow}`}
+              >
+                <small>World</small>
+                <span className={styles.characterWorldName}>
+                  Not yet woven into a World
+                </span>
               </span>
             </span>
           </span>
