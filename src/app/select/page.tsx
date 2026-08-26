@@ -290,6 +290,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                         <PortableCharacterChoiceCard
                           key={entry.key}
                           character={entry.character}
+                          pinned={entry.preference?.pinned ?? false}
                           eager={index < eagerCharacterCount}
                         />
                       ),
@@ -374,6 +375,7 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
                         <PortableCharacterChoiceCard
                           key={entry.key}
                           character={entry.character}
+                          pinned={entry.preference?.pinned ?? false}
                           eager={index < 6}
                         />
                       ),
