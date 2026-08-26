@@ -14,6 +14,12 @@
   position: relative;
 }
 
+.characterContentClip {
+  position: absolute;
+  display: block;
+  overflow: hidden;
+}
+
 .characterFrameOverlay {
   display: none;
 }
@@ -67,10 +73,10 @@
     padding: 0 !important;
   }
 
-  /* The Character card itself stays visually transparent. Only the portrait
-     and shade are visible inside the inner opening of the ornament. Keeping
-     the artwork away from the transparent corners/bottom padding prevents the
-     hard rectangular image edge from appearing as square breaks in the frame. */
+  /* The outer link stays transparent so the ornate image can extend naturally.
+     All Character artwork/copy is now placed in a dedicated inner viewport.
+     That viewport is the hard clipping boundary: nothing from the portrait can
+     ever render through the transparent space outside the frame. */
   :global(section):has(:global(#secondary-entry-heading))
     :global(section[aria-labelledby='recent-characters'])
     .ornamentFrame
@@ -85,42 +91,45 @@
     box-shadow: none !important;
   }
 
-  .ornamentFrame .ornamentCard > img {
+  .ornamentFrame .characterContentClip {
+    inset: 9% 4.8% 10.5%;
+    border-radius: 0.75rem;
+    background: #050811;
+    isolation: isolate;
+  }
+
+  .ornamentFrame .characterContentClip > img {
     inset: 0 !important;
     width: 100% !important;
     height: 100% !important;
     max-width: none !important;
-    clip-path: inset(18px 18px 56px 18px round 0.9rem);
+    transform: none !important;
   }
 
-  .ornamentFrame .ornamentCard > img + span[aria-hidden='true'] {
+  .ornamentFrame .characterContentClip > img + span[aria-hidden='true'] {
     inset: 0 !important;
-    clip-path: inset(18px 18px 56px 18px round 0.9rem);
   }
 
-  /* Keep the name and Character context clear of the lower-left corner and
-     needle rail. This also keeps the copy inside the same visual opening as
-     the portrait instead of sitting underneath the ornament. */
+  /* The copy is positioned relative to the clipped inner viewport, not to the
+     outer decorative frame. This keeps the name and metadata away from the
+     needle rail while preserving the current card proportions. */
   .characterInnerCopy {
-    inset: auto 3.4rem 4.8rem 3.75rem !important;
+    inset: auto 1.35rem 1.25rem 1.35rem !important;
     padding: 0 !important;
   }
 
-  /* Keep the current frame girth and proportions. The image is intentionally
-     rendered without a fractional outset so the browser does not resample the
-     border joins onto subpixels, which can show as tiny block/seam artifacts. */
+  /* Render the complete transparent frame as one image instead of a 9-slice
+     border. This keeps the currently preferred girth while removing the hard
+     rectangular join/seam artifacts that border-image produced around the
+     rails, diamond and needle. */
   .characterFrameOverlay {
     position: absolute;
     inset: 0;
     z-index: 4;
     display: block;
     box-sizing: border-box;
-    border: 30px solid transparent;
-    border-image-source: url('/images/ui/weaveryn-character-frame.webp');
-    border-image-slice: 64 64 180 64;
-    border-image-width: 30px 30px 82px 30px;
-    border-image-outset: 0;
-    border-image-repeat: stretch;
+    background: url('/images/ui/weaveryn-character-frame.webp') center / 100% 100%
+      no-repeat;
     pointer-events: none;
     transform: translateZ(0);
     backface-visibility: hidden;
@@ -153,6 +162,30 @@
       drop-shadow(0 0 1.5rem rgba(222, 164, 64, 0.3));
   }
 
+  /* Browse All intentionally uses the plain compact Character cards. The
+     ornate launcher frame is reserved for the three recent entries. */
+  :global(section):has(:global(#all-characters)) .characterFrameOverlay {
+    display: none !important;
+  }
+
+  :global(section):has(:global(#all-characters)) .ornamentCard {
+    overflow: hidden !important;
+    border: 1px solid var(--ui-border) !important;
+    border-radius: var(--ui-radius-panel) !important;
+    background: var(--ui-panel-strong) !important;
+    box-shadow: var(--ui-shadow-panel) !important;
+  }
+
+  :global(section):has(:global(#all-characters)) .characterContentClip {
+    inset: 0 !important;
+    border-radius: inherit !important;
+  }
+
+  :global(section):has(:global(#all-characters)) .characterInnerCopy {
+    inset: auto 0 0 !important;
+    padding: 1rem !important;
+  }
+
   /* Disable the older generated CSS ornament so only the supplied artwork is
      visible around Character cards. */
   .ornamentFrame::before,
@@ -173,8 +206,9 @@
     will-change: transform;
   }
 
-  /* Move the complete Character frame on hover. The pin/bookmark is a sibling
-     of the link, so animating the outer frame makes both move as one object. */
+  /* Move the complete Character frame on hover. The portrait itself no longer
+     zooms independently; only the full card/frame lifts, so content cannot rise
+     through the ornamental boundary. */
   @media (hover: hover) {
     .ornamentFrame:hover {
       transform: translateY(-5px);
@@ -182,6 +216,10 @@
 
     .ornamentFrame:hover .ornamentCard {
       transform: translateZ(0) !important;
+    }
+
+    .ornamentFrame:hover .characterContentClip > img {
+      transform: none !important;
     }
 
     :global(main):has(.pageCardMarker)
@@ -199,11 +237,21 @@
     top: 2.1rem !important;
     right: 2.1rem !important;
   }
+
+  :global(section):has(:global(#all-characters)) .ornamentFrame > button {
+    top: 0.65rem !important;
+    right: 0.65rem !important;
+  }
 }
 
 @media (max-width: 760px) {
   :global(main):has(.pageCardMarker) > :global(section) > :global(header) {
     margin-bottom: 2rem !important;
+  }
+
+  .characterContentClip {
+    inset: 0;
+    border-radius: inherit;
   }
 
   .characterMetaRow {
