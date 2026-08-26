@@ -44,39 +44,41 @@ export function CharacterChoiceCard({
             : `Open ${character.name} in ${character.worldName}`
         }
       >
-        <Image
-          className={`${styles.characterImage} ${polishStyles.characterImage}`}
-          src={character.image || uiAssets.fallbacks.character}
-          alt=""
-          fill
-          sizes="(max-width: 760px) 100vw, 33vw"
-          loading={eager ? 'eager' : 'lazy'}
-        />
-        <span
-          className={`${styles.characterShade} ${polishStyles.characterShade}`}
-          aria-hidden="true"
-        />
-        <span
-          className={`${styles.characterCopy} ${polishStyles.characterCopy} ${fixStyles.characterInnerCopy}`}
-        >
-          <strong className={styles.characterName}>{character.name}</strong>
+        <span className={fixStyles.characterContentClip}>
+          <Image
+            className={`${styles.characterImage} ${polishStyles.characterImage}`}
+            src={character.image || uiAssets.fallbacks.character}
+            alt=""
+            fill
+            sizes="(max-width: 760px) 100vw, 33vw"
+            loading={eager ? 'eager' : 'lazy'}
+          />
           <span
-            className={`${styles.characterContext} ${fixStyles.characterMeta}`}
+            className={`${styles.characterShade} ${polishStyles.characterShade}`}
+            aria-hidden="true"
+          />
+          <span
+            className={`${styles.characterCopy} ${polishStyles.characterCopy} ${fixStyles.characterInnerCopy}`}
           >
+            <strong className={styles.characterName}>{character.name}</strong>
             <span
-              className={`${styles.characterContextRow} ${fixStyles.characterMetaRow}`}
+              className={`${styles.characterContext} ${fixStyles.characterMeta}`}
             >
-              <small>Campaign</small>
-              <span className={styles.characterCampaignName}>
-                {contextLabel}
+              <span
+                className={`${styles.characterContextRow} ${fixStyles.characterMetaRow}`}
+              >
+                <small>Campaign</small>
+                <span className={styles.characterCampaignName}>
+                  {contextLabel}
+                </span>
               </span>
-            </span>
-            <span
-              className={`${styles.characterContextRow} ${fixStyles.characterMetaRow}`}
-            >
-              <small>World</small>
-              <span className={styles.characterWorldName}>
-                {character.worldName}
+              <span
+                className={`${styles.characterContextRow} ${fixStyles.characterMetaRow}`}
+              >
+                <small>World</small>
+                <span className={styles.characterWorldName}>
+                  {character.worldName}
+                </span>
               </span>
             </span>
           </span>
