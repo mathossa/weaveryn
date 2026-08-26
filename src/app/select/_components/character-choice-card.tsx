@@ -60,14 +60,20 @@ export function CharacterChoiceCard({
           className={`${styles.characterCopy} ${polishStyles.characterCopy}`}
         >
           <strong className={styles.characterName}>{character.name}</strong>
-          <span className={styles.characterContext}>
-            <span className={styles.characterContextRow}>
+          <span
+            className={`${styles.characterContext} ${fixStyles.characterMeta}`}
+          >
+            <span
+              className={`${styles.characterContextRow} ${fixStyles.characterMetaRow}`}
+            >
               <small>Campaign</small>
               <span className={styles.characterCampaignName}>
                 {contextLabel}
               </span>
             </span>
-            <span className={styles.characterContextRow}>
+            <span
+              className={`${styles.characterContextRow} ${fixStyles.characterMetaRow}`}
+            >
               <small>World</small>
               <span className={styles.characterWorldName}>
                 {character.worldName}
