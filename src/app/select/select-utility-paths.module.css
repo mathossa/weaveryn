@@ -1,13 +1,11 @@
-.utilityScope.utilityScope.utilityScope > :global(div:last-child) {
+.utilityScope.utilityScope.utilityScope > div:last-child {
   height: auto !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   grid-template-rows: auto !important;
   gap: 0.65rem !important;
 }
 
-.utilityScope.utilityScope.utilityScope
-  > :global(div:last-child)
-  > :global(div) {
+.utilityScope.utilityScope.utilityScope > div:last-child > div {
   overflow: visible !important;
   border: 0 !important;
   border-radius: 0 !important;
@@ -15,17 +13,12 @@
   box-shadow: none !important;
 }
 
-.utilityScope.utilityScope.utilityScope
-  > :global(div:last-child)
-  > :global(div)::after {
+.utilityScope.utilityScope.utilityScope > div:last-child > div::after {
   display: none !important;
   content: none !important;
 }
 
-.utilityScope.utilityScope.utilityScope
-  > :global(div:last-child)
-  > :global(div)
-  > :global(a) {
+.utilityScope.utilityScope.utilityScope > div:last-child > div > a {
   display: grid !important;
   min-height: 0 !important;
   grid-template-columns: minmax(0, 1fr) !important;
@@ -42,10 +35,7 @@
   text-decoration: none !important;
 }
 
-.utilityScope.utilityScope.utilityScope
-  > :global(div:last-child)
-  > :global(div)
-  > :global(a)::before {
+.utilityScope.utilityScope.utilityScope > div:last-child > div > a::before {
   position: static !important;
   display: block !important;
   width: auto !important;
@@ -60,54 +50,54 @@
 }
 
 .utilityScope.utilityScope.utilityScope
-  > :global(div:last-child)
-  > :global(div:nth-child(1))
-  > :global(a)::before {
+  > div:last-child
+  > div:nth-child(1)
+  > a::before {
   content: 'New identity' !important;
 }
 
 .utilityScope.utilityScope.utilityScope
-  > :global(div:last-child)
-  > :global(div:nth-child(2))
-  > :global(a)::before {
+  > div:last-child
+  > div:nth-child(2)
+  > a::before {
   content: 'Join the weave' !important;
 }
 
 .utilityScope.utilityScope.utilityScope
-  > :global(div:last-child)
-  > :global(div:nth-child(3))
-  > :global(a)::before {
+  > div:last-child
+  > div:nth-child(3)
+  > a::before {
   content: 'Your characters' !important;
 }
 
 .utilityScope.utilityScope.utilityScope
-  > :global(div:last-child)
-  > :global(div)
-  > :global(a)
-  > :global(span:first-child),
+  > div:last-child
+  > div
+  > a
+  > span:first-child,
 .utilityScope.utilityScope.utilityScope
-  > :global(div:last-child)
-  > :global(div)
-  > :global(a)
-  > :global(span:last-child) {
+  > div:last-child
+  > div
+  > a
+  > span:last-child {
   display: none !important;
 }
 
 .utilityScope.utilityScope.utilityScope
-  > :global(div:last-child)
-  > :global(div)
-  > :global(a)
-  > :global(span:nth-child(2)) {
+  > div:last-child
+  > div
+  > a
+  > span:nth-child(2) {
   display: grid !important;
   gap: 0.2rem !important;
 }
 
 .utilityScope.utilityScope.utilityScope
-  > :global(div:last-child)
-  > :global(div)
-  > :global(a)
-  > :global(span:nth-child(2))
-  > :global(strong) {
+  > div:last-child
+  > div
+  > a
+  > span:nth-child(2)
+  > strong {
   color: var(--ui-text) !important;
   font-family: Georgia, 'Times New Roman', serif !important;
   font-size: 1.15rem !important;
@@ -116,11 +106,11 @@
 }
 
 .utilityScope.utilityScope.utilityScope
-  > :global(div:last-child)
-  > :global(div)
-  > :global(a)
-  > :global(span:nth-child(2))
-  > :global(span) {
+  > div:last-child
+  > div
+  > a
+  > span:nth-child(2)
+  > span {
   display: block !important;
   overflow: visible !important;
   color: var(--ui-text-muted) !important;
@@ -131,16 +121,13 @@
 }
 
 @media (hover: hover) {
-  .utilityScope.utilityScope.utilityScope
-    > :global(div:last-child)
-    > :global(div)
-    > :global(a):hover {
+  .utilityScope.utilityScope.utilityScope > div:last-child > div > a:hover {
     background: color-mix(in srgb, var(--ui-accent) 7%, transparent) !important;
   }
 }
 
 @media (max-width: 760px) {
-  .utilityScope.utilityScope.utilityScope > :global(div:last-child) {
+  .utilityScope.utilityScope.utilityScope > div:last-child {
     grid-template-columns: 1fr !important;
   }
 }
