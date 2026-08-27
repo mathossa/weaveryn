@@ -121,21 +121,23 @@
     inset: auto 1.55rem 3.1rem 1.55rem !important;
   }
 
-  /* The corner and small-center assets are tightly cropped around their visible
-     gold pixels. That means the CSS box can now be anchored directly to the
-     frame line instead of compensating for invisible raster padding. */
+  /* The frame line now carries more visual weight so it matches the metallic
+     ornaments instead of reading as a separate hairline. */
   .characterFrameOverlay {
     position: absolute;
     inset: 0;
     z-index: 4;
     display: block;
     box-sizing: border-box;
-    border: 1px solid color-mix(in srgb, var(--ui-accent) 72%, #8b6732);
+    border: 2px solid color-mix(in srgb, var(--ui-accent) 74%, #8b6732);
     border-radius: 0.9rem;
-    box-shadow: inset 0 0 0 1px rgba(255, 224, 157, 0.025);
+    box-shadow: none;
     pointer-events: none;
   }
 
+  /* The corner image is a top-left corner asset. Mirror it for the other three
+     corners rather than rotating its alignment point. The visible rail crossing
+     inside the tightly cropped asset is offset onto the actual 2px frame line. */
   .frameCorner {
     position: absolute;
     z-index: 5;
@@ -145,29 +147,31 @@
     background: url('/images/ui/weaveryn-character-corner.webp') center / contain
       no-repeat;
     transform-origin: center;
+    pointer-events: none;
   }
 
   .frameCornerTopLeft {
     top: 0;
     left: 0;
+    transform: translate(-17%, -15%);
   }
 
   .frameCornerTopRight {
     top: 0;
     right: 0;
-    transform: rotate(90deg);
+    transform: translate(17%, -15%) scaleX(-1);
   }
 
   .frameCornerBottomRight {
     right: 0;
     bottom: 0;
-    transform: rotate(180deg);
+    transform: translate(17%, 15%) scale(-1, -1);
   }
 
   .frameCornerBottomLeft {
     bottom: 0;
     left: 0;
-    transform: rotate(270deg);
+    transform: translate(-17%, 15%) scaleY(-1);
   }
 
   .frameOrnament {
@@ -178,50 +182,52 @@
     pointer-events: none;
   }
 
-  /* The small ornament is intentionally about twice the visible size it had
-     before. Its central diamond is anchored on the border line instead of the
-     transparent image canvas being centered on the line. */
+  /* Reduce the small ornament to 80% of the previous size. Its main diamond is
+     anchored directly across the frame line instead of centering the image box. */
   .frameTopOrnament {
-    top: -2.43rem;
-    width: 1.75rem;
-    height: 4.45rem;
+    top: 0;
+    width: 1.4rem;
+    height: 3.56rem;
     background: url('/images/ui/weaveryn-character-ornament-small.webp') center /
       contain no-repeat;
-    transform: translateX(-50%);
+    transform: translate(-50%, -55%);
   }
 
   .frameBottomOrnament {
-    bottom: -2.43rem;
-    width: 1.75rem;
-    height: 4.45rem;
+    bottom: 0;
+    width: 1.4rem;
+    height: 3.56rem;
     background: url('/images/ui/weaveryn-character-ornament-small.webp') center /
       contain no-repeat;
-    transform: translateX(-50%) rotate(180deg);
+    transform: translate(-50%, 55%) rotate(180deg);
   }
 
-  /* The featured first Character gets the same ornament language, with a
-     slightly larger top ornament and the wide dedicated bottom ornament. The
-     larger card itself remains the selection emphasis; there is no extra aura. */
+  /* The featured first Character uses the same top ornament language and the
+     dedicated wide bottom ornament. The larger card itself remains the selection
+     emphasis; there is deliberately no extra aura. */
   .ornamentFrame:first-child .frameCorner {
     width: 3.45rem;
     height: 3.55rem;
   }
 
   .ornamentFrame:first-child .frameTopOrnament {
-    top: -2.76rem;
-    width: 2rem;
-    height: 5.05rem;
+    top: 0;
+    width: 1.6rem;
+    height: 4.04rem;
+    transform: translate(-50%, -55%);
   }
 
+  /* The source artwork already contains its own horizontal gold rail, so the
+     ornament is centered vertically on the card's bottom border. */
   .ornamentFrame:first-child .frameBottomOrnament {
-    bottom: -2.28rem;
-    width: 10.35rem;
-    height: 4.85rem;
+    bottom: 0;
+    width: 8.3rem;
+    height: 3.9rem;
     background-image: url('/images/ui/weaveryn-character-ornament-featured-bottom.webp');
     background-position: center;
     background-size: 100% 100%;
     background-repeat: no-repeat;
-    transform: translateX(-50%);
+    transform: translate(-50%, 50%);
   }
 
   :global(section):has(:global(#secondary-entry-heading))
