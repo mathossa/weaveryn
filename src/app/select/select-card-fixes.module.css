@@ -121,9 +121,9 @@
     inset: auto 1.55rem 3.1rem 1.55rem !important;
   }
 
-  /* A restrained gold line connects the corner pieces. The frame is made from
-     independent ornaments so none of the center details are stretched by card
-     width. Each ornament fills its own box so its painted edge meets the line. */
+  /* The corner and small-center assets are tightly cropped around their visible
+     gold pixels. That means the CSS box can now be anchored directly to the
+     frame line instead of compensating for invisible raster padding. */
   .characterFrameOverlay {
     position: absolute;
     inset: 0;
@@ -140,33 +140,33 @@
     position: absolute;
     z-index: 5;
     display: block;
-    width: 3.55rem;
-    height: 3.55rem;
-    background: url('/images/ui/weaveryn-character-corner.webp') center / 100% 100%
+    width: 3rem;
+    height: 3.1rem;
+    background: url('/images/ui/weaveryn-character-corner.webp') center / contain
       no-repeat;
     transform-origin: center;
   }
 
   .frameCornerTopLeft {
-    top: -0.06rem;
-    left: -0.06rem;
+    top: 0;
+    left: 0;
   }
 
   .frameCornerTopRight {
-    top: -0.06rem;
-    right: -0.06rem;
+    top: 0;
+    right: 0;
     transform: rotate(90deg);
   }
 
   .frameCornerBottomRight {
-    right: -0.06rem;
-    bottom: -0.06rem;
+    right: 0;
+    bottom: 0;
     transform: rotate(180deg);
   }
 
   .frameCornerBottomLeft {
-    bottom: -0.06rem;
-    left: -0.06rem;
+    bottom: 0;
+    left: 0;
     transform: rotate(270deg);
   }
 
@@ -178,36 +178,39 @@
     pointer-events: none;
   }
 
+  /* The small ornament is intentionally about twice the visible size it had
+     before. Its central diamond is anchored on the border line instead of the
+     transparent image canvas being centered on the line. */
   .frameTopOrnament {
-    top: -1.34rem;
-    width: 2.7rem;
-    height: 3.2rem;
+    top: -2.43rem;
+    width: 1.75rem;
+    height: 4.45rem;
     background: url('/images/ui/weaveryn-character-ornament-small.webp') center /
-      100% 100% no-repeat;
+      contain no-repeat;
     transform: translateX(-50%);
   }
 
   .frameBottomOrnament {
-    bottom: -1.34rem;
-    width: 2.7rem;
-    height: 3.2rem;
+    bottom: -2.43rem;
+    width: 1.75rem;
+    height: 4.45rem;
     background: url('/images/ui/weaveryn-character-ornament-small.webp') center /
-      100% 100% no-repeat;
+      contain no-repeat;
     transform: translateX(-50%) rotate(180deg);
   }
 
-  /* The featured first Character gets the same top ornament as the smaller
-     cards and only one larger, wider ornament at the bottom. Its larger card
-     size is the selection emphasis; there is deliberately no extra aura. */
+  /* The featured first Character gets the same ornament language, with a
+     slightly larger top ornament and the wide dedicated bottom ornament. The
+     larger card itself remains the selection emphasis; there is no extra aura. */
   .ornamentFrame:first-child .frameCorner {
-    width: 4.15rem;
-    height: 4.15rem;
+    width: 3.45rem;
+    height: 3.55rem;
   }
 
   .ornamentFrame:first-child .frameTopOrnament {
-    top: -1.48rem;
-    width: 3rem;
-    height: 3.55rem;
+    top: -2.76rem;
+    width: 2rem;
+    height: 5.05rem;
   }
 
   .ornamentFrame:first-child .frameBottomOrnament {
