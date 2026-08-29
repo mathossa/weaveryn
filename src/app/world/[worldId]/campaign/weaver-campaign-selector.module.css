@@ -4,11 +4,11 @@
   min-height: calc(100dvh - 2.35rem);
   overflow: hidden;
   padding: clamp(1.25rem, 3vw, 3.4rem);
-  background: #17150f;
+  background: #15140f;
   color: #f5ead7;
 }
 
-:global(body:has(section[aria-label='Choose a World as Weaver']) header) {
+:global(body:has(section[aria-label='Choose a Campaign as Weaver']) header) {
   display: none !important;
 }
 
@@ -21,7 +21,7 @@
 .backgroundImage {
   object-fit: cover;
   object-position: center 58%;
-  filter: saturate(0.96) contrast(1.02) brightness(0.88);
+  filter: saturate(0.9) contrast(1.03) brightness(0.8);
   transform: scale(1.002);
 }
 
@@ -32,17 +32,17 @@
   background:
     linear-gradient(
       180deg,
-      rgba(16, 15, 11, 0.1) 0%,
-      rgba(11, 11, 9, 0.15) 62%,
-      rgba(7, 7, 6, 0.28) 100%
+      rgba(13, 13, 10, 0.15) 0%,
+      rgba(10, 10, 8, 0.22) 62%,
+      rgba(6, 6, 5, 0.34) 100%
     ),
     radial-gradient(
-      ellipse at 50% 42%,
-      rgba(247, 215, 155, 0.02) 0 28%,
-      rgba(15, 14, 10, 0.08) 68%,
-      rgba(5, 5, 4, 0.3) 100%
+      ellipse at 50% 43%,
+      rgba(247, 215, 155, 0.015) 0 28%,
+      rgba(13, 12, 9, 0.12) 68%,
+      rgba(5, 5, 4, 0.36) 100%
     );
-  box-shadow: inset 0 0 9rem rgba(24, 19, 10, 0.24);
+  box-shadow: inset 0 0 10rem rgba(20, 16, 9, 0.32);
 }
 
 .stage::after {
@@ -52,12 +52,12 @@
   background:
     linear-gradient(
       90deg,
-      rgba(4, 4, 3, 0.18),
+      rgba(4, 4, 3, 0.22),
       transparent 18%,
       transparent 82%,
-      rgba(4, 4, 3, 0.18)
+      rgba(4, 4, 3, 0.22)
     ),
-    linear-gradient(0deg, rgba(5, 5, 4, 0.18), transparent 28%);
+    linear-gradient(0deg, rgba(5, 5, 4, 0.22), transparent 30%);
   content: '';
   pointer-events: none;
 }
@@ -65,7 +65,7 @@
 .inner {
   position: relative;
   z-index: 1;
-  width: min(100%, 98rem);
+  width: min(100%, 92rem);
   margin: 0 auto;
 }
 
@@ -121,12 +121,12 @@
   padding: 0.55rem 1rem;
   background: linear-gradient(
     180deg,
-    rgba(31, 27, 20, 0.62),
-    rgba(13, 13, 11, 0.72)
+    rgba(31, 27, 20, 0.68),
+    rgba(13, 13, 11, 0.78)
   );
   box-shadow:
     inset 0 0 0 1px rgba(244, 217, 163, 0.05),
-    0 8px 24px rgba(0, 0, 0, 0.16);
+    0 8px 24px rgba(0, 0, 0, 0.18);
   color: #e8c477;
   text-transform: uppercase;
 }
@@ -142,8 +142,8 @@
   border-color: rgba(233, 196, 119, 0.9);
   background: linear-gradient(
     180deg,
-    rgba(48, 39, 25, 0.72),
-    rgba(17, 15, 12, 0.78)
+    rgba(48, 39, 25, 0.76),
+    rgba(17, 15, 12, 0.82)
   );
   color: #f6d994;
   transform: translateY(-1px);
@@ -153,10 +153,10 @@
   display: grid;
   justify-items: center;
   gap: 0.7rem;
-  width: min(100%, 54rem);
+  width: min(100%, 56rem);
   margin: 0 auto clamp(1.8rem, 4vh, 3.4rem);
   text-align: center;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.44);
 }
 
 .eyebrow,
@@ -173,7 +173,7 @@
   margin: 0;
   color: #f8eddb;
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(3rem, 5.4vw, 5.4rem);
+  font-size: clamp(3rem, 5.2vw, 5.2rem);
   font-weight: 500;
   letter-spacing: -0.035em;
   line-height: 0.98;
@@ -210,37 +210,37 @@
 .intro p {
   max-width: 40rem;
   margin: 0;
-  color: rgba(248, 236, 216, 0.82);
+  color: rgba(248, 236, 216, 0.8);
   font-size: clamp(0.92rem, 1.2vw, 1.03rem);
   line-height: 1.6;
   text-wrap: balance;
 }
 
-.worldGrid {
+.campaignGrid {
   display: grid;
   grid-template-columns: repeat(
     auto-fit,
-    minmax(min(100%, 24rem), 31rem)
+    minmax(min(100%, 22rem), 28rem)
   );
   justify-content: center;
-  gap: clamp(1.15rem, 2vw, 1.8rem);
+  gap: clamp(1.1rem, 2vw, 1.6rem);
   width: 100%;
   margin: 0 auto;
 }
 
-.worldCard {
+.campaignCard {
   position: relative;
-  min-height: clamp(21rem, 41vh, 26rem);
+  min-height: clamp(19rem, 36vh, 23rem);
   display: flex;
   overflow: hidden;
   align-items: flex-end;
-  border: 1px solid rgba(214, 175, 97, 0.68);
-  border-radius: 0.8rem;
-  background-color: rgba(25, 23, 18, 0.9);
+  border: 1px solid rgba(214, 175, 97, 0.62);
+  border-radius: 0.75rem;
+  background-color: rgba(24, 22, 17, 0.92);
   background-position: center;
   background-size: cover;
   box-shadow:
-    0 1.5rem 4rem rgba(0, 0, 0, 0.28),
+    0 1.4rem 3.6rem rgba(0, 0, 0, 0.3),
     inset 0 0 0 1px rgba(255, 239, 205, 0.04);
   color: #f6ebd8;
   text-decoration: none;
@@ -251,38 +251,38 @@
     box-shadow 180ms ease;
 }
 
-.worldCard::before {
+.campaignCard::before {
   position: absolute;
   inset: 0;
   z-index: -1;
   background:
     linear-gradient(
       0deg,
-      rgba(12, 11, 9, 0.98) 0%,
-      rgba(13, 12, 9, 0.86) 29%,
-      rgba(13, 12, 9, 0.36) 57%,
-      rgba(10, 10, 8, 0.03) 82%
+      rgba(11, 10, 8, 0.99) 0%,
+      rgba(12, 11, 9, 0.88) 31%,
+      rgba(12, 11, 9, 0.4) 59%,
+      rgba(9, 9, 7, 0.05) 84%
     ),
-    linear-gradient(105deg, rgba(218, 176, 94, 0.08), transparent 46%);
+    linear-gradient(105deg, rgba(218, 176, 94, 0.07), transparent 46%);
   content: '';
 }
 
-.worldCard::after {
+.campaignCard::after {
   position: absolute;
-  inset: 0.58rem;
-  border: 1px solid rgba(225, 185, 105, 0.2);
-  border-radius: 0.5rem;
+  inset: 0.55rem;
+  border: 1px solid rgba(225, 185, 105, 0.18);
+  border-radius: 0.45rem;
   content: '';
   pointer-events: none;
 }
 
-.worldCard:hover,
-.worldCard:focus-visible {
+.campaignCard:hover,
+.campaignCard:focus-visible {
   transform: translateY(-5px);
-  border-color: rgba(236, 199, 124, 0.96);
+  border-color: rgba(236, 199, 124, 0.94);
   box-shadow:
-    0 2rem 5rem rgba(0, 0, 0, 0.38),
-    0 0 2.4rem rgba(205, 159, 73, 0.12);
+    0 2rem 4.8rem rgba(0, 0, 0, 0.4),
+    0 0 2rem rgba(205, 159, 73, 0.1);
   outline: none;
 }
 
@@ -292,8 +292,8 @@
   display: grid;
   width: 100%;
   gap: 0.46rem;
-  padding: 1.35rem 1.45rem 1.25rem;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.7);
+  padding: 1.3rem 1.35rem 1.2rem;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.72);
 }
 
 .cardKicker {
@@ -303,37 +303,37 @@
 
 .cardCopy strong {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(1.8rem, 2.4vw, 2.45rem);
+  font-size: clamp(1.65rem, 2.2vw, 2.2rem);
   font-weight: 500;
   letter-spacing: -0.02em;
-  line-height: 1.05;
+  line-height: 1.06;
 }
 
 .meta {
-  max-width: 28rem;
-  color: rgba(239, 226, 204, 0.72);
-  font-size: 0.82rem;
-  line-height: 1.45;
+  color: rgba(239, 226, 204, 0.7);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
 }
 
 .cardAction {
   display: flex;
-  min-height: 3.15rem;
+  min-height: 3.05rem;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   margin-top: 0.55rem;
-  border: 1px solid rgba(214, 173, 91, 0.6);
+  border: 1px solid rgba(214, 173, 91, 0.58);
   border-radius: 0.35rem;
-  padding: 0.7rem 0.95rem;
+  padding: 0.68rem 0.92rem;
   background: linear-gradient(
     180deg,
-    rgba(23, 20, 15, 0.82),
-    rgba(8, 8, 7, 0.9)
+    rgba(23, 20, 15, 0.84),
+    rgba(8, 8, 7, 0.92)
   );
-  box-shadow: inset 0 0 0 1px rgba(255, 235, 190, 0.03);
   color: #e9c574;
-  font-size: 0.76rem;
+  font-size: 0.75rem;
   font-weight: 820;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -344,8 +344,8 @@
   transition: transform 160ms ease;
 }
 
-.worldCard:hover .cardAction span:last-child,
-.worldCard:focus-visible .cardAction span:last-child {
+.campaignCard:hover .cardAction span:last-child,
+.campaignCard:focus-visible .cardAction span:last-child {
   transform: translateX(0.25rem);
 }
 
@@ -357,11 +357,11 @@
   min-height: 20rem;
   align-content: center;
   margin: 0 auto;
-  border: 1px solid rgba(214, 175, 97, 0.45);
+  border: 1px solid rgba(214, 175, 97, 0.42);
   border-radius: 0.8rem;
   padding: 2rem;
-  background: rgba(21, 19, 14, 0.64);
-  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.24);
+  background: rgba(20, 18, 14, 0.68);
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.26);
   text-align: center;
   backdrop-filter: blur(8px);
 }
@@ -376,7 +376,7 @@
 .emptyState p {
   max-width: 32rem;
   margin: 0;
-  color: rgba(239, 226, 204, 0.76);
+  color: rgba(239, 226, 204, 0.74);
   line-height: 1.55;
 }
 
@@ -403,12 +403,12 @@
     margin-bottom: 1.8rem;
   }
 
-  .worldGrid {
+  .campaignGrid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .worldCard {
-    min-height: 19rem;
+  .campaignCard {
+    min-height: 18rem;
   }
 }
 
@@ -427,6 +427,6 @@
   }
 
   .cardCopy {
-    padding: 1.1rem;
+    padding: 1.05rem;
   }
 }

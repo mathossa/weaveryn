@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
@@ -27,24 +28,40 @@ export default async function WorldSelectionPage({
 
   if (weaverMode) {
     return (
-      <AuthenticatedAppShell user={user}>
+      <AuthenticatedAppShell user={user} variant="launcher">
         <section
           className={weaverStyles.stage}
+          aria-label="Choose a World as Weaver"
           aria-labelledby="weaver-world-title"
         >
+          <div className={weaverStyles.background} aria-hidden="true">
+            <Image
+              src={uiAssets.select.backgroundDesktop.src}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className={weaverStyles.backgroundImage}
+            />
+          </div>
+          <div className={weaverStyles.backgroundVeil} aria-hidden="true" />
+
           <div className={weaverStyles.inner}>
             <div className={weaverStyles.topbar}>
               <Link className={weaverStyles.backLink} href="/select">
-                ← Return to entry selection
+                <span aria-hidden="true">←</span>
+                <span>Back to entry selection</span>
               </Link>
               <Link className={weaverStyles.createLink} href="/world/create">
-                Create World
+                <span aria-hidden="true">＋</span>
+                <span>Create World</span>
               </Link>
             </div>
 
             <div className={weaverStyles.intro}>
               <span className={weaverStyles.eyebrow}>Enter as Weaver</span>
               <h1 id="weaver-world-title">Choose a World</h1>
+              <span className={weaverStyles.introRule} aria-hidden="true" />
               <p>
                 Choose the World whose threads you want to shape. You will pick
                 a Campaign before entering as Weaver.
@@ -53,12 +70,16 @@ export default async function WorldSelectionPage({
 
             {worlds.length === 0 ? (
               <div className={weaverStyles.emptyState}>
+                <span className={weaverStyles.emptyKicker}>No paths yet</span>
                 <strong>No Weaver Worlds available</strong>
                 <p>
                   Create a World to begin weaving, or return to entry selection
                   to join an invitation.
                 </p>
-                <Link className={weaverStyles.createLink} href="/world/create">
+                <Link
+                  className={weaverStyles.emptyAction}
+                  href="/world/create"
+                >
                   Create your first World
                 </Link>
               </div>
@@ -74,17 +95,15 @@ export default async function WorldSelectionPage({
                     }}
                   >
                     <span className={weaverStyles.cardCopy}>
-                      <span className={weaverStyles.badge}>
-                        {worldAccessLabel(world.accessKind)}
+                      <span className={weaverStyles.cardKicker}>
+                        {world.orphaned ? 'Orphaned World' : 'World'}
                       </span>
                       <strong>{world.name}</strong>
                       <span className={weaverStyles.meta}>
-                        {world.orphaned
-                          ? 'Orphaned World · Choose a Campaign'
-                          : 'Choose a Campaign'}
+                        Choose the Campaign you want to continue weaving.
                       </span>
                       <span className={weaverStyles.cardAction}>
-                        <span>Weave this World</span>
+                        <span>Choose Campaign</span>
                         <span aria-hidden="true">›</span>
                       </span>
                     </span>
