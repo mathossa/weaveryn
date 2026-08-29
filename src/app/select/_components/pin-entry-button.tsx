@@ -18,8 +18,9 @@ type PinEntryTarget =
 
 export function PinEntryButton({
   pinned,
+  className,
   ...target
-}: PinEntryTarget & { pinned: boolean }) {
+}: PinEntryTarget & { pinned: boolean; className?: string }) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [isPinned, setIsPinned] = useState(pinned)
@@ -63,7 +64,7 @@ export function PinEntryButton({
 
   return (
     <button
-      className={styles.pinButton}
+      className={`${styles.pinButton} ${className ?? ''}`}
       type="button"
       aria-pressed={isPinned}
       aria-label={isPinned ? 'Unpin entry' : 'Pin entry'}

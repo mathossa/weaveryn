@@ -234,6 +234,27 @@ export const uiAssets = {
       height: 362,
     },
   },
+  select: {
+    backgroundDesktop: {
+      src: '/images/select/background-desktop.webp',
+      alt: 'Golden mountain valley and ancient fantasy ruins at dawn',
+      width: 2560,
+      height: 1440,
+    },
+    hero: {
+      bodwick: '/images/select/hero/bodwick.webp',
+    },
+  },
+  ui: {
+    frames: {
+      goldRect: '/images/ui/frames/gold-rect-frame.png',
+      goldCircle: '/images/ui/frames/gold-circle-frame.png',
+      goldPrimaryAction: '/images/ui/frames/gold-primary-action-frame.png',
+    },
+    textures: {
+      blackGoldVeins: '/images/ui/textures/black-gold-veins.webp',
+    },
+  },
   entityArtwork,
   entityFallbacks,
   fallbacks: generalFallbacks,
