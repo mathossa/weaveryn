@@ -27,6 +27,10 @@ interface CampaignOverviewPageProps {
   }>
 }
 
+function isRemoteContentImage(src: string | null | undefined) {
+  return Boolean(src && /^https?:\/\//i.test(src))
+}
+
 export default async function CampaignOverviewPage({
   params,
   searchParams,
@@ -189,6 +193,7 @@ export default async function CampaignOverviewPage({
               alt=""
               fill
               priority
+              unoptimized={isRemoteContentImage(now.currentLocation?.image)}
               sizes="(max-width: 760px) 100vw, 68vw"
               style={
                 now.currentLocation
@@ -256,6 +261,7 @@ export default async function CampaignOverviewPage({
                         }
                         alt=""
                         fill
+                        unoptimized={isRemoteContentImage(entity.image)}
                         sizes="80px"
                         style={{
                           objectPosition: `${entity.imageFocusX}% ${entity.imageFocusY}%`,
@@ -303,6 +309,7 @@ export default async function CampaignOverviewPage({
                     }
                     alt=""
                     fill
+                    unoptimized={isRemoteContentImage(selectedCharacter.image)}
                     sizes="64px"
                   />
                 </span>
@@ -331,6 +338,7 @@ export default async function CampaignOverviewPage({
                         src={character.image || uiAssets.fallbacks.character}
                         alt={character.name}
                         fill
+                        unoptimized={isRemoteContentImage(character.image)}
                         sizes="42px"
                       />
                     </span>
