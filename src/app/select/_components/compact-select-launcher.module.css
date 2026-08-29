@@ -65,8 +65,8 @@
 
 .heroArtwork {
   position: absolute;
-  bottom: -2.5%;
-  left: clamp(2rem, 7vw, 9rem);
+  bottom: calc(-2.5% + 28px);
+  left: clamp(4rem, calc(7vw + 44px), 12rem);
   z-index: 1;
   width: clamp(285px, 31vw, 580px);
   height: 82%;
@@ -104,15 +104,15 @@
 
 .crest {
   position: relative;
-  width: 100px;
-  height: 96px;
+  width: 120px;
+  height: 116px;
   justify-self: center;
-  margin-bottom: -0.1rem;
+  margin-bottom: -0.2rem;
 }
 
 .crestImage {
   object-fit: contain;
-  filter: drop-shadow(0 0 0.8rem rgba(232, 190, 100, 0.22));
+  filter: drop-shadow(0 0 1rem rgba(232, 190, 100, 0.28));
 }
 
 .characterRows {
@@ -132,11 +132,10 @@
   width: 100%;
   height: 100%;
   align-content: center;
+  isolation: isolate;
   border: 0;
   padding: 0.9rem 4.1rem 0.9rem 7.5rem;
-  background:
-    linear-gradient(rgba(4, 5, 4, 0.75), rgba(4, 5, 4, 0.86)),
-    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
+  background: transparent;
   color: inherit;
   font: inherit;
   text-align: left;
@@ -145,6 +144,19 @@
     filter 150ms ease,
     opacity 150ms ease,
     transform 150ms ease;
+}
+
+.rowSelect::before {
+  position: absolute;
+  inset: 8px 11px;
+  z-index: 0;
+  border-radius: 8px;
+  background:
+    linear-gradient(rgba(4, 5, 4, 0.74), rgba(4, 5, 4, 0.86)),
+    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
+  box-shadow: inset 0 0 1rem rgba(0, 0, 0, 0.38);
+  content: '';
+  pointer-events: none;
 }
 
 .rowShell:not([data-selected='true']) .rowSelect {
@@ -245,26 +257,39 @@
   top: 50% !important;
   right: 14px !important;
   z-index: 7 !important;
-  width: 38px !important;
-  min-width: 38px !important;
-  height: 38px !important;
-  min-height: 38px !important;
+  display: grid !important;
+  width: 42px !important;
+  min-width: 42px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  place-items: center !important;
   margin: 0 !important;
   border: 0 !important;
   border-radius: 999px !important;
   padding: 0 !important;
-  background: rgba(5, 5, 4, 0.44) !important;
-  color: #e9bd61 !important;
-  font-size: 1.35rem !important;
-  line-height: 1 !important;
+  background: transparent !important;
   transform: translateY(-50%) !important;
-  opacity: 0.82;
+  opacity: 0.9;
+}
+
+.favoriteButton img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 0.25rem rgba(0, 0, 0, 0.78));
+  transition:
+    filter 150ms ease,
+    transform 150ms ease;
 }
 
 .favoriteButton:hover {
-  background: rgba(24, 20, 11, 0.7) !important;
-  color: #ffd980 !important;
+  background: rgba(24, 20, 11, 0.24) !important;
   opacity: 1;
+}
+
+.favoriteButton:hover img {
+  filter: brightness(1.12) drop-shadow(0 1px 0.3rem rgba(0, 0, 0, 0.85));
+  transform: scale(1.05);
 }
 
 .emptyRows {
@@ -290,23 +315,26 @@
 
 .browseLink {
   justify-self: center;
-  padding: 0.1rem 0.55rem;
-  color: rgba(229, 194, 125, 0.82);
-  font-size: 0.8rem;
-  font-weight: 650;
+  padding: 0.12rem 0.55rem;
+  color: rgba(242, 205, 131, 0.96);
+  font-size: 0.86rem;
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-decoration: none;
+  text-shadow: 0 1px 0.45rem rgba(0, 0, 0, 0.88);
 }
 
 .browseLink:hover {
-  color: #f5cd78;
+  color: #ffe09a;
 }
 
 .primaryAction {
   position: relative;
   display: grid;
   height: 82px;
+  isolation: isolate;
   place-items: center;
+  background: transparent;
   color: #f7e8c4;
   font-family: Georgia, 'Times New Roman', serif;
   font-size: clamp(1.08rem, 1.25vw, 1.34rem);
@@ -315,6 +343,19 @@
   text-decoration: none;
   text-shadow: 0 1px 0.6rem rgba(0, 0, 0, 0.9);
   text-transform: uppercase;
+}
+
+.primaryAction::before {
+  position: absolute;
+  inset: 16px 42px;
+  z-index: 0;
+  border-radius: 999px;
+  background:
+    linear-gradient(rgba(4, 5, 4, 0.78), rgba(4, 5, 4, 0.9)),
+    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
+  box-shadow: inset 0 0 1.1rem rgba(0, 0, 0, 0.46);
+  content: '';
+  pointer-events: none;
 }
 
 .primaryAction > span {
@@ -329,6 +370,7 @@
 }
 
 .primaryFrame {
+  z-index: 1;
   opacity: 0.98;
 }
 
@@ -341,10 +383,12 @@
   align-items: center;
   gap: 0.7rem;
   margin-top: 0.02rem;
-  color: rgba(221, 194, 141, 0.64);
+  color: rgba(238, 209, 151, 0.88);
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 0.72rem;
+  font-size: 0.76rem;
+  font-weight: 650;
   letter-spacing: 0.1em;
+  text-shadow: 0 1px 0.4rem rgba(0, 0, 0, 0.88);
   text-transform: uppercase;
 }
 
@@ -352,12 +396,12 @@
 .roleHeading::after {
   height: 1px;
   flex: 1;
-  background: linear-gradient(90deg, transparent, rgba(213, 174, 92, 0.35));
+  background: linear-gradient(90deg, transparent, rgba(226, 188, 108, 0.52));
   content: '';
 }
 
 .roleHeading::after {
-  background: linear-gradient(90deg, rgba(213, 174, 92, 0.35), transparent);
+  background: linear-gradient(90deg, rgba(226, 188, 108, 0.52), transparent);
 }
 
 .roleActions {
@@ -370,9 +414,11 @@
   position: relative;
   display: grid;
   min-height: 58px;
+  isolation: isolate;
   place-items: center;
   padding: 0 0.8rem;
-  color: rgba(244, 226, 190, 0.88);
+  background: transparent;
+  color: rgba(249, 232, 198, 0.96);
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 0.8rem;
   font-weight: 650;
@@ -383,18 +429,32 @@
   text-transform: uppercase;
 }
 
+.roleButton::before {
+  position: absolute;
+  inset: 7px 10px;
+  z-index: 0;
+  border-radius: 7px;
+  background:
+    linear-gradient(rgba(4, 5, 4, 0.76), rgba(4, 5, 4, 0.88)),
+    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
+  box-shadow: inset 0 0 0.85rem rgba(0, 0, 0, 0.4);
+  content: '';
+  pointer-events: none;
+}
+
 .roleButton > span {
   position: relative;
   z-index: 2;
 }
 
 .roleFrame {
-  opacity: 0.55;
+  z-index: 1;
+  opacity: 0.68;
 }
 
 .roleButton:hover .roleFrame {
   filter: brightness(1.12);
-  opacity: 0.82;
+  opacity: 0.88;
 }
 
 .pendingCampaigns {
@@ -402,19 +462,20 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.3rem 0.65rem;
-  color: rgba(229, 216, 193, 0.58);
-  font-size: 0.7rem;
+  color: rgba(229, 216, 193, 0.72);
+  font-size: 0.72rem;
+  text-shadow: 0 1px 0.35rem rgba(0, 0, 0, 0.8);
 }
 
 .pendingCampaigns > span {
   width: 100%;
-  color: rgba(223, 190, 121, 0.66);
+  color: rgba(231, 199, 133, 0.82);
   text-align: center;
   text-transform: uppercase;
 }
 
 .pendingCampaigns a {
-  color: rgba(239, 221, 185, 0.74);
+  color: rgba(244, 225, 190, 0.9);
   text-decoration: none;
 }
 
@@ -427,13 +488,15 @@
 }
 
 .utilityLinks a {
-  color: rgba(228, 218, 199, 0.58);
-  font-size: 0.72rem;
+  color: rgba(240, 227, 203, 0.78);
+  font-size: 0.76rem;
+  font-weight: 600;
   text-decoration: none;
+  text-shadow: 0 1px 0.4rem rgba(0, 0, 0, 0.86);
 }
 
 .utilityLinks a:hover {
-  color: rgba(244, 214, 153, 0.9);
+  color: rgba(255, 221, 157, 0.98);
 }
 
 @media (max-width: 1120px) {
@@ -443,7 +506,7 @@
   }
 
   .heroArtwork {
-    left: 2vw;
+    left: calc(2vw + 30px);
     width: 39vw;
   }
 }
@@ -493,8 +556,8 @@
   }
 
   .crest {
-    width: 70px;
-    height: 66px;
+    width: 82px;
+    height: 78px;
   }
 
   .rowShell {
@@ -503,6 +566,10 @@
 
   .rowSelect {
     padding-left: 5.9rem;
+  }
+
+  .rowSelect::before {
+    inset: 7px 9px;
   }
 
   .portrait {
@@ -524,6 +591,10 @@
   .primaryAction {
     height: 68px;
     font-size: 1rem;
+  }
+
+  .primaryAction::before {
+    inset: 13px 34px;
   }
 
   .roleActions {
