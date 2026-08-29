@@ -23,15 +23,17 @@
   opacity: 0;
   background: radial-gradient(
     circle,
-    rgba(255, 250, 232, 1) 0%,
-    rgba(255, 226, 160, 0.98) 34%,
-    rgba(246, 197, 92, 0.62) 60%,
-    rgba(218, 154, 58, 0.18) 82%,
+    rgba(255, 252, 238, 1) 0%,
+    rgba(255, 235, 176, 1) 28%,
+    rgba(255, 211, 102, 0.95) 52%,
+    rgba(245, 184, 59, 0.52) 74%,
+    rgba(214, 139, 33, 0.14) 88%,
     transparent 100%
   );
   box-shadow:
-    0 0 9px rgba(255, 228, 168, 0.42),
-    0 0 20px rgba(231, 178, 82, 0.22);
+    0 0 14px rgba(255, 233, 173, 0.62),
+    0 0 28px rgba(243, 185, 73, 0.34),
+    0 0 42px rgba(214, 149, 37, 0.16);
   filter: blur(var(--particle-blur));
   transform: translate3d(0, -14vh, 0) scale(0.82);
   will-change: transform, opacity;
@@ -42,18 +44,20 @@
 .particle:nth-child(2n) {
   background: radial-gradient(
     circle,
-    rgba(255, 252, 240, 1) 0%,
-    rgba(255, 234, 184, 0.96) 35%,
-    rgba(248, 205, 106, 0.58) 60%,
-    rgba(224, 168, 72, 0.16) 82%,
+    rgba(255, 250, 232, 1) 0%,
+    rgba(255, 226, 150, 0.98) 30%,
+    rgba(250, 198, 85, 0.9) 54%,
+    rgba(235, 168, 49, 0.46) 75%,
+    rgba(201, 130, 28, 0.12) 89%,
     transparent 100%
   );
 }
 
 .particle:nth-child(3n) {
   box-shadow:
-    0 0 11px rgba(255, 235, 185, 0.48),
-    0 0 24px rgba(235, 185, 93, 0.24);
+    0 0 16px rgba(255, 239, 191, 0.72),
+    0 0 34px rgba(246, 193, 89, 0.42),
+    0 0 48px rgba(220, 156, 45, 0.2);
 }
 
 @keyframes selectGoldDustFlow {
@@ -66,36 +70,36 @@
     opacity: var(--particle-opacity);
   }
 
-  22% {
-    transform: translate3d(calc(var(--particle-sway) * 0.75), 18vh, 0)
-      scale(1.1);
+  20% {
+    transform: translate3d(calc(var(--particle-sway) * 0.95), 16vh, 0)
+      scale(1.14);
   }
 
-  40% {
-    opacity: calc(var(--particle-opacity) * 1.02);
-    transform: translate3d(calc(var(--particle-drift) * 0.55), 42vh, 0)
-      scale(1.02);
+  38% {
+    opacity: calc(var(--particle-opacity) * 1.05);
+    transform: translate3d(calc(var(--particle-drift) * 0.45), 38vh, 0)
+      scale(1.06);
   }
 
-  58% {
-    transform: translate3d(calc(var(--particle-sway) * -0.5), 64vh, 0)
-      scale(1.08);
+  56% {
+    transform: translate3d(calc(var(--particle-sway) * -0.72), 61vh, 0)
+      scale(1.12);
   }
 
-  76% {
-    opacity: calc(var(--particle-opacity) * 0.82);
-    transform: translate3d(calc(var(--particle-drift) * 0.95), 84vh, 0)
-      scale(0.95);
+  74% {
+    opacity: calc(var(--particle-opacity) * 0.88);
+    transform: translate3d(calc(var(--particle-drift) * 1.05), 82vh, 0)
+      scale(0.98);
   }
 
   100% {
     opacity: 0;
     transform: translate3d(
-        calc(var(--particle-drift) + var(--particle-sway) * 0.25),
+        calc(var(--particle-drift) + var(--particle-sway) * 0.35),
         114vh,
         0
       )
-      scale(0.74);
+      scale(0.76);
   }
 }
 
