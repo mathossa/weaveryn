@@ -243,13 +243,9 @@ test('persists and protects the complete MVP backbone', async ({
       fixture.users.owner,
     )
     ownerContext = owner.context
+    await expect(owner.page.getByText('No Character entries yet')).toBeVisible()
     await expect(
-      owner.page.getByRole('heading', { name: 'Return to the Weave' }),
-    ).toBeVisible()
-    await expect(
-      owner.page.getByRole('heading', {
-        name: 'Your weave is ready to begin',
-      }),
+      owner.page.getByRole('link', { name: 'Create Character', exact: true }),
     ).toBeVisible()
     await expectNoHorizontalOverflow(owner.page)
     await capture(owner.page, testInfo, 'selection-empty')
@@ -527,22 +523,18 @@ test('persists and protects the complete MVP backbone', async ({
     await expect(
       ownerPage.getByText(fixture.character.name).first(),
     ).toBeVisible()
-    const primaryEntry = ownerPage.getByRole('link', {
-      name: `Enter ${fixture.primaryCampaign.name} as ${fixture.character.name} in ${fixture.primaryWorld.name}`,
-    })
     await expect(
-      primaryEntry.getByText('Campaign', { exact: true }),
+      ownerPage.getByRole('button', {
+        name: `Select ${fixture.character.name}`,
+      }),
     ).toBeVisible()
-    await expect(primaryEntry.getByText('World', { exact: true })).toBeVisible()
     await expect(
-      primaryEntry.getByText('Continue', { exact: true }),
-    ).toHaveCount(0)
-    await expect(primaryEntry.getByText(/members?/i)).toHaveCount(0)
+      ownerPage.getByRole('link', {
+        name: `Enter Campaign as ${fixture.character.name}`,
+      }),
+    ).toBeVisible()
     await expect(
-      primaryEntry.getByText('12 Emberwane', { exact: true }),
-    ).toHaveCount(0)
-    await expect(
-      ownerPage.getByRole('heading', { name: 'Other paths through the Weave' }),
+      ownerPage.getByText('Other ways to enter', { exact: true }),
     ).toBeVisible()
     await expect(
       ownerPage.getByRole('link', { name: /\bWeaver\b/ }),
@@ -550,9 +542,17 @@ test('persists and protects the complete MVP backbone', async ({
     await expect(
       ownerPage.getByRole('link', { name: /Threadwatcher/ }),
     ).toBeVisible()
-    await expect(ownerPage.getByRole('link', { name: 'Change' })).toBeVisible()
     await expect(
-      ownerPage.getByRole('heading', { name: 'Utilities' }),
+      ownerPage.getByRole('navigation', { name: 'Character utilities' }),
+    ).toBeVisible()
+    await expect(
+      ownerPage.getByRole('link', { name: 'Create character' }),
+    ).toBeVisible()
+    await expect(
+      ownerPage.getByRole('link', { name: 'Join with invite' }),
+    ).toBeVisible()
+    await expect(
+      ownerPage.getByRole('link', { name: 'Manage characters' }),
     ).toBeVisible()
     await expect(
       ownerPage.getByRole('button', { name: 'Unpin entry' }),
@@ -1141,7 +1141,9 @@ test('persists and protects the complete MVP backbone', async ({
     await ownerPage.setViewportSize({ width: 390, height: 844 })
     await ownerPage.goto('/select')
     await expect(
-      ownerPage.getByRole('heading', { name: 'Return to the Weave' }),
+      ownerPage.getByRole('button', {
+        name: `Select ${fixture.character.name}`,
+      }),
     ).toBeVisible()
     await expect(
       ownerPage.getByRole('button', { name: 'Choose Entity' }),
@@ -1176,7 +1178,9 @@ test('persists and protects the complete MVP backbone', async ({
     await ownerPage.setViewportSize({ width: 820, height: 1180 })
     await ownerPage.goto('/select')
     await expect(
-      ownerPage.getByRole('heading', { name: 'Return to the Weave' }),
+      ownerPage.getByRole('button', {
+        name: `Select ${fixture.character.name}`,
+      }),
     ).toBeVisible()
     await expectNoHorizontalOverflow(ownerPage)
     await capture(ownerPage, testInfo, 'selection-820x1180')
@@ -1200,20 +1204,25 @@ test('persists and protects the complete MVP backbone', async ({
     await ownerPage.setViewportSize({ width: 1920, height: 1080 })
     await ownerPage.goto('/select')
     await expect(
-      ownerPage.getByRole('heading', { name: 'Return to the Weave' }),
+      ownerPage.getByRole('button', {
+        name: `Select ${fixture.character.name}`,
+      }),
     ).toBeVisible()
     await expectNoHorizontalOverflow(ownerPage)
     await expectSharedFooterAlignment(ownerPage)
     await capture(ownerPage, testInfo, 'selection-1920x1080')
     await ownerPage.goto('/select?show=all')
     await expect(
-      ownerPage.getByRole('heading', { name: 'Browse the Weave' }),
+      ownerPage.getByRole('heading', { name: 'Choose a character' }),
     ).toBeVisible()
     await expect(ownerPage.getByLabel('Search')).toBeVisible()
     await expect(
       ownerPage.getByRole('combobox', { name: /^World/ }),
     ).toBeVisible()
     await expect(ownerPage.getByLabel('Sort')).toBeVisible()
+    await expect(
+      ownerPage.getByRole('button', { name: 'Close character browser' }),
+    ).toBeVisible()
     await expectNoHorizontalOverflow(ownerPage)
     await capture(ownerPage, testInfo, 'selection-browse-all-1920x1080')
     await ownerPage.goto(`/world/${ids.primaryWorldId}/entities`)
@@ -1222,7 +1231,9 @@ test('persists and protects the complete MVP backbone', async ({
     await ownerPage.setViewportSize({ width: 2560, height: 1440 })
     await ownerPage.goto('/select')
     await expect(
-      ownerPage.getByRole('heading', { name: 'Return to the Weave' }),
+      ownerPage.getByRole('button', {
+        name: `Select ${fixture.character.name}`,
+      }),
     ).toBeVisible()
     await expectNoHorizontalOverflow(ownerPage)
     await expectSharedFooterAlignment(ownerPage)
