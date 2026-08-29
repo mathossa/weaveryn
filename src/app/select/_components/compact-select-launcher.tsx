@@ -216,7 +216,10 @@ export function CompactSelectLauncher({
             <span>{selectedEntry.actionLabel}</span>
           </TrackedEntryLink>
         ) : (
-          <Link className={styles.primaryAction} href="/select/create-character">
+          <Link
+            className={styles.primaryAction}
+            href="/select/create-character"
+          >
             <Image
               src={uiAssets.ui.frames.goldPrimaryAction}
               alt=""
@@ -253,10 +256,7 @@ export function CompactSelectLauncher({
             <span>Enter as Weaver</span>
           </TrackedEntryLink>
 
-          <Link
-            className={styles.roleButton}
-            href="/world?mode=threadwatcher"
-          >
+          <Link className={styles.roleButton} href="/world?mode=threadwatcher">
             <Image
               src={uiAssets.ui.frames.goldRect}
               alt=""

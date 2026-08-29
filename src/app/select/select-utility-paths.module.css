@@ -24,8 +24,12 @@
   will-change: transform;
 }
 
-.utilityScope.utilityScope.utilityScope.utilityScope > div:last-child > div::before,
-.utilityScope.utilityScope.utilityScope.utilityScope > div:last-child > div::after {
+.utilityScope.utilityScope.utilityScope.utilityScope
+  > div:last-child
+  > div::before,
+.utilityScope.utilityScope.utilityScope.utilityScope
+  > div:last-child
+  > div::after {
   display: none !important;
   border: 0 !important;
   background: none !important;
@@ -33,7 +37,10 @@
   content: none !important;
 }
 
-.utilityScope.utilityScope.utilityScope.utilityScope > div:last-child > div > a {
+.utilityScope.utilityScope.utilityScope.utilityScope
+  > div:last-child
+  > div
+  > a {
   display: grid !important;
   min-height: 0 !important;
   grid-template-columns: minmax(0, 1fr) !important;

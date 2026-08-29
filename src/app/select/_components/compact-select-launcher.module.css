@@ -30,8 +30,17 @@
   inset: 0;
   z-index: -3;
   background:
-    linear-gradient(180deg, rgba(7, 8, 7, 0.01), rgba(6, 7, 6, 0.08) 72%, rgba(4, 5, 4, 0.28)),
-    radial-gradient(circle at 23% 75%, rgba(214, 171, 88, 0.08), transparent 31%);
+    linear-gradient(
+      180deg,
+      rgba(7, 8, 7, 0.01),
+      rgba(6, 7, 6, 0.08) 72%,
+      rgba(4, 5, 4, 0.28)
+    ),
+    radial-gradient(
+      circle at 23% 75%,
+      rgba(214, 171, 88, 0.08),
+      transparent 31%
+    );
   content: '';
   pointer-events: none;
 }
@@ -449,7 +458,12 @@
 
   .stage::after {
     width: 100%;
-    background: linear-gradient(180deg, transparent 15%, rgba(4, 5, 4, 0.24) 42%, rgba(4, 5, 4, 0.58));
+    background: linear-gradient(
+      180deg,
+      transparent 15%,
+      rgba(4, 5, 4, 0.24) 42%,
+      rgba(4, 5, 4, 0.58)
+    );
   }
 
   .backgroundImage {

@@ -144,8 +144,8 @@
     display: block;
     width: 3rem;
     height: 3.1rem;
-    background: url('/images/ui/weaveryn-character-corner.webp') center / contain
-      no-repeat;
+    background: url('/images/ui/weaveryn-character-corner.webp') center /
+      contain no-repeat;
     transform-origin: center;
     pointer-events: none;
   }
@@ -188,8 +188,8 @@
     top: 0;
     width: 1.4rem;
     height: 3.56rem;
-    background: url('/images/ui/weaveryn-character-ornament-small.webp') center /
-      contain no-repeat;
+    background: url('/images/ui/weaveryn-character-ornament-small.webp')
+      center / contain no-repeat;
     transform: translate(-50%, -55%);
   }
 
@@ -197,8 +197,8 @@
     bottom: 0;
     width: 1.4rem;
     height: 3.56rem;
-    background: url('/images/ui/weaveryn-character-ornament-small.webp') center /
-      contain no-repeat;
+    background: url('/images/ui/weaveryn-character-ornament-small.webp')
+      center / contain no-repeat;
     transform: translate(-50%, 55%) rotate(180deg);
   }
 
