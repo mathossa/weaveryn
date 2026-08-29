@@ -435,8 +435,18 @@
   position: absolute;
   inset: 10px 14px;
   z-index: 0;
-  background: url('/images/ui/textures/black-gold-veins.webp') center / 112px 112px repeat;
-  clip-path: polygon(4% 0, 96% 0, 100% 22%, 100% 78%, 96% 100%, 4% 100%, 0 78%, 0 22%);
+  background: url('/images/ui/textures/black-gold-veins.webp') center / 112px
+    112px repeat;
+  clip-path: polygon(
+    4% 0,
+    96% 0,
+    100% 22%,
+    100% 78%,
+    96% 100%,
+    4% 100%,
+    0 78%,
+    0 22%
+  );
   content: '';
   pointer-events: none;
 }

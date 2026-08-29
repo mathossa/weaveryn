@@ -205,7 +205,9 @@ export function CompactSelectLauncher({
 
                       <span className={styles.rowCopy}>
                         <strong className={styles.rowName}>{entry.name}</strong>
-                        <span className={styles.rowMeta}>{entry.worldName}</span>
+                        <span className={styles.rowMeta}>
+                          {entry.worldName}
+                        </span>
                         <span className={styles.rowCampaign}>
                           {entry.campaignName
                             ? `Campaign: ${entry.campaignName}`
