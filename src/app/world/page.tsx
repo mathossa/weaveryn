@@ -9,10 +9,14 @@ import { uiAssets } from '@/lib/ui-assets'
 import { listWorldNavigationChoices } from '@/server/worlds'
 import { loadWorldPageUser } from './_lib/load-world-user'
 import styles from './world.module.css'
+import actionStyles from './weaver-selector-actions.module.css'
 import weaverStyles from './weaver-world-selector.module.css'
 
 interface WorldSelectionPageProps {
-  searchParams: Promise<{ mode?: string | string[] }>
+  searchParams: Promise<{
+    mode?: string | string[]
+    show?: string | string[]
+  }>
 }
 
 export default async function WorldSelectionPage({
@@ -25,6 +29,8 @@ export default async function WorldSelectionPage({
   const worlds = weaverMode
     ? allWorlds.filter((world) => world.canWeave)
     : allWorlds
+  const showAllWeaverWorlds = weaverMode && query.show === 'all'
+  const visibleWeaverWorlds = showAllWeaverWorlds ? worlds : worlds.slice(0, 3)
 
   if (weaverMode) {
     return (
@@ -33,6 +39,14 @@ export default async function WorldSelectionPage({
           className={weaverStyles.stage}
           aria-label="Choose a World as Weaver"
           aria-labelledby="weaver-world-title"
+          style={
+            showAllWeaverWorlds
+              ? {
+                  height: 'calc(100dvh - 2.35rem)',
+                  overflowY: 'auto',
+                }
+              : undefined
+          }
         >
           <div className={weaverStyles.background} aria-hidden="true">
             <Image
@@ -51,10 +65,6 @@ export default async function WorldSelectionPage({
               <Link className={weaverStyles.backLink} href="/select">
                 <span aria-hidden="true">←</span>
                 <span>Back to entry selection</span>
-              </Link>
-              <Link className={weaverStyles.createLink} href="/world/create">
-                <span aria-hidden="true">＋</span>
-                <span>Create World</span>
               </Link>
             </div>
 
@@ -84,32 +94,68 @@ export default async function WorldSelectionPage({
                 </Link>
               </div>
             ) : (
-              <div className={weaverStyles.worldGrid}>
-                {worlds.map((world) => (
-                  <Link
-                    key={world.id}
-                    className={weaverStyles.worldCard}
-                    href={`/world/${world.id}/campaign?mode=weaver`}
-                    style={{
-                      backgroundImage: `url(${uiAssets.fallbacks.world})`,
-                    }}
-                  >
-                    <span className={weaverStyles.cardCopy}>
-                      <span className={weaverStyles.cardKicker}>
-                        {world.orphaned ? 'Orphaned World' : 'World'}
+              <>
+                <div className={weaverStyles.worldGrid}>
+                  {visibleWeaverWorlds.map((world) => (
+                    <Link
+                      key={world.id}
+                      className={weaverStyles.worldCard}
+                      href={`/world/${world.id}/campaign?mode=weaver`}
+                      style={{
+                        backgroundImage: `url(${uiAssets.fallbacks.world})`,
+                      }}
+                    >
+                      <span className={weaverStyles.cardCopy}>
+                        <span className={weaverStyles.cardKicker}>
+                          {world.orphaned ? 'Orphaned World' : 'World'}
+                        </span>
+                        <strong>{world.name}</strong>
+                        <span className={weaverStyles.meta}>
+                          Choose the Campaign you want to continue weaving.
+                        </span>
+                        <span className={weaverStyles.cardAction}>
+                          <span>Choose Campaign</span>
+                          <span aria-hidden="true">›</span>
+                        </span>
                       </span>
-                      <strong>{world.name}</strong>
-                      <span className={weaverStyles.meta}>
-                        Choose the Campaign you want to continue weaving.
+                    </Link>
+                  ))}
+                </div>
+
+                <div className={actionStyles.selectorActions}>
+                  {worlds.length > 3 ? (
+                    <Link
+                      className={actionStyles.browseLink}
+                      href={
+                        showAllWeaverWorlds
+                          ? '/world?mode=weaver'
+                          : '/world?mode=weaver&show=all'
+                      }
+                    >
+                      <span>
+                        {showAllWeaverWorlds
+                          ? 'Show fewer Worlds'
+                          : `Browse all Worlds (${worlds.length})`}
                       </span>
-                      <span className={weaverStyles.cardAction}>
-                        <span>Choose Campaign</span>
-                        <span aria-hidden="true">›</span>
-                      </span>
-                    </span>
+                      <span aria-hidden="true">›</span>
+                    </Link>
+                  ) : null}
+
+                  <span className={actionStyles.alternativeLabel}>
+                    Or begin a new weave
+                  </span>
+                  <Link className={actionStyles.primaryCreate} href="/world/create">
+                    <Image
+                      src={uiAssets.ui.frames.goldPrimaryAction}
+                      alt=""
+                      fill
+                      sizes="340px"
+                      className={actionStyles.primaryFrame}
+                    />
+                    <span>Create World</span>
                   </Link>
-                ))}
-              </div>
+                </div>
+              </>
             )}
           </div>
         </section>

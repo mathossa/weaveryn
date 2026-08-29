@@ -12,10 +12,14 @@ import { requireAuthenticatedUser } from '@/server/auth'
 import { getWorldCampaignSelection } from '@/server/campaigns'
 import styles from './campaign.module.css'
 import weaverStyles from './weaver-campaign-selector.module.css'
+import actionStyles from '../../weaver-selector-actions.module.css'
 
 interface CampaignSelectionPageProps {
   params: Promise<{ worldId: string }>
-  searchParams: Promise<{ mode?: string | string[] }>
+  searchParams: Promise<{
+    mode?: string | string[]
+    show?: string | string[]
+  }>
 }
 
 function canWeaveCampaign(campaign: {
@@ -47,6 +51,10 @@ export default async function CampaignSelectionPage({
     : weaverMode
       ? selection.campaigns.filter(canWeaveCampaign)
       : selection.campaigns
+  const showAllWeaverCampaigns = weaverMode && query.show === 'all'
+  const visibleWeaverCampaigns = showAllWeaverCampaigns
+    ? campaigns
+    : campaigns.slice(0, 3)
 
   if (weaverMode) {
     return (
@@ -55,6 +63,14 @@ export default async function CampaignSelectionPage({
           className={weaverStyles.stage}
           aria-label="Choose a Campaign as Weaver"
           aria-labelledby="weaver-campaign-title"
+          style={
+            showAllWeaverCampaigns
+              ? {
+                  height: 'calc(100dvh - 2.35rem)',
+                  overflowY: 'auto',
+                }
+              : undefined
+          }
         >
           <div className={weaverStyles.background} aria-hidden="true">
             <Image
@@ -74,15 +90,6 @@ export default async function CampaignSelectionPage({
                 <span aria-hidden="true">←</span>
                 <span>Choose another World</span>
               </Link>
-              {selection.canCreateCampaign ? (
-                <Link
-                  className={weaverStyles.createLink}
-                  href={`/world/${worldId}/campaign/create`}
-                >
-                  <span aria-hidden="true">＋</span>
-                  <span>Create Campaign</span>
-                </Link>
-              ) : null}
             </div>
 
             <div className={weaverStyles.intro}>
@@ -121,41 +128,84 @@ export default async function CampaignSelectionPage({
                 )}
               </div>
             ) : (
-              <div className={weaverStyles.campaignGrid}>
-                {campaigns.map((campaign) => (
-                  <TrackedEntryLink
-                    key={campaign.id}
-                    className={weaverStyles.campaignCard}
-                    href={`/world/${worldId}/campaign/${campaign.id}?mode=weaver`}
-                    tracking={{
-                      kind: 'WEAVER',
-                      worldId,
-                      campaignId: campaign.id,
-                    }}
-                    style={{
-                      backgroundImage: `url(${uiAssets.fallbacks.campaign})`,
-                    }}
-                  >
-                    <span className={weaverStyles.cardCopy}>
-                      <span className={weaverStyles.cardKicker}>
-                        {campaignRoleLabel(campaign.role)}
+              <>
+                <div className={weaverStyles.campaignGrid}>
+                  {visibleWeaverCampaigns.map((campaign) => (
+                    <TrackedEntryLink
+                      key={campaign.id}
+                      className={weaverStyles.campaignCard}
+                      href={`/world/${worldId}/campaign/${campaign.id}?mode=weaver`}
+                      tracking={{
+                        kind: 'WEAVER',
+                        worldId,
+                        campaignId: campaign.id,
+                      }}
+                      style={{
+                        backgroundImage: `url(${uiAssets.fallbacks.campaign})`,
+                      }}
+                    >
+                      <span className={weaverStyles.cardCopy}>
+                        <span className={weaverStyles.cardKicker}>
+                          {campaignRoleLabel(campaign.role)}
+                        </span>
+                        <strong>{campaign.name}</strong>
+                        <span className={weaverStyles.meta}>
+                          {campaign.status === 'ACTIVE'
+                            ? 'Active Campaign'
+                            : campaign.status === 'ENDED'
+                              ? 'Ended Campaign'
+                              : 'Archived Campaign'}
+                        </span>
+                        <span className={weaverStyles.cardAction}>
+                          <span>Enter as Weaver</span>
+                          <span aria-hidden="true">›</span>
+                        </span>
                       </span>
-                      <strong>{campaign.name}</strong>
-                      <span className={weaverStyles.meta}>
-                        {campaign.status === 'ACTIVE'
-                          ? 'Active Campaign'
-                          : campaign.status === 'ENDED'
-                            ? 'Ended Campaign'
-                            : 'Archived Campaign'}
+                    </TrackedEntryLink>
+                  ))}
+                </div>
+
+                <div className={actionStyles.selectorActions}>
+                  {campaigns.length > 3 ? (
+                    <Link
+                      className={actionStyles.browseLink}
+                      href={
+                        showAllWeaverCampaigns
+                          ? `/world/${worldId}/campaign?mode=weaver`
+                          : `/world/${worldId}/campaign?mode=weaver&show=all`
+                      }
+                    >
+                      <span>
+                        {showAllWeaverCampaigns
+                          ? 'Show fewer Campaigns'
+                          : `Browse all Campaigns (${campaigns.length})`}
                       </span>
-                      <span className={weaverStyles.cardAction}>
-                        <span>Enter as Weaver</span>
-                        <span aria-hidden="true">›</span>
+                      <span aria-hidden="true">›</span>
+                    </Link>
+                  ) : null}
+
+                  {selection.canCreateCampaign ? (
+                    <>
+                      <span className={actionStyles.alternativeLabel}>
+                        Or begin a new story
                       </span>
-                    </span>
-                  </TrackedEntryLink>
-                ))}
-              </div>
+                      <Link
+                        className={actionStyles.primaryCreate}
+                        href={`/world/${worldId}/campaign/create`}
+                      >
+                        <Image
+                          src={uiAssets.ui.frames.goldPrimaryAction}
+                          alt=""
+                          fill
+                          sizes="340px"
+                          className={actionStyles.primaryFrame}
+                        />
+                        <span>Create Campaign</span>
+                      </Link>
+                    </>
+                  ) : null}
+                </div>
+              </>
             )}
           </div>
         </section>
