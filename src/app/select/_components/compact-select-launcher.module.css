@@ -1,0 +1,612 @@
+.stage {
+  position: relative;
+  isolation: isolate;
+  min-height: 640px;
+  height: calc(100dvh - 2.35rem);
+  overflow: hidden;
+  background: #080908;
+  color: #f4ead7;
+}
+
+:global(body:has(section[aria-label='Choose how to enter Weaveryn']) header) {
+  display: none !important;
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  z-index: -4;
+}
+
+.backgroundImage {
+  object-fit: cover;
+  object-position: center 58%;
+  filter: saturate(1.02) contrast(1.01) brightness(1.04);
+  transform: scale(1.002);
+}
+
+.stage::before {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(7, 8, 7, 0.01),
+      rgba(6, 7, 6, 0.08) 72%,
+      rgba(4, 5, 4, 0.28)
+    ),
+    radial-gradient(
+      circle at 23% 75%,
+      rgba(214, 171, 88, 0.08),
+      transparent 31%
+    );
+  content: '';
+  pointer-events: none;
+}
+
+.stage::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -2;
+  width: min(45vw, 900px);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(7, 8, 7, 0.08) 18%,
+    rgba(5, 6, 5, 0.2) 58%,
+    rgba(4, 5, 4, 0.34)
+  );
+  content: '';
+  pointer-events: none;
+}
+
+.heroArtwork {
+  position: absolute;
+  bottom: calc(-2.5% + 28px);
+  left: clamp(4rem, calc(7vw + 44px), 12rem);
+  z-index: 1;
+  width: clamp(285px, 31vw, 580px);
+  height: 82%;
+  pointer-events: none;
+  transform: translateX(clamp(110px, 9.8vw, 250px));
+}
+
+.heroPortraitFallback {
+  bottom: 4%;
+  width: clamp(260px, 27vw, 470px);
+  height: 68%;
+  opacity: 0.9;
+}
+
+.heroImage {
+  object-fit: contain;
+  object-position: left bottom;
+  filter: drop-shadow(0 1.1rem 1.5rem rgba(0, 0, 0, 0.42));
+}
+
+.heroPortraitFallback .heroImage {
+  border-radius: 45% 45% 22% 22%;
+  object-fit: contain;
+  mask-image: linear-gradient(180deg, black 0 76%, transparent 100%);
+}
+
+.selectorPanel {
+  position: absolute;
+  top: clamp(2rem, 4.2vh, 3.6rem);
+  right: clamp(1.5rem, 5vw, 6.5rem);
+  z-index: 3;
+  display: grid;
+  width: clamp(430px, 28vw, 590px);
+  gap: 0.72rem;
+}
+
+.crest {
+  position: relative;
+  width: 120px;
+  height: 116px;
+  justify-self: center;
+  margin-bottom: -0.2rem;
+}
+
+.crestImage {
+  object-fit: contain;
+  filter: drop-shadow(0 0 1rem rgba(232, 190, 100, 0.28));
+}
+
+.characterRows {
+  display: grid;
+  gap: 0.62rem;
+}
+
+.rowShell {
+  position: relative;
+  height: 120px;
+}
+
+.rowSelect {
+  appearance: none;
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  align-content: center;
+  isolation: isolate;
+  border: 0;
+  padding: 0.9rem 4.1rem 0.9rem 7.5rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    filter 150ms ease,
+    opacity 150ms ease,
+    transform 150ms ease;
+}
+
+.rowSelect::before {
+  position: absolute;
+  inset: 8px 11px;
+  z-index: 0;
+  border-radius: 8px;
+  background:
+    linear-gradient(rgba(4, 5, 4, 0.74), rgba(4, 5, 4, 0.86)),
+    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
+  box-shadow: inset 0 0 1rem rgba(0, 0, 0, 0.38);
+  content: '';
+  pointer-events: none;
+}
+
+.rowShell:not([data-selected='true']) .rowSelect {
+  filter: saturate(0.68) brightness(0.72);
+  opacity: 0.82;
+}
+
+.rowShell:not([data-selected='true']) .rowSelect:hover {
+  filter: saturate(0.86) brightness(0.9);
+  opacity: 0.96;
+}
+
+.rowShell[data-selected='true'] .rowSelect {
+  filter: drop-shadow(0 0 0.45rem rgba(232, 190, 100, 0.13));
+}
+
+.rowSelect:focus-visible,
+.primaryAction:focus-visible,
+.roleButton:focus-visible,
+.browseLink:focus-visible,
+.utilityLinks a:focus-visible,
+.favoriteButton:focus-visible {
+  outline: 2px solid rgba(240, 201, 116, 0.9);
+  outline-offset: 3px;
+}
+
+.rowFrame {
+  z-index: 3;
+  object-fit: fill;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+}
+
+.rowShell:not([data-selected='true']) .rowFrame {
+  opacity: 0.58;
+}
+
+.portrait {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  z-index: 4;
+  width: 96px;
+  height: 96px;
+  overflow: visible;
+}
+
+.portraitImage {
+  border-radius: 999px;
+  object-fit: cover;
+  transform: scale(0.76);
+}
+
+.portraitFrame {
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.rowCopy {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  min-width: 0;
+  gap: 0.09rem;
+  text-shadow: 0 1px 0.4rem rgba(0, 0, 0, 0.92);
+}
+
+.rowName {
+  overflow: hidden;
+  color: #f7f0e4;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.22rem;
+  font-weight: 700;
+  letter-spacing: 0.075em;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rowMeta,
+.rowCampaign {
+  overflow: hidden;
+  color: rgba(234, 224, 207, 0.8);
+  font-size: 0.82rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowCampaign {
+  color: rgba(228, 189, 109, 0.86);
+  font-size: 0.78rem;
+}
+
+.favoriteButton {
+  position: absolute !important;
+  top: calc(50% + clamp(10px, 0.6vw, 15px)) !important;
+  right: clamp(24px, 1.35vw, 34px) !important;
+  z-index: 7 !important;
+  display: grid !important;
+  width: 42px !important;
+  min-width: 42px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  place-items: center !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  transform: translateY(-50%) !important;
+  opacity: 0.9;
+}
+
+.favoriteButton img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 0.25rem rgba(0, 0, 0, 0.78));
+  transition:
+    filter 150ms ease,
+    transform 150ms ease;
+}
+
+.favoriteButton:hover {
+  background: rgba(24, 20, 11, 0.24) !important;
+  opacity: 1;
+}
+
+.favoriteButton:hover img {
+  filter: brightness(1.12) drop-shadow(0 1px 0.3rem rgba(0, 0, 0, 0.85));
+  transform: scale(1.05);
+}
+
+.emptyRows {
+  display: grid;
+  min-height: 10rem;
+  place-content: center;
+  gap: 0.35rem;
+  border: 1px solid rgba(211, 174, 95, 0.36);
+  padding: 1.5rem;
+  background: rgba(4, 5, 4, 0.74);
+  text-align: center;
+}
+
+.emptyRows strong {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.05rem;
+}
+
+.emptyRows span {
+  color: rgba(239, 229, 212, 0.68);
+  font-size: 0.78rem;
+}
+
+.browseLink {
+  justify-self: center;
+  padding: 0.12rem 0.55rem;
+  color: rgba(242, 205, 131, 0.96);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-shadow: 0 1px 0.45rem rgba(0, 0, 0, 0.88);
+}
+
+.browseLink:hover {
+  color: #ffe09a;
+}
+
+.primaryAction {
+  position: relative;
+  display: grid;
+  height: 82px;
+  isolation: isolate;
+  place-items: center;
+  background: transparent;
+  color: #f7e8c4;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.08rem, 1.25vw, 1.34rem);
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-decoration: none;
+  text-shadow: 0 1px 0.6rem rgba(0, 0, 0, 0.9);
+  text-transform: uppercase;
+}
+
+.primaryAction::before {
+  position: absolute;
+  inset: 16px 42px;
+  z-index: 0;
+  border-radius: 999px;
+  background:
+    linear-gradient(rgba(4, 5, 4, 0.78), rgba(4, 5, 4, 0.9)),
+    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
+  box-shadow: inset 0 0 1.1rem rgba(0, 0, 0, 0.46);
+  content: '';
+  pointer-events: none;
+}
+
+.primaryAction > span {
+  position: relative;
+  z-index: 2;
+}
+
+.primaryFrame,
+.roleFrame {
+  object-fit: fill;
+  pointer-events: none;
+}
+
+.primaryFrame {
+  z-index: 1;
+  opacity: 0.98;
+}
+
+.primaryAction:hover .primaryFrame {
+  filter: brightness(1.11) saturate(1.06);
+}
+
+.roleHeading {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.02rem;
+  color: rgba(238, 209, 151, 0.88);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.76rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-shadow: 0 1px 0.4rem rgba(0, 0, 0, 0.88);
+  text-transform: uppercase;
+}
+
+.roleHeading::before,
+.roleHeading::after {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, rgba(226, 188, 108, 0.52));
+  content: '';
+}
+
+.roleHeading::after {
+  background: linear-gradient(90deg, rgba(226, 188, 108, 0.52), transparent);
+}
+
+.roleActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.72rem;
+}
+
+.roleButton {
+  position: relative;
+  display: grid;
+  min-height: 58px;
+  isolation: isolate;
+  place-items: center;
+  overflow: hidden;
+  padding: 0 0.8rem;
+  background: transparent;
+  color: rgba(249, 232, 198, 0.96);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.8rem;
+  font-weight: 650;
+  letter-spacing: 0.055em;
+  text-align: center;
+  text-decoration: none;
+  text-shadow: 0 1px 0.5rem #000;
+  text-transform: uppercase;
+}
+
+.roleButton::before {
+  position: absolute;
+  inset: 10px 14px;
+  z-index: 0;
+  background: url('/images/ui/textures/black-gold-veins.webp') center / 112px
+    112px repeat;
+  clip-path: polygon(
+    4% 0,
+    96% 0,
+    100% 22%,
+    100% 78%,
+    96% 100%,
+    4% 100%,
+    0 78%,
+    0 22%
+  );
+  content: '';
+  pointer-events: none;
+}
+
+.roleButton > span {
+  position: relative;
+  z-index: 2;
+}
+
+.roleFrame {
+  z-index: 1;
+  opacity: 0.68;
+}
+
+.roleButton:hover .roleFrame {
+  filter: brightness(1.12);
+  opacity: 0.88;
+}
+
+.pendingCampaigns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem 0.65rem;
+  color: rgba(229, 216, 193, 0.72);
+  font-size: 0.72rem;
+  text-shadow: 0 1px 0.35rem rgba(0, 0, 0, 0.8);
+}
+
+.pendingCampaigns > span {
+  width: 100%;
+  color: rgba(231, 199, 133, 0.82);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.pendingCampaigns a {
+  color: rgba(244, 225, 190, 0.9);
+  text-decoration: none;
+}
+
+.utilityLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1rem;
+  margin-top: 0.05rem;
+}
+
+.utilityLinks a {
+  color: rgba(240, 227, 203, 0.78);
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-decoration: none;
+  text-shadow: 0 1px 0.4rem rgba(0, 0, 0, 0.86);
+}
+
+.utilityLinks a:hover {
+  color: rgba(255, 221, 157, 0.98);
+}
+
+@media (max-width: 1120px) {
+  .selectorPanel {
+    right: 3vw;
+    width: clamp(400px, 42vw, 500px);
+  }
+
+  .heroArtwork {
+    left: calc(2vw + 30px);
+    width: 39vw;
+  }
+}
+
+@media (max-width: 760px) {
+  .stage {
+    min-height: calc(100dvh - 2.65rem);
+    height: auto;
+    overflow: visible;
+    padding: 34vh 0.85rem 1.5rem;
+  }
+
+  .stage::after {
+    width: 100%;
+    background: linear-gradient(
+      180deg,
+      transparent 15%,
+      rgba(4, 5, 4, 0.24) 42%,
+      rgba(4, 5, 4, 0.58)
+    );
+  }
+
+  .backgroundImage {
+    object-position: 36% center;
+  }
+
+  .heroArtwork,
+  .heroPortraitFallback {
+    top: 0.5rem;
+    bottom: auto;
+    left: 50%;
+    width: min(74vw, 330px);
+    height: 35vh;
+    transform: translateX(-50%);
+  }
+
+  .heroImage {
+    object-position: center bottom;
+  }
+
+  .selectorPanel {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: min(100%, 430px);
+    margin: 0 auto;
+  }
+
+  .crest {
+    width: 82px;
+    height: 78px;
+  }
+
+  .rowShell {
+    height: 98px;
+  }
+
+  .rowSelect {
+    padding-left: 5.9rem;
+  }
+
+  .rowSelect::before {
+    inset: 7px 9px;
+  }
+
+  .portrait {
+    top: 11px;
+    left: 14px;
+    width: 76px;
+    height: 76px;
+  }
+
+  .rowName {
+    font-size: 1.04rem;
+  }
+
+  .rowMeta,
+  .rowCampaign {
+    font-size: 0.72rem;
+  }
+
+  .primaryAction {
+    height: 68px;
+    font-size: 1rem;
+  }
+
+  .primaryAction::before {
+    inset: 13px 34px;
+  }
+
+  .roleActions {
+    grid-template-columns: 1fr;
+  }
+}

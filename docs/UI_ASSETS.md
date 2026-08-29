@@ -70,7 +70,7 @@ from persisted user preferences.
 - Artwork paths and intrinsic dimensions live in `src/lib/ui-assets.ts`. Replacing
   a configured shared asset changes every component that consumes it; screens
   should not duplicate those paths.
-- Shared brand rendering lives in `src/components/ui/brand-logo.tsx`.
+- Shared brand rendering lives in `src/components/ui/brand-logo.tsx` and `brand-wordmark.tsx`; the round logo and horizontal wordmark remain distinct assets.
 - Shared buttons live in `src/components/ui/button.tsx` and its CSS module. Screens
   should use the shared variants instead of defining unrelated primary button
   styles.
@@ -81,6 +81,37 @@ from persisted user preferences.
   asset configuration and tokens. Future screens should follow the same pattern
   when a presentation choice is expected to be reused.
 
+### Brand wordmark readiness
+
+The authenticated shell is ready to consume a dedicated horizontal wordmark, but no
+approved wordmark currently exists in the repository. Until the owner supplies one,
+`BrandWordmark` renders a restrained text fallback from the same shared component.
+Do not repurpose the round celestial globe logo as a wordmark.
+
+Owner asset brief:
+
+- **Proposed path:** `public/images/brand/weaveryn-wordmark.svg`
+- **Semantic purpose:** the horizontal Weaveryn logotype beside the distinct round
+  logo in shared authenticated chrome and compatible future brand surfaces.
+- **Recommended size:** an `880 × 160` SVG viewBox (about `5.5:1`); it must remain
+  legible when rendered around `24px` high.
+- **Transparency:** required; no baked background, frame, shadow, or glow.
+- **Crop and focal point:** center the complete word with minimal, even horizontal
+  breathing room; keep all letterforms and thread terminals inside the viewBox so
+  narrow header crops never clip them.
+- **Visual direction:** restrained dark-fantasy/editorial lettering, warm parchment
+  to antique-gold strokes, readable custom serif forms, and very subtle woven-thread
+  terminals. Avoid ornate blackletter, novelty fonts, crests, globes, illustrations,
+  gradients that disappear at small size, or extra symbols.
+- **Where it appears:** the shared authenticated header, including `/select`; the
+  CSS allows an image to replace the fallback without page-specific styling.
+- **Image-generation prompt:** “Create a clean horizontal vector wordmark spelling
+  ‘Weaveryn’ exactly. Restrained fantasy-editorial custom serif lettering, elegant
+  and highly readable, with subtle interwoven-thread terminals and an antique-gold
+  to warm-parchment monochrome treatment. Transparent background. Wide 5.5:1
+  composition, center-safe, crisp and legible at 24 px high. No globe, round logo,
+  crest, icon, landscape, character, border, shadow, motto, or additional text.”
+
 ### Authenticated app shell
 
 Production screens after login should use the shared components under
@@ -89,7 +120,7 @@ Production screens after login should use the shared components under
 - `AuthenticatedAppShell` resolves the authenticated User on the server and
   redirects unauthenticated requests to `/login`.
 - `AppShell` renders the shared application background, branding, responsive
-  context navigation, account menu, and logout action.
+  context navigation, account menu, and logout action. Its launcher variant reuses the registered `appShell` background with a quieter central veil and replaces context controls with a static thread separator.
 - Desktop uses a single top bar. World, Campaign, and Character context can be
   presented as a compact hierarchy in that bar.
 - Phone and narrow layouts keep the top bar to three controls: logo, one compact

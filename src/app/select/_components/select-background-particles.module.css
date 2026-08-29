@@ -1,0 +1,123 @@
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0,
+    black 7%,
+    black 94%,
+    transparent 100%
+  );
+}
+
+.particle {
+  position: absolute;
+  top: -8%;
+  left: var(--particle-left);
+  width: var(--particle-size);
+  height: var(--particle-size);
+  border-radius: 999px;
+  opacity: 0;
+  background: radial-gradient(
+    circle,
+    rgba(255, 252, 238, 1) 0%,
+    rgba(255, 235, 176, 1) 28%,
+    rgba(255, 211, 102, 0.95) 52%,
+    rgba(245, 184, 59, 0.52) 74%,
+    rgba(214, 139, 33, 0.14) 88%,
+    transparent 100%
+  );
+  box-shadow:
+    0 0 14px rgba(255, 233, 173, 0.62),
+    0 0 28px rgba(243, 185, 73, 0.34),
+    0 0 42px rgba(214, 149, 37, 0.16);
+  filter: blur(var(--particle-blur));
+  transform: translate3d(0, -14vh, 0) scale(0.82);
+  will-change: transform, opacity;
+  animation: selectGoldDustFlow var(--particle-duration) linear infinite;
+  animation-delay: var(--particle-delay);
+}
+
+.particle:nth-child(2n) {
+  background: radial-gradient(
+    circle,
+    rgba(255, 250, 232, 1) 0%,
+    rgba(255, 226, 150, 0.98) 30%,
+    rgba(250, 198, 85, 0.9) 54%,
+    rgba(235, 168, 49, 0.46) 75%,
+    rgba(201, 130, 28, 0.12) 89%,
+    transparent 100%
+  );
+}
+
+.particle:nth-child(3n) {
+  box-shadow:
+    0 0 16px rgba(255, 239, 191, 0.72),
+    0 0 34px rgba(246, 193, 89, 0.42),
+    0 0 48px rgba(220, 156, 45, 0.2);
+}
+
+@keyframes selectGoldDustFlow {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -14vh, 0) scale(0.82);
+  }
+
+  10% {
+    opacity: var(--particle-opacity);
+  }
+
+  20% {
+    transform: translate3d(calc(var(--particle-sway) * 0.95), 16vh, 0)
+      scale(1.14);
+  }
+
+  38% {
+    opacity: calc(var(--particle-opacity) * 1.05);
+    transform: translate3d(calc(var(--particle-drift) * 0.45), 38vh, 0)
+      scale(1.06);
+  }
+
+  56% {
+    transform: translate3d(calc(var(--particle-sway) * -0.72), 61vh, 0)
+      scale(1.12);
+  }
+
+  74% {
+    opacity: calc(var(--particle-opacity) * 0.88);
+    transform: translate3d(calc(var(--particle-drift) * 1.05), 82vh, 0)
+      scale(0.98);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(
+        calc(var(--particle-drift) + var(--particle-sway) * 0.35),
+        114vh,
+        0
+      )
+      scale(0.76);
+  }
+}
+
+@media (max-width: 760px) {
+  .layer {
+    mask-image: linear-gradient(
+      180deg,
+      transparent 0,
+      black 10%,
+      black 91%,
+      transparent 100%
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .particle {
+    animation: none;
+    opacity: 0;
+  }
+}

@@ -1,0 +1,40 @@
+.desktopComposition {
+  --launcher-scale: 1;
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  width: 2560px;
+  height: 1276px;
+  transform: translate(-50%, -50%) scale(var(--launcher-scale));
+  transform-origin: center center;
+}
+
+@media (min-width: 761px) {
+  section.stage::after {
+    width: 35.15625%;
+  }
+
+  .desktopComposition .heroArtwork {
+    left: 160px;
+    width: 580px;
+    transform: translateX(250px);
+  }
+
+  .desktopComposition .selectorPanel {
+    top: 55px;
+    right: 104px;
+    width: 590px;
+  }
+
+  .desktopComposition .primaryAction {
+    font-size: 1.34rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .desktopComposition {
+    display: contents;
+  }
+}

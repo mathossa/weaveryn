@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server'
 import { AuthDomainError, requireAuthenticatedUser } from '@/server/auth'
 import {
   EntryPreferenceDomainError,
-  parseCharacterEntryPinInput,
+  parseEntryPinInput,
   setCharacterEntryPinned,
+  setPortableCharacterEntryPinned,
 } from '@/server/selection'
 
 export const runtime = 'nodejs'
@@ -40,12 +41,21 @@ export async function PATCH(request: Request) {
   try {
     const [user, input] = await Promise.all([
       requireAuthenticatedUser(request.headers),
-      request.json().then(parseCharacterEntryPinInput),
+      request.json().then(parseEntryPinInput),
     ])
-    const preference = await setCharacterEntryPinned({
-      userId: user.id,
-      ...input,
-    })
+    const preference =
+      input.kind === 'PORTABLE_CHARACTER'
+        ? await setPortableCharacterEntryPinned({
+            userId: user.id,
+            characterId: input.characterId,
+            pinned: input.pinned,
+          })
+        : await setCharacterEntryPinned({
+            userId: user.id,
+            worldCharacterId: input.worldCharacterId,
+            campaignId: input.campaignId,
+            pinned: input.pinned,
+          })
     return NextResponse.json({
       preference: {
         entryKey: preference.entryKey,

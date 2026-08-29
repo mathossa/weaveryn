@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff0b8"/>
+      <stop offset="0.22" stop-color="#e4bd67"/>
+      <stop offset="0.52" stop-color="#aa702c"/>
+      <stop offset="0.78" stop-color="#6e431d"/>
+      <stop offset="1" stop-color="#d7a853"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#506dcc"/>
+      <stop offset="0.32" stop-color="#263f94"/>
+      <stop offset="0.68" stop-color="#172452"/>
+      <stop offset="1" stop-color="#4f3f8d"/>
+    </linearGradient>
+    <linearGradient id="violet" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7a4d9a"/>
+      <stop offset="0.48" stop-color="#38265f"/>
+      <stop offset="1" stop-color="#8b5aa5"/>
+    </linearGradient>
+    <radialGradient id="pearl">
+      <stop offset="0" stop-color="#fff9db"/>
+      <stop offset="0.38" stop-color="#d8d2c6"/>
+      <stop offset="0.72" stop-color="#9b8e78"/>
+      <stop offset="1" stop-color="#443725"/>
+    </radialGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/>
+      <feOffset dy="3" result="o"/>
+      <feColorMatrix in="o" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .72 0" result="s"/>
+      <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <path d="M70 43H1130M70 457H1130M43 70V430M1157 70V430" stroke="#080b18" stroke-width="34" stroke-linecap="round" opacity=".92"/>
+
+  <path d="M70 43C170 18 250 68 350 43S530 18 630 43 810 68 910 43s120-18 220 0" stroke="url(#blue)" stroke-width="25" stroke-linecap="round"/>
+  <path d="M70 457C170 432 250 482 350 457s180-25 280 0 180 25 280 0 120-18 220 0" stroke="url(#blue)" stroke-width="25" stroke-linecap="round"/>
+  <path d="M43 70C18 145 68 205 43 280s-18 95 0 150" stroke="url(#blue)" stroke-width="25" stroke-linecap="round"/>
+  <path d="M1157 70C1132 145 1182 205 1157 280s-18 95 0 150" stroke="url(#blue)" stroke-width="25" stroke-linecap="round"/>
+
+  <path d="M70 43C150 69 235 17 320 43s170 26 255 0 170-26 255 0 180 25 300 0" stroke="url(#violet)" stroke-width="11" stroke-linecap="round"/>
+  <path d="M70 457C150 483 235 431 320 457s170 26 255 0 170-26 255 0 180 25 300 0" stroke="url(#violet)" stroke-width="11" stroke-linecap="round"/>
+  <path d="M43 70C69 135 17 205 43 270s26 110 0 160" stroke="url(#violet)" stroke-width="11" stroke-linecap="round"/>
+  <path d="M1157 70C1183 135 1131 205 1157 270s26 110 0 160" stroke="url(#violet)" stroke-width="11" stroke-linecap="round"/>
+
+  <path d="M70 43C160 28 250 58 340 43s180-15 270 0 180 15 270 0 160-12 250 0" stroke="#5b3717" stroke-width="12" stroke-linecap="round"/>
+  <path d="M70 43C160 28 250 58 340 43s180-15 270 0 180 15 270 0 160-12 250 0" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M70 457C160 442 250 472 340 457s180-15 270 0 180 15 270 0 160-12 250 0" stroke="#5b3717" stroke-width="12" stroke-linecap="round"/>
+  <path d="M70 457C160 442 250 472 340 457s180-15 270 0 180 15 270 0 160-12 250 0" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M43 70C28 140 58 210 43 280s-12 105 0 150" stroke="#5b3717" stroke-width="12" stroke-linecap="round"/>
+  <path d="M43 70C28 140 58 210 43 280s-12 105 0 150" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M1157 70C1142 140 1172 210 1157 280s-12 105 0 150" stroke="#5b3717" stroke-width="12" stroke-linecap="round"/>
+  <path d="M1157 70C1142 140 1172 210 1157 280s-12 105 0 150" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
+
+  <path d="M76 35C170 23 250 52 340 38s180-13 270 0 180 14 270 0 160-10 244 0" stroke="#ffe7a2" stroke-width="2" stroke-linecap="round" opacity=".82"/>
+  <path d="M76 449C170 437 250 466 340 452s180-13 270 0 180 14 270 0 160-10 244 0" stroke="#ffe7a2" stroke-width="2" stroke-linecap="round" opacity=".72"/>
+
+  <g filter="url(#shadow)">
+    <g transform="translate(46 46)">
+      <path d="M0-34 12-15 34-17 18 0 34 17 12 15 0 34-12 15-34 17-18 0-34-17-12-15Z" fill="url(#gold)" stroke="#5b3717" stroke-width="4"/>
+      <path d="M0-25 9-10 25-12 13 0 25 12 9 10 0 25-9 10-25 12-13 0-25-12-9-10Z" fill="#253a89" stroke="#d6a955" stroke-width="3"/>
+      <circle r="9" fill="url(#pearl)" stroke="#8b642d" stroke-width="3"/>
+    </g>
+    <g transform="translate(1154 46)">
+      <path d="M0-34 12-15 34-17 18 0 34 17 12 15 0 34-12 15-34 17-18 0-34-17-12-15Z" fill="url(#gold)" stroke="#5b3717" stroke-width="4"/>
+      <path d="M0-25 9-10 25-12 13 0 25 12 9 10 0 25-9 10-25 12-13 0-25-12-9-10Z" fill="#253a89" stroke="#d6a955" stroke-width="3"/>
+      <circle r="9" fill="url(#pearl)" stroke="#8b642d" stroke-width="3"/>
+    </g>
+    <g transform="translate(46 454)">
+      <path d="M0-34 12-15 34-17 18 0 34 17 12 15 0 34-12 15-34 17-18 0-34-17-12-15Z" fill="url(#gold)" stroke="#5b3717" stroke-width="4"/>
+      <path d="M0-25 9-10 25-12 13 0 25 12 9 10 0 25-9 10-25 12-13 0-25-12-9-10Z" fill="#253a89" stroke="#d6a955" stroke-width="3"/>
+      <circle r="9" fill="url(#pearl)" stroke="#8b642d" stroke-width="3"/>
+    </g>
+    <g transform="translate(1154 454)">
+      <path d="M0-34 12-15 34-17 18 0 34 17 12 15 0 34-12 15-34 17-18 0-34-17-12-15Z" fill="url(#gold)" stroke="#5b3717" stroke-width="4"/>
+      <path d="M0-25 9-10 25-12 13 0 25 12 9 10 0 25-9 10-25 12-13 0-25-12-9-10Z" fill="#253a89" stroke="#d6a955" stroke-width="3"/>
+      <circle r="9" fill="url(#pearl)" stroke="#8b642d" stroke-width="3"/>
+    </g>
+  </g>
+
+  <g filter="url(#shadow)">
+    <g transform="translate(600 43)">
+      <path d="M0-28 16-10 32 0 16 10 0 28-16 10-32 0-16-10Z" fill="#20336f" stroke="#6a451e" stroke-width="7"/>
+      <path d="M0-24 12-8 26 0 12 8 0 24-12 8-26 0-12-8Z" fill="none" stroke="url(#gold)" stroke-width="6"/>
+      <path d="M-15-15 15 15M15-15-15 15" stroke="#dcb762" stroke-width="4" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(600 457)">
+      <path d="M0-28 16-10 32 0 16 10 0 28-16 10-32 0-16-10Z" fill="#20336f" stroke="#6a451e" stroke-width="7"/>
+      <path d="M0-24 12-8 26 0 12 8 0 24-12 8-26 0-12-8Z" fill="none" stroke="url(#gold)" stroke-width="6"/>
+      <path d="M-15-15 15 15M15-15-15 15" stroke="#dcb762" stroke-width="4" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <rect x="60" y="60" width="1080" height="380" rx="8" stroke="#c79d52" stroke-width="2" opacity=".48"/>
+</svg>

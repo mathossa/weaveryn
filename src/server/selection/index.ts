@@ -1,4 +1,6 @@
+export * from './entry-pin-input'
 export * from './entry-preference-input'
 export * from './entry-preferences'
 export * from './entry-selection'
 export * from './entry-selection-state'
+export * from './portable-entry-pinning'

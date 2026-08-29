@@ -5,43 +5,86 @@ import type { EntryPortableCharacterChoice } from '@/server/selection'
 import fixStyles from '../select-card-fixes.module.css'
 import polishStyles from '../select-polish.module.css'
 import styles from '../select.module.css'
+import { PinEntryButton } from './pin-entry-button'
 
 export function PortableCharacterChoiceCard({
   character,
+  pinned = false,
   eager = false,
 }: {
   character: EntryPortableCharacterChoice
+  pinned?: boolean
   eager?: boolean
 }) {
   return (
-    <TrackedEntryLink
-      className={`${styles.characterCard} ${polishStyles.characterCard} ${fixStyles.pageCardMarker}`}
-      href={`/character/portable/${character.id}`}
-      tracking={{ kind: 'PORTABLE_CHARACTER', characterId: character.id }}
-      ariaLabel={`Open portable Character ${character.name}`}
-    >
-      <Image
-        className={`${styles.characterImage} ${polishStyles.characterImage}`}
-        src={character.image || uiAssets.fallbacks.character}
-        alt=""
-        fill
-        sizes="(max-width: 760px) 100vw, 33vw"
-        loading={eager ? 'eager' : 'lazy'}
-      />
-      <span
-        className={`${styles.characterShade} ${polishStyles.characterShade}`}
-        aria-hidden="true"
-      />
-      <span className={`${styles.characterCopy} ${polishStyles.characterCopy}`}>
-        <strong>{character.name}</strong>
-        <span>Portable Character</span>
-        <span className={polishStyles.characterFooter}>
-          <span className={styles.characterMeta}>Not in a World yet</span>
-          <span className={polishStyles.continueAction} aria-hidden="true">
-            Open <span>→</span>
+    <div className={`${styles.characterCardFrame} ${fixStyles.ornamentFrame}`}>
+      <TrackedEntryLink
+        className={`${styles.characterCard} ${polishStyles.characterCard} ${fixStyles.pageCardMarker} ${fixStyles.ornamentCard}`}
+        href={`/character/portable/${character.id}`}
+        tracking={{ kind: 'PORTABLE_CHARACTER', characterId: character.id }}
+        ariaLabel={`Open portable Character ${character.name}`}
+      >
+        <span className={fixStyles.characterContentClip}>
+          <Image
+            className={`${styles.characterImage} ${polishStyles.characterImage}`}
+            src={character.image || uiAssets.fallbacks.character}
+            alt=""
+            fill
+            sizes="(max-width: 760px) 100vw, 33vw"
+            loading={eager ? 'eager' : 'lazy'}
+          />
+          <span
+            className={`${styles.characterShade} ${polishStyles.characterShade}`}
+            aria-hidden="true"
+          />
+          <span
+            className={`${styles.characterCopy} ${polishStyles.characterCopy} ${fixStyles.characterInnerCopy}`}
+          >
+            <strong className={styles.characterName}>{character.name}</strong>
+            <span
+              className={`${styles.characterContext} ${fixStyles.characterMeta}`}
+            >
+              <span
+                className={`${styles.characterContextRow} ${fixStyles.characterMetaRow}`}
+              >
+                <small>Character</small>
+                <span className={styles.characterCampaignName}>
+                  Portable identity
+                </span>
+              </span>
+              <span
+                className={`${styles.characterContextRow} ${fixStyles.characterMetaRow}`}
+              >
+                <small>World</small>
+                <span className={styles.characterWorldName}>
+                  Not yet woven into a World
+                </span>
+              </span>
+            </span>
           </span>
         </span>
-      </span>
-    </TrackedEntryLink>
+        <span className={fixStyles.characterFrameOverlay} aria-hidden="true">
+          <span
+            className={`${fixStyles.frameCorner} ${fixStyles.frameCornerTopLeft}`}
+          />
+          <span
+            className={`${fixStyles.frameCorner} ${fixStyles.frameCornerTopRight}`}
+          />
+          <span
+            className={`${fixStyles.frameCorner} ${fixStyles.frameCornerBottomRight}`}
+          />
+          <span
+            className={`${fixStyles.frameCorner} ${fixStyles.frameCornerBottomLeft}`}
+          />
+          <span
+            className={`${fixStyles.frameOrnament} ${fixStyles.frameTopOrnament}`}
+          />
+          <span
+            className={`${fixStyles.frameOrnament} ${fixStyles.frameBottomOrnament}`}
+          />
+        </span>
+      </TrackedEntryLink>
+      <PinEntryButton characterId={character.id} pinned={pinned} />
+    </div>
   )
 }

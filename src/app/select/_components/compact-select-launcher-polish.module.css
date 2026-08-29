@@ -1,0 +1,139 @@
+.stage {
+  min-height: 0;
+  height: calc(100dvh - 2.35rem);
+}
+
+:global(body:has(section[aria-label='Choose how to enter Weaveryn'])) {
+  overflow: hidden;
+}
+
+.heroArtwork {
+  bottom: calc(-2.5% + 56px);
+  left: clamp(2rem, calc(7vw + 12px), 10rem);
+}
+
+.heroArtwork:not(.heroPortraitFallback)::after {
+  position: absolute;
+  left: 16%;
+  bottom: 0.6%;
+  z-index: 0;
+  width: 68%;
+  height: 7.5%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0.58) 0%,
+    rgba(0, 0, 0, 0.34) 46%,
+    rgba(0, 0, 0, 0) 76%
+  );
+  filter: blur(6px);
+  content: '';
+  transform: scaleX(1.08);
+}
+
+.heroImage {
+  z-index: 1;
+}
+
+.rowSelect::before {
+  inset: 10px 16px 12px 16px;
+  border-radius: 0;
+  background: url('/images/ui/textures/black-gold-veins.webp') center / 112px
+    112px repeat;
+  clip-path: polygon(
+    3.5% 0,
+    96.5% 0,
+    100% 20%,
+    100% 80%,
+    96.5% 100%,
+    3.5% 100%,
+    0 80%,
+    0 20%
+  );
+  box-shadow: inset 0 0 0.85rem rgba(0, 0, 0, 0.28);
+}
+
+.favoriteButton {
+  top: 25px !important;
+  right: 32px !important;
+  width: 34px !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  transform: none !important;
+}
+
+.favoriteButton img {
+  width: 25px;
+  height: 25px;
+}
+
+.primaryAction::before {
+  inset: 18px 34px 24px 34px;
+  border-radius: 999px;
+  background: url('/images/ui/textures/black-gold-veins.webp') center / 112px
+    112px repeat;
+  box-shadow: inset 0 0 0.9rem rgba(0, 0, 0, 0.3);
+}
+
+.roleButton::before {
+  inset: 6px 9px;
+  border-radius: 0;
+  background-image: url('/images/ui/textures/black-gold-veins.webp');
+  background-position: center;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  clip-path: polygon(
+    4% 0,
+    96% 0,
+    100% 20%,
+    100% 80%,
+    96% 100%,
+    4% 100%,
+    0 80%,
+    0 20%
+  );
+  box-shadow: none;
+  filter: brightness(1.28) contrast(1.06);
+}
+
+@media (max-width: 1120px) {
+  .heroArtwork {
+    left: calc(2vw + 8px);
+  }
+}
+
+@media (max-width: 760px) {
+  :global(body:has(section[aria-label='Choose how to enter Weaveryn'])) {
+    overflow: auto;
+  }
+
+  .stage {
+    min-height: calc(100dvh - 2.65rem);
+    height: auto;
+  }
+
+  .heroArtwork,
+  .heroPortraitFallback {
+    top: 0.5rem;
+    bottom: auto;
+    left: 50%;
+  }
+
+  .rowSelect::before {
+    inset: 8px 12px;
+  }
+
+  .favoriteButton {
+    top: 8px !important;
+    right: 10px !important;
+  }
+
+  .primaryAction::before {
+    inset: 7px 18px;
+  }
+
+  .roleButton::before {
+    inset: 5px 8px;
+  }
+}

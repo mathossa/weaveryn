@@ -35,6 +35,7 @@ function validUsername(value: unknown) {
 export const auth = betterAuth({
   baseURL,
   trustedOrigins,
+  ...(process.env.E2E_RUN_ID ? { rateLimit: { enabled: false } } : {}),
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
   emailAndPassword: {
     enabled: true,

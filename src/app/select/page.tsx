@@ -1,9 +1,6 @@
-import Link from 'next/link'
 import { cookies } from 'next/headers'
-import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
-import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
-import { StatusPanel } from '@/components/ui/status-panel'
+import { uiAssets } from '@/lib/ui-assets'
 import {
   characterEntryKey,
   portableCharacterEntryKey,
@@ -11,16 +8,12 @@ import {
   type EntryPortableCharacterChoice,
   type EntryWorldCharacterChoice,
 } from '@/server/selection'
-import { CharacterChoiceCard } from './_components/character-choice-card'
 import {
-  CharacterSortControl,
-  type CharacterSortMode,
-} from './_components/character-sort-control'
-import { PortableCharacterChoiceCard } from './_components/portable-character-choice-card'
+  CompactSelectLauncher,
+  type CompactLauncherEntry,
+} from './_components/compact-select-launcher'
 import { loadSelectionPageData } from './_lib/load-selection-page-data'
-import refineStyles from './select-launcher-refinement.module.css'
-import polishStyles from './select-polish.module.css'
-import styles from './select.module.css'
+import { resolveSelectCharacterArtwork } from './_lib/select-character-artwork'
 
 interface SelectPageProps {
   searchParams: Promise<{
@@ -31,6 +24,7 @@ interface SelectPageProps {
   }>
 }
 
+type CharacterSortMode = 'recent' | 'alphabetical'
 type SelectionPageData = Awaited<ReturnType<typeof loadSelectionPageData>>
 type EntryPreference = SelectionPageData['entryPreferences'][number]
 
@@ -67,14 +61,13 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
     await Promise.all([loadSelectionPageData(), searchParams])
   const searchQuery = typeof query.q === 'string' ? query.q.trim() : ''
   const worldFilter = typeof query.world === 'string' ? query.world : ''
-  const showAll =
+  const initialBrowserOpen =
     query.show === 'all' || Boolean(searchQuery) || Boolean(worldFilter)
   const savedSort = characterSortMode(
     (await cookies()).get('weaveryn-character-sort')?.value,
   )
-  const sortMode = showAll
-    ? (characterSortMode(query.sort) ?? savedSort ?? 'recent')
-    : 'recent'
+  const initialBrowserSort =
+    characterSortMode(query.sort) ?? savedSort ?? 'recent'
   const preferenceByKey = new Map(
     entryPreferences.map((preference) => [preference.entryKey, preference]),
   )
@@ -124,80 +117,36 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
         createdAt: character.createdAt,
       }
     }),
-  ]
-  const characterEntries = allCharacterEntries
-    .filter((entry) => {
-      if (
-        worldFilter &&
-        (entry.kind === 'portable' || entry.character.worldId !== worldFilter)
-      ) {
-        return false
-      }
-      if (!searchQuery) return true
-      const search = searchQuery.toLocaleLowerCase()
-      const values =
-        entry.kind === 'portable'
-          ? [entry.character.name, 'portable character']
-          : [
-              entry.character.name,
-              entry.character.portableName,
-              entry.character.worldName,
-              entry.campaign?.name ?? '',
-            ]
-      return values.some((value) => value.toLocaleLowerCase().includes(search))
-    })
-    .sort((left, right) => {
-      if (sortMode === 'alphabetical') {
-        const nameDifference = left.sortName.localeCompare(
-          right.sortName,
-          undefined,
-          {
-            sensitivity: 'base',
-          },
-        )
-        return nameDifference || left.key.localeCompare(right.key)
-      }
+  ].sort((left, right) => {
+    const pinnedDifference =
+      Number(right.preference?.pinned ?? false) -
+      Number(left.preference?.pinned ?? false)
+    if (pinnedDifference !== 0) return pinnedDifference
 
-      const pinnedDifference =
-        Number(right.preference?.pinned ?? false) -
-        Number(left.preference?.pinned ?? false)
-      if (pinnedDifference !== 0) return pinnedDifference
+    const lastUsedDifference =
+      (right.preference?.lastUsedAt?.getTime() ?? 0) -
+      (left.preference?.lastUsedAt?.getTime() ?? 0)
+    if (lastUsedDifference !== 0) return lastUsedDifference
 
-      const lastUsedDifference =
-        (right.preference?.lastUsedAt?.getTime() ?? 0) -
-        (left.preference?.lastUsedAt?.getTime() ?? 0)
-      if (lastUsedDifference !== 0) return lastUsedDifference
+    return (
+      right.createdAt.getTime() - left.createdAt.getTime() ||
+      left.key.localeCompare(right.key)
+    )
+  })
 
-      return (
-        right.createdAt.getTime() - left.createdAt.getTime() ||
-        left.key.localeCompare(right.key)
-      )
-    })
-
-  const worldChoices = Array.from(
-    new Map(
-      selection.characters.map((character) => [
-        character.worldId,
-        character.worldName,
-      ]),
+  const visibleCharacters = allCharacterEntries.slice(0, 3)
+  const latestUsedAt = Math.max(
+    weaverResume?.lastUsedAt?.getTime() ?? 0,
+    ...allCharacterEntries.map(
+      (entry) => entry.preference?.lastUsedAt?.getTime() ?? 0,
     ),
-    ([id, name]) => ({ id, name }),
-  ).sort((left, right) => left.name.localeCompare(right.name))
-
-  const visibleCharacters = characterEntries.slice(0, 3)
-  const eagerCharacterCount = 3
-  const hasCharacterSection =
-    characterEntries.length > 0 || playerCampaigns.length > 0
-  const hasAnyEntry =
-    characterEntries.length > 0 ||
-    selection.campaignMemberships.length > 0 ||
-    selection.weaverWorlds.length > 0
+  )
 
   const weaverResumeHref = weaverResume?.campaign
     ? `/world/${weaverResume.world.id}/campaign/${weaverResume.campaign.id}?mode=weaver`
     : weaverResume
       ? `/world/${weaverResume.world.id}?mode=weaver`
-      : null
+      : '/world?mode=weaver'
   const weaverResumeTracking = weaverResume
     ? {
         kind: 'WEAVER' as const,
@@ -205,338 +154,100 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
         campaignId: weaverResume.campaign?.id,
       }
     : undefined
-  const latestUsedAt = Math.max(
-    weaverResume?.lastUsedAt?.getTime() ?? 0,
-    ...allCharacterEntries.map(
-      (entry) => entry.preference?.lastUsedAt?.getTime() ?? 0,
-    ),
+
+  const compactEntries: CompactLauncherEntry[] = allCharacterEntries.map(
+    (entry) => {
+      if (entry.kind === 'portable') {
+        const image = entry.character.image ?? uiAssets.fallbacks.character
+        const artwork = resolveSelectCharacterArtwork(entry.character.name)
+        return {
+          kind: 'portable',
+          key: entry.key,
+          name: entry.character.name,
+          image: artwork?.portrait ?? image,
+          heroSrc: artwork?.hero ?? image,
+          heroIsPortraitFallback: !artwork,
+          worldId: null,
+          worldName: 'Portable character',
+          campaignName: null,
+          href: `/character/${entry.character.id}`,
+          actionLabel: 'Open Character',
+          pinned: entry.preference?.pinned ?? false,
+          pinTarget: {
+            characterId: entry.character.id,
+          },
+          tracking: {
+            kind: 'PORTABLE_CHARACTER',
+            characterId: entry.character.id,
+          },
+        }
+      }
+
+      const image = entry.character.image ?? uiAssets.fallbacks.character
+      const campaign = entry.campaign
+      const artwork = resolveSelectCharacterArtwork(
+        entry.character.portableName,
+        entry.character.name,
+      )
+      return {
+        kind: 'world',
+        key: entry.key,
+        name: entry.character.name,
+        image: artwork?.portrait ?? image,
+        heroSrc: artwork?.hero ?? image,
+        heroIsPortraitFallback: !artwork,
+        worldId: entry.character.worldId,
+        worldName: entry.character.worldName,
+        campaignName: campaign?.name ?? null,
+        href: campaign
+          ? `/world/${entry.character.worldId}/campaign/${campaign.id}?character=${entry.character.id}`
+          : `/character/${entry.character.id}`,
+        actionLabel: campaign ? 'Enter Campaign' : 'Open Character',
+        pinned: entry.preference?.pinned ?? false,
+        pinTarget: {
+          worldCharacterId: entry.character.id,
+          campaignId: campaign?.id ?? null,
+        },
+        tracking: {
+          kind: 'CHARACTER',
+          worldCharacterId: entry.character.id,
+          campaignId: campaign?.id,
+        },
+      }
+    },
   )
-  const weaverHighlighted =
-    latestUsedAt > 0 && weaverResume?.lastUsedAt?.getTime() === latestUsedAt
+
+  const initiallySelectedKey =
+    visibleCharacters.find(
+      (entry) =>
+        latestUsedAt > 0 &&
+        entry.preference?.lastUsedAt?.getTime() === latestUsedAt,
+    )?.key ?? visibleCharacters[0]?.key
 
   return (
-    <AuthenticatedAppShell user={user}>
-      <AppPage
-        title={showAll ? 'Browse the Weave' : 'Return to the Weave'}
-        layout="workspace"
-        className={`${styles.launcherPage} ${polishStyles.polishedLauncher} ${showAll ? `${styles.expandedLauncher} ${polishStyles.browserLauncher} ${refineStyles.browserMode}` : `${polishStyles.compactLauncher} ${refineStyles.launcherMode}`}`}
-        actions={
-          allCharacterEntries.length > 3 ? (
-            <Link
-              className={styles.moreCharactersButton}
-              href={showAll ? '/select' : '/select?show=all'}
-            >
-              {showAll ? 'Return to recent' : 'Browse all characters'}
-              <span aria-hidden="true">→</span>
-            </Link>
-          ) : undefined
+    <AuthenticatedAppShell user={user} variant="launcher">
+      <CompactSelectLauncher
+        entries={compactEntries.slice(0, 3)}
+        browserEntries={compactEntries}
+        initialSelectedKey={initiallySelectedKey}
+        initialBrowserOpen={initialBrowserOpen}
+        initialBrowserQuery={searchQuery}
+        initialBrowserWorld={worldFilter}
+        initialBrowserSort={initialBrowserSort}
+        hasMoreCharacters={allCharacterEntries.length > 3}
+        pendingCampaigns={playerCampaigns.map((campaign) => ({
+          id: campaign.id,
+          name: campaign.name,
+          href: `/character?world=${campaign.worldId}&campaign=${campaign.id}`,
+        }))}
+        weaverHref={weaverResumeHref}
+        weaverTracking={weaverResumeTracking}
+        weaverContext={
+          weaverResume
+            ? `${weaverResume.world.name}${weaverResume.campaign ? ` · ${weaverResume.campaign.name}` : ''}`
+            : null
         }
-      >
-        <div className={`${styles.stack} ${polishStyles.stack}`}>
-          {hasCharacterSection ? (
-            <section
-              className={`${styles.section} ${polishStyles.recentStories}`}
-              aria-labelledby="recent-characters"
-            >
-              <div className={styles.sectionHeader}>
-                <h2 id="recent-characters">Recent threads</h2>
-              </div>
-
-              {playerCampaigns.length > 0 ? (
-                <div className={styles.pendingCampaigns}>
-                  <span>Waiting for a Character</span>
-                  {playerCampaigns.map((campaign) => (
-                    <Link
-                      className={styles.pendingCampaignLink}
-                      href={`/character?world=${campaign.worldId}&campaign=${campaign.id}`}
-                      key={campaign.id}
-                    >
-                      {campaign.name} →
-                    </Link>
-                  ))}
-                </div>
-              ) : null}
-
-              {characterEntries.length > 0 ? (
-                <div className={styles.characterEntries}>
-                  <div className={styles.characterGrid}>
-                    {visibleCharacters.map((entry, index) =>
-                      entry.kind === 'world' ? (
-                        <CharacterChoiceCard
-                          key={entry.key}
-                          character={entry.character}
-                          campaign={entry.campaign}
-                          pinned={entry.preference?.pinned ?? false}
-                          highlighted={
-                            latestUsedAt > 0 &&
-                            entry.preference?.lastUsedAt?.getTime() ===
-                              latestUsedAt
-                          }
-                          eager={index < eagerCharacterCount}
-                        />
-                      ) : (
-                        <PortableCharacterChoiceCard
-                          key={entry.key}
-                          character={entry.character}
-                          eager={index < eagerCharacterCount}
-                        />
-                      ),
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <p className={styles.muted}>
-                  No Character entries yet. Choose a Campaign above or create a
-                  Character below.
-                </p>
-              )}
-            </section>
-          ) : null}
-
-          {showAll ? (
-            <section className={`${styles.section} ${styles.characterBrowser}`}>
-              <div className={styles.sectionHeader}>
-                <div>
-                  <h2 id="all-characters">All Character entries</h2>
-                  <p>
-                    Search or filter every available entry without leaving the
-                    launcher.
-                  </p>
-                </div>
-                <CharacterSortControl
-                  value={sortMode}
-                  query={searchQuery || undefined}
-                  world={worldFilter || undefined}
-                />
-              </div>
-
-              <form className={styles.browserFilters} method="get">
-                <input type="hidden" name="show" value="all" />
-                <input type="hidden" name="sort" value={sortMode} />
-                <label>
-                  <span>Search</span>
-                  <input
-                    type="search"
-                    name="q"
-                    defaultValue={searchQuery}
-                    placeholder="Character, World, or Campaign"
-                  />
-                </label>
-                <label>
-                  <span>World</span>
-                  <select name="world" defaultValue={worldFilter}>
-                    <option value="">All Worlds</option>
-                    {worldChoices.map((world) => (
-                      <option value={world.id} key={world.id}>
-                        {world.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <button type="submit">Apply</button>
-                {searchQuery || worldFilter ? (
-                  <Link href={`/select?show=all&sort=${sortMode}`}>Clear</Link>
-                ) : null}
-              </form>
-
-              {characterEntries.length > 0 ? (
-                <div className={styles.characterViewport}>
-                  <div
-                    className={`${styles.characterGrid} ${styles.expandedCharacterGrid}`}
-                  >
-                    {characterEntries.map((entry, index) =>
-                      entry.kind === 'world' ? (
-                        <CharacterChoiceCard
-                          key={entry.key}
-                          character={entry.character}
-                          campaign={entry.campaign}
-                          pinned={entry.preference?.pinned ?? false}
-                          highlighted={
-                            latestUsedAt > 0 &&
-                            entry.preference?.lastUsedAt?.getTime() ===
-                              latestUsedAt
-                          }
-                          eager={index < 6}
-                        />
-                      ) : (
-                        <PortableCharacterChoiceCard
-                          key={entry.key}
-                          character={entry.character}
-                          eager={index < 6}
-                        />
-                      ),
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <p className={styles.muted}>
-                  No Character entries match these filters.
-                </p>
-              )}
-            </section>
-          ) : null}
-
-          {!showAll ? (
-            <div className={polishStyles.secondaryHeading}>
-              <span aria-hidden="true">✦</span>
-              <h2 id="secondary-entry-heading">
-                Other paths through the Weave
-              </h2>
-            </div>
-          ) : null}
-
-          {!showAll ? (
-            <section
-              className={`${styles.section} ${styles.entryPaths} ${polishStyles.alternateEntry}`}
-              aria-labelledby="secondary-entry-heading"
-            >
-              <div className={styles.roleGrid}>
-                <div
-                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${refineStyles.uniformEntryFrame} ${weaverHighlighted ? `${styles.resumeEntry} ${polishStyles.resumeEntry}` : ''}`}
-                >
-                  <TrackedEntryLink
-                    className={`${styles.weaverMainAction} ${polishStyles.entryTile} ${refineStyles.uniformEntryTile} ${weaverResume ? refineStyles.weaverResumeTile : ''}`}
-                    href={weaverResumeHref ?? '/world?mode=weaver'}
-                    tracking={weaverResumeTracking}
-                  >
-                    <span className={styles.weaverGlyph} aria-hidden="true">
-                      ✦
-                    </span>
-                    <span className={styles.weaverCopy}>
-                      <strong>Weaver</strong>
-                      {weaverResume ? (
-                        <span className={refineStyles.resumeCopy}>
-                          <span>
-                            Continue {weaverResume.world.name}
-                            {weaverResume.campaign ? ' —' : ''}
-                          </span>
-                          {weaverResume.campaign ? (
-                            <span>{weaverResume.campaign.name}</span>
-                          ) : null}
-                        </span>
-                      ) : (
-                        <span>Choose a World to shape and manage.</span>
-                      )}
-                    </span>
-                    <span className={styles.weaverArrow} aria-hidden="true">
-                      →
-                    </span>
-                  </TrackedEntryLink>
-                  {weaverResume ? (
-                    <Link
-                      className={refineStyles.changeWeaver}
-                      href="/world?mode=weaver"
-                    >
-                      Change
-                    </Link>
-                  ) : null}
-                </div>
-
-                <div
-                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${refineStyles.uniformEntryFrame}`}
-                >
-                  <Link
-                    className={`${styles.weaverMainAction} ${polishStyles.entryTile} ${refineStyles.uniformEntryTile}`}
-                    href="/world?mode=threadwatcher"
-                  >
-                    <span className={styles.weaverGlyph} aria-hidden="true">
-                      ◉
-                    </span>
-                    <span className={styles.weaverCopy}>
-                      <strong>Threadwatcher</strong>
-                      <span>
-                        Observe a Campaign without taking a Character.
-                      </span>
-                    </span>
-                    <span className={styles.weaverArrow} aria-hidden="true">
-                      →
-                    </span>
-                  </Link>
-                </div>
-              </div>
-            </section>
-          ) : null}
-
-          {!hasAnyEntry ? (
-            <StatusPanel tone="empty" title="Your weave is ready to begin">
-              <p>
-                You do not have a Character, Campaign role, or manageable World
-                yet. Create a Character, join an invite, or enter as Weaver to
-                begin a World.
-              </p>
-            </StatusPanel>
-          ) : null}
-
-          {!showAll ? (
-            <section
-              className={`${styles.section} ${styles.entryActions} ${polishStyles.managementActions}`}
-              aria-labelledby="secondary-entry-heading"
-            >
-              <div className={styles.actions}>
-                <div
-                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${refineStyles.uniformEntryFrame}`}
-                >
-                  <Link
-                    className={`${styles.weaverMainAction} ${polishStyles.entryTile} ${refineStyles.uniformEntryTile}`}
-                    href="/select/create-character"
-                  >
-                    <span className={styles.weaverGlyph} aria-hidden="true">
-                      ✦
-                    </span>
-                    <span className={styles.weaverCopy}>
-                      <strong>Create Character</strong>
-                      <span>Begin a new portable identity.</span>
-                    </span>
-                    <span className={styles.weaverArrow} aria-hidden="true">
-                      →
-                    </span>
-                  </Link>
-                </div>
-
-                <div
-                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${refineStyles.uniformEntryFrame}`}
-                >
-                  <Link
-                    className={`${styles.weaverMainAction} ${polishStyles.entryTile} ${refineStyles.uniformEntryTile}`}
-                    href="/select/join"
-                  >
-                    <span className={styles.weaverGlyph} aria-hidden="true">
-                      ↗
-                    </span>
-                    <span className={styles.weaverCopy}>
-                      <strong>Join with invite</strong>
-                      <span>Enter a World or Campaign.</span>
-                    </span>
-                    <span className={styles.weaverArrow} aria-hidden="true">
-                      →
-                    </span>
-                  </Link>
-                </div>
-
-                <div
-                  className={`${styles.weaverCard} ${polishStyles.entryTileFrame} ${refineStyles.uniformEntryFrame}`}
-                >
-                  <Link
-                    className={`${styles.weaverMainAction} ${polishStyles.entryTile} ${refineStyles.uniformEntryTile}`}
-                    href="/character"
-                  >
-                    <span className={styles.weaverGlyph} aria-hidden="true">
-                      ⚙
-                    </span>
-                    <span className={styles.weaverCopy}>
-                      <strong>Manage Characters</strong>
-                      <span>Edit your portable identities.</span>
-                    </span>
-                    <span className={styles.weaverArrow} aria-hidden="true">
-                      →
-                    </span>
-                  </Link>
-                </div>
-              </div>
-            </section>
-          ) : null}
-        </div>
-      </AppPage>
+      />
     </AuthenticatedAppShell>
   )
 }

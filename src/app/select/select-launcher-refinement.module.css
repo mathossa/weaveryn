@@ -3,8 +3,6 @@
   position: relative;
 }
 
-/* Browse mode should be calm and utilitarian: keep hover transitions, but stop
-   the continuous ambient/reveal animations used by the landing launcher. */
 .browserMode,
 .browserMode *,
 .browserMode *::before,
@@ -14,51 +12,10 @@
   animation: none !important;
 }
 
-:global(header):has(+ :global(main) .browserMode)::before {
-  animation: none !important;
-}
-
-/* Character-card ornaments are launcher-only. The ornament class lives in a
-   different CSS module, so target the rendered card links rather than trying
-   to reference that module-local class here. */
 .browserMode a::before,
 .browserMode a::after {
   display: none !important;
   content: none !important;
-}
-
-.uniformEntryFrame {
-  position: relative;
-  min-width: 0;
-}
-
-.uniformEntryTile {
-  min-height: 6rem !important;
-}
-
-.uniformEntryTile > span:nth-child(2) {
-  min-width: 0;
-}
-
-.uniformEntryTile > span:nth-child(2) > strong {
-  font-size: 1rem !important;
-  line-height: 1.2;
-}
-
-.uniformEntryTile > span:nth-child(2) span {
-  overflow: visible !important;
-  line-height: 1.32;
-  text-overflow: clip !important;
-  white-space: normal !important;
-}
-
-.resumeCopy {
-  display: grid !important;
-  gap: 0.04rem;
-}
-
-.resumeCopy > span {
-  display: block;
 }
 
 .weaverResumeTile {
@@ -69,7 +26,7 @@
   position: absolute;
   right: 0.92rem;
   bottom: 0.46rem;
-  z-index: 3;
+  z-index: 4;
   border-radius: 999px;
   padding: 0.13rem 0.42rem;
   color: var(--ui-accent-hover);
@@ -84,7 +41,7 @@
 
 .changeWeaver:hover {
   background: color-mix(in srgb, var(--ui-accent) 10%, transparent);
-  color: var(--ui-text);
+  color: color-mix(in srgb, var(--ui-accent-hover) 72%, var(--ui-text));
 }
 
 .changeWeaver:focus-visible {
@@ -92,11 +49,621 @@
   box-shadow: var(--ui-focus-ring);
 }
 
+@media (min-width: 981px) {
+  .launcherMode.launcherMode {
+    height: calc(100dvh - 74px - 2.35rem - 1px) !important;
+    overflow: hidden !important;
+  }
+
+  .launcherMode::before {
+    inset: 0 !important;
+    background:
+      linear-gradient(
+        90deg,
+        rgba(2, 5, 10, 0.86),
+        rgba(2, 5, 10, 0.34) 36%,
+        rgba(2, 5, 10, 0.56) 74%,
+        rgba(2, 5, 10, 0.9)
+      ),
+      linear-gradient(
+        180deg,
+        rgba(3, 6, 12, 0.28),
+        rgba(2, 4, 9, 0.64) 58%,
+        rgba(2, 4, 9, 0.92)
+      ),
+      url('/images/backgrounds/app-shell.webp') center 44% / cover no-repeat !important;
+    opacity: 0.72 !important;
+    transform: none !important;
+  }
+
+  .launcherMode::after {
+    background:
+      radial-gradient(
+        circle at 16% 18%,
+        color-mix(in srgb, var(--ui-accent) 12%, transparent),
+        transparent 25rem
+      ),
+      radial-gradient(
+        circle at 76% 30%,
+        rgba(54, 77, 112, 0.12),
+        transparent 32rem
+      ),
+      linear-gradient(180deg, transparent 54%, rgba(1, 3, 7, 0.54)) !important;
+  }
+
+  .launcherMode > header {
+    min-height: 3.55rem;
+    margin-bottom: 0.8rem !important;
+  }
+
+  .launcherMode > header h1 {
+    width: min(31rem, 46vw);
+    height: 3.55rem;
+    overflow: hidden;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 760 108'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23f7e9c4'/%3E%3Cstop offset='.42' stop-color='%23d9b866'/%3E%3Cstop offset='1' stop-color='%23845f29'/%3E%3C/linearGradient%3E%3Cfilter id='s'%3E%3CfeDropShadow dx='0' dy='2' stdDeviation='2.2' flood-color='%23000000' flood-opacity='.72'/%3E%3C/filter%3E%3C/defs%3E%3Ctext x='2' y='82' font-family='Georgia,Times New Roman,serif' font-size='76' font-weight='600' letter-spacing='-2' fill='url(%23g)' stroke='%236e4c20' stroke-width='.8' paint-order='stroke' filter='url(%23s)'%3EReturn%20to%20the%20Weave%3C/text%3E%3C/svg%3E")
+      left center / contain no-repeat;
+    color: transparent !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    text-shadow: none !important;
+  }
+
+  .launcherMode > header::after {
+    bottom: -0.35rem !important;
+    width: min(30rem, 48vw) !important;
+  }
+
+  .launcherMode.launcherMode > div > div {
+    grid-template-areas:
+      'stories'
+      'secondary-heading'
+      'alternate'
+      'actions' !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows:
+      minmax(0, 1fr)
+      auto
+      8.35rem
+      auto !important;
+    align-content: stretch !important;
+    gap: 0.58rem !important;
+  }
+
+  .launcherMode.launcherMode
+    > div
+    > div
+    > section[aria-labelledby='recent-characters'] {
+    grid-area: stories !important;
+  }
+
+  .launcherMode.launcherMode > div > div > div:has(> #secondary-entry-heading) {
+    grid-area: secondary-heading !important;
+    margin: 0 !important;
+    padding-inline: 0.1rem;
+  }
+
+  .launcherMode .secondaryHeading::before,
+  .launcherMode .secondaryHeading::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--ui-accent) 34%, transparent)
+    ) !important;
+  }
+
+  .launcherMode .secondaryHeading h2,
+  .launcherMode
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:first-child
+    h2 {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: color-mix(
+      in srgb,
+      var(--ui-accent) 72%,
+      var(--ui-text-muted)
+    ) !important;
+    font-size: 0.76rem !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase;
+  }
+
+  .launcherMode .secondaryHeading h2::before,
+  .launcherMode
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:first-child
+    h2::before {
+    width: 2.4rem;
+    height: 0.72rem;
+    flex: 0 0 auto;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 24'%3E%3Cpath d='M2 12h34M60 12h34' stroke='%23a97e3f' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M48 4l4 8-4 8-4-8z' fill='none' stroke='%23d8b568' stroke-width='1.5'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    content: '';
+  }
+
+  .launcherMode .secondaryHeading > span {
+    display: none;
+  }
+
+  .launcherMode.launcherMode
+    > div
+    > div
+    > section[aria-labelledby='secondary-entry-heading'] {
+    grid-area: alternate !important;
+    min-height: 0;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div {
+    height: 100% !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.9rem !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div {
+    position: relative;
+    height: 100%;
+    overflow: hidden !important;
+    border: 1px solid color-mix(in srgb, var(--ui-accent) 38%, var(--ui-border)) !important;
+    border-radius: var(--ui-radius-panel);
+    background: transparent !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.018),
+      0 0.72rem 1.8rem rgba(0, 0, 0, 0.2) !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div::before {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      linear-gradient(
+        90deg,
+        rgba(4, 9, 18, 0.94),
+        rgba(4, 9, 18, 0.62) 46%,
+        rgba(4, 9, 18, 0.22)
+      ),
+      linear-gradient(180deg, rgba(3, 7, 14, 0.14), rgba(2, 5, 10, 0.82)),
+      url('/images/backgrounds/app-shell.webp') 72% 54% / cover no-repeat;
+    content: '';
+    opacity: 0.88;
+    pointer-events: none;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div:last-child::before {
+    background:
+      linear-gradient(
+        90deg,
+        rgba(12, 7, 22, 0.94),
+        rgba(12, 7, 22, 0.62) 46%,
+        rgba(12, 7, 22, 0.2)
+      ),
+      linear-gradient(180deg, rgba(8, 5, 16, 0.1), rgba(4, 3, 10, 0.84)),
+      url('/images/backgrounds/auth-shell.webp') 68% 52% / cover no-repeat;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div::after {
+    position: absolute;
+    inset: 0.58rem;
+    z-index: 1;
+    border-radius: calc(var(--ui-radius-panel) - 0.4rem);
+    background:
+      linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--ui-accent) 50%, transparent) 0 27%,
+          transparent 27% 100%
+        )
+        top left / 100% 1px no-repeat,
+      linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--ui-accent) 24%, transparent),
+          color-mix(in srgb, var(--ui-accent) 40%, transparent) 52%,
+          transparent 100%
+        )
+        bottom left / 100% 1px no-repeat,
+      linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--ui-accent) 42%, transparent),
+          color-mix(in srgb, var(--ui-accent) 18%, transparent) 42%,
+          transparent 42% 76%,
+          color-mix(in srgb, var(--ui-accent) 30%, transparent) 76% 100%
+        )
+        top left / 1px 100% no-repeat,
+      linear-gradient(
+          180deg,
+          transparent 0 28%,
+          color-mix(in srgb, var(--ui-accent) 22%, transparent) 28% 66%,
+          transparent 66% 100%
+        )
+        top right / 1px 100% no-repeat;
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, var(--ui-accent) 4%, transparent);
+    content: '';
+    pointer-events: none;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div
+    > a:first-child {
+    position: relative;
+    z-index: 2;
+    height: 100% !important;
+    min-height: 8.35rem !important;
+    align-content: center;
+    padding: 0.82rem 1.05rem !important;
+    background: transparent !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div
+    > a:first-child
+    > span:first-child {
+    width: 3.35rem !important;
+    height: 3.35rem !important;
+    border-color: color-mix(
+      in srgb,
+      var(--ui-accent) 50%,
+      var(--ui-border)
+    ) !important;
+    background: rgba(4, 8, 16, 0.5);
+    color: color-mix(
+      in srgb,
+      var(--ui-accent) 82%,
+      var(--ui-text-muted)
+    ) !important;
+    box-shadow: 0 0 1.1rem color-mix(in srgb, var(--ui-accent) 8%, transparent);
+    font-size: 1.12rem !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div
+    > a:first-child
+    > span:nth-child(2) {
+    gap: 0.18rem !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div
+    > a:first-child
+    > span:nth-child(2)
+    > span:nth-of-type(1) {
+    display: block !important;
+    color: color-mix(
+      in srgb,
+      var(--ui-accent) 82%,
+      var(--ui-text-muted)
+    ) !important;
+    font-size: 0.56rem !important;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div
+    > a:first-child
+    > span:nth-child(2)
+    > strong {
+    color: #d8ccb5 !important;
+    font-size: clamp(1.28rem, 1.32vw, 1.58rem) !important;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.08;
+    text-shadow: 0 0.12em 1rem rgba(0, 0, 0, 0.68);
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div
+    > a:first-child
+    > span:nth-child(2)
+    > span:nth-of-type(2) {
+    display: none !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div:first-child
+    > a:first-child
+    > span:nth-child(2)
+    > span:nth-of-type(3) {
+    display: flex !important;
+    width: max-content;
+    max-width: 72%;
+    align-items: baseline;
+    gap: 0.38rem;
+    margin-top: 0.24rem;
+    border: 0 !important;
+    padding: 0 !important;
+    background: none !important;
+    color: #bcae92 !important;
+    font-size: 0.67rem !important;
+    line-height: 1.25;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div:first-child
+    > a:first-child
+    > span:nth-child(2)
+    > span:nth-of-type(3)
+    > small {
+    display: inline !important;
+    color: color-mix(
+      in srgb,
+      var(--ui-accent) 78%,
+      var(--ui-text-muted)
+    ) !important;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div:last-child
+    > a:first-child
+    > span:nth-child(2)
+    > span:nth-of-type(3) {
+    display: none !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div
+    > a:first-child
+    > span:last-child {
+    display: none !important;
+  }
+
+  .launcherMode .changeWeaver {
+    right: 1rem;
+    bottom: 0.72rem;
+    padding: 0;
+    background: none !important;
+    color: color-mix(in srgb, var(--ui-accent) 72%, var(--ui-text-muted));
+    font-size: 0 !important;
+  }
+
+  .launcherMode .changeWeaver::after {
+    content: 'Change world →';
+    font-size: 0.68rem;
+  }
+
+  .launcherMode.launcherMode
+    > div
+    > div
+    > section[aria-labelledby='launcher-utilities-heading'] {
+    grid-area: actions !important;
+    min-height: 0;
+    padding-top: 0.02rem;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:first-child {
+    justify-content: flex-start !important;
+    gap: 0.6rem;
+    border-bottom-color: color-mix(
+      in srgb,
+      var(--ui-accent) 24%,
+      transparent
+    ) !important;
+    padding-bottom: 0.22rem !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:first-child
+    > span {
+    display: none !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child {
+    height: auto !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-rows: auto !important;
+    gap: 0.65rem !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child
+    > div {
+    position: relative;
+    overflow: hidden !important;
+    border: 1px solid color-mix(in srgb, var(--ui-accent) 28%, var(--ui-border)) !important;
+    border-radius: var(--ui-radius-panel) !important;
+    background: linear-gradient(
+      180deg,
+      rgba(7, 11, 20, 0.52),
+      rgba(3, 6, 12, 0.24)
+    ) !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child
+    > div::after {
+    position: absolute;
+    inset: 0.38rem;
+    z-index: 1;
+    border-radius: calc(var(--ui-radius-panel) - 0.28rem);
+    background:
+      linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--ui-accent) 42%, transparent) 0 25%,
+          transparent 25% 100%
+        )
+        top left / 100% 1px no-repeat,
+      linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--ui-accent) 18%, transparent),
+          transparent 82%
+        )
+        bottom left / 100% 1px no-repeat,
+      linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--ui-accent) 34%, transparent) 0 42%,
+          transparent 42% 100%
+        )
+        top left / 1px 100% no-repeat,
+      linear-gradient(
+          180deg,
+          transparent 0 64%,
+          color-mix(in srgb, var(--ui-accent) 26%, transparent) 64% 100%
+        )
+        top right / 1px 100% no-repeat;
+    content: '';
+    pointer-events: none;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child
+    > div
+    > a {
+    position: relative;
+    z-index: 2;
+    min-height: 3.8rem !important;
+    border-top: 0 !important;
+    padding: 0.5rem 0.65rem !important;
+    background: transparent !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child
+    > div
+    > a
+    > span:nth-child(2)
+    > strong {
+    color: #d3c5ad !important;
+    font-size: 0.82rem !important;
+    font-weight: 600;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child
+    > div
+    > a
+    > span:nth-child(2)
+    > span {
+    display: none !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child
+    > div
+    > a
+    > span:first-child,
+  .launcherMode.launcherMode
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child
+    > div
+    > a
+    > span:last-child {
+    color: color-mix(
+      in srgb,
+      var(--ui-accent) 72%,
+      var(--ui-text-muted)
+    ) !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='recent-characters']
+    a
+    > span:last-child
+    > strong {
+    color: #ddd2be !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='recent-characters']
+    a
+    > span:last-child
+    small {
+    color: color-mix(
+      in srgb,
+      var(--ui-accent) 78%,
+      var(--ui-text-muted)
+    ) !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='recent-characters']
+    a
+    > span:last-child
+    span {
+    color: #bdb29d;
+  }
+}
+
+@media (min-width: 981px) and (max-height: 900px) {
+  .launcherMode.launcherMode > div > div {
+    grid-template-rows:
+      minmax(0, 1fr)
+      auto
+      7.45rem
+      auto !important;
+    gap: 0.48rem !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='secondary-entry-heading']
+    > div
+    > div
+    > a:first-child {
+    min-height: 7.45rem !important;
+    padding-block: 0.68rem !important;
+  }
+
+  .launcherMode.launcherMode
+    section[aria-labelledby='launcher-utilities-heading']
+    > div:last-child
+    > div
+    > a {
+    min-height: 3.55rem !important;
+    padding-block: 0.42rem !important;
+  }
+}
+
 @media (max-width: 760px) {
-  /* The desktop launcher uses several named grid areas and viewport-bound
-     dimensions. Reset those relationships completely on a phone so every
-     section participates in normal document flow and cannot create a hidden
-     desktop-width column. */
   .launcherMode,
   .browserMode {
     width: 100% !important;
@@ -161,34 +728,11 @@
     min-width: 0 !important;
   }
 
-  /* Recent characters, Weaver/Threadwatcher and utility actions are all
-     single-column on a phone. This deliberately overrides both the legacy
-     launcher grid and the desktop polish layer. */
   .launcherMode section > div,
   .launcherMode section > div > div,
   .browserMode section > div,
   .browserMode section > div > div {
     grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  .uniformEntryFrame {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-  }
-
-  .uniformEntryTile {
-    display: grid !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    min-height: 5.25rem !important;
-    grid-template-columns: auto minmax(0, 1fr) auto !important;
-    gap: 0.7rem !important;
-  }
-
-  .uniformEntryTile > span:nth-child(2) {
-    min-width: 0 !important;
   }
 
   .launcherMode a,

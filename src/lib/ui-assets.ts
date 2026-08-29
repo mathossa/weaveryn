@@ -6,6 +6,12 @@ export type UiArtwork = Readonly<{
   width: number
   height: number
 }>
+export type UiBrandArtwork = Readonly<{
+  src: string
+  alt: string
+  width: number
+  height: number
+}>
 
 type EntityArtworkBase = Pick<UiArtwork, 'slug' | 'name' | 'alt'>
 
@@ -194,6 +200,10 @@ export function isEntityArtworkSource(value: string) {
   return entityArtworkSources.has(value.trim())
 }
 
+// The round logo and horizontal wordmark are intentionally separate brand
+// concepts. Keep this nullable until an approved wordmark asset is supplied.
+const brandWordmark: UiBrandArtwork | null = null
+
 export const uiAssets = {
   brand: {
     logo: {
@@ -202,6 +212,7 @@ export const uiAssets = {
       width: 1269,
       height: 1240,
     },
+    wordmark: brandWordmark,
   },
   backgrounds: {
     appShell: {
@@ -221,6 +232,34 @@ export const uiAssets = {
       alt: 'Candlelit cartographer hall with maps, shelves, and artifacts',
       width: 1086,
       height: 362,
+    },
+  },
+  select: {
+    backgroundDesktop: {
+      src: '/images/select/background-desktop.webp',
+      alt: 'Golden mountain valley and ancient fantasy ruins at dawn',
+      width: 2560,
+      height: 1440,
+    },
+    hero: {
+      bodwick: '/images/select/hero/bodwick.webp',
+    },
+    portraits: {
+      bodwick: '/images/select/portraits/bodwick-portrait.webp',
+    },
+  },
+  ui: {
+    frames: {
+      goldRect: '/images/ui/frames/gold-rect-frame.png',
+      goldCircle: '/images/ui/frames/gold-circle-frame.png',
+      goldPrimaryAction: '/images/ui/frames/gold-primary-action-frame.png',
+    },
+    icons: {
+      favoriteSelected: '/images/ui/icons/favorite-selected.png',
+      favoriteUnselected: '/images/ui/icons/favorite-unselected.png',
+    },
+    textures: {
+      blackGoldVeins: '/images/ui/textures/black-gold-veins.webp',
     },
   },
   entityArtwork,

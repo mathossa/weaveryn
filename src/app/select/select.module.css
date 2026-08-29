@@ -211,47 +211,66 @@
   position: absolute;
   inset: auto 0 0;
   display: grid;
-  gap: 0.2rem;
+  gap: 0.42rem;
   padding: 1.1rem;
 }
 
-.characterCopy strong {
+.characterName {
+  overflow-wrap: anywhere;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.08;
 }
 
 .characterCopy span {
   color: var(--ui-text-muted);
 }
 
-.characterCampaign {
+.characterContext {
+  display: grid;
+  min-width: 0;
+  gap: 0.24rem;
+}
+
+.characterContextRow {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.characterContextRow small {
+  color: color-mix(in srgb, var(--ui-accent) 76%, var(--ui-text-muted));
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.characterCampaignName,
+.characterWorldName {
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+}
+
+.characterCampaignName {
   color: var(--ui-text) !important;
   font-size: 0.88rem;
   font-weight: 700;
+  line-height: 1.25;
+  -webkit-line-clamp: 2;
 }
 
-.characterWorldTime {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+.characterWorldName {
   font-size: 0.75rem;
-}
-
-.characterWorldTime span + span::before {
-  margin-right: 0.35rem;
-  color: var(--ui-accent);
-  content: '·';
-}
-
-.characterMembers {
-  color: var(--ui-accent-hover) !important;
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-
-.characterMeta {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  line-height: 1.3;
+  -webkit-line-clamp: 1;
 }
 
 .pendingCampaigns {
@@ -711,11 +730,6 @@
 
   .expandedCharacterGrid .characterCopy span {
     font-size: 0.72rem;
-  }
-
-  .expandedCharacterGrid .characterMeta {
-    font-size: 0.62rem;
-    letter-spacing: 0.06em;
   }
 
   .expandedCharacterGrid .pinButton {

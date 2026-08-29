@@ -1,18 +1,28 @@
 'use client'
 
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { uiAssets } from '@/lib/ui-assets'
 import styles from '../select.module.css'
 
+type PinEntryTarget =
+  | {
+      worldCharacterId: string
+      campaignId?: string | null
+      characterId?: never
+    }
+  | {
+      characterId: string
+      worldCharacterId?: never
+      campaignId?: never
+    }
+
 export function PinEntryButton({
-  worldCharacterId,
-  campaignId,
   pinned,
-}: {
-  worldCharacterId: string
-  campaignId?: string | null
-  pinned: boolean
-}) {
+  className,
+  ...target
+}: PinEntryTarget & { pinned: boolean; className?: string }) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [isPinned, setIsPinned] = useState(pinned)
@@ -24,14 +34,21 @@ export function PinEntryButton({
     setIsPinned(nextPinned)
 
     try {
+      const body =
+        'characterId' in target
+          ? {
+              characterId: target.characterId,
+              pinned: nextPinned,
+            }
+          : {
+              worldCharacterId: target.worldCharacterId,
+              campaignId: target.campaignId ?? null,
+              pinned: nextPinned,
+            }
       const response = await fetch('/api/v1/selection/preferences', {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          worldCharacterId,
-          campaignId: campaignId ?? null,
-          pinned: nextPinned,
-        }),
+        body: JSON.stringify(body),
       })
 
       if (!response.ok) {
@@ -49,7 +66,7 @@ export function PinEntryButton({
 
   return (
     <button
-      className={styles.pinButton}
+      className={`${styles.pinButton} ${className ?? ''}`}
       type="button"
       aria-pressed={isPinned}
       aria-label={isPinned ? 'Unpin entry' : 'Pin entry'}
@@ -57,7 +74,17 @@ export function PinEntryButton({
       disabled={saving}
       onClick={togglePin}
     >
-      <span aria-hidden="true">{isPinned ? '★' : '☆'}</span>
+      <Image
+        src={
+          isPinned
+            ? uiAssets.ui.icons.favoriteSelected
+            : uiAssets.ui.icons.favoriteUnselected
+        }
+        alt=""
+        width={28}
+        height={28}
+        aria-hidden="true"
+      />
     </button>
   )
 }

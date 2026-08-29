@@ -2,6 +2,7 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  overflow-x: clip;
   background:
     radial-gradient(
       circle at 14% 6%,
@@ -51,31 +52,24 @@
       color-mix(in srgb, var(--ui-accent) 6%, transparent) 58.6% 58.8%,
       transparent 59% 100%
     );
-  opacity: 0.72;
+  opacity: 0.44;
   transform: translate3d(0, 0, 0) scale(1.02);
-  animation: weaveDrift 22s ease-in-out infinite alternate;
 }
 
 .polishedLauncher::after {
-  background-image:
-    radial-gradient(
-      circle,
-      color-mix(in srgb, var(--ui-accent) 22%, transparent) 0 0.7px,
-      transparent 0.9px
+  background:
+    linear-gradient(
+      90deg,
+      rgba(1, 3, 7, 0.62),
+      transparent 23%,
+      transparent 77%,
+      rgba(1, 3, 7, 0.7)
     ),
     radial-gradient(
-      circle,
-      color-mix(in srgb, var(--ui-accent-hover) 13%, transparent) 0 0.6px,
-      transparent 0.85px
+      ellipse at 50% 46%,
+      transparent 0 44%,
+      rgba(1, 3, 7, 0.48) 100%
     );
-  background-position:
-    1rem 2rem,
-    5rem 6rem;
-  background-size:
-    9rem 8rem,
-    13rem 11rem;
-  opacity: 0.34;
-  animation: emberDrift 28s linear infinite;
 }
 
 .polishedLauncher > header,
@@ -84,76 +78,10 @@
   z-index: 1;
 }
 
-/* /select is a portal, not an already-selected World/Campaign/Character context.
-   Keep the shared brand/account controls, but turn the middle of the normal app
-   shell into a launcher-specific "The Weave" ornament. */
-:global(header):has(+ :global(main) .polishedLauncher) {
-  grid-template-columns: minmax(11rem, 0.8fr) minmax(12rem, 2fr) minmax(
-      10rem,
-      0.8fr
-    ) !important;
-  border-bottom-color: color-mix(
-    in srgb,
-    var(--ui-accent) 18%,
-    var(--ui-border)
-  );
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--ui-panel-strong) 96%, black),
-    color-mix(in srgb, var(--ui-panel-strong) 91%, black)
-  ) !important;
-  box-shadow:
-    0 12px 34px rgba(0, 0, 0, 0.24),
-    0 1px 0 color-mix(in srgb, var(--ui-accent) 5%, transparent);
-}
-
-:global(header):has(+ :global(main) .polishedLauncher)::before {
-  grid-column: 2;
-  grid-row: 1;
-  align-self: center;
-  justify-self: stretch;
-  padding: 0 1rem;
-  background:
-    linear-gradient(
-        90deg,
-        transparent,
-        color-mix(in srgb, var(--ui-accent) 35%, transparent),
-        transparent
-      )
-      left center / 36% 1px no-repeat,
-    linear-gradient(
-        90deg,
-        transparent,
-        color-mix(in srgb, var(--ui-accent) 35%, transparent),
-        transparent
-      )
-      right center / 36% 1px no-repeat;
-  color: color-mix(in srgb, var(--ui-accent-hover) 82%, var(--ui-text-muted));
-  content: '◇  THE WEAVE  ◇';
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.28em;
-  line-height: 2rem;
-  text-align: center;
-  text-shadow: 0 0 1rem color-mix(in srgb, var(--ui-accent) 16%, transparent);
-  animation: headerThreadGlow 7s ease-in-out infinite;
-}
-
-:global(header):has(+ :global(main) .polishedLauncher) > :global(nav),
-:global(header):has(+ :global(main) .polishedLauncher) > :global(button) {
-  display: none !important;
-}
-
-:global(header):has(+ :global(main) .polishedLauncher) > :last-child {
-  grid-column: 3;
-  grid-row: 1;
-}
-
 .polishedLauncher > header {
   position: relative;
   align-items: center;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
   padding-left: 0;
 }
 
@@ -161,7 +89,7 @@
   position: absolute;
   bottom: -0.72rem;
   left: 0;
-  width: min(24rem, 42vw);
+  width: min(19rem, 42vw);
   height: 1px;
   background: linear-gradient(
     90deg,
@@ -174,9 +102,15 @@
 }
 
 .polishedLauncher > header h1 {
-  font-size: clamp(2rem, 3.3vw, 3.15rem);
-  letter-spacing: -0.035em;
-  text-shadow: 0 0 2rem color-mix(in srgb, var(--ui-accent) 8%, transparent);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.95rem, 2.6vw, 2.72rem);
+  font-weight: 500;
+  letter-spacing: 0.012em;
+  line-height: 1;
+  text-wrap: balance;
+  text-shadow:
+    0 0.08em 0 rgba(0, 0, 0, 0.86),
+    0 0 1.7rem color-mix(in srgb, var(--ui-accent) 12%, transparent);
 }
 
 .polishedLauncher > header a {
@@ -263,7 +197,6 @@
     0 1.15rem 3rem rgba(0, 0, 0, 0.32),
     0 0 0 1px color-mix(in srgb, var(--ui-accent) 48%, transparent),
     0 0 2.3rem color-mix(in srgb, var(--ui-accent) 10%, transparent) !important;
-  animation: recentGlow 6s ease-in-out infinite;
 }
 
 .characterImage {
@@ -278,72 +211,208 @@
 }
 
 .characterCopy {
-  gap: 0.24rem !important;
+  gap: 0.45rem !important;
   padding: clamp(1rem, 1.7vw, 1.35rem) !important;
 }
 
 .characterCopy > strong {
-  font-size: clamp(1.15rem, 1.45vw, 1.5rem) !important;
-  letter-spacing: -0.015em;
+  font-size: clamp(1.32rem, 1.75vw, 1.72rem) !important;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
   text-shadow: 0 2px 1.25rem rgba(0, 0, 0, 0.76);
 }
 
-.characterFooter {
-  display: flex !important;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-top: 0.2rem;
+.emptyState {
+  grid-area: stories;
+  width: min(100%, 48rem);
 }
 
-.continueAction {
-  display: inline-flex !important;
-  align-items: center;
-  gap: 0.42rem;
-  color: var(--ui-accent-hover) !important;
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.015em;
-  opacity: 0.72;
-  transform: translateX(-0.2rem);
-  transition:
-    opacity 200ms ease,
-    transform 200ms ease,
-    color 200ms ease;
-}
-
-.continueAction > span {
-  color: var(--ui-accent) !important;
-  font-size: 1rem !important;
-}
-
-.entryTileFrame {
-  border-color: transparent !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  transition:
-    border-color 180ms ease,
-    box-shadow 180ms ease;
-}
-
-.entryTile {
-  min-height: 6rem !important;
+.modePanel {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
   border-color: color-mix(
     in srgb,
-    var(--ui-control-border) 35%,
-    transparent
+    var(--ui-accent) 26%,
+    var(--ui-border)
   ) !important;
   background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--ui-control-surface) 50%, transparent),
-    color-mix(in srgb, var(--ui-panel-strong) 34%, transparent)
+    145deg,
+    color-mix(in srgb, var(--ui-panel-strong) 86%, transparent),
+    color-mix(in srgb, var(--ui-control-surface) 72%, transparent)
   ) !important;
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ui-accent) 4%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--ui-accent) 12%, transparent),
+    0 0.8rem 2rem rgba(0, 0, 0, 0.18);
+}
+
+.modePanel::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--ui-accent) 52%, transparent),
+    transparent
+  );
+  content: '';
+}
+
+.modeLink {
+  min-height: 7.4rem !important;
+  height: 100%;
+  gap: 0.85rem !important;
+  padding: 0.82rem 0.95rem !important;
+  background: transparent !important;
   transition:
-    border-color 200ms ease,
-    background 200ms ease,
-    transform 200ms ease,
-    box-shadow 200ms ease;
+    background 170ms ease,
+    box-shadow 170ms ease;
+}
+
+.modeGlyph {
+  width: 2.8rem !important;
+  height: 2.8rem !important;
+  align-self: center;
+  border-color: color-mix(
+    in srgb,
+    var(--ui-accent) 45%,
+    var(--ui-border)
+  ) !important;
+  background: color-mix(in srgb, var(--ui-accent) 6%, transparent);
+}
+
+.modeCopy {
+  gap: 0.12rem !important;
+}
+
+.modeCopy > span,
+.modeContext > span {
+  display: block !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+}
+
+.modeKicker {
+  color: var(--ui-accent) !important;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.modeCopy > strong {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.16rem !important;
+  font-weight: 600;
+  line-height: 1.08;
+}
+
+.modeDescription {
+  color: var(--ui-text-muted) !important;
+  font-size: 0.73rem;
+  line-height: 1.35;
+}
+
+.modeContext {
+  display: grid !important;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.45rem;
+  margin-top: 0.22rem;
+  border-top: 1px solid color-mix(in srgb, var(--ui-border) 70%, transparent);
+  padding-top: 0.34rem;
+  color: var(--ui-text) !important;
+  font-size: 0.7rem;
+  line-height: 1.25;
+}
+
+.modeContext small {
+  color: color-mix(in srgb, var(--ui-accent) 78%, var(--ui-text-muted));
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.utilityHeading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ui-border) 54%, transparent);
+  padding: 0 0.2rem 0.35rem;
+}
+
+.utilityHeading h2,
+.utilityHeading span {
+  margin: 0;
+}
+
+.utilityHeading h2 {
+  color: color-mix(in srgb, var(--ui-accent) 78%, var(--ui-text-muted));
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.utilityHeading span {
+  color: var(--ui-text-muted);
+  font-size: 0.62rem;
+  line-height: 1.25;
+}
+
+.utilityFrame {
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.utilityLink {
+  min-height: 5rem !important;
+  gap: 0.55rem !important;
+  border-top: 1px solid
+    color-mix(in srgb, var(--ui-accent) 28%, var(--ui-border));
+  padding: 0.62rem 0.5rem !important;
+  background: transparent !important;
+  transition: background 160ms ease;
+}
+
+.utilityLink > span:first-child {
+  width: 2rem !important;
+  height: 2rem !important;
+  border-color: color-mix(
+    in srgb,
+    var(--ui-border) 78%,
+    transparent
+  ) !important;
+  font-size: 0.82rem !important;
+}
+
+.utilityLink > span:nth-child(2) > strong {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.87rem !important;
+  font-weight: 600;
+}
+
+.utilityLink > span:nth-child(2) > span {
+  display: block !important;
+  overflow: visible !important;
+  color: var(--ui-text-muted);
+  font-size: 0.64rem;
+  line-height: 1.3;
+  text-overflow: clip !important;
+  white-space: normal !important;
+}
+
+.utilityLink > span:last-child {
+  font-size: 0.9rem;
+  opacity: 0.68;
 }
 
 .browserLauncher .recentStories {
@@ -383,30 +452,14 @@
     transform: scale(1.04);
   }
 
-  .characterCard:hover .continueAction {
-    opacity: 1;
-    transform: translateX(0);
+  .modeLink:hover {
+    background: color-mix(in srgb, var(--ui-accent) 6%, transparent) !important;
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, var(--ui-accent) 9%, transparent);
   }
 
-  .entryTile:hover,
-  .entryTileFrame:hover {
-    border-color: color-mix(
-      in srgb,
-      var(--ui-accent) 36%,
-      var(--ui-border)
-    ) !important;
-  }
-
-  .entryTile:hover {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--ui-accent) 7%, var(--ui-control-surface)),
-      color-mix(in srgb, var(--ui-control-surface) 66%, transparent)
-    ) !important;
-    box-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--ui-accent) 14%, transparent),
-      0 0.65rem 1.4rem rgba(0, 0, 0, 0.16);
-    transform: translateY(-3px);
+  .utilityLink:hover {
+    background: color-mix(in srgb, var(--ui-accent) 6%, transparent) !important;
   }
 }
 
@@ -425,10 +478,14 @@
       'stories stories'
       'secondary-heading secondary-heading'
       'alternate actions' !important;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) !important;
+    grid-template-columns: minmax(0, 3fr) minmax(22rem, 2fr) !important;
     grid-template-rows: clamp(28rem, 60vh, 42rem) auto auto !important;
     align-content: start;
     gap: 0.8rem 0.9rem !important;
+  }
+
+  .compactLauncher.emptyLauncher .stack {
+    grid-template-rows: auto auto auto !important;
   }
 
   .compactLauncher .recentStories {
@@ -470,57 +527,6 @@
     .recentStories
     > div:last-child
     > div
-    > :first-child::before {
-    position: absolute;
-    inset: 0.42rem;
-    z-index: 4;
-    border: 1px solid color-mix(in srgb, var(--ui-accent) 45%, transparent);
-    border-radius: calc(var(--ui-radius-panel) - 0.35rem);
-    box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, var(--ui-accent) 5%, transparent),
-      0 0 1.4rem color-mix(in srgb, var(--ui-accent) 6%, transparent);
-    clip-path: polygon(
-      0 0,
-      23% 0,
-      23% 2px,
-      77% 2px,
-      77% 0,
-      100% 0,
-      100% 100%,
-      78% 100%,
-      78% calc(100% - 2px),
-      22% calc(100% - 2px),
-      22% 100%,
-      0 100%
-    );
-    pointer-events: none;
-    content: '';
-  }
-
-  .compactLauncher .recentStories > div:last-child > div > :first-child::after {
-    position: absolute;
-    top: 0.42rem;
-    left: 1.4rem;
-    z-index: 5;
-    width: 6.5rem;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      color-mix(in srgb, var(--ui-accent-hover) 90%, white 10%),
-      color-mix(in srgb, var(--ui-accent) 55%, transparent),
-      transparent
-    );
-    box-shadow: 0 0 0.8rem color-mix(in srgb, var(--ui-accent) 34%, transparent);
-    pointer-events: none;
-    content: '';
-    animation: featuredThread 6.5s ease-in-out infinite;
-  }
-
-  .compactLauncher
-    .recentStories
-    > div:last-child
-    > div
     > :first-child
     .characterCard {
     border-color: color-mix(
@@ -532,33 +538,6 @@
       0 1.35rem 3.4rem rgba(0, 0, 0, 0.34),
       0 0 0 1px color-mix(in srgb, var(--ui-accent) 18%, transparent),
       0 0 2.8rem color-mix(in srgb, var(--ui-accent) 8%, transparent);
-  }
-
-  .compactLauncher
-    .recentStories
-    > div:last-child
-    > div
-    > :first-child
-    .characterImage {
-    animation: featuredBreath 14s ease-in-out infinite alternate;
-  }
-
-  .compactLauncher .recentStories > div:last-child > div > * {
-    animation: cardReveal 620ms cubic-bezier(0.18, 0.78, 0.25, 1) both;
-  }
-
-  .compactLauncher .recentStories > div:last-child > div > :nth-child(2) {
-    animation-delay: 75ms;
-  }
-
-  .compactLauncher .recentStories > div:last-child > div > :nth-child(3) {
-    animation-delay: 150ms;
-  }
-
-  .compactLauncher .alternateEntry,
-  .compactLauncher .managementActions,
-  .compactLauncher .secondaryHeading {
-    animation: lowerReveal 520ms 220ms ease-out both;
   }
 
   .compactLauncher .alternateEntry {
@@ -584,11 +563,6 @@
     gap: 0.65rem !important;
   }
 
-  .compactLauncher .entryTile {
-    height: 100% !important;
-    padding: 0.95rem 1rem !important;
-  }
-
   .browserLauncher .characterCard {
     min-height: 13.5rem;
   }
@@ -598,7 +572,8 @@
   .compactLauncher {
     height: auto !important;
     min-height: calc(100dvh - 6.75rem);
-    overflow: visible !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
   }
 
   .compactLauncher .stack {
@@ -610,6 +585,17 @@
       'actions' !important;
     grid-template-columns: minmax(0, 1fr) !important;
     grid-template-rows: auto auto auto auto !important;
+  }
+
+  /* The base launcher switches to explicit desktop grid columns at 761px.
+     Tablet polish collapses the stack back to one column, so reset those
+     inherited row/column placements or Grid creates implicit extra columns. */
+  .compactLauncher .recentStories,
+  .compactLauncher .secondaryHeading,
+  .compactLauncher .alternateEntry,
+  .compactLauncher .managementActions {
+    grid-row: auto !important;
+    grid-column: 1 !important;
   }
 
   .compactLauncher .recentStories,
@@ -627,32 +613,6 @@
 }
 
 @media (max-width: 760px) {
-  :global(header):has(+ :global(main) .polishedLauncher) {
-    grid-template-columns: auto minmax(0, 1fr) auto !important;
-  }
-
-  :global(header):has(+ :global(main) .polishedLauncher)::before {
-    padding-inline: 0.5rem;
-    background:
-      linear-gradient(
-          90deg,
-          transparent,
-          color-mix(in srgb, var(--ui-accent) 28%, transparent),
-          transparent
-        )
-        left center / 23% 1px no-repeat,
-      linear-gradient(
-          90deg,
-          transparent,
-          color-mix(in srgb, var(--ui-accent) 28%, transparent),
-          transparent
-        )
-        right center / 23% 1px no-repeat;
-    content: '◇  WEAVE  ◇';
-    font-size: 0.62rem;
-    letter-spacing: 0.16em;
-  }
-
   .polishedLauncher > header {
     margin-bottom: 1.55rem;
   }
@@ -690,146 +650,19 @@
   .managementActions > div {
     grid-template-columns: minmax(0, 1fr) !important;
   }
-
-  .entryTile {
-    min-height: 4.6rem !important;
-  }
-}
-
-@media (max-width: 470px) {
-  :global(header):has(+ :global(main) .polishedLauncher)::before {
-    content: '◇';
-    font-size: 0.8rem;
-    letter-spacing: 0;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .polishedLauncher::before,
-  .polishedLauncher::after,
-  .resumeEntry,
-  .compactLauncher .recentStories > div:last-child > div > *,
-  .compactLauncher .recentStories > div:last-child > div > :first-child::after,
-  .compactLauncher
-    .recentStories
-    > div:last-child
-    > div
-    > :first-child
-    .characterImage,
-  .compactLauncher .alternateEntry,
-  .compactLauncher .managementActions,
-  .compactLauncher .secondaryHeading,
-  :global(header):has(+ :global(main) .polishedLauncher)::before {
-    animation: none !important;
-  }
-
   .polishedLauncher > header a,
   .characterCard,
   .characterImage,
-  .continueAction,
-  .entryTile,
-  .entryTileFrame {
+  .modeLink,
+  .utilityLink {
     transition: none !important;
   }
 
   .characterCard:hover,
-  .characterCard:hover .characterImage,
-  .entryTile:hover {
+  .characterCard:hover .characterImage {
     transform: none !important;
-  }
-}
-
-@keyframes cardReveal {
-  from {
-    opacity: 0;
-    transform: translateY(14px) scale(0.992);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes lowerReveal {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes featuredThread {
-  0%,
-  100% {
-    left: 1.4rem;
-    opacity: 0.28;
-  }
-  50% {
-    left: calc(100% - 8rem);
-    opacity: 0.95;
-  }
-}
-
-@keyframes featuredBreath {
-  from {
-    transform: scale(1.008) translate3d(0, 0, 0);
-  }
-  to {
-    transform: scale(1.035) translate3d(0, -0.4%, 0);
-  }
-}
-
-@keyframes recentGlow {
-  0%,
-  100% {
-    box-shadow:
-      0 1.15rem 3rem rgba(0, 0, 0, 0.32),
-      0 0 0 1px color-mix(in srgb, var(--ui-accent) 38%, transparent),
-      0 0 1.5rem color-mix(in srgb, var(--ui-accent) 7%, transparent);
-  }
-  50% {
-    box-shadow:
-      0 1.15rem 3rem rgba(0, 0, 0, 0.32),
-      0 0 0 1px color-mix(in srgb, var(--ui-accent) 58%, transparent),
-      0 0 2.8rem color-mix(in srgb, var(--ui-accent) 14%, transparent);
-  }
-}
-
-@keyframes weaveDrift {
-  from {
-    opacity: 0.54;
-    transform: translate3d(-0.6%, -0.2%, 0) scale(1.015);
-  }
-  to {
-    opacity: 0.82;
-    transform: translate3d(0.7%, 0.5%, 0) scale(1.035);
-  }
-}
-
-@keyframes emberDrift {
-  from {
-    background-position:
-      1rem 2rem,
-      5rem 6rem;
-  }
-  to {
-    background-position:
-      3.8rem -3rem,
-      1rem 0;
-  }
-}
-
-@keyframes headerThreadGlow {
-  0%,
-  100% {
-    opacity: 0.62;
-    filter: brightness(0.9);
-  }
-  50% {
-    opacity: 1;
-    filter: brightness(1.18);
   }
 }
