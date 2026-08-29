@@ -524,9 +524,11 @@ test('persists and protects the complete MVP backbone', async ({
       ownerPage.getByText(fixture.character.name).first(),
     ).toBeVisible()
     await expect(
-      ownerPage.getByRole('button', {
-        name: `Select ${fixture.character.name}`,
-      }),
+      ownerPage
+        .getByRole('button', {
+          name: `Select ${fixture.character.name}`,
+        })
+        .first(),
     ).toBeVisible()
     await expect(
       ownerPage.getByRole('link', {
@@ -1141,9 +1143,11 @@ test('persists and protects the complete MVP backbone', async ({
     await ownerPage.setViewportSize({ width: 390, height: 844 })
     await ownerPage.goto('/select')
     await expect(
-      ownerPage.getByRole('button', {
-        name: `Select ${fixture.character.name}`,
-      }),
+      ownerPage
+        .getByRole('button', {
+          name: `Select ${fixture.character.name}`,
+        })
+        .first(),
     ).toBeVisible()
     await expect(
       ownerPage.getByRole('button', { name: 'Choose Entity' }),
@@ -1178,9 +1182,11 @@ test('persists and protects the complete MVP backbone', async ({
     await ownerPage.setViewportSize({ width: 820, height: 1180 })
     await ownerPage.goto('/select')
     await expect(
-      ownerPage.getByRole('button', {
-        name: `Select ${fixture.character.name}`,
-      }),
+      ownerPage
+        .getByRole('button', {
+          name: `Select ${fixture.character.name}`,
+        })
+        .first(),
     ).toBeVisible()
     await expectNoHorizontalOverflow(ownerPage)
     await capture(ownerPage, testInfo, 'selection-820x1180')
@@ -1204,9 +1210,11 @@ test('persists and protects the complete MVP backbone', async ({
     await ownerPage.setViewportSize({ width: 1920, height: 1080 })
     await ownerPage.goto('/select')
     await expect(
-      ownerPage.getByRole('button', {
-        name: `Select ${fixture.character.name}`,
-      }),
+      ownerPage
+        .getByRole('button', {
+          name: `Select ${fixture.character.name}`,
+        })
+        .first(),
     ).toBeVisible()
     await expectNoHorizontalOverflow(ownerPage)
     await expectSharedFooterAlignment(ownerPage)
@@ -1231,9 +1239,11 @@ test('persists and protects the complete MVP backbone', async ({
     await ownerPage.setViewportSize({ width: 2560, height: 1440 })
     await ownerPage.goto('/select')
     await expect(
-      ownerPage.getByRole('button', {
-        name: `Select ${fixture.character.name}`,
-      }),
+      ownerPage
+        .getByRole('button', {
+          name: `Select ${fixture.character.name}`,
+        })
+        .first(),
     ).toBeVisible()
     await expectNoHorizontalOverflow(ownerPage)
     await expectSharedFooterAlignment(ownerPage)
