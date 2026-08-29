@@ -140,14 +140,11 @@ async function expectSharedFooterAlignment(page: Page) {
 
     const mainRect = main.getBoundingClientRect()
     const footerRect = footer.getBoundingClientRect()
-    const mainStyle = getComputedStyle(main)
-    const footerStyle = getComputedStyle(footer)
     return {
-      mainLeft: mainRect.left + Number.parseFloat(mainStyle.paddingLeft),
-      mainRight: mainRect.right - Number.parseFloat(mainStyle.paddingRight),
-      footerLeft: footerRect.left + Number.parseFloat(footerStyle.paddingLeft),
-      footerRight:
-        footerRect.right - Number.parseFloat(footerStyle.paddingRight),
+      mainLeft: mainRect.left,
+      mainRight: mainRect.right,
+      footerLeft: footerRect.left,
+      footerRight: footerRect.right,
     }
   })
 
