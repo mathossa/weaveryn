@@ -6,6 +6,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { uiAssets } from '@/lib/ui-assets'
 import { PinEntryButton } from './pin-entry-button'
+import { SelectBackgroundParticles } from './select-background-particles'
 import styles from './compact-select-launcher.module.css'
 import polishStyles from './compact-select-launcher-polish.module.css'
 import scaleStyles from './compact-select-launcher-scale.module.css'
@@ -136,6 +137,8 @@ export function CompactSelectLauncher({
           className={styles.backgroundImage}
         />
       </div>
+
+      <SelectBackgroundParticles />
 
       <div ref={compositionRef} className={scaleStyles.desktopComposition}>
         {selectedEntry ? (
