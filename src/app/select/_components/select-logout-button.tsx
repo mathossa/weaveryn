@@ -52,7 +52,11 @@ export function SelectLogoutButton() {
           ↪
         </span>
         <span>
-          {signingOut ? 'Logging out…' : signOutError ? 'Retry log out' : 'Log out'}
+          {signingOut
+            ? 'Logging out…'
+            : signOutError
+              ? 'Retry log out'
+              : 'Log out'}
         </span>
       </button>
       <span className={styles.status} role="status" aria-live="polite">

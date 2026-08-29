@@ -1,7 +1,11 @@
 .browserStage::after {
   width: 100%;
   background:
-    radial-gradient(circle at 50% 42%, rgba(122, 88, 35, 0.08), transparent 34%),
+    radial-gradient(
+      circle at 50% 42%,
+      rgba(122, 88, 35, 0.08),
+      transparent 34%
+    ),
     linear-gradient(90deg, rgba(2, 3, 2, 0.48), rgba(3, 4, 3, 0.7));
 }
 
@@ -27,7 +31,11 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 48%, rgba(213, 165, 74, 0.07), transparent 30%),
+    radial-gradient(
+      circle at 50% 48%,
+      rgba(213, 165, 74, 0.07),
+      transparent 30%
+    ),
     linear-gradient(180deg, rgba(4, 5, 4, 0.08), rgba(2, 3, 2, 0.24));
   content: '';
   pointer-events: none;
@@ -341,7 +349,12 @@
   bottom: 10px;
   left: 18px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(223, 181, 94, 0.26), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(223, 181, 94, 0.26),
+    transparent
+  );
   content: '';
   pointer-events: none;
 }

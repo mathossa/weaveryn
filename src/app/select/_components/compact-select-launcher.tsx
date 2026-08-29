@@ -202,7 +202,9 @@ export function CompactSelectLauncher({
               </div>
             ) : null}
 
-            <div className={`${styles.selectorPanel} ${scaleStyles.selectorPanel}`}>
+            <div
+              className={`${styles.selectorPanel} ${scaleStyles.selectorPanel}`}
+            >
               <div className={styles.crest} aria-hidden="true">
                 <Image
                   src={uiAssets.brand.logo.src}
@@ -248,7 +250,9 @@ export function CompactSelectLauncher({
                           </span>
 
                           <span className={styles.rowCopy}>
-                            <strong className={styles.rowName}>{entry.name}</strong>
+                            <strong className={styles.rowName}>
+                              {entry.name}
+                            </strong>
                             <span className={styles.rowMeta}>
                               {entry.worldName}
                             </span>
@@ -379,7 +383,10 @@ export function CompactSelectLauncher({
                 </div>
               ) : null}
 
-              <nav className={styles.utilityLinks} aria-label="Character utilities">
+              <nav
+                className={styles.utilityLinks}
+                aria-label="Character utilities"
+              >
                 <Link href="/select/create-character">Create character</Link>
                 <Link href="/select/join">Join with invite</Link>
                 <Link href="/character">Manage characters</Link>

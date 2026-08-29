@@ -93,7 +93,10 @@ export function LauncherCharacterBrowser({
   const hasFilters = Boolean(query.trim() || world)
 
   return (
-    <section className={styles.browserScreen} aria-label="Browse all characters">
+    <section
+      className={styles.browserScreen}
+      aria-label="Browse all characters"
+    >
       <div className={styles.browserFrame}>
         <button
           type="button"
@@ -138,7 +141,9 @@ export function LauncherCharacterBrowser({
 
           <div className={styles.entryCount}>
             <strong>{filteredEntries.length}</strong>
-            <span>{filteredEntries.length === 1 ? 'entry' : 'entries'} shown</span>
+            <span>
+              {filteredEntries.length === 1 ? 'entry' : 'entries'} shown
+            </span>
           </div>
         </header>
 
@@ -164,7 +169,10 @@ export function LauncherCharacterBrowser({
 
           <label className={styles.control}>
             <span>World</span>
-            <select value={world} onChange={(event) => setWorld(event.target.value)}>
+            <select
+              value={world}
+              onChange={(event) => setWorld(event.target.value)}
+            >
               <option value="">All Worlds</option>
               {worldChoices.map((choice) => (
                 <option value={choice.id} key={choice.id}>
@@ -221,7 +229,9 @@ export function LauncherCharacterBrowser({
                       className={styles.characterSelect}
                       aria-pressed={selected}
                       aria-label={`Select ${entry.name} from ${entry.worldName}${
-                        entry.campaignName ? `, Campaign ${entry.campaignName}` : ''
+                        entry.campaignName
+                          ? `, Campaign ${entry.campaignName}`
+                          : ''
                       }`}
                       onClick={() => onSelect(entry.key)}
                     >
@@ -244,7 +254,9 @@ export function LauncherCharacterBrowser({
 
                       <span className={styles.characterCopy}>
                         <strong>{entry.name}</strong>
-                        <span className={styles.worldName}>{entry.worldName}</span>
+                        <span className={styles.worldName}>
+                          {entry.worldName}
+                        </span>
                         <span className={styles.campaignName}>
                           {entry.campaignName
                             ? `Campaign: ${entry.campaignName}`
