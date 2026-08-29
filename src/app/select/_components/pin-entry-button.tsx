@@ -1,7 +1,9 @@
 'use client'
 
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { uiAssets } from '@/lib/ui-assets'
 import styles from '../select.module.css'
 
 type PinEntryTarget =
@@ -72,7 +74,17 @@ export function PinEntryButton({
       disabled={saving}
       onClick={togglePin}
     >
-      <span aria-hidden="true">{isPinned ? '★' : '☆'}</span>
+      <Image
+        src={
+          isPinned
+            ? uiAssets.ui.icons.favoriteSelected
+            : uiAssets.ui.icons.favoriteUnselected
+        }
+        alt=""
+        width={28}
+        height={28}
+        aria-hidden="true"
+      />
     </button>
   )
 }

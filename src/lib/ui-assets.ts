@@ -244,12 +244,19 @@ export const uiAssets = {
     hero: {
       bodwick: '/images/select/hero/bodwick.webp',
     },
+    portraits: {
+      bodwick: '/images/select/portraits/bodwick-portrait.webp',
+    },
   },
   ui: {
     frames: {
       goldRect: '/images/ui/frames/gold-rect-frame.png',
       goldCircle: '/images/ui/frames/gold-circle-frame.png',
       goldPrimaryAction: '/images/ui/frames/gold-primary-action-frame.png',
+    },
+    icons: {
+      favoriteSelected: '/images/ui/icons/favorite-selected.png',
+      favoriteUnselected: '/images/ui/icons/favorite-unselected.png',
     },
     textures: {
       blackGoldVeins: '/images/ui/textures/black-gold-veins.webp',

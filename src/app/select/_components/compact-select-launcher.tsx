@@ -117,7 +117,7 @@ export function CompactSelectLauncher({
             src={uiAssets.brand.logo.src}
             alt=""
             fill
-            sizes="88px"
+            sizes="120px"
             className={styles.crestImage}
           />
         </div>
@@ -144,14 +144,14 @@ export function CompactSelectLauncher({
                         src={entry.image}
                         alt=""
                         fill
-                        sizes="82px"
+                        sizes="96px"
                         className={styles.portraitImage}
                       />
                       <Image
                         src={uiAssets.ui.frames.goldCircle}
                         alt=""
                         fill
-                        sizes="88px"
+                        sizes="100px"
                         className={styles.portraitFrame}
                       />
                     </span>
@@ -172,7 +172,7 @@ export function CompactSelectLauncher({
                       src={uiAssets.ui.frames.goldRect}
                       alt=""
                       fill
-                      sizes="440px"
+                      sizes="590px"
                       className={styles.rowFrame}
                     />
                   </button>
@@ -210,21 +210,18 @@ export function CompactSelectLauncher({
               src={uiAssets.ui.frames.goldPrimaryAction}
               alt=""
               fill
-              sizes="440px"
+              sizes="590px"
               className={styles.primaryFrame}
             />
             <span>{selectedEntry.actionLabel}</span>
           </TrackedEntryLink>
         ) : (
-          <Link
-            className={styles.primaryAction}
-            href="/select/create-character"
-          >
+          <Link className={styles.primaryAction} href="/select/create-character">
             <Image
               src={uiAssets.ui.frames.goldPrimaryAction}
               alt=""
               fill
-              sizes="440px"
+              sizes="590px"
               className={styles.primaryFrame}
             />
             <span>Create Character</span>
@@ -250,21 +247,24 @@ export function CompactSelectLauncher({
               src={uiAssets.ui.frames.goldRect}
               alt=""
               fill
-              sizes="220px"
+              sizes="290px"
               className={styles.roleFrame}
             />
             <span>Enter as Weaver</span>
           </TrackedEntryLink>
 
-          <Link className={styles.roleButton} href="/world?mode=threadwatcher">
+          <Link
+            className={styles.roleButton}
+            href="/world?mode=threadwatcher"
+          >
             <Image
               src={uiAssets.ui.frames.goldRect}
               alt=""
               fill
-              sizes="220px"
+              sizes="290px"
               className={styles.roleFrame}
             />
-            <span>Threadwatcher</span>
+            <span>Enter as Threadwatcher</span>
           </Link>
         </div>
 
