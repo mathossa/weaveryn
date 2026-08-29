@@ -142,19 +142,6 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
     ),
   )
 
-  const weaverResumeHref = weaverResume?.campaign
-    ? `/world/${weaverResume.world.id}/campaign/${weaverResume.campaign.id}?mode=weaver`
-    : weaverResume
-      ? `/world/${weaverResume.world.id}?mode=weaver`
-      : '/world?mode=weaver'
-  const weaverResumeTracking = weaverResume
-    ? {
-        kind: 'WEAVER' as const,
-        worldId: weaverResume.world.id,
-        campaignId: weaverResume.campaign?.id,
-      }
-    : undefined
-
   const compactEntries: CompactLauncherEntry[] = allCharacterEntries.map(
     (entry) => {
       if (entry.kind === 'portable') {
@@ -240,13 +227,8 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
           name: campaign.name,
           href: `/character?world=${campaign.worldId}&campaign=${campaign.id}`,
         }))}
-        weaverHref={weaverResumeHref}
-        weaverTracking={weaverResumeTracking}
-        weaverContext={
-          weaverResume
-            ? `${weaverResume.world.name}${weaverResume.campaign ? ` · ${weaverResume.campaign.name}` : ''}`
-            : null
-        }
+        weaverHref="/world?mode=weaver"
+        weaverContext={null}
       />
     </AuthenticatedAppShell>
   )

@@ -15,6 +15,17 @@ interface CampaignSelectionPageProps {
   searchParams: Promise<{ mode?: string | string[] }>
 }
 
+function canWeaveCampaign(campaign: {
+  isOwner: boolean
+  role: 'OWNER' | 'GM' | 'ASSISTANT_GM' | 'PLAYER' | 'SPECTATOR'
+}) {
+  return (
+    campaign.isOwner ||
+    campaign.role === 'GM' ||
+    campaign.role === 'ASSISTANT_GM'
+  )
+}
+
 export default async function CampaignSelectionPage({
   params,
   searchParams,
@@ -30,7 +41,9 @@ export default async function CampaignSelectionPage({
   const threadwatcherMode = query.mode === 'threadwatcher'
   const campaigns = threadwatcherMode
     ? selection.campaigns.filter((campaign) => campaign.role === 'SPECTATOR')
-    : selection.campaigns
+    : weaverMode
+      ? selection.campaigns.filter(canWeaveCampaign)
+      : selection.campaigns
 
   return (
     <AuthenticatedAppShell
@@ -40,17 +53,23 @@ export default async function CampaignSelectionPage({
           label: selection.world.name,
           href: threadwatcherMode
             ? '/world?mode=threadwatcher'
-            : `/world/${worldId}${weaverMode ? '?mode=weaver' : ''}`,
+            : weaverMode
+              ? '/world?mode=weaver'
+              : `/world/${worldId}`,
         },
       }}
     >
       <AppPage
-        eyebrow={threadwatcherMode ? 'Threadwatcher' : 'Campaigns'}
+        eyebrow={
+          weaverMode ? 'Weaver' : threadwatcherMode ? 'Threadwatcher' : 'Campaigns'
+        }
         title="Choose a Campaign"
         description={
-          threadwatcherMode
-            ? `Choose a Campaign in ${selection.world.name} that you can observe as a Threadwatcher.`
-            : `Choose a Campaign you can access in ${selection.world.name}.`
+          weaverMode
+            ? `Choose the Campaign in ${selection.world.name} that you want to enter as Weaver.`
+            : threadwatcherMode
+              ? `Choose a Campaign in ${selection.world.name} that you can observe as a Threadwatcher.`
+              : `Choose a Campaign you can access in ${selection.world.name}.`
         }
         wide
         actions={
@@ -68,12 +87,27 @@ export default async function CampaignSelectionPage({
           <StatusPanel
             tone="empty"
             title={
-              threadwatcherMode
-                ? 'No Threadwatcher Campaigns in this World'
-                : 'No accessible Campaigns'
+              weaverMode
+                ? 'No Weaver Campaigns in this World'
+                : threadwatcherMode
+                  ? 'No Threadwatcher Campaigns in this World'
+                  : 'No accessible Campaigns'
             }
             action={
-              threadwatcherMode ? (
+              weaverMode ? (
+                selection.canCreateCampaign ? (
+                  <Link
+                    className={styles.secondary}
+                    href={`/world/${worldId}/campaign/create`}
+                  >
+                    Create Campaign
+                  </Link>
+                ) : (
+                  <Link className={styles.secondary} href="/world?mode=weaver">
+                    Change World
+                  </Link>
+                )
+              ) : threadwatcherMode ? (
                 <Link
                   className={styles.secondary}
                   href="/world?mode=threadwatcher"
@@ -91,19 +125,17 @@ export default async function CampaignSelectionPage({
             }
           >
             <p>
-              {threadwatcherMode
-                ? 'You do not currently have Threadwatcher membership in a Campaign hosted by this World.'
-                : 'You do not currently have access to a Campaign in this World.'}
+              {weaverMode
+                ? 'You do not currently own or manage a Campaign in this World.'
+                : threadwatcherMode
+                  ? 'You do not currently have Threadwatcher membership in a Campaign hosted by this World.'
+                  : 'You do not currently have access to a Campaign in this World.'}
             </p>
           </StatusPanel>
         ) : (
           <div className={styles.grid}>
             {campaigns.map((campaign) => {
-              const manageableCampaign =
-                campaign.isOwner ||
-                campaign.role === 'GM' ||
-                campaign.role === 'ASSISTANT_GM'
-              const trackAsWeaver = weaverMode && manageableCampaign
+              const trackAsWeaver = weaverMode && canWeaveCampaign(campaign)
               const modeQuery = trackAsWeaver
                 ? '?mode=weaver'
                 : threadwatcherMode

@@ -1,0 +1,288 @@
+.stage {
+  position: relative;
+  min-height: calc(100dvh - 2.35rem);
+  overflow: hidden;
+  padding: clamp(1.5rem, 4vw, 4rem);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(201, 165, 102, 0.09), transparent 28rem),
+    radial-gradient(circle at 82% 22%, rgba(92, 116, 143, 0.12), transparent 30rem),
+    linear-gradient(180deg, #0a0d12 0%, #06080c 72%, #040609 100%);
+}
+
+.stage::before,
+.stage::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+}
+
+.stage::before {
+  background:
+    linear-gradient(90deg, transparent, rgba(201, 165, 102, 0.08), transparent) top 7.5rem center / min(72rem, 78vw) 1px no-repeat,
+    radial-gradient(ellipse at center, rgba(201, 165, 102, 0.05), transparent 58%);
+}
+
+.stage::after {
+  box-shadow: inset 0 0 10rem rgba(0, 0, 0, 0.58);
+}
+
+.inner {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 88rem);
+  margin: 0 auto;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: clamp(2.5rem, 6vh, 5rem);
+}
+
+.backLink,
+.createLink {
+  display: inline-flex;
+  min-height: 2.6rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.55rem 0.95rem;
+  color: var(--ui-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    color 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.backLink {
+  padding-left: 0;
+}
+
+.backLink:hover,
+.backLink:focus-visible {
+  color: var(--ui-text);
+}
+
+.createLink {
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 42%, var(--ui-border));
+  background: rgba(8, 11, 16, 0.62);
+  color: var(--ui-accent-hover);
+}
+
+.createLink:hover,
+.createLink:focus-visible {
+  border-color: color-mix(in srgb, var(--ui-accent) 72%, white 8%);
+  background: color-mix(in srgb, var(--ui-accent) 9%, rgba(8, 11, 16, 0.78));
+}
+
+.intro {
+  display: grid;
+  justify-items: center;
+  gap: 0.8rem;
+  max-width: 48rem;
+  margin: 0 auto clamp(2.2rem, 5vh, 4rem);
+  text-align: center;
+}
+
+.eyebrow {
+  color: var(--ui-accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.intro h1 {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2.7rem, 6vw, 5.25rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+
+.intro p {
+  max-width: 40rem;
+  margin: 0;
+  color: color-mix(in srgb, var(--ui-text-muted) 90%, white 10%);
+  font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+  line-height: 1.65;
+  text-wrap: balance;
+}
+
+.worldGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.worldCard {
+  position: relative;
+  min-height: clamp(16rem, 31vh, 21rem);
+  display: flex;
+  overflow: hidden;
+  align-items: flex-end;
+  border: 1px solid color-mix(in srgb, var(--ui-border) 80%, var(--ui-accent) 20%);
+  border-radius: 1.2rem;
+  background-color: #0a0e15;
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.28);
+  color: var(--ui-text);
+  text-decoration: none;
+  isolation: isolate;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.worldCard::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(0deg, rgba(3, 6, 11, 0.98) 0%, rgba(3, 6, 11, 0.7) 38%, rgba(3, 6, 11, 0.12) 78%),
+    linear-gradient(110deg, rgba(201, 165, 102, 0.08), transparent 44%);
+  content: '';
+}
+
+.worldCard::after {
+  position: absolute;
+  inset: 0.7rem;
+  border: 1px solid rgba(201, 165, 102, 0.12);
+  border-radius: 0.85rem;
+  content: '';
+  pointer-events: none;
+}
+
+.worldCard:hover,
+.worldCard:focus-visible {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--ui-accent) 62%, white 6%);
+  box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.4);
+}
+
+.cardCopy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 100%;
+  gap: 0.42rem;
+  padding: 1.35rem;
+}
+
+.badge {
+  width: fit-content;
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 40%, transparent);
+  border-radius: 999px;
+  padding: 0.22rem 0.5rem;
+  background: rgba(5, 8, 13, 0.62);
+  color: var(--ui-accent);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cardCopy strong {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.35rem, 2.3vw, 1.8rem);
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.meta {
+  color: var(--ui-text-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.cardAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.55rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(201, 165, 102, 0.16);
+  color: color-mix(in srgb, var(--ui-accent-hover) 88%, white 12%);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cardAction span:last-child {
+  font-size: 1.15rem;
+  transition: transform 150ms ease;
+}
+
+.worldCard:hover .cardAction span:last-child,
+.worldCard:focus-visible .cardAction span:last-child {
+  transform: translateX(0.2rem);
+}
+
+.emptyState {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  min-height: 18rem;
+  align-content: center;
+  border: 1px dashed color-mix(in srgb, var(--ui-accent) 32%, var(--ui-border));
+  border-radius: 1.2rem;
+  background: rgba(7, 10, 15, 0.62);
+  text-align: center;
+}
+
+.emptyState strong {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.4rem;
+}
+
+.emptyState p {
+  max-width: 32rem;
+  margin: 0;
+  color: var(--ui-text-muted);
+  line-height: 1.6;
+}
+
+.emptyState a {
+  margin-top: 0.35rem;
+}
+
+@media (max-width: 980px) {
+  .worldGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .stage {
+    padding: 1rem;
+  }
+
+  .topbar {
+    margin-bottom: 2.2rem;
+  }
+
+  .worldGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .worldCard {
+    min-height: 15rem;
+  }
+
+  .intro {
+    margin-bottom: 2rem;
+  }
+}
