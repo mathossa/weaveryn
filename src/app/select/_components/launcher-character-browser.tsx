@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { uiAssets } from '@/lib/ui-assets'
 import type { CompactLauncherEntry } from './compact-select-launcher'
 import { PinEntryButton } from './pin-entry-button'
@@ -29,6 +29,17 @@ export function LauncherCharacterBrowser({
   const [query, setQuery] = useState(initialQuery)
   const [world, setWorld] = useState(initialWorld)
   const [sort, setSort] = useState(initialSort)
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      onBack()
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onBack])
 
   const worldChoices = useMemo(() => {
     const choices = new Map<string, string>()
@@ -100,9 +111,38 @@ export function LauncherCharacterBrowser({
             />
           </div>
 
-          <div className={styles.entryCount}>
-            <strong>{filteredEntries.length}</strong>
-            <span>{filteredEntries.length === 1 ? 'entry' : 'entries'} shown</span>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifySelf: 'end',
+              gap: '18px',
+            }}
+          >
+            <div className={styles.entryCount}>
+              <strong>{filteredEntries.length}</strong>
+              <span>
+                {filteredEntries.length === 1 ? 'entry' : 'entries'} shown
+              </span>
+            </div>
+            <button
+              type="button"
+              className={styles.backButton}
+              aria-label="Close character browser"
+              title="Close (Esc)"
+              onClick={onBack}
+              style={{
+                justifySelf: 'auto',
+                padding: '6px 8px',
+              }}
+            >
+              <span
+                aria-hidden="true"
+                style={{ marginTop: 0, fontSize: '30px', lineHeight: 1 }}
+              >
+                ×
+              </span>
+            </button>
           </div>
         </header>
 
