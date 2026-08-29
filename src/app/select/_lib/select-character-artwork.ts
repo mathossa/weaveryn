@@ -2,7 +2,7 @@ import { uiAssets } from '@/lib/ui-assets'
 
 type SelectCharacterArtwork = Readonly<{
   hero: string
-  portrait: string
+  portrait?: string
 }>
 
 // Temporary launcher artwork registry. Add future character-specific hero and
@@ -13,6 +13,12 @@ const selectCharacterArtworkByName = {
     portrait: uiAssets.select.portraits.bodwick,
   },
 } as const satisfies Record<string, SelectCharacterArtwork>
+
+// Characters without dedicated launcher artwork use a full-body generic hero.
+// Their own character image still remains the portrait shown in the selector row.
+const defaultSelectCharacterArtwork = {
+  hero: '/images/select/hero/default.webp',
+} as const satisfies SelectCharacterArtwork
 
 function normalizeCharacterName(name: string) {
   return name.trim().toLocaleLowerCase('en-US')
@@ -31,5 +37,5 @@ export function resolveSelectCharacterArtwork(
     if (artwork) return artwork
   }
 
-  return null
+  return defaultSelectCharacterArtwork
 }
