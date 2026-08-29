@@ -68,14 +68,14 @@
 }
 
 .primaryAction::before {
-  inset: 10px 26px;
+  inset: 14px 38px;
   border-radius: 999px;
   background: url('/images/ui/textures/black-gold-veins.webp') center / 112px 112px repeat;
   box-shadow: inset 0 0 0.9rem rgba(0, 0, 0, 0.3);
 }
 
 .roleButton::before {
-  inset: 3px 4px;
+  inset: 6px 9px;
   border-radius: 0;
   background-image: url('/images/ui/textures/black-gold-veins.webp');
   background-position: center;
@@ -128,10 +128,10 @@
   }
 
   .primaryAction::before {
-    inset: 8px 20px;
+    inset: 11px 30px;
   }
 
   .roleButton::before {
-    inset: 3px 4px;
+    inset: 5px 8px;
   }
 }
