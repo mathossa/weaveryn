@@ -95,6 +95,31 @@ export function LauncherCharacterBrowser({
   return (
     <section className={styles.browserScreen} aria-label="Browse all characters">
       <div className={styles.browserFrame}>
+        <button
+          type="button"
+          className={styles.backButton}
+          aria-label="Close character browser"
+          title="Close (Esc)"
+          onClick={onBack}
+          style={{
+            position: 'absolute',
+            top: '24px',
+            right: '28px',
+            zIndex: 20,
+            width: '48px',
+            height: '48px',
+            justifyContent: 'center',
+            padding: 0,
+          }}
+        >
+          <span
+            aria-hidden="true"
+            style={{ marginTop: 0, fontSize: '34px', lineHeight: 1 }}
+          >
+            ×
+          </span>
+        </button>
+
         <header className={styles.browserHeader}>
           <button type="button" className={styles.backButton} onClick={onBack}>
             <span aria-hidden="true">‹</span>
@@ -111,38 +136,9 @@ export function LauncherCharacterBrowser({
             />
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifySelf: 'end',
-              gap: '18px',
-            }}
-          >
-            <div className={styles.entryCount}>
-              <strong>{filteredEntries.length}</strong>
-              <span>
-                {filteredEntries.length === 1 ? 'entry' : 'entries'} shown
-              </span>
-            </div>
-            <button
-              type="button"
-              className={styles.backButton}
-              aria-label="Close character browser"
-              title="Close (Esc)"
-              onClick={onBack}
-              style={{
-                justifySelf: 'auto',
-                padding: '6px 8px',
-              }}
-            >
-              <span
-                aria-hidden="true"
-                style={{ marginTop: 0, fontSize: '30px', lineHeight: 1 }}
-              >
-                ×
-              </span>
-            </button>
+          <div className={styles.entryCount}>
+            <strong>{filteredEntries.length}</strong>
+            <span>{filteredEntries.length === 1 ? 'entry' : 'entries'} shown</span>
           </div>
         </header>
 
