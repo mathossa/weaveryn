@@ -23,58 +23,79 @@
   opacity: 0;
   background: radial-gradient(
     circle,
-    rgba(255, 246, 220, 1) 0%,
-    rgba(247, 211, 137, 0.9) 40%,
-    rgba(220, 169, 78, 0.28) 70%,
+    rgba(255, 250, 232, 1) 0%,
+    rgba(255, 226, 160, 0.98) 34%,
+    rgba(246, 197, 92, 0.62) 60%,
+    rgba(218, 154, 58, 0.18) 82%,
     transparent 100%
   );
   box-shadow:
-    0 0 7px rgba(255, 224, 157, 0.32),
-    0 0 16px rgba(223, 171, 83, 0.16);
+    0 0 9px rgba(255, 228, 168, 0.42),
+    0 0 20px rgba(231, 178, 82, 0.22);
   filter: blur(var(--particle-blur));
-  transform: translate3d(0, -12vh, 0) scale(0.8);
+  transform: translate3d(0, -14vh, 0) scale(0.82);
   will-change: transform, opacity;
-  animation: selectGoldDustFall var(--particle-duration) linear infinite;
+  animation: selectGoldDustFlow var(--particle-duration) linear infinite;
   animation-delay: var(--particle-delay);
 }
 
-.particle:nth-child(3n) {
+.particle:nth-child(2n) {
   background: radial-gradient(
     circle,
-    rgba(255, 250, 235, 1) 0%,
-    rgba(249, 221, 159, 0.84) 42%,
-    rgba(224, 176, 88, 0.22) 72%,
+    rgba(255, 252, 240, 1) 0%,
+    rgba(255, 234, 184, 0.96) 35%,
+    rgba(248, 205, 106, 0.58) 60%,
+    rgba(224, 168, 72, 0.16) 82%,
     transparent 100%
   );
 }
 
-@keyframes selectGoldDustFall {
+.particle:nth-child(3n) {
+  box-shadow:
+    0 0 11px rgba(255, 235, 185, 0.48),
+    0 0 24px rgba(235, 185, 93, 0.24);
+}
+
+@keyframes selectGoldDustFlow {
   0% {
     opacity: 0;
-    transform: translate3d(0, -12vh, 0) scale(0.8);
+    transform: translate3d(0, -14vh, 0) scale(0.82);
   }
 
   10% {
     opacity: var(--particle-opacity);
   }
 
-  38% {
-    opacity: var(--particle-opacity);
-    transform: translate3d(var(--particle-drift), 36vh, 0) scale(1.08);
+  22% {
+    transform: translate3d(calc(var(--particle-sway) * 0.75), 18vh, 0)
+      scale(1.1);
   }
 
-  68% {
-    opacity: calc(var(--particle-opacity) * 0.9);
-    transform: translate3d(0, 72vh, 0) scale(0.92);
+  40% {
+    opacity: calc(var(--particle-opacity) * 1.02);
+    transform: translate3d(calc(var(--particle-drift) * 0.55), 42vh, 0)
+      scale(1.02);
   }
 
-  88% {
-    opacity: calc(var(--particle-opacity) * 0.5);
+  58% {
+    transform: translate3d(calc(var(--particle-sway) * -0.5), 64vh, 0)
+      scale(1.08);
+  }
+
+  76% {
+    opacity: calc(var(--particle-opacity) * 0.82);
+    transform: translate3d(calc(var(--particle-drift) * 0.95), 84vh, 0)
+      scale(0.95);
   }
 
   100% {
     opacity: 0;
-    transform: translate3d(var(--particle-drift), 112vh, 0) scale(0.75);
+    transform: translate3d(
+        calc(var(--particle-drift) + var(--particle-sway) * 0.25),
+        114vh,
+        0
+      )
+      scale(0.74);
   }
 }
 
