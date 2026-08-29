@@ -11,6 +11,7 @@ import {
 } from './launcher-character-browser'
 import { PinEntryButton } from './pin-entry-button'
 import { SelectBackgroundParticles } from './select-background-particles'
+import { SelectLogoutButton } from './select-logout-button'
 import styles from './compact-select-launcher.module.css'
 import polishStyles from './compact-select-launcher-polish.module.css'
 import scaleStyles from './compact-select-launcher-scale.module.css'
@@ -163,6 +164,7 @@ export function CompactSelectLauncher({
       </div>
 
       <SelectBackgroundParticles />
+      <SelectLogoutButton />
 
       <div ref={compositionRef} className={scaleStyles.desktopComposition}>
         {browserOpen ? (
