@@ -7,6 +7,7 @@ import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { uiAssets } from '@/lib/ui-assets'
 import { PinEntryButton } from './pin-entry-button'
 import styles from './compact-select-launcher.module.css'
+import polishStyles from './compact-select-launcher-polish.module.css'
 
 type LauncherTracking =
   | {
@@ -83,7 +84,10 @@ export function CompactSelectLauncher({
     entries.find((entry) => entry.key === selectedKey) ?? entries[0] ?? null
 
   return (
-    <section className={styles.stage} aria-label="Choose how to enter Weaveryn">
+    <section
+      className={`${styles.stage} ${polishStyles.stage}`}
+      aria-label="Choose how to enter Weaveryn"
+    >
       <div className={styles.background} aria-hidden="true">
         <Image
           src={uiAssets.select.backgroundDesktop.src}
@@ -97,7 +101,11 @@ export function CompactSelectLauncher({
 
       {selectedEntry ? (
         <div
-          className={`${styles.heroArtwork} ${selectedEntry.heroIsPortraitFallback ? styles.heroPortraitFallback : ''}`}
+          className={`${styles.heroArtwork} ${polishStyles.heroArtwork} ${
+            selectedEntry.heroIsPortraitFallback
+              ? `${styles.heroPortraitFallback} ${polishStyles.heroPortraitFallback}`
+              : ''
+          }`}
           aria-hidden="true"
         >
           <Image
@@ -106,7 +114,7 @@ export function CompactSelectLauncher({
             fill
             priority
             sizes="(max-width: 760px) 80vw, 38vw"
-            className={styles.heroImage}
+            className={`${styles.heroImage} ${polishStyles.heroImage}`}
           />
         </div>
       ) : null}
@@ -134,7 +142,7 @@ export function CompactSelectLauncher({
                 >
                   <button
                     type="button"
-                    className={styles.rowSelect}
+                    className={`${styles.rowSelect} ${polishStyles.rowSelect}`}
                     aria-pressed={selected}
                     aria-label={`Select ${entry.name}`}
                     onClick={() => setSelectedKey(entry.key)}
@@ -179,7 +187,7 @@ export function CompactSelectLauncher({
 
                   <PinEntryButton
                     pinned={entry.pinned}
-                    className={styles.favoriteButton}
+                    className={`${styles.favoriteButton} ${polishStyles.favoriteButton}`}
                     {...entry.pinTarget}
                   />
                 </div>
@@ -202,7 +210,7 @@ export function CompactSelectLauncher({
         {selectedEntry ? (
           <TrackedEntryLink
             href={selectedEntry.href}
-            className={styles.primaryAction}
+            className={`${styles.primaryAction} ${polishStyles.primaryAction}`}
             tracking={selectedEntry.tracking}
             ariaLabel={`${selectedEntry.actionLabel} as ${selectedEntry.name}`}
           >
@@ -216,7 +224,10 @@ export function CompactSelectLauncher({
             <span>{selectedEntry.actionLabel}</span>
           </TrackedEntryLink>
         ) : (
-          <Link className={styles.primaryAction} href="/select/create-character">
+          <Link
+            className={`${styles.primaryAction} ${polishStyles.primaryAction}`}
+            href="/select/create-character"
+          >
             <Image
               src={uiAssets.ui.frames.goldPrimaryAction}
               alt=""
@@ -235,7 +246,7 @@ export function CompactSelectLauncher({
         <div className={styles.roleActions}>
           <TrackedEntryLink
             href={weaverHref}
-            className={styles.roleButton}
+            className={`${styles.roleButton} ${polishStyles.roleButton}`}
             tracking={weaverTracking}
             ariaLabel={
               weaverContext
@@ -254,7 +265,7 @@ export function CompactSelectLauncher({
           </TrackedEntryLink>
 
           <Link
-            className={styles.roleButton}
+            className={`${styles.roleButton} ${polishStyles.roleButton}`}
             href="/world?mode=threadwatcher"
           >
             <Image
