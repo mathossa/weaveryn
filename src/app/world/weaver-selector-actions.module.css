@@ -74,13 +74,12 @@
 
 .primaryCreate::before {
   position: absolute;
-  inset: 14px 28px 26px;
+  inset: 14px 28px 16px;
   z-index: 0;
   border-radius: 999px;
-  background:
-    linear-gradient(rgba(4, 5, 4, 0.78), rgba(4, 5, 4, 0.9)),
-    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
-  box-shadow: inset 0 0 1.1rem rgba(0, 0, 0, 0.46);
+  background: url('/images/ui/textures/black-gold-veins.webp') center / 128px
+    128px repeat;
+  box-shadow: inset 0 0 0.9rem rgba(0, 0, 0, 0.24);
   content: '';
   pointer-events: none;
 }
