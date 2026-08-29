@@ -1,11 +1,15 @@
 .stage {
   position: relative;
   isolation: isolate;
-  min-height: 680px;
-  height: calc(100dvh - 74px);
+  min-height: 640px;
+  height: calc(100dvh - 2.35rem);
   overflow: hidden;
   background: #080908;
   color: #f4ead7;
+}
+
+:global(body:has(section[aria-label='Choose how to enter Weaveryn']) header) {
+  display: none !important;
 }
 
 .background {
@@ -17,7 +21,7 @@
 .backgroundImage {
   object-fit: cover;
   object-position: center 58%;
-  filter: saturate(0.96) contrast(1.02) brightness(0.98);
+  filter: saturate(1.02) contrast(1.01) brightness(1.04);
   transform: scale(1.002);
 }
 
@@ -26,7 +30,7 @@
   inset: 0;
   z-index: -3;
   background:
-    linear-gradient(180deg, rgba(7, 8, 7, 0.03), rgba(6, 7, 6, 0.2) 80%, rgba(4, 5, 4, 0.58)),
+    linear-gradient(180deg, rgba(7, 8, 7, 0.01), rgba(6, 7, 6, 0.08) 72%, rgba(4, 5, 4, 0.28)),
     radial-gradient(circle at 23% 75%, rgba(214, 171, 88, 0.08), transparent 31%);
   content: '';
   pointer-events: none;
@@ -38,13 +42,13 @@
   right: 0;
   bottom: 0;
   z-index: -2;
-  width: min(47vw, 760px);
+  width: min(45vw, 900px);
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(7, 8, 7, 0.18) 18%,
-    rgba(5, 6, 5, 0.43) 54%,
-    rgba(4, 5, 4, 0.6)
+    rgba(7, 8, 7, 0.08) 18%,
+    rgba(5, 6, 5, 0.2) 58%,
+    rgba(4, 5, 4, 0.34)
   );
   content: '';
   pointer-events: none;
@@ -55,7 +59,7 @@
   bottom: -2.5%;
   left: clamp(2rem, 7vw, 9rem);
   z-index: 1;
-  width: clamp(285px, 31vw, 560px);
+  width: clamp(285px, 31vw, 580px);
   height: 82%;
   pointer-events: none;
 }
@@ -81,18 +85,18 @@
 
 .selectorPanel {
   position: absolute;
-  top: clamp(1.2rem, 3.5vh, 2.8rem);
-  right: clamp(1.5rem, 6vw, 7.5rem);
+  top: clamp(2rem, 4.2vh, 3.6rem);
+  right: clamp(1.5rem, 5vw, 6.5rem);
   z-index: 3;
   display: grid;
-  width: clamp(350px, 31vw, 445px);
-  gap: 0.64rem;
+  width: clamp(430px, 28vw, 590px);
+  gap: 0.72rem;
 }
 
 .crest {
   position: relative;
-  width: 86px;
-  height: 82px;
+  width: 100px;
+  height: 96px;
   justify-self: center;
   margin-bottom: -0.1rem;
 }
@@ -104,12 +108,12 @@
 
 .characterRows {
   display: grid;
-  gap: 0.52rem;
+  gap: 0.62rem;
 }
 
 .rowShell {
   position: relative;
-  height: 104px;
+  height: 120px;
 }
 
 .rowSelect {
@@ -120,9 +124,9 @@
   height: 100%;
   align-content: center;
   border: 0;
-  padding: 0.75rem 3.4rem 0.75rem 6.4rem;
+  padding: 0.9rem 4.1rem 0.9rem 7.5rem;
   background:
-    linear-gradient(rgba(4, 5, 4, 0.78), rgba(4, 5, 4, 0.88)),
+    linear-gradient(rgba(4, 5, 4, 0.75), rgba(4, 5, 4, 0.86)),
     url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
   color: inherit;
   font: inherit;
@@ -171,11 +175,11 @@
 
 .portrait {
   position: absolute;
-  top: 11px;
-  left: 14px;
+  top: 12px;
+  left: 16px;
   z-index: 4;
-  width: 82px;
-  height: 82px;
+  width: 96px;
+  height: 96px;
   overflow: visible;
 }
 
@@ -195,7 +199,7 @@
   z-index: 4;
   display: grid;
   min-width: 0;
-  gap: 0.05rem;
+  gap: 0.09rem;
   text-shadow: 0 1px 0.4rem rgba(0, 0, 0, 0.92);
 }
 
@@ -203,9 +207,9 @@
   overflow: hidden;
   color: #f7f0e4;
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 1.04rem;
+  font-size: 1.22rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.075em;
   line-height: 1.15;
   text-overflow: ellipsis;
   text-transform: uppercase;
@@ -215,40 +219,41 @@
 .rowMeta,
 .rowCampaign {
   overflow: hidden;
-  color: rgba(234, 224, 207, 0.78);
-  font-size: 0.72rem;
+  color: rgba(234, 224, 207, 0.8);
+  font-size: 0.82rem;
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .rowCampaign {
-  color: rgba(228, 189, 109, 0.82);
+  color: rgba(228, 189, 109, 0.86);
+  font-size: 0.78rem;
 }
 
 .favoriteButton {
   position: absolute !important;
   top: 50% !important;
-  right: 12px !important;
+  right: 14px !important;
   z-index: 7 !important;
-  width: 34px !important;
-  min-width: 34px !important;
-  height: 34px !important;
-  min-height: 34px !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
   margin: 0 !important;
   border: 0 !important;
   border-radius: 999px !important;
   padding: 0 !important;
-  background: rgba(5, 5, 4, 0.52) !important;
+  background: rgba(5, 5, 4, 0.44) !important;
   color: #e9bd61 !important;
-  font-size: 1.25rem !important;
+  font-size: 1.35rem !important;
   line-height: 1 !important;
   transform: translateY(-50%) !important;
   opacity: 0.82;
 }
 
 .favoriteButton:hover {
-  background: rgba(24, 20, 11, 0.74) !important;
+  background: rgba(24, 20, 11, 0.7) !important;
   color: #ffd980 !important;
   opacity: 1;
 }
@@ -277,8 +282,8 @@
 .browseLink {
   justify-self: center;
   padding: 0.1rem 0.55rem;
-  color: rgba(229, 194, 125, 0.76);
-  font-size: 0.73rem;
+  color: rgba(229, 194, 125, 0.82);
+  font-size: 0.8rem;
   font-weight: 650;
   letter-spacing: 0.04em;
   text-decoration: none;
@@ -291,11 +296,11 @@
 .primaryAction {
   position: relative;
   display: grid;
-  height: 68px;
+  height: 82px;
   place-items: center;
   color: #f7e8c4;
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(0.95rem, 1.25vw, 1.12rem);
+  font-size: clamp(1.08rem, 1.25vw, 1.34rem);
   font-weight: 700;
   letter-spacing: 0.11em;
   text-decoration: none;
@@ -325,11 +330,11 @@
 .roleHeading {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.7rem;
   margin-top: 0.02rem;
-  color: rgba(221, 194, 141, 0.6);
+  color: rgba(221, 194, 141, 0.64);
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 0.67rem;
+  font-size: 0.72rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -349,18 +354,18 @@
 .roleActions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.65rem;
+  gap: 0.72rem;
 }
 
 .roleButton {
   position: relative;
   display: grid;
-  min-height: 46px;
+  min-height: 58px;
   place-items: center;
-  padding: 0 0.6rem;
-  color: rgba(244, 226, 190, 0.86);
+  padding: 0 0.8rem;
+  color: rgba(244, 226, 190, 0.88);
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 650;
   letter-spacing: 0.055em;
   text-align: center;
@@ -389,7 +394,7 @@
   justify-content: center;
   gap: 0.3rem 0.65rem;
   color: rgba(229, 216, 193, 0.58);
-  font-size: 0.68rem;
+  font-size: 0.7rem;
 }
 
 .pendingCampaigns > span {
@@ -408,13 +413,13 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.4rem 0.9rem;
+  gap: 0.4rem 1rem;
   margin-top: 0.05rem;
 }
 
 .utilityLinks a {
-  color: rgba(228, 218, 199, 0.52);
-  font-size: 0.66rem;
+  color: rgba(228, 218, 199, 0.58);
+  font-size: 0.72rem;
   text-decoration: none;
 }
 
@@ -425,7 +430,7 @@
 @media (max-width: 1120px) {
   .selectorPanel {
     right: 3vw;
-    width: clamp(345px, 38vw, 420px);
+    width: clamp(400px, 42vw, 500px);
   }
 
   .heroArtwork {
@@ -436,7 +441,7 @@
 
 @media (max-width: 760px) {
   .stage {
-    min-height: calc(100dvh - 66px);
+    min-height: calc(100dvh - 2.65rem);
     height: auto;
     overflow: visible;
     padding: 34vh 0.85rem 1.5rem;
@@ -444,7 +449,7 @@
 
   .stage::after {
     width: 100%;
-    background: linear-gradient(180deg, transparent 15%, rgba(4, 5, 4, 0.38) 42%, rgba(4, 5, 4, 0.82));
+    background: linear-gradient(180deg, transparent 15%, rgba(4, 5, 4, 0.24) 42%, rgba(4, 5, 4, 0.58));
   }
 
   .backgroundImage {
@@ -487,8 +492,24 @@
   }
 
   .portrait {
+    top: 11px;
+    left: 14px;
     width: 76px;
     height: 76px;
+  }
+
+  .rowName {
+    font-size: 1.04rem;
+  }
+
+  .rowMeta,
+  .rowCampaign {
+    font-size: 0.72rem;
+  }
+
+  .primaryAction {
+    height: 68px;
+    font-size: 1rem;
   }
 
   .roleActions {
