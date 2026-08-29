@@ -21,6 +21,7 @@ import {
 } from './_components/compact-select-launcher'
 import { PortableCharacterChoiceCard } from './_components/portable-character-choice-card'
 import { loadSelectionPageData } from './_lib/load-selection-page-data'
+import { resolveSelectCharacterArtwork } from './_lib/select-character-artwork'
 import refineStyles from './select-launcher-refinement.module.css'
 import polishStyles from './select-polish.module.css'
 import styles from './select.module.css'
@@ -63,10 +64,6 @@ function characterSortMode(
 ): CharacterSortMode | null {
   if (value === 'recent' || value === 'alphabetical') return value
   return null
-}
-
-function isBodwick(name: string) {
-  return name.trim().toLocaleLowerCase('en-US') === 'bodwick'
 }
 
 export default async function SelectPage({ searchParams }: SelectPageProps) {
@@ -217,14 +214,14 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
     (entry) => {
       if (entry.kind === 'portable') {
         const image = entry.character.image ?? uiAssets.fallbacks.character
-        const bodwick = isBodwick(entry.character.name)
+        const artwork = resolveSelectCharacterArtwork(entry.character.name)
         return {
           kind: 'portable',
           key: entry.key,
           name: entry.character.name,
-          image: bodwick ? uiAssets.select.portraits.bodwick : image,
-          heroSrc: bodwick ? uiAssets.select.hero.bodwick : image,
-          heroIsPortraitFallback: !bodwick,
+          image: artwork?.portrait ?? image,
+          heroSrc: artwork?.hero ?? image,
+          heroIsPortraitFallback: !artwork,
           worldName: 'Portable character',
           campaignName: null,
           href: `/character/${entry.character.id}`,
@@ -242,14 +239,17 @@ export default async function SelectPage({ searchParams }: SelectPageProps) {
 
       const image = entry.character.image ?? uiAssets.fallbacks.character
       const campaign = entry.campaign
-      const bodwick = isBodwick(entry.character.portableName)
+      const artwork = resolveSelectCharacterArtwork(
+        entry.character.portableName,
+        entry.character.name,
+      )
       return {
         kind: 'world',
         key: entry.key,
         name: entry.character.name,
-        image: bodwick ? uiAssets.select.portraits.bodwick : image,
-        heroSrc: bodwick ? uiAssets.select.hero.bodwick : image,
-        heroIsPortraitFallback: !bodwick,
+        image: artwork?.portrait ?? image,
+        heroSrc: artwork?.hero ?? image,
+        heroIsPortraitFallback: !artwork,
         worldName: entry.character.worldName,
         campaignName: campaign?.name ?? null,
         href: campaign
