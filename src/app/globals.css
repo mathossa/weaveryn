@@ -45,3 +45,83 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Keep launcher utility workspaces truly viewport-bound. The manager owns the
+   viewport; only its internal roster/tab panes may scroll. */
+body:has(section[aria-label='Manage Characters']) {
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+body:has(section[aria-label='Manage Characters']) > footer {
+  display: none;
+}
+
+section[aria-label='Manage Characters'] {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* The normal in-app header was visually too tall compared with the cinematic
+   launcher. These selectors deliberately target only the AppShell header by
+   its stable Weaveryn-home link, leaving page-local semantic headers alone. */
+header:has(> a[aria-label='Weaveryn home']) {
+  min-height: 50px !important;
+  gap: 0.8rem !important;
+  padding: 0.25rem clamp(0.75rem, 2vw, 1.5rem) !important;
+}
+
+header:has(> a[aria-label='Weaveryn home']) nav
+  :is(
+    button[aria-haspopup='menu'],
+    a[aria-label^='World:'],
+    a[aria-label^='Campaign:'],
+    a[aria-label^='Character:'],
+    a[aria-label^='Choose ']
+  ) {
+  min-height: 34px !important;
+  padding-top: 0.2rem !important;
+  padding-bottom: 0.2rem !important;
+}
+
+header:has(> a[aria-label='Weaveryn home']) nav span:has(> svg) {
+  width: 1.7rem !important;
+  height: 1.7rem !important;
+}
+
+header:has(> a[aria-label='Weaveryn home']) button[aria-controls='account-menu'] {
+  gap: 0.45rem !important;
+  padding: 0.15rem 0.25rem !important;
+}
+
+header:has(> a[aria-label='Weaveryn home'])
+  button[aria-controls='account-menu']
+  > span:first-child {
+  width: 1.9rem !important;
+  height: 1.9rem !important;
+}
+
+@media (max-width: 1024px) {
+  header:has(> a[aria-label='Weaveryn home']) {
+    min-height: 48px !important;
+    padding-block: 0.2rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  header:has(> a[aria-label='Weaveryn home']) {
+    min-height: 46px !important;
+    padding: 0.2rem 0.6rem !important;
+  }
+
+  #account-menu,
+  #mobile-context-panel {
+    top: 3.35rem !important;
+  }
+}
