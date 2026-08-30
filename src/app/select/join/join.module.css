@@ -83,7 +83,7 @@
   position: absolute;
   isolation: isolate;
   top: 50%;
-  right: clamp(56px, 8.5vw, 180px);
+  right: clamp(88px, 14.5vw, 320px);
   z-index: 5;
   width: min(720px, calc(100vw - 112px));
   transform: translateY(-50%);
@@ -255,14 +255,14 @@
 }
 
 .secondaryAction {
-  border: 1px solid rgba(219, 181, 106, 0.28);
-  background: rgba(4, 5, 5, 0.54);
-  color: rgba(239, 224, 194, 0.76);
+  border: 1px solid rgba(219, 181, 106, 0.18);
+  background: rgba(4, 5, 5, 0.38);
+  color: rgba(239, 224, 194, 0.58);
 }
 
 .secondaryAction:hover:not(:disabled) {
-  border-color: rgba(230, 188, 103, 0.52);
-  color: #f5d79a;
+  border-color: rgba(230, 188, 103, 0.38);
+  color: rgba(245, 215, 154, 0.82);
 }
 
 .primaryAction:disabled,
@@ -282,9 +282,11 @@
 }
 
 .helperCopy {
-  margin: 0;
+  max-width: 32rem;
+  margin: 0 auto;
+  color: rgba(235, 221, 196, 0.48);
   text-align: center;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
 }
 
 .summary {
@@ -320,6 +322,14 @@
   font-size: 0.82rem;
   font-weight: 700;
   text-align: right;
+}
+
+.summaryRow:last-child span {
+  color: rgba(232, 217, 191, 0.42);
+}
+
+.summaryRow:last-child strong {
+  color: rgba(239, 224, 191, 0.7);
 }
 
 .roleCard,
