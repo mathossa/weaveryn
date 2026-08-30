@@ -16,6 +16,35 @@
   }
 
   section[aria-label='Manage Characters']
+    aside[aria-label='Character roster']
+    > div:last-child
+    > button {
+    min-height: 68px !important;
+    padding-top: 0.52rem !important;
+    padding-bottom: 0.52rem !important;
+  }
+
+  section[aria-label='Manage Characters']
+    aside[aria-label='Character roster']
+    > div:last-child
+    > button
+    > span:nth-child(2) {
+    min-height: 46px;
+    align-content: center;
+    gap: 0.1rem;
+    overflow: visible;
+  }
+
+  section[aria-label='Manage Characters']
+    aside[aria-label='Character roster']
+    > div:last-child
+    > button
+    > span:nth-child(2)
+    > * {
+    line-height: 1.2;
+  }
+
+  section[aria-label='Manage Characters']
     nav[aria-label='Character management sections'] {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
