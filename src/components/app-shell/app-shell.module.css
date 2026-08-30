@@ -663,9 +663,11 @@ a.contextEntry:hover {
 @media (max-width: 640px) {
   .header {
     grid-template-columns: auto minmax(0, 1fr) auto;
-    min-height: 66px;
+    box-sizing: border-box;
+    height: 58px;
+    min-height: 58px;
     gap: 0.65rem;
-    padding: 0.55rem 0.75rem;
+    padding: 0 0.75rem;
   }
 
   .brand {
