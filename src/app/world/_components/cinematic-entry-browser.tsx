@@ -93,6 +93,10 @@ export function CinematicEntryBrowser({
         return matchesQuery && matchesFilter && matchesFavorite
       })
       .sort((left, right) => {
+        if (favoritesEnabled && Boolean(left.favorite) !== Boolean(right.favorite)) {
+          return left.favorite ? -1 : 1
+        }
+
         if (sort === 'recent') {
           const leftRecent = left.lastUsedAt ? Date.parse(left.lastUsedAt) : 0
           const rightRecent = right.lastUsedAt ? Date.parse(right.lastUsedAt) : 0
