@@ -10,6 +10,11 @@ import { campaignRoleLabel } from '@/lib/role-labels'
 import { uiAssets } from '@/lib/ui-assets'
 import { requireAuthenticatedUser } from '@/server/auth'
 import { getWorldCampaignSelection } from '@/server/campaigns'
+import {
+  listEntryPreferences,
+  WEAVER_CAMPAIGN_ENTRY_KEY_PREFIX,
+  WEAVER_ENTRY_KEY,
+} from '@/server/selection'
 import { SelectLogoutButton } from '@/app/select/_components/select-logout-button'
 import { CinematicEntryBrowser } from '../../_components/cinematic-entry-browser'
 import styles from './campaign.module.css'
@@ -35,6 +40,16 @@ function canWeaveCampaign(campaign: {
   )
 }
 
+function compareMostRecent(
+  left: { name: string; lastUsedAt: Date | null },
+  right: { name: string; lastUsedAt: Date | null },
+) {
+  const recentDifference =
+    (right.lastUsedAt?.getTime() ?? 0) - (left.lastUsedAt?.getTime() ?? 0)
+  if (recentDifference !== 0) return recentDifference
+  return left.name.localeCompare(right.name, undefined, { sensitivity: 'base' })
+}
+
 export default async function CampaignSelectionPage({
   params,
   searchParams,
@@ -44,7 +59,10 @@ export default async function CampaignSelectionPage({
     searchParams,
     requireAuthenticatedUser(new Headers(await headers())),
   ])
-  const selection = await getWorldCampaignSelection(worldId, user.id)
+  const [selection, entryPreferences] = await Promise.all([
+    getWorldCampaignSelection(worldId, user.id),
+    listEntryPreferences(user.id),
+  ])
   if (!selection) notFound()
   const weaverMode = query.mode === 'weaver'
   const threadwatcherMode = query.mode === 'threadwatcher'
@@ -55,7 +73,44 @@ export default async function CampaignSelectionPage({
       ? selection.campaigns.filter(canWeaveCampaign)
       : selection.campaigns
   const showAllLauncherCampaigns = launcherMode && query.show === 'all'
-  const featuredCampaigns = campaigns.slice(0, 3)
+
+  const specificWeaverPreferences = new Map(
+    entryPreferences
+      .filter(
+        (preference) =>
+          preference.kind === 'WEAVER' &&
+          preference.worldId === worldId &&
+          preference.campaignId &&
+          preference.entryKey.startsWith(
+            `${WEAVER_CAMPAIGN_ENTRY_KEY_PREFIX}:`,
+          ),
+      )
+      .map((preference) => [preference.campaignId as string, preference]),
+  )
+  const resumePreference = entryPreferences.find(
+    (preference) =>
+      preference.kind === 'WEAVER' &&
+      preference.entryKey === WEAVER_ENTRY_KEY &&
+      preference.worldId === worldId,
+  )
+  const launcherCampaigns = campaigns.map((campaign) => {
+    const preference = specificWeaverPreferences.get(campaign.id)
+    const resumeFallback =
+      !preference && resumePreference?.campaignId === campaign.id
+        ? resumePreference
+        : null
+
+    return {
+      ...campaign,
+      pinned: preference?.pinned ?? false,
+      lastUsedAt:
+        preference?.lastUsedAt ?? resumeFallback?.lastUsedAt ?? null,
+    }
+  })
+  const orderedLauncherCampaigns = weaverMode
+    ? [...launcherCampaigns].sort(compareMostRecent)
+    : launcherCampaigns
+  const featuredCampaigns = orderedLauncherCampaigns.slice(0, 3)
 
   if (launcherMode) {
     const roleLabel = weaverMode ? 'Weaver' : 'Threadwatcher'
@@ -98,7 +153,9 @@ export default async function CampaignSelectionPage({
                 kind="campaign"
                 roleLabel={roleLabel}
                 closeHref={`/world/${worldId}/campaign?mode=${mode}`}
-                entries={campaigns.map((campaign) => ({
+                favoritesEnabled={weaverMode}
+                initialSort={weaverMode ? 'recent' : 'az'}
+                entries={orderedLauncherCampaigns.map((campaign) => ({
                   id: campaign.id,
                   name: campaign.name,
                   kicker: campaignRoleLabel(campaign.role),
@@ -111,6 +168,10 @@ export default async function CampaignSelectionPage({
                   href: `/world/${worldId}/campaign/${campaign.id}?mode=${mode}`,
                   backgroundImage: uiAssets.fallbacks.campaign,
                   filterValue: campaign.status,
+                  lastUsedAt: weaverMode
+                    ? (campaign.lastUsedAt?.toISOString() ?? null)
+                    : null,
+                  favorite: weaverMode ? campaign.pinned : false,
                   tracking: weaverMode
                     ? {
                         kind: 'WEAVER' as const,
