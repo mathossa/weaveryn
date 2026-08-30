@@ -123,6 +123,7 @@
 
 .panelShell {
   position: absolute;
+  isolation: isolate;
   top: 50%;
   right: 104px;
   z-index: 5;
@@ -130,9 +131,20 @@
   transform: translateY(-50%);
 }
 
+.panelShell::before {
+  position: absolute;
+  inset: 10px 10px 15px;
+  z-index: 0;
+  background:
+    linear-gradient(rgba(4, 5, 4, 0.36), rgba(3, 4, 3, 0.5)),
+    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
+  content: '';
+  pointer-events: none;
+}
+
 .panel {
   position: relative;
-  isolation: isolate;
+  z-index: 1;
   box-sizing: border-box;
   min-height: 700px;
   max-height: 1120px;
@@ -145,17 +157,6 @@
   border-image-repeat: stretch;
   padding: 24px 30px 30px;
   background: transparent;
-}
-
-.panel::before {
-  position: absolute;
-  inset: 10px 10px 15px;
-  z-index: 0;
-  background:
-    linear-gradient(rgba(4, 5, 4, 0.36), rgba(3, 4, 3, 0.5)),
-    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
-  content: '';
-  pointer-events: none;
 }
 
 .identityForm,
@@ -577,6 +578,10 @@
     transform: none;
   }
 
+  .panelShell::before {
+    inset: 7px 7px 10px;
+  }
+
   .panel {
     min-height: 0;
     max-height: none;
@@ -584,10 +589,6 @@
     border-width: 22px;
     border-image-width: 22px;
     padding: 1rem 0.8rem 1.15rem;
-  }
-
-  .panel::before {
-    inset: 7px 7px 10px;
   }
 
   .panelHeader h1 {
