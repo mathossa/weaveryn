@@ -107,6 +107,12 @@
   padding: 0.9rem 1.3rem 0.8rem;
 }
 
+.controls[data-favorites='true'] {
+  grid-template-columns:
+    minmax(0, 1.55fr) minmax(9.5rem, 0.72fr) minmax(9.5rem, 0.72fr)
+    minmax(9.5rem, 0.72fr);
+}
+
 .control {
   display: grid;
   gap: 0.35rem;
@@ -200,7 +206,8 @@
     display: none;
   }
 
-  .controls {
+  .controls,
+  .controls[data-favorites='true'] {
     grid-template-columns: 1fr;
     gap: 0.55rem;
     padding: 0.8rem 1rem 0.7rem;
