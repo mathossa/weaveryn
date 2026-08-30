@@ -10,6 +10,7 @@ import { campaignRoleLabel } from '@/lib/role-labels'
 import { uiAssets } from '@/lib/ui-assets'
 import { requireAuthenticatedUser } from '@/server/auth'
 import { getWorldCampaignSelection } from '@/server/campaigns'
+import { SelectLogoutButton } from '@/app/select/_components/select-logout-button'
 import styles from './campaign.module.css'
 import weaverStyles from './weaver-campaign-selector.module.css'
 import actionStyles from '../../weaver-selector-actions.module.css'
@@ -87,6 +88,7 @@ export default async function CampaignSelectionPage({
             />
           </div>
           <div className={weaverStyles.backgroundVeil} aria-hidden="true" />
+          <SelectLogoutButton />
 
           <div className={weaverStyles.inner}>
             <div className={weaverStyles.topbar}>
