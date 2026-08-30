@@ -8,6 +8,7 @@ import { worldAccessLabel } from '@/lib/role-labels'
 import { uiAssets } from '@/lib/ui-assets'
 import { listWorldNavigationChoices } from '@/server/worlds'
 import { SelectLogoutButton } from '@/app/select/_components/select-logout-button'
+import { CinematicEntryBrowser } from './_components/cinematic-entry-browser'
 import { loadWorldPageUser } from './_lib/load-world-user'
 import styles from './world.module.css'
 import actionStyles from './weaver-selector-actions.module.css'
@@ -34,9 +35,7 @@ export default async function WorldSelectionPage({
       ? allWorlds.filter((world) => world.canThreadwatch)
       : allWorlds
   const showAllLauncherWorlds = launcherMode && query.show === 'all'
-  const visibleLauncherWorlds = showAllLauncherWorlds
-    ? worlds
-    : worlds.slice(0, 3)
+  const featuredWorlds = worlds.slice(0, 3)
 
   if (launcherMode) {
     const roleLabel = weaverMode ? 'Weaver' : 'Threadwatcher'
@@ -47,15 +46,8 @@ export default async function WorldSelectionPage({
         <section
           className={weaverStyles.stage}
           aria-label={`Choose a World as ${roleLabel}`}
-          aria-labelledby="entry-world-title"
-          style={
-            showAllLauncherWorlds
-              ? {
-                  height: 'calc(100dvh - 2.35rem)',
-                  overflowY: 'auto',
-                }
-              : undefined
-          }
+          data-cinematic-selector="true"
+          data-browse={showAllLauncherWorlds ? 'true' : 'false'}
         >
           <div className={weaverStyles.background} aria-hidden="true">
             <Image
@@ -78,119 +70,132 @@ export default async function WorldSelectionPage({
               </Link>
             </div>
 
-            <div className={weaverStyles.intro}>
-              <span className={weaverStyles.eyebrow}>Enter as {roleLabel}</span>
-              <h1 id="entry-world-title">Choose a World</h1>
-              <span className={weaverStyles.introRule} aria-hidden="true" />
-              <p>
-                {weaverMode
-                  ? 'Choose the World whose threads you want to shape. You will pick a Campaign before entering as Weaver.'
-                  : 'Choose the World whose story you want to observe. You will pick a Campaign before entering as Threadwatcher.'}
-              </p>
-            </div>
-
-            {worlds.length === 0 ? (
-              <div className={weaverStyles.emptyState}>
-                <span className={weaverStyles.emptyKicker}>
-                  {weaverMode ? 'No paths yet' : 'No paths to observe'}
-                </span>
-                <strong>
-                  {weaverMode
-                    ? 'No Weaver Worlds available'
-                    : 'No Threadwatcher Worlds available'}
-                </strong>
-                <p>
-                  {weaverMode
-                    ? 'Create a World to begin weaving, or return to entry selection to join an invitation.'
-                    : 'Join a Campaign as Threadwatcher to make its World available here.'}
-                </p>
-                {weaverMode ? (
-                  <Link
-                    className={weaverStyles.emptyAction}
-                    href="/world/create"
-                  >
-                    Create your first World
-                  </Link>
-                ) : (
-                  <Link
-                    className={weaverStyles.emptyAction}
-                    href="/select/join"
-                  >
-                    Join with invite
-                  </Link>
-                )}
-              </div>
+            {showAllLauncherWorlds ? (
+              <CinematicEntryBrowser
+                kind="world"
+                roleLabel={roleLabel}
+                closeHref={`/world?mode=${mode}`}
+                entries={worlds.map((world) => ({
+                  id: world.id,
+                  name: world.name,
+                  kicker: world.orphaned ? 'Orphaned World' : 'World',
+                  meta: weaverMode
+                    ? 'Choose the Campaign you want to continue weaving.'
+                    : 'Choose the Campaign you want to observe.',
+                  href: `/world/${world.id}/campaign?mode=${mode}`,
+                  backgroundImage: uiAssets.fallbacks.world,
+                  filterValue: world.orphaned ? 'orphaned' : 'standard',
+                }))}
+              />
             ) : (
               <>
-                <div className={weaverStyles.worldGrid}>
-                  {visibleLauncherWorlds.map((world) => (
-                    <Link
-                      key={world.id}
-                      className={weaverStyles.worldCard}
-                      href={`/world/${world.id}/campaign?mode=${mode}`}
-                      style={{
-                        backgroundImage: `url(${uiAssets.fallbacks.world})`,
-                      }}
-                    >
-                      <span className={weaverStyles.cardCopy}>
-                        <span className={weaverStyles.cardKicker}>
-                          {world.orphaned ? 'Orphaned World' : 'World'}
-                        </span>
-                        <strong>{world.name}</strong>
-                        <span className={weaverStyles.meta}>
-                          {weaverMode
-                            ? 'Choose the Campaign you want to continue weaving.'
-                            : 'Choose the Campaign you want to observe.'}
-                        </span>
-                        <span className={weaverStyles.cardAction}>
-                          <span>Choose Campaign</span>
-                          <span aria-hidden="true">›</span>
-                        </span>
-                      </span>
-                    </Link>
-                  ))}
+                <div className={weaverStyles.intro}>
+                  <span className={weaverStyles.eyebrow}>Enter as {roleLabel}</span>
+                  <h1>Choose a World</h1>
+                  <span className={weaverStyles.introRule} aria-hidden="true" />
+                  <p>
+                    {weaverMode
+                      ? 'Choose the World whose threads you want to shape. You will pick a Campaign before entering as Weaver.'
+                      : 'Choose the World whose story you want to observe. You will pick a Campaign before entering as Threadwatcher.'}
+                  </p>
                 </div>
 
-                <div className={actionStyles.selectorActions}>
-                  {worlds.length > 3 ? (
-                    <Link
-                      className={actionStyles.browseLink}
-                      href={
-                        showAllLauncherWorlds
-                          ? `/world?mode=${mode}`
-                          : `/world?mode=${mode}&show=all`
-                      }
-                    >
-                      <span>
-                        {showAllLauncherWorlds
-                          ? 'Show fewer Worlds'
-                          : `Browse all Worlds (${worlds.length})`}
-                      </span>
-                      <span aria-hidden="true">›</span>
-                    </Link>
-                  ) : null}
-
-                  {weaverMode ? (
-                    <>
-                      <span className={actionStyles.alternativeLabel}>
-                        Or begin a new weave
-                      </span>
+                {worlds.length === 0 ? (
+                  <div className={weaverStyles.emptyState}>
+                    <span className={weaverStyles.emptyKicker}>
+                      {weaverMode ? 'No paths yet' : 'No paths to observe'}
+                    </span>
+                    <strong>
+                      {weaverMode
+                        ? 'No Weaver Worlds available'
+                        : 'No Threadwatcher Worlds available'}
+                    </strong>
+                    <p>
+                      {weaverMode
+                        ? 'Create a World to begin weaving, or return to entry selection to join an invitation.'
+                        : 'Join a Campaign as Threadwatcher to make its World available here.'}
+                    </p>
+                    {weaverMode ? (
                       <Link
-                        className={actionStyles.primaryCreate}
+                        className={weaverStyles.emptyAction}
                         href="/world/create"
                       >
-                        <Image
-                          src={uiAssets.ui.frames.goldPrimaryAction}
-                          alt=""
-                          fill
-                          sizes="340px"
-                          className={actionStyles.primaryFrame}
-                        />
-                        <span>Create World</span>
+                        Create your first World
                       </Link>
-                    </>
-                  ) : null}
-                </div>
+                    ) : (
+                      <Link
+                        className={weaverStyles.emptyAction}
+                        href="/select/join"
+                      >
+                        Join with invite
+                      </Link>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className={weaverStyles.worldGrid}>
+                      {featuredWorlds.map((world) => (
+                        <Link
+                          key={world.id}
+                          className={weaverStyles.worldCard}
+                          href={`/world/${world.id}/campaign?mode=${mode}`}
+                          style={{
+                            backgroundImage: `url(${uiAssets.fallbacks.world})`,
+                          }}
+                        >
+                          <span className={weaverStyles.cardCopy}>
+                            <span className={weaverStyles.cardKicker}>
+                              {world.orphaned ? 'Orphaned World' : 'World'}
+                            </span>
+                            <strong>{world.name}</strong>
+                            <span className={weaverStyles.meta}>
+                              {weaverMode
+                                ? 'Choose the Campaign you want to continue weaving.'
+                                : 'Choose the Campaign you want to observe.'}
+                            </span>
+                            <span className={weaverStyles.cardAction}>
+                              <span>Choose Campaign</span>
+                              <span aria-hidden="true">›</span>
+                            </span>
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+
+                    <div className={actionStyles.selectorActions}>
+                      {worlds.length > 3 ? (
+                        <Link
+                          className={actionStyles.browseLink}
+                          href={`/world?mode=${mode}&show=all`}
+                        >
+                          <span>Browse all Worlds ({worlds.length})</span>
+                          <span aria-hidden="true">›</span>
+                        </Link>
+                      ) : null}
+
+                      {weaverMode ? (
+                        <>
+                          <span className={actionStyles.alternativeLabel}>
+                            Or begin a new weave
+                          </span>
+                          <Link
+                            className={actionStyles.primaryCreate}
+                            href="/world/create"
+                          >
+                            <Image
+                              src={uiAssets.ui.frames.goldPrimaryAction}
+                              alt=""
+                              fill
+                              sizes="340px"
+                              className={actionStyles.primaryFrame}
+                            />
+                            <span>Create World</span>
+                          </Link>
+                        </>
+                      ) : null}
+                    </div>
+                  </>
+                )}
               </>
             )}
           </div>
