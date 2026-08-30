@@ -24,6 +24,8 @@
   --ui-shadow-panel: 0 24px 80px rgba(0, 0, 0, 0.48);
   --ui-focus-ring: 0 0 0 3px rgba(216, 180, 112, 0.3);
   --ui-workspace-gutter: clamp(1.25rem, 3vw, 4rem);
+  --ui-app-header-height: 50px;
+  --ui-app-header-control-height: 34px;
 }
 
 @theme inline {
@@ -83,13 +85,28 @@ section[aria-label='Manage Characters']
   display: none !important;
 }
 
-/* The normal in-app header was visually too tall compared with the cinematic
-   launcher. These selectors deliberately target only the AppShell header by
-   its stable Weaveryn-home link, leaving page-local semantic headers alone. */
+/* AppShell header sizing has one final source of truth here. Page content,
+   active context length, and CSS-module defaults must never change the rendered
+   bar height. This targets only the shared Weaveryn AppShell header. */
 header:has(> a[aria-label='Weaveryn home']) {
-  min-height: 50px !important;
+  box-sizing: border-box !important;
+  height: var(--ui-app-header-height) !important;
+  min-height: var(--ui-app-header-height) !important;
+  max-height: var(--ui-app-header-height) !important;
   gap: 0.8rem !important;
-  padding: 0.25rem clamp(0.75rem, 2vw, 1.5rem) !important;
+  padding: 0 clamp(0.75rem, 2vw, 1.5rem) !important;
+}
+
+header:has(> a[aria-label='Weaveryn home']) > a[aria-label='Weaveryn home'],
+header:has(> a[aria-label='Weaveryn home'])
+  button[aria-controls='mobile-context-panel'],
+header:has(> a[aria-label='Weaveryn home'])
+  button[aria-controls='account-menu'] {
+  box-sizing: border-box !important;
+  height: var(--ui-app-header-control-height) !important;
+  min-height: var(--ui-app-header-control-height) !important;
+  max-height: var(--ui-app-header-control-height) !important;
+  align-self: center !important;
 }
 
 header:has(> a[aria-label='Weaveryn home'])
@@ -101,7 +118,10 @@ header:has(> a[aria-label='Weaveryn home'])
     a[aria-label^='Character:'],
     a[aria-label^='Choose ']
   ) {
-  min-height: 34px !important;
+  box-sizing: border-box !important;
+  height: var(--ui-app-header-control-height) !important;
+  min-height: var(--ui-app-header-control-height) !important;
+  max-height: var(--ui-app-header-control-height) !important;
   padding-top: 0.2rem !important;
   padding-bottom: 0.2rem !important;
 }
@@ -270,21 +290,31 @@ body:has(#now) #now {
 }
 
 @media (max-width: 1024px) {
-  header:has(> a[aria-label='Weaveryn home']) {
-    min-height: 48px !important;
-    padding-block: 0.2rem !important;
+  :root {
+    --ui-app-header-height: 48px;
+    --ui-app-header-control-height: 34px;
   }
 }
 
 @media (max-width: 640px) {
+  :root {
+    --ui-app-header-height: 46px;
+    --ui-app-header-control-height: 36px;
+  }
+
   header:has(> a[aria-label='Weaveryn home']) {
-    min-height: 46px !important;
-    padding: 0.2rem 0.6rem !important;
+    gap: 0.45rem !important;
+    padding-inline: 0.6rem !important;
+  }
+
+  header:has(> a[aria-label='Weaveryn home'])
+    button[aria-controls='mobile-context-panel'] {
+    overflow: hidden !important;
   }
 
   #account-menu,
   #mobile-context-panel {
-    top: 3.35rem !important;
+    top: calc(var(--ui-app-header-height) + 0.4rem) !important;
   }
 
   body:has(header > nav[aria-label='Current context'])
