@@ -10,6 +10,10 @@ import {
   useState,
   type FormEvent,
 } from 'react'
+import {
+  WORLD_CHARACTER_PROFILE_FIELDS,
+  type WorldCharacterProfileFieldKey,
+} from '@/lib/world-character-profile'
 import { uiAssets } from '@/lib/ui-assets'
 import { SelectBackgroundParticles } from '../../_components/select-background-particles'
 import { SelectLogoutButton } from '../../_components/select-logout-button'
@@ -17,11 +21,16 @@ import styles from '../character-creation.module.css'
 
 const DESKTOP_COMPOSITION_WIDTH = 2560
 const DESKTOP_COMPOSITION_HEIGHT = 1276
+const CREATION_PROFILE_FIELDS = WORLD_CHARACTER_PROFILE_FIELDS.filter(
+  (field) => field.key !== 'whoIs',
+)
 
-type Phase = 'identity' | 'world' | 'campaign'
+type Phase = 'identity' | 'world' | 'profile' | 'campaign'
 
 type PendingAction =
   | 'create'
+  | 'profile'
+  | 'campaigns'
   | `world:${string}`
   | `campaign:${string}`
   | null
@@ -96,6 +105,9 @@ export function CharacterCreationLauncher({
   const [name, setName] = useState('')
   const [ancestry, setAncestry] = useState('')
   const [description, setDescription] = useState('')
+  const [profileValues, setProfileValues] = useState<
+    Partial<Record<WorldCharacterProfileFieldKey, string>>
+  >({})
   const [createdCharacter, setCreatedCharacter] =
     useState<CharacterSummary | null>(null)
   const [worlds, setWorlds] = useState<WorldChoice[]>([])
@@ -180,6 +192,42 @@ export function CharacterCreationLauncher({
     )
   }
 
+  async function openCampaignPhase() {
+    if (!selectedWorld) return
+
+    setPendingAction('campaigns')
+    setError(null)
+
+    const campaignResponse = await fetch(
+      `/api/v1/worlds/${selectedWorld.id}/campaigns`,
+    )
+    const campaignResult = (await jsonResult(
+      campaignResponse,
+    )) as CampaignSelectionResponse | null
+
+    if (!campaignResponse.ok || !campaignResult) {
+      setCampaigns([])
+      setPhase('campaign')
+      setPendingAction(null)
+      setError(
+        errorMessage(
+          campaignResult,
+          'The profile is saved, but Campaign choices could not be loaded.',
+        ),
+      )
+      return
+    }
+
+    setCampaigns(
+      prioritizeById(
+        campaignResult.campaigns.filter(canAttachCharacterToCampaign),
+        targetCampaignId,
+      ),
+    )
+    setPhase('campaign')
+    setPendingAction(null)
+  }
+
   async function attachWorld(characterId: string, world: WorldChoice) {
     setPendingAction(`world:${world.id}`)
     setError(null)
@@ -204,35 +252,42 @@ export function CharacterCreationLauncher({
       return
     }
 
-    const nextWorldCharacterId = result.worldCharacter.id
     setSelectedWorld(world)
-    setWorldCharacterId(nextWorldCharacterId)
+    setWorldCharacterId(result.worldCharacter.id)
+    setPhase('profile')
+    setPendingAction(null)
+  }
 
-    const campaignResponse = await fetch(`/api/v1/worlds/${world.id}/campaigns`)
-    const campaignResult = (await jsonResult(
-      campaignResponse,
-    )) as CampaignSelectionResponse | null
+  async function submitProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!worldCharacterId || pendingAction) return
 
-    if (!campaignResponse.ok || !campaignResult) {
-      setError(
-        errorMessage(
-          campaignResult,
-          'The Character entered the World, but Campaign choices could not be loaded.',
-        ),
-      )
-      setCampaigns([])
-      setPhase('campaign')
+    setPendingAction('profile')
+    setError(null)
+
+    const portableDescription = description.trim()
+    const response = await fetch(`/api/v1/world-characters/${worldCharacterId}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        profile: {
+          values: {
+            ...(portableDescription ? { whoIs: portableDescription } : {}),
+            ...profileValues,
+          },
+          hiddenFields: [],
+        },
+      }),
+    })
+    const result = await jsonResult(response)
+
+    if (!response.ok) {
+      setError(errorMessage(result, 'Could not save this Character profile.'))
       setPendingAction(null)
       return
     }
 
-    const eligibleCampaigns = prioritizeById(
-      campaignResult.campaigns.filter(canAttachCharacterToCampaign),
-      targetCampaignId,
-    )
-    setCampaigns(eligibleCampaigns)
-    setPhase('campaign')
-    setPendingAction(null)
+    await openCampaignPhase()
   }
 
   async function submitIdentity(event: FormEvent<HTMLFormElement>) {
@@ -488,6 +543,69 @@ export function CharacterCreationLauncher({
                   Keep character for later
                 </button>
               </div>
+            ) : phase === 'profile' ? (
+              <form className={styles.profilePhase} onSubmit={submitProfile}>
+                <div className={styles.panelHeader}>
+                  <span className={styles.eyebrow}>{selectedWorld?.name}</span>
+                  <h1>Who is {createdCharacter?.name} here?</h1>
+                  <p>
+                    Their identity travels with them. These details belong to
+                    their life in {selectedWorld?.name ?? 'this World'}.
+                  </p>
+                </div>
+
+                {description.trim() ? (
+                  <div className={styles.portableSummary}>
+                    <span>Portable description</span>
+                    <p>{description.trim()}</p>
+                  </div>
+                ) : null}
+
+                <div className={styles.profileFieldGrid}>
+                  {CREATION_PROFILE_FIELDS.map((field) => (
+                    <div className={styles.field} key={field.key}>
+                      <label htmlFor={`profile-${field.key}`}>
+                        {field.label} <span>Optional</span>
+                      </label>
+                      <textarea
+                        id={`profile-${field.key}`}
+                        rows={2}
+                        maxLength={2000}
+                        value={profileValues[field.key] ?? ''}
+                        onChange={(event) =>
+                          setProfileValues((current) => ({
+                            ...current,
+                            [field.key]: event.target.value,
+                          }))
+                        }
+                        placeholder="Not added yet"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {error ? <p className={styles.error}>{error}</p> : null}
+
+                <div className={styles.profileActions}>
+                  <button
+                    className={styles.primaryAction}
+                    disabled={Boolean(pendingAction)}
+                    type="submit"
+                  >
+                    {pendingAction === 'profile' || pendingAction === 'campaigns'
+                      ? 'Continuing…'
+                      : 'Save profile & continue'}
+                  </button>
+                  <button
+                    className={styles.secondaryAction}
+                    disabled={Boolean(pendingAction)}
+                    type="button"
+                    onClick={() => void openCampaignPhase()}
+                  >
+                    Skip for now
+                  </button>
+                </div>
+              </form>
             ) : (
               <div className={styles.choicePhase}>
                 <div className={styles.panelHeader}>

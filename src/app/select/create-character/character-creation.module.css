@@ -132,6 +132,7 @@
 
 .panel {
   position: relative;
+  isolation: isolate;
   box-sizing: border-box;
   min-height: 700px;
   max-height: 1120px;
@@ -143,15 +144,23 @@
   border-image-outset: 0;
   border-image-repeat: stretch;
   padding: 24px 30px 30px;
+  background: transparent;
+}
+
+.panel::before {
+  position: absolute;
+  inset: 10px 10px 15px;
+  z-index: 0;
   background:
     linear-gradient(rgba(4, 5, 4, 0.36), rgba(3, 4, 3, 0.5)),
     url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
-  background-origin: border-box;
-  background-clip: border-box;
+  content: '';
+  pointer-events: none;
 }
 
 .identityForm,
-.choicePhase {
+.choicePhase,
+.profilePhase {
   position: relative;
   z-index: 1;
   display: grid;
@@ -327,7 +336,8 @@
   outline-offset: 3px;
 }
 
-.primaryAction:disabled {
+.primaryAction:disabled,
+.secondaryAction:disabled {
   cursor: wait;
   opacity: 0.64;
 }
@@ -423,6 +433,51 @@
   color: rgba(235, 221, 196, 0.62);
   font-size: 0.82rem;
   line-height: 1.5;
+}
+
+.profilePhase {
+  align-content: start;
+  gap: 0.75rem;
+}
+
+.portableSummary {
+  display: grid;
+  gap: 0.25rem;
+  border-left: 2px solid rgba(216, 170, 83, 0.58);
+  padding: 0.6rem 0.75rem;
+  background: rgba(5, 6, 5, 0.38);
+}
+
+.portableSummary span {
+  color: #d8aa53;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.portableSummary p {
+  margin: 0;
+  color: rgba(240, 227, 203, 0.76);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.profileFieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem 0.8rem;
+}
+
+.profileFieldGrid .field textarea {
+  min-height: 72px;
+  padding: 0.58rem 0.68rem;
+  font-size: 0.8rem;
+}
+
+.profileActions {
+  display: grid;
+  gap: 0.15rem;
 }
 
 .browseButton,
@@ -531,6 +586,10 @@
     padding: 1rem 0.8rem 1.15rem;
   }
 
+  .panel::before {
+    inset: 7px 7px 10px;
+  }
+
   .panelHeader h1 {
     font-size: clamp(1.75rem, 8vw, 2.3rem);
   }
@@ -542,6 +601,10 @@
   .choiceListScrollable {
     max-height: none;
     overflow: visible;
+  }
+
+  .profileFieldGrid {
+    grid-template-columns: 1fr;
   }
 }
 
