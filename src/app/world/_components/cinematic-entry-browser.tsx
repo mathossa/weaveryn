@@ -83,7 +83,8 @@ export function CinematicEntryBrowser({
     kind === 'world' ? worldStyles.worldGrid : campaignStyles.campaignGrid
   const cardClass =
     kind === 'world' ? worldStyles.worldCard : campaignStyles.campaignCard
-  const actionLabel = kind === 'world' ? 'Choose Campaign' : `Enter as ${roleLabel}`
+  const actionLabel =
+    kind === 'world' ? 'Choose Campaign' : `Enter as ${roleLabel}`
 
   return (
     <div className={styles.browserShell}>
@@ -100,7 +101,11 @@ export function CinematicEntryBrowser({
               available for this entry path.
             </p>
           </div>
-          <Link className={styles.closeButton} href={closeHref} aria-label="Close browser">
+          <Link
+            className={styles.closeButton}
+            href={closeHref}
+            aria-label="Close browser"
+          >
             <span aria-hidden="true">×</span>
           </Link>
         </div>
@@ -118,7 +123,10 @@ export function CinematicEntryBrowser({
 
           <label className={styles.control}>
             <span>{kind === 'world' ? 'Type' : 'Status'}</span>
-            <select value={filter} onChange={(event) => setFilter(event.target.value)}>
+            <select
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+            >
               {filterOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -131,7 +139,9 @@ export function CinematicEntryBrowser({
             <span>Sort</span>
             <select
               value={sort}
-              onChange={(event) => setSort(event.target.value as 'az' | 'za')}
+              onChange={(event) =>
+                setSort(event.target.value as 'az' | 'za')
+              }
             >
               <option value="az">Name A–Z</option>
               <option value="za">Name Z–A</option>
@@ -147,7 +157,9 @@ export function CinematicEntryBrowser({
         <div className={styles.scrollRegion}>
           {visibleEntries.length === 0 ? (
             <div className={styles.noResults}>
-              <strong>No matching {kind === 'world' ? 'Worlds' : 'Campaigns'}</strong>
+              <strong>
+                No matching {kind === 'world' ? 'Worlds' : 'Campaigns'}
+              </strong>
               <span>Try changing the search or filter.</span>
             </div>
           ) : (
@@ -164,7 +176,9 @@ export function CinematicEntryBrowser({
                   }}
                 >
                   <span className={cardStyles.cardCopy}>
-                    <span className={cardStyles.cardKicker}>{entry.kicker}</span>
+                    <span className={cardStyles.cardKicker}>
+                      {entry.kicker}
+                    </span>
                     <strong>{entry.name}</strong>
                     <span className={cardStyles.meta}>{entry.meta}</span>
                     <span className={cardStyles.cardAction}>
