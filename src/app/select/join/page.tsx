@@ -1,24 +1,23 @@
-import Link from 'next/link'
-import { AppPage } from '@/components/app-shell/app-page'
-import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
+import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { getAuthenticatedUser } from '@/server/auth'
 import { JoinInviteForm } from './join-invite-form'
-import styles from '../select.module.css'
 
-export default function JoinInviteHandoffPage() {
-  return (
-    <AuthenticatedAppShell>
-      <AppPage
-        eyebrow="Choose Entity"
-        title="Join with invite"
-        description="Paste a World or Campaign invitation link. You will review the destination and role before anything is accepted."
-        actions={
-          <Link className={styles.backLink} href="/select">
-            Back
-          </Link>
-        }
-      >
-        <JoinInviteForm />
-      </AppPage>
-    </AuthenticatedAppShell>
-  )
+interface JoinInvitePageProps {
+  searchParams: Promise<{ token?: string | string[] }>
+}
+
+export default async function JoinInviteHandoffPage({
+  searchParams,
+}: JoinInvitePageProps) {
+  const [user, params] = await Promise.all([
+    getAuthenticatedUser(new Headers(await headers())),
+    searchParams,
+  ])
+
+  if (!user) redirect('/login')
+
+  const token = Array.isArray(params.token) ? params.token[0] : params.token
+
+  return <JoinInviteForm initialToken={token ?? null} />
 }

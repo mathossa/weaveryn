@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { AuthShell } from '@/components/ui/auth-shell'
 import {
@@ -16,7 +17,6 @@ import {
   type MembershipInvitationStatus,
   type MembershipInvitationView,
 } from '@/server/invitations'
-import { InviteAcceptButton } from './invite-accept-button'
 import styles from '../invite.module.css'
 
 export const metadata: Metadata = {
@@ -45,6 +45,10 @@ export default async function InvitePage({ params }: InvitePageProps) {
     params,
     getAuthenticatedUser(new Headers(await headers())),
   ])
+
+  if (user) {
+    redirect(`/select/join?token=${encodeURIComponent(token)}`)
+  }
 
   let invitation: MembershipInvitationView | undefined
   let unavailableMessage: string | null = null
@@ -119,13 +123,6 @@ export default async function InvitePage({ params }: InvitePageProps) {
 
             {stateMessage ? (
               <p className={styles.status}>{stateMessage}</p>
-            ) : user ? (
-              <div className={styles.actions}>
-                <InviteAcceptButton token={token} />
-                <Link className={styles.link} href="/select">
-                  Not now
-                </Link>
-              </div>
             ) : (
               <div>
                 <p className={styles.copy}>
@@ -152,8 +149,8 @@ export default async function InvitePage({ params }: InvitePageProps) {
               {unavailableMessage ?? 'This invitation is not available.'}
             </p>
             <div className={styles.actions}>
-              <Link className={styles.link} href={user ? '/select' : '/login'}>
-                {user ? 'Back to selection' : 'Sign in'}
+              <Link className={styles.link} href="/login">
+                Sign in
               </Link>
             </div>
           </>

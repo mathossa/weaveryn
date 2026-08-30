@@ -1,45 +1,460 @@
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  isolation: isolate;
+  overflow: hidden;
+  background: #070807;
+  color: #f5ead6;
+}
+
+:global(body:has(section[aria-label='Join with invitation'])) {
+  overflow: hidden;
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  z-index: -5;
+}
+
+.backgroundImage {
+  object-fit: cover;
+  object-position: center 58%;
+  filter: saturate(0.96) contrast(1.04) brightness(0.82);
+  transform: scale(1.002);
+}
+
+.stage::before {
+  position: absolute;
+  inset: 0;
+  z-index: -4;
+  background:
+    linear-gradient(180deg, rgba(5, 6, 5, 0.08), rgba(3, 4, 3, 0.42)),
+    radial-gradient(circle at 68% 46%, transparent 18%, rgba(2, 3, 3, 0.34) 78%);
+  content: '';
+  pointer-events: none;
+}
+
+.stage::after {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  background: linear-gradient(
+    90deg,
+    rgba(3, 4, 3, 0.18),
+    transparent 34%,
+    rgba(3, 4, 3, 0.14) 68%,
+    rgba(3, 4, 3, 0.36)
+  );
+  content: '';
+  pointer-events: none;
+}
+
+.backLink {
+  position: absolute;
+  top: 18px;
+  left: 24px;
+  z-index: 20;
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(221, 183, 104, 0.24);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(5, 6, 5, 0.48);
+  color: rgba(244, 224, 184, 0.84);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+  text-shadow: 0 1px 7px rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(4px);
+}
+
+.backLink:hover {
+  border-color: rgba(242, 203, 120, 0.5);
+  color: #ffe0a0;
+}
+
+.panelShell {
+  position: absolute;
+  isolation: isolate;
+  top: 50%;
+  right: clamp(88px, 14.5vw, 320px);
+  z-index: 5;
+  width: min(720px, calc(100vw - 112px));
+  transform: translateY(-50%);
+}
+
+.panelShell::before {
+  position: absolute;
+  inset: 12px 12px 17px;
+  z-index: 0;
+  border-radius: 8px;
+  background:
+    linear-gradient(rgba(4, 5, 4, 0.44), rgba(3, 4, 3, 0.58)),
+    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
+  content: '';
+  pointer-events: none;
+}
+
+.panel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-height: 565px;
+  box-sizing: border-box;
+  place-items: center;
+  overflow: hidden;
+  border: 32px solid transparent;
+  border-image-source: url('/images/ui/frames/gold-rect-frame.png');
+  border-image-slice: 180;
+  border-image-width: 32px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  padding: 30px 34px 34px;
+  background: transparent;
+}
+
+.panelContent {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 100%;
+  gap: 1.1rem;
+}
+
+.panelHeader {
+  display: grid;
+  gap: 0.42rem;
+  text-align: center;
+}
+
+.eyebrow,
+.roleLabel {
+  color: #d9aa52;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.panelHeader h1 {
+  margin: 0;
+  color: #f6ead2;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2.15rem, 3.1vw, 2.8rem);
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  line-height: 1.03;
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.8);
+}
+
+.panelHeader p,
+.helperCopy,
+.roleCard p,
+.closedState p {
+  color: rgba(235, 221, 196, 0.68);
+  line-height: 1.5;
+}
+
+.panelHeader p {
+  max-width: 34rem;
+  margin: 0 auto;
+  font-size: 0.88rem;
+}
+
 .form {
   display: grid;
   gap: 0.9rem;
-  max-width: 44rem;
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-panel);
-  padding: 1rem;
-  background: var(--ui-panel-strong);
 }
 
 .field {
   display: grid;
-  gap: 0.45rem;
-  color: var(--ui-text-muted);
-  font-size: 0.82rem;
-  font-weight: 700;
+  gap: 0.42rem;
+}
+
+.field > span {
+  color: #dfb566;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
 }
 
 .input {
   width: 100%;
-  min-height: 2.8rem;
-  border: 1px solid var(--ui-control-border);
-  border-radius: var(--ui-radius-control);
-  padding: 0.65rem 0.8rem;
-  background: var(--ui-control-surface);
-  color: var(--ui-text);
-  font: inherit;
+  min-height: 50px;
+  box-sizing: border-box;
+  border: 1px solid rgba(208, 160, 69, 0.5);
+  border-radius: 4px;
   outline: none;
+  padding: 0.78rem 0.88rem;
+  background: rgba(4, 5, 5, 0.76);
+  color: #f2eadc;
+  font: inherit;
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.34);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.input::placeholder {
+  color: rgba(225, 213, 191, 0.48);
 }
 
 .input:focus-visible {
-  border-color: var(--ui-accent);
-  box-shadow: var(--ui-focus-ring);
+  border-color: rgba(243, 199, 108, 0.9);
+  box-shadow:
+    0 0 0 2px rgba(222, 172, 78, 0.1),
+    inset 0 0 16px rgba(0, 0, 0, 0.34);
+}
+
+.input:disabled {
+  opacity: 0.7;
+}
+
+.primaryAction,
+.secondaryAction {
+  display: inline-flex;
+  min-height: 46px;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  padding: 0.68rem 1rem;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background 140ms ease,
+    filter 140ms ease;
+}
+
+.primaryAction {
+  border: 1px solid rgba(223, 181, 95, 0.72);
+  background:
+    linear-gradient(rgba(5, 5, 4, 0.2), rgba(5, 5, 4, 0.44)),
+    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
+  color: #f7e4b7;
+  box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.3);
+}
+
+.primaryAction:hover:not(:disabled) {
+  border-color: rgba(244, 202, 114, 0.96);
+  color: #ffe0a0;
+  filter: brightness(1.08);
+}
+
+.secondaryAction {
+  border: 1px solid rgba(219, 181, 106, 0.18);
+  background: rgba(4, 5, 5, 0.38);
+  color: rgba(239, 224, 194, 0.58);
+}
+
+.secondaryAction:hover:not(:disabled) {
+  border-color: rgba(230, 188, 103, 0.38);
+  color: rgba(245, 215, 154, 0.82);
+}
+
+.primaryAction:disabled,
+.secondaryAction:disabled {
+  cursor: wait;
+  opacity: 0.56;
 }
 
 .error {
   margin: 0;
-  color: var(--ui-danger);
-  font-size: 0.82rem;
+  border-left: 2px solid rgba(210, 97, 73, 0.7);
+  padding: 0.68rem 0.8rem;
+  background: rgba(70, 20, 14, 0.24);
+  color: #e9a391;
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
-.actions {
+.helperCopy {
+  max-width: 32rem;
+  margin: 0 auto;
+  color: rgba(235, 221, 196, 0.48);
+  text-align: center;
+  font-size: 0.68rem;
+}
+
+.summary {
+  display: grid;
+  border-top: 1px solid rgba(211, 169, 83, 0.18);
+  border-bottom: 1px solid rgba(211, 169, 83, 0.18);
+}
+
+.summaryRow {
   display: flex;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  min-height: 46px;
+  border-bottom: 1px solid rgba(211, 169, 83, 0.1);
+  padding: 0.55rem 0.18rem;
+}
+
+.summaryRow:last-child {
+  border-bottom: 0;
+}
+
+.summaryRow span {
+  color: rgba(232, 217, 191, 0.58);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.summaryRow strong {
+  color: #efe0bf;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.summaryRow:last-child span {
+  color: rgba(232, 217, 191, 0.42);
+}
+
+.summaryRow:last-child strong {
+  color: rgba(239, 224, 191, 0.7);
+}
+
+.roleCard,
+.closedState {
+  display: grid;
+  gap: 0.28rem;
+  border: 1px solid rgba(215, 169, 80, 0.22);
+  border-radius: 4px;
+  padding: 0.9rem 1rem;
+  background: rgba(5, 6, 5, 0.42);
+}
+
+.roleCard strong,
+.closedState strong {
+  color: #f0d49b;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.12rem;
+  font-weight: 600;
+}
+
+.roleCard p,
+.closedState p {
+  margin: 0;
+  font-size: 0.76rem;
+}
+
+.closedState {
+  border-color: rgba(183, 92, 72, 0.32);
+  background: rgba(63, 20, 16, 0.22);
+}
+
+.closedState strong {
+  color: #dca08e;
+}
+
+.reviewActions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.72rem;
+}
+
+@media (max-width: 980px) {
+  .panelShell {
+    right: 50%;
+    width: min(700px, calc(100vw - 56px));
+    transform: translate(50%, -50%);
+  }
+
+  .backgroundImage {
+    object-position: 44% 58%;
+  }
+}
+
+@media (max-width: 700px) {
+  .backLink {
+    top: 12px;
+    left: 12px;
+    min-height: 30px;
+    padding: 5px 9px;
+    font-size: 9px;
+  }
+
+  .panelShell {
+    top: 58px;
+    right: 12px;
+    bottom: 14px;
+    left: 12px;
+    width: auto;
+    transform: none;
+  }
+
+  .panelShell::before {
+    inset: 9px 9px 12px;
+    border-radius: 6px;
+  }
+
+  .panel {
+    min-height: 0;
+    height: 100%;
+    place-items: start stretch;
+    overflow-y: auto;
+    border-width: 22px;
+    border-image-width: 22px;
+    padding: 18px 18px 22px;
+  }
+
+  .panelContent {
+    align-self: center;
+    gap: 0.9rem;
+  }
+
+  .panelHeader h1 {
+    font-size: clamp(1.9rem, 10vw, 2.45rem);
+  }
+
+  .panelHeader p {
+    font-size: 0.8rem;
+  }
+
+  .summaryRow {
+    align-items: flex-start;
+  }
+
+  .summaryRow strong {
+    max-width: 58%;
+  }
+
+  .reviewActions {
+    grid-template-columns: 1fr;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    width: 100%;
+  }
+}
+
+@media (max-height: 680px) and (min-width: 701px) {
+  .panel {
+    min-height: 0;
+    max-height: calc(100dvh - 96px);
+    overflow-y: auto;
+  }
+
+  .panelContent {
+    gap: 0.78rem;
+  }
 }
