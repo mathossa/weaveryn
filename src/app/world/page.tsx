@@ -6,10 +6,14 @@ import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { StatusPanel } from '@/components/ui/status-panel'
 import { worldAccessLabel } from '@/lib/role-labels'
 import { uiAssets } from '@/lib/ui-assets'
-import { listEntryPreferences } from '@/server/selection'
+import {
+  listEntryPreferences,
+  WEAVER_WORLD_ENTRY_KEY_PREFIX,
+} from '@/server/selection'
 import { listWorldNavigationChoices } from '@/server/worlds'
 import { SelectLogoutButton } from '@/app/select/_components/select-logout-button'
 import { CinematicEntryBrowser } from './_components/cinematic-entry-browser'
+import { WeaverFavoriteButton } from './_components/weaver-favorite-button'
 import { loadWorldPageUser } from './_lib/load-world-user'
 import styles from './world.module.css'
 import actionStyles from './weaver-selector-actions.module.css'
@@ -60,8 +64,14 @@ export default async function WorldSelectionPage({
     const current = worldPreferences.get(preference.worldId)
     const currentTime = current?.lastUsedAt?.getTime() ?? 0
     const preferenceTime = preference.lastUsedAt?.getTime() ?? 0
+    const isWorldFavoritePreference =
+      preference.entryKey ===
+      `${WEAVER_WORLD_ENTRY_KEY_PREFIX}:${preference.worldId}`
+
     worldPreferences.set(preference.worldId, {
-      pinned: Boolean(current?.pinned || preference.pinned),
+      pinned: isWorldFavoritePreference
+        ? preference.pinned
+        : (current?.pinned ?? false),
       lastUsedAt:
         preferenceTime > currentTime
           ? preference.lastUsedAt
@@ -136,6 +146,9 @@ export default async function WorldSelectionPage({
                     ? (world.lastUsedAt?.toISOString() ?? null)
                     : null,
                   favorite: weaverMode ? world.pinned : false,
+                  favoriteTarget: weaverMode
+                    ? { worldId: world.id }
+                    : undefined,
                 }))}
               />
             ) : (
@@ -186,30 +199,42 @@ export default async function WorldSelectionPage({
                   <>
                     <div className={weaverStyles.worldGrid}>
                       {featuredWorlds.map((world) => (
-                        <Link
+                        <div
                           key={world.id}
-                          className={weaverStyles.worldCard}
-                          href={`/world/${world.id}/campaign?mode=${mode}`}
-                          style={{
-                            backgroundImage: `url(${uiAssets.fallbacks.world})`,
-                          }}
+                          style={{ position: 'relative', minWidth: 0 }}
                         >
-                          <span className={weaverStyles.cardCopy}>
-                            <span className={weaverStyles.cardKicker}>
-                              {world.orphaned ? 'Orphaned World' : 'World'}
+                          <Link
+                            className={weaverStyles.worldCard}
+                            href={`/world/${world.id}/campaign?mode=${mode}`}
+                            style={{
+                              backgroundImage: `url(${uiAssets.fallbacks.world})`,
+                            }}
+                          >
+                            <span className={weaverStyles.cardCopy}>
+                              <span className={weaverStyles.cardKicker}>
+                                {world.orphaned ? 'Orphaned World' : 'World'}
+                              </span>
+                              <strong>{world.name}</strong>
+                              <span className={weaverStyles.meta}>
+                                {weaverMode
+                                  ? 'Choose the Campaign you want to continue weaving.'
+                                  : 'Choose the Campaign you want to observe.'}
+                              </span>
+                              <span className={weaverStyles.cardAction}>
+                                <span>Choose Campaign</span>
+                                <span aria-hidden="true">›</span>
+                              </span>
                             </span>
-                            <strong>{world.name}</strong>
-                            <span className={weaverStyles.meta}>
-                              {weaverMode
-                                ? 'Choose the Campaign you want to continue weaving.'
-                                : 'Choose the Campaign you want to observe.'}
-                            </span>
-                            <span className={weaverStyles.cardAction}>
-                              <span>Choose Campaign</span>
-                              <span aria-hidden="true">›</span>
-                            </span>
-                          </span>
-                        </Link>
+                          </Link>
+
+                          {weaverMode ? (
+                            <WeaverFavoriteButton
+                              worldId={world.id}
+                              pinned={world.pinned}
+                              label="World"
+                            />
+                          ) : null}
+                        </div>
                       ))}
                     </div>
 
