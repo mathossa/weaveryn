@@ -6,17 +6,17 @@
 
   /* Shared production UI tokens. Change these deliberately in code to restyle
      reusable controls and surfaces without adding user-facing theme state. */
-  --ui-canvas: #070912;
-  --ui-panel: rgba(9, 13, 24, 0.84);
-  --ui-panel-strong: rgba(12, 17, 29, 0.94);
-  --ui-text: #f4efe6;
-  --ui-text-muted: #b9b1a3;
+  --ui-canvas: #070706;
+  --ui-panel: rgba(9, 9, 7, 0.86);
+  --ui-panel-strong: rgba(12, 11, 9, 0.94);
+  --ui-text: #f4ede2;
+  --ui-text-muted: #b9ae9d;
   --ui-accent: #c9a566;
-  --ui-accent-hover: #e0bf82;
+  --ui-accent-hover: #e3c27f;
   --ui-accent-ink: #1b1409;
-  --ui-border: rgba(226, 201, 151, 0.25);
-  --ui-control-surface: rgba(5, 9, 18, 0.76);
-  --ui-control-border: rgba(231, 220, 199, 0.23);
+  --ui-border: rgba(207, 169, 98, 0.28);
+  --ui-control-surface: rgba(5, 5, 4, 0.8);
+  --ui-control-border: rgba(210, 174, 103, 0.27);
   --ui-danger: #ee8d82;
   --ui-success: #8fd0aa;
   --ui-radius-control: 0.75rem;
