@@ -3,12 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import {
-  useCallback,
-  useEffect,
-  useState,
-  type FormEvent,
-} from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import {
   campaignRoleLabel,
   worldRoleLabel,
@@ -168,9 +163,9 @@ export function JoinInviteForm({
           cache: 'no-store',
         },
       )
-      const body = (await response.json().catch(() => null)) as
-        | InvitationApiBody
-        | null
+      const body = (await response
+        .json()
+        .catch(() => null)) as InvitationApiBody | null
 
       if (!response.ok || !body?.invitation) {
         setError(
@@ -237,7 +232,12 @@ export function JoinInviteForm({
   }
 
   async function acceptInvitation() {
-    if (!reviewedToken || !invitation || invitation.status !== 'ACTIVE' || joining) {
+    if (
+      !reviewedToken ||
+      !invitation ||
+      invitation.status !== 'ACTIVE' ||
+      joining
+    ) {
       return
     }
 
@@ -252,9 +252,9 @@ export function JoinInviteForm({
           credentials: 'same-origin',
         },
       )
-      const body = (await response.json().catch(() => null)) as
-        | InvitationApiBody
-        | null
+      const body = (await response
+        .json()
+        .catch(() => null)) as InvitationApiBody | null
 
       if (!response.ok || !body?.accepted) {
         setError(
@@ -303,8 +303,8 @@ export function JoinInviteForm({
                   <span className={styles.eyebrow}>An open thread</span>
                   <h1>Join with invitation</h1>
                   <p>
-                    Paste the invitation you received. Nothing changes until
-                    you review where the thread leads and choose to join.
+                    Paste the invitation you received. Nothing changes until you
+                    review where the thread leads and choose to join.
                   </p>
                 </header>
 
@@ -359,7 +359,10 @@ export function JoinInviteForm({
                   </p>
                 </header>
 
-                <section className={styles.summary} aria-label="Invitation summary">
+                <section
+                  className={styles.summary}
+                  aria-label="Invitation summary"
+                >
                   <div className={styles.summaryRow}>
                     <span>Destination</span>
                     <strong>
