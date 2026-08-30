@@ -1,6 +1,7 @@
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { loadCharacterPageUser } from '../../character/_lib/load-character-user'
 import { CharacterCreationLauncher } from './_components/character-creation-launcher'
+import './create-character-mobile.css'
 
 interface CreateCharacterPageProps {
   searchParams: Promise<{
