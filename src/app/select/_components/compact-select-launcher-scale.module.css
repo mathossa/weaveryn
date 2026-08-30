@@ -37,4 +37,8 @@
   .desktopComposition {
     display: contents;
   }
+
+  .desktopComposition .heroArtwork {
+    display: none;
+  }
 }
