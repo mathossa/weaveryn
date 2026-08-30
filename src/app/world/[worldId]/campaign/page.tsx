@@ -41,10 +41,12 @@ function canWeaveCampaign(campaign: {
   )
 }
 
-function compareMostRecent(
-  left: { name: string; lastUsedAt: Date | null },
-  right: { name: string; lastUsedAt: Date | null },
+function compareFavoriteThenRecent(
+  left: { name: string; pinned: boolean; lastUsedAt: Date | null },
+  right: { name: string; pinned: boolean; lastUsedAt: Date | null },
 ) {
+  if (left.pinned !== right.pinned) return left.pinned ? -1 : 1
+
   const recentDifference =
     (right.lastUsedAt?.getTime() ?? 0) - (left.lastUsedAt?.getTime() ?? 0)
   if (recentDifference !== 0) return recentDifference
@@ -109,7 +111,7 @@ export default async function CampaignSelectionPage({
     }
   })
   const orderedLauncherCampaigns = weaverMode
-    ? [...launcherCampaigns].sort(compareMostRecent)
+    ? [...launcherCampaigns].sort(compareFavoriteThenRecent)
     : launcherCampaigns
   const featuredCampaigns = orderedLauncherCampaigns.slice(0, 3)
 
