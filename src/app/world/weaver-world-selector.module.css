@@ -9,7 +9,9 @@
 }
 
 :global(body:has(section[aria-label='Choose a World as Weaver']) header),
-:global(body:has(section[aria-label='Choose a World as Threadwatcher']) header) {
+:global(
+  body:has(section[aria-label='Choose a World as Threadwatcher']) header
+) {
   display: none !important;
 }
 
@@ -219,10 +221,7 @@
 
 .worldGrid {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(min(100%, 24rem), 31rem)
-  );
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 31rem));
   justify-content: center;
   gap: clamp(1.15rem, 2vw, 1.8rem);
   width: 100%;

@@ -9,7 +9,9 @@
 }
 
 :global(body:has(section[aria-label='Choose a Campaign as Weaver']) header),
-:global(body:has(section[aria-label='Choose a Campaign as Threadwatcher']) header) {
+:global(
+  body:has(section[aria-label='Choose a Campaign as Threadwatcher']) header
+) {
   display: none !important;
 }
 
@@ -219,10 +221,7 @@
 
 .campaignGrid {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(min(100%, 22rem), 28rem)
-  );
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 28rem));
   justify-content: center;
   gap: clamp(1.1rem, 2vw, 1.6rem);
   width: 100%;

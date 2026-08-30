@@ -156,7 +156,9 @@ export default async function WorldSelectionPage({
             ) : (
               <>
                 <div className={weaverStyles.intro}>
-                  <span className={weaverStyles.eyebrow}>Enter as {roleLabel}</span>
+                  <span className={weaverStyles.eyebrow}>
+                    Enter as {roleLabel}
+                  </span>
                   <h1>Choose a World</h1>
                   <span className={weaverStyles.introRule} aria-hidden="true" />
                   <p>

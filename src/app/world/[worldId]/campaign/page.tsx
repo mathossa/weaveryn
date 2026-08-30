@@ -106,8 +106,7 @@ export default async function CampaignSelectionPage({
     return {
       ...campaign,
       pinned: preference?.pinned ?? false,
-      lastUsedAt:
-        preference?.lastUsedAt ?? resumeFallback?.lastUsedAt ?? null,
+      lastUsedAt: preference?.lastUsedAt ?? resumeFallback?.lastUsedAt ?? null,
     }
   })
   const orderedLauncherCampaigns = weaverMode
@@ -205,7 +204,9 @@ export default async function CampaignSelectionPage({
                 {campaigns.length === 0 ? (
                   <div className={weaverStyles.emptyState}>
                     <span className={weaverStyles.emptyKicker}>
-                      {weaverMode ? 'No active weave' : 'Nothing to observe yet'}
+                      {weaverMode
+                        ? 'No active weave'
+                        : 'Nothing to observe yet'}
                     </span>
                     <strong>
                       {weaverMode
