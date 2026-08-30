@@ -68,6 +68,15 @@ section[aria-label='Manage Characters'] {
   overflow: hidden !important;
 }
 
+/* A World incarnation cannot be moved or removed while Campaign participation
+   still blocks the operation. Do not show dead controls in that locked state;
+   the explanatory copy tells the user to resolve Campaign participation first. */
+section[aria-label='Manage Characters'] div:has(> select:disabled) > select:disabled,
+section[aria-label='Manage Characters'] div:has(> select:disabled) > button:disabled,
+section[aria-label='Manage Characters'] div:has(> select:disabled) + button:disabled {
+  display: none !important;
+}
+
 /* The normal in-app header was visually too tall compared with the cinematic
    launcher. These selectors deliberately target only the AppShell header by
    its stable Weaveryn-home link, leaving page-local semantic headers alone. */
