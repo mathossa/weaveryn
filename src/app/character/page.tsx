@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { StatusPanel } from '@/components/ui/status-panel'
@@ -35,6 +35,9 @@ export default async function CharacterIndexPage({
   const worldId = typeof query.world === 'string' ? query.world : undefined
   const campaignId =
     typeof query.campaign === 'string' ? query.campaign : undefined
+
+  if (!worldId && !campaignId) redirect('/select/manage-characters')
+
   const characters = await listOwnedCharacterChoices(user.id)
   const campaign =
     worldId && campaignId
