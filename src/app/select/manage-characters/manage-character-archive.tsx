@@ -188,14 +188,19 @@ function IdentityTab({ character }: { character: ManageCharacterEntry }) {
     setError(null)
     setSuccess(null)
 
-    const response = await fetch(`/api/v1/characters/${character.id}/identity`, {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ name, ancestry, description }),
-    })
+    const response = await fetch(
+      `/api/v1/characters/${character.id}/identity`,
+      {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name, ancestry, description }),
+      },
+    )
 
     if (!response.ok) {
-      setError(await responseError(response, 'Could not save Character identity.'))
+      setError(
+        await responseError(response, 'Could not save Character identity.'),
+      )
       setPending(false)
       return
     }
@@ -211,7 +216,8 @@ function IdentityTab({ character }: { character: ManageCharacterEntry }) {
         <span className={styles.sectionLabel}>Portable identity</span>
         <p>
           These details belong to the Character everywhere. World-specific
-          history and personality can be shaped separately in Worlds & Campaigns.
+          history and personality can be shaped separately in Worlds &
+          Campaigns.
         </p>
       </div>
 
@@ -226,7 +232,9 @@ function IdentityTab({ character }: { character: ManageCharacterEntry }) {
       </label>
 
       <label className={styles.field}>
-        <span>Ancestry / Species <small>optional</small></span>
+        <span>
+          Ancestry / Species <small>optional</small>
+        </span>
         <input
           value={ancestry}
           maxLength={120}
@@ -236,7 +244,9 @@ function IdentityTab({ character }: { character: ManageCharacterEntry }) {
       </label>
 
       <label className={styles.field}>
-        <span>Description <small>optional</small></span>
+        <span>
+          Description <small>optional</small>
+        </span>
         <textarea
           value={description}
           maxLength={1200}
@@ -276,7 +286,11 @@ function IdentityTab({ character }: { character: ManageCharacterEntry }) {
 
       <div className={styles.formFooter}>
         <StatusMessage error={error} success={success} />
-        <button className={styles.primaryAction} type="submit" disabled={pending}>
+        <button
+          className={styles.primaryAction}
+          type="submit"
+          disabled={pending}
+        >
           {pending ? 'Saving…' : 'Save identity'}
         </button>
       </div>
@@ -290,10 +304,12 @@ function WorldProfileEditor({
   worldCharacter: ManageWorldCharacterEntry
 }) {
   const router = useRouter()
-  const [nameOverride, setNameOverride] = useState(worldCharacter.nameOverride ?? '')
-  const [values, setValues] = useState<Partial<Record<ProfileFieldKey, string>>>(
-    worldCharacter.profile.values,
+  const [nameOverride, setNameOverride] = useState(
+    worldCharacter.nameOverride ?? '',
   )
+  const [values, setValues] = useState<
+    Partial<Record<ProfileFieldKey, string>>
+  >(worldCharacter.profile.values)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -362,9 +378,12 @@ function WorldProfileEditor({
     setCampaignPending(participationId)
     setError(null)
     setSuccess(null)
-    const response = await fetch(`/api/v1/campaign-characters/${participationId}`, {
-      method: 'DELETE',
-    })
+    const response = await fetch(
+      `/api/v1/campaign-characters/${participationId}`,
+      {
+        method: 'DELETE',
+      },
+    )
     if (!response.ok) {
       setError(await responseError(response, 'Could not leave Campaign.'))
       setCampaignPending(null)
@@ -387,7 +406,9 @@ function WorldProfileEditor({
 
       <form className={styles.worldProfileForm} onSubmit={saveProfile}>
         <label className={styles.field}>
-          <span>World-specific name <small>optional</small></span>
+          <span>
+            World-specific name <small>optional</small>
+          </span>
           <input
             value={nameOverride}
             maxLength={120}
@@ -416,7 +437,11 @@ function WorldProfileEditor({
         </div>
 
         <div className={styles.inlineActionRow}>
-          <button className={styles.primaryAction} type="submit" disabled={pending}>
+          <button
+            className={styles.primaryAction}
+            type="submit"
+            disabled={pending}
+          >
             {pending ? 'Saving…' : 'Save World profile'}
           </button>
         </div>
@@ -431,7 +456,8 @@ function WorldProfileEditor({
                 <span>
                   <strong>{participation.campaign.name}</strong>
                   <small>
-                    {participation.campaign.status} · {participation.campaign.role}
+                    {participation.campaign.status} ·{' '}
+                    {participation.campaign.role}
                   </small>
                 </span>
                 <button
@@ -451,7 +477,9 @@ function WorldProfileEditor({
             ))}
           </div>
         ) : (
-          <p className={styles.mutedCopy}>Not participating in a Campaign here.</p>
+          <p className={styles.mutedCopy}>
+            Not participating in a Campaign here.
+          </p>
         )}
 
         {worldCharacter.availableCampaigns.length > 0 ? (
@@ -522,7 +550,10 @@ function ManageAction({
   danger?: boolean
 }) {
   return (
-    <section className={styles.manageAction} data-danger={danger ? 'true' : 'false'}>
+    <section
+      className={styles.manageAction}
+      data-danger={danger ? 'true' : 'false'}
+    >
       <div>
         <h3>{title}</h3>
         <div className={styles.manageDescription}>{description}</div>
@@ -537,7 +568,9 @@ function ManageTab({ character }: { character: ManageCharacterEntry }) {
   const [pending, setPending] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [addWorldId, setAddWorldId] = useState(character.availableWorlds[0]?.id ?? '')
+  const [addWorldId, setAddWorldId] = useState(
+    character.availableWorlds[0]?.id ?? '',
+  )
   const [moveTargets, setMoveTargets] = useState<Record<string, string>>({})
 
   function resetMessages() {
@@ -549,7 +582,9 @@ function ManageTab({ character }: { character: ManageCharacterEntry }) {
     if (!addWorldId) return
     resetMessages()
     setPending('add-world')
-    const world = character.availableWorlds.find((item) => item.id === addWorldId)
+    const world = character.availableWorlds.find(
+      (item) => item.id === addWorldId,
+    )
     const response = await fetch(
       `/api/v1/characters/${character.id}/world-characters`,
       {
@@ -559,7 +594,9 @@ function ManageTab({ character }: { character: ManageCharacterEntry }) {
       },
     )
     if (!response.ok) {
-      setError(await responseError(response, 'Could not add Character to World.'))
+      setError(
+        await responseError(response, 'Could not add Character to World.'),
+      )
       setPending(null)
       return
     }
@@ -622,7 +659,9 @@ function ManageTab({ character }: { character: ManageCharacterEntry }) {
       setPending(null)
       return
     }
-    setSuccess(`Moved the incarnation to ${target?.name ?? 'the selected World'}.`)
+    setSuccess(
+      `Moved the incarnation to ${target?.name ?? 'the selected World'}.`,
+    )
     setPending(null)
     router.refresh()
   }
@@ -673,7 +712,10 @@ function ManageTab({ character }: { character: ManageCharacterEntry }) {
           title="Add to another World"
           description="Create a new World incarnation while keeping every existing incarnation intact."
         >
-          <select value={addWorldId} onChange={(event) => setAddWorldId(event.target.value)}>
+          <select
+            value={addWorldId}
+            onChange={(event) => setAddWorldId(event.target.value)}
+          >
             {character.availableWorlds.map((world) => (
               <option value={world.id} key={world.id}>
                 {world.name}
@@ -710,9 +752,9 @@ function ManageTab({ character }: { character: ManageCharacterEntry }) {
                     <strong>{campaignNames.join(', ')}</strong>.
                   </p>
                   <p className={styles.tipCopy}>
-                    Tip: open <b>Worlds & Campaigns</b> and leave those Campaigns
-                    first. After that you can move or remove this World
-                    incarnation here.
+                    Tip: open <b>Worlds & Campaigns</b> and leave those
+                    Campaigns first. After that you can move or remove this
+                    World incarnation here.
                   </p>
                 </>
               ) : (
@@ -821,7 +863,9 @@ function ManageTab({ character }: { character: ManageCharacterEntry }) {
         <button
           className={styles.dangerAction}
           type="button"
-          disabled={blockingWorldNames.length > 0 || pending === 'delete-character'}
+          disabled={
+            blockingWorldNames.length > 0 || pending === 'delete-character'
+          }
           onClick={() => void deleteCharacter()}
         >
           {pending === 'delete-character' ? 'Deleting…' : 'Delete Character'}
@@ -962,7 +1006,9 @@ export function ManageCharacterArchive({
                       </span>
                       <span className={styles.rowCopy}>
                         <strong>{character.name}</strong>
-                        <span>{character.ancestry ?? 'Portable character'}</span>
+                        <span>
+                          {character.ancestry ?? 'Portable character'}
+                        </span>
                         <small>
                           {incarnationLabel(character.worldCharacters.length)}
                         </small>
@@ -1019,7 +1065,10 @@ export function ManageCharacterArchive({
                   </div>
                 </div>
 
-                <nav className={styles.tabs} aria-label="Character management sections">
+                <nav
+                  className={styles.tabs}
+                  aria-label="Character management sections"
+                >
                   {(
                     [
                       ['overview', 'Overview'],
@@ -1041,7 +1090,10 @@ export function ManageCharacterArchive({
                   ))}
                 </nav>
 
-                <div className={styles.tabContent} key={`${selectedCharacter.id}:${activeTab}`}>
+                <div
+                  className={styles.tabContent}
+                  key={`${selectedCharacter.id}:${activeTab}`}
+                >
                   {activeTab === 'overview' ? (
                     <OverviewTab
                       character={selectedCharacter}
@@ -1064,7 +1116,10 @@ export function ManageCharacterArchive({
                   Create someone new, then bring them into a World when you are
                   ready.
                 </p>
-                <Link className={styles.primaryAction} href="/select/create-character">
+                <Link
+                  className={styles.primaryAction}
+                  href="/select/create-character"
+                >
                   Create Character
                 </Link>
               </div>

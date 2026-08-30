@@ -71,9 +71,15 @@ section[aria-label='Manage Characters'] {
 /* A World incarnation cannot be moved or removed while Campaign participation
    still blocks the operation. Do not show dead controls in that locked state;
    the explanatory copy tells the user to resolve Campaign participation first. */
-section[aria-label='Manage Characters'] div:has(> select:disabled) > select:disabled,
-section[aria-label='Manage Characters'] div:has(> select:disabled) > button:disabled,
-section[aria-label='Manage Characters'] div:has(> select:disabled) + button:disabled {
+section[aria-label='Manage Characters']
+  div:has(> select:disabled)
+  > select:disabled,
+section[aria-label='Manage Characters']
+  div:has(> select:disabled)
+  > button:disabled,
+section[aria-label='Manage Characters']
+  div:has(> select:disabled)
+  + button:disabled {
   display: none !important;
 }
 
@@ -86,7 +92,8 @@ header:has(> a[aria-label='Weaveryn home']) {
   padding: 0.25rem clamp(0.75rem, 2vw, 1.5rem) !important;
 }
 
-header:has(> a[aria-label='Weaveryn home']) nav
+header:has(> a[aria-label='Weaveryn home'])
+  nav
   :is(
     button[aria-haspopup='menu'],
     a[aria-label^='World:'],
@@ -104,7 +111,8 @@ header:has(> a[aria-label='Weaveryn home']) nav span:has(> svg) {
   height: 1.7rem !important;
 }
 
-header:has(> a[aria-label='Weaveryn home']) button[aria-controls='account-menu'] {
+header:has(> a[aria-label='Weaveryn home'])
+  button[aria-controls='account-menu'] {
   gap: 0.45rem !important;
   padding: 0.15rem 0.25rem !important;
 }
