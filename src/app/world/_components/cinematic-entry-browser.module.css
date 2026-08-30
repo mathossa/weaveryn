@@ -11,7 +11,7 @@
 
 .browserShell {
   display: flex;
-  height: calc(100dvh - 11.5rem);
+  height: calc(100dvh - 16rem);
   min-height: 20rem;
   max-height: 100%;
 }
@@ -188,7 +188,7 @@
 
 @media (max-width: 760px) {
   .browserShell {
-    height: calc(100dvh - 8rem);
+    height: calc(100dvh - 10rem);
     min-height: 0;
   }
 
