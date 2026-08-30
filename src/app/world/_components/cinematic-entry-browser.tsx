@@ -13,6 +13,8 @@ type WeaverTracking = {
   campaignId?: string | null
 }
 
+type BrowserSortMode = 'recent' | 'az' | 'za'
+
 export interface CinematicBrowserEntry {
   id: string
   name: string
@@ -21,6 +23,8 @@ export interface CinematicBrowserEntry {
   href: string
   backgroundImage: string
   filterValue: string
+  lastUsedAt?: string | null
+  favorite?: boolean
   tracking?: WeaverTracking
 }
 
@@ -29,6 +33,8 @@ interface CinematicEntryBrowserProps {
   roleLabel: 'Weaver' | 'Threadwatcher'
   entries: CinematicBrowserEntry[]
   closeHref: string
+  favoritesEnabled?: boolean
+  initialSort?: BrowserSortMode
 }
 
 export function CinematicEntryBrowser({
@@ -36,10 +42,15 @@ export function CinematicEntryBrowser({
   roleLabel,
   entries,
   closeHref,
+  favoritesEnabled = false,
+  initialSort = 'az',
 }: CinematicEntryBrowserProps) {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('all')
-  const [sort, setSort] = useState<'az' | 'za'>('az')
+  const [favoriteFilter, setFavoriteFilter] = useState<'all' | 'favorites'>(
+    'all',
+  )
+  const [sort, setSort] = useState<BrowserSortMode>(initialSort)
 
   const filterOptions = useMemo(() => {
     if (kind === 'world') {
@@ -68,15 +79,29 @@ export function CinematicEntryBrowser({
           entry.name.toLocaleLowerCase().includes(normalizedQuery) ||
           entry.meta.toLocaleLowerCase().includes(normalizedQuery)
         const matchesFilter = filter === 'all' || entry.filterValue === filter
-        return matchesQuery && matchesFilter
+        const matchesFavorite =
+          !favoritesEnabled ||
+          favoriteFilter === 'all' ||
+          Boolean(entry.favorite)
+        return matchesQuery && matchesFilter && matchesFavorite
       })
       .sort((left, right) => {
+        if (sort === 'recent') {
+          const leftRecent = left.lastUsedAt
+            ? Date.parse(left.lastUsedAt)
+            : 0
+          const rightRecent = right.lastUsedAt
+            ? Date.parse(right.lastUsedAt)
+            : 0
+          if (leftRecent !== rightRecent) return rightRecent - leftRecent
+        }
+
         const comparison = left.name.localeCompare(right.name, undefined, {
           sensitivity: 'base',
         })
-        return sort === 'az' ? comparison : -comparison
+        return sort === 'za' ? -comparison : comparison
       })
-  }, [entries, filter, query, sort])
+  }, [entries, favoriteFilter, favoritesEnabled, filter, query, sort])
 
   const cardStyles = kind === 'world' ? worldStyles : campaignStyles
   const gridClass =
@@ -110,7 +135,10 @@ export function CinematicEntryBrowser({
           </Link>
         </div>
 
-        <div className={styles.controls}>
+        <div
+          className={styles.controls}
+          data-favorites={favoritesEnabled ? 'true' : 'false'}
+        >
           <label className={styles.control}>
             <span>Search</span>
             <input
@@ -135,14 +163,32 @@ export function CinematicEntryBrowser({
             </select>
           </label>
 
+          {favoritesEnabled ? (
+            <label className={styles.control}>
+              <span>Favorites</span>
+              <select
+                value={favoriteFilter}
+                onChange={(event) =>
+                  setFavoriteFilter(
+                    event.target.value as 'all' | 'favorites',
+                  )
+                }
+              >
+                <option value="all">All entries</option>
+                <option value="favorites">Favorites only</option>
+              </select>
+            </label>
+          ) : null}
+
           <label className={styles.control}>
             <span>Sort</span>
             <select
               value={sort}
               onChange={(event) =>
-                setSort(event.target.value as 'az' | 'za')
+                setSort(event.target.value as BrowserSortMode)
               }
             >
+              <option value="recent">Most recent</option>
               <option value="az">Name A–Z</option>
               <option value="za">Name Z–A</option>
             </select>
@@ -160,7 +206,7 @@ export function CinematicEntryBrowser({
               <strong>
                 No matching {kind === 'world' ? 'Worlds' : 'Campaigns'}
               </strong>
-              <span>Try changing the search or filter.</span>
+              <span>Try changing the search or filters.</span>
             </div>
           ) : (
             <div className={`${gridClass} ${styles.browserGrid}`}>
