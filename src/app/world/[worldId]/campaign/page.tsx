@@ -17,6 +17,7 @@ import {
 } from '@/server/selection'
 import { SelectLogoutButton } from '@/app/select/_components/select-logout-button'
 import { CinematicEntryBrowser } from '../../_components/cinematic-entry-browser'
+import { WeaverFavoriteButton } from '../../_components/weaver-favorite-button'
 import styles from './campaign.module.css'
 import weaverStyles from './weaver-campaign-selector.module.css'
 import actionStyles from '../../weaver-selector-actions.module.css'
@@ -172,6 +173,9 @@ export default async function CampaignSelectionPage({
                     ? (campaign.lastUsedAt?.toISOString() ?? null)
                     : null,
                   favorite: weaverMode ? campaign.pinned : false,
+                  favoriteTarget: weaverMode
+                    ? { worldId, campaignId: campaign.id }
+                    : undefined,
                   tracking: weaverMode
                     ? {
                         kind: 'WEAVER' as const,
@@ -231,41 +235,54 @@ export default async function CampaignSelectionPage({
                   <>
                     <div className={weaverStyles.campaignGrid}>
                       {featuredCampaigns.map((campaign) => (
-                        <TrackedEntryLink
+                        <div
                           key={campaign.id}
-                          className={weaverStyles.campaignCard}
-                          href={`/world/${worldId}/campaign/${campaign.id}?mode=${mode}`}
-                          tracking={
-                            weaverMode
-                              ? {
-                                  kind: 'WEAVER',
-                                  worldId,
-                                  campaignId: campaign.id,
-                                }
-                              : undefined
-                          }
-                          style={{
-                            backgroundImage: `url(${uiAssets.fallbacks.campaign})`,
-                          }}
+                          style={{ position: 'relative', minWidth: 0 }}
                         >
-                          <span className={weaverStyles.cardCopy}>
-                            <span className={weaverStyles.cardKicker}>
-                              {campaignRoleLabel(campaign.role)}
+                          <TrackedEntryLink
+                            className={weaverStyles.campaignCard}
+                            href={`/world/${worldId}/campaign/${campaign.id}?mode=${mode}`}
+                            tracking={
+                              weaverMode
+                                ? {
+                                    kind: 'WEAVER',
+                                    worldId,
+                                    campaignId: campaign.id,
+                                  }
+                                : undefined
+                            }
+                            style={{
+                              backgroundImage: `url(${uiAssets.fallbacks.campaign})`,
+                            }}
+                          >
+                            <span className={weaverStyles.cardCopy}>
+                              <span className={weaverStyles.cardKicker}>
+                                {campaignRoleLabel(campaign.role)}
+                              </span>
+                              <strong>{campaign.name}</strong>
+                              <span className={weaverStyles.meta}>
+                                {campaign.status === 'ACTIVE'
+                                  ? 'Active Campaign'
+                                  : campaign.status === 'ENDED'
+                                    ? 'Ended Campaign'
+                                    : 'Archived Campaign'}
+                              </span>
+                              <span className={weaverStyles.cardAction}>
+                                <span>Enter as {roleLabel}</span>
+                                <span aria-hidden="true">›</span>
+                              </span>
                             </span>
-                            <strong>{campaign.name}</strong>
-                            <span className={weaverStyles.meta}>
-                              {campaign.status === 'ACTIVE'
-                                ? 'Active Campaign'
-                                : campaign.status === 'ENDED'
-                                  ? 'Ended Campaign'
-                                  : 'Archived Campaign'}
-                            </span>
-                            <span className={weaverStyles.cardAction}>
-                              <span>Enter as {roleLabel}</span>
-                              <span aria-hidden="true">›</span>
-                            </span>
-                          </span>
-                        </TrackedEntryLink>
+                          </TrackedEntryLink>
+
+                          {weaverMode ? (
+                            <WeaverFavoriteButton
+                              worldId={worldId}
+                              campaignId={campaign.id}
+                              pinned={campaign.pinned}
+                              label="Campaign"
+                            />
+                          ) : null}
+                        </div>
                       ))}
                     </div>
 
