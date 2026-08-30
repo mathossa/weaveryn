@@ -6,6 +6,7 @@ import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { StatusPanel } from '@/components/ui/status-panel'
 import { worldAccessLabel } from '@/lib/role-labels'
 import { uiAssets } from '@/lib/ui-assets'
+import { listEntryPreferences } from '@/server/selection'
 import { listWorldNavigationChoices } from '@/server/worlds'
 import { SelectLogoutButton } from '@/app/select/_components/select-logout-button'
 import { CinematicEntryBrowser } from './_components/cinematic-entry-browser'
@@ -21,11 +22,24 @@ interface WorldSelectionPageProps {
   }>
 }
 
+function compareMostRecent(
+  left: { name: string; lastUsedAt: Date | null },
+  right: { name: string; lastUsedAt: Date | null },
+) {
+  const recentDifference =
+    (right.lastUsedAt?.getTime() ?? 0) - (left.lastUsedAt?.getTime() ?? 0)
+  if (recentDifference !== 0) return recentDifference
+  return left.name.localeCompare(right.name, undefined, { sensitivity: 'base' })
+}
+
 export default async function WorldSelectionPage({
   searchParams,
 }: WorldSelectionPageProps) {
   const [user, query] = await Promise.all([loadWorldPageUser(), searchParams])
-  const allWorlds = await listWorldNavigationChoices(user.id)
+  const [allWorlds, entryPreferences] = await Promise.all([
+    listWorldNavigationChoices(user.id),
+    listEntryPreferences(user.id),
+  ])
   const weaverMode = query.mode === 'weaver'
   const threadwatcherMode = query.mode === 'threadwatcher'
   const launcherMode = weaverMode || threadwatcherMode
@@ -35,7 +49,38 @@ export default async function WorldSelectionPage({
       ? allWorlds.filter((world) => world.canThreadwatch)
       : allWorlds
   const showAllLauncherWorlds = launcherMode && query.show === 'all'
-  const featuredWorlds = worlds.slice(0, 3)
+
+  const worldPreferences = new Map<
+    string,
+    { pinned: boolean; lastUsedAt: Date | null }
+  >()
+  for (const preference of entryPreferences) {
+    if (preference.kind !== 'WEAVER' || !preference.worldId) continue
+
+    const current = worldPreferences.get(preference.worldId)
+    const currentTime = current?.lastUsedAt?.getTime() ?? 0
+    const preferenceTime = preference.lastUsedAt?.getTime() ?? 0
+    worldPreferences.set(preference.worldId, {
+      pinned: Boolean(current?.pinned || preference.pinned),
+      lastUsedAt:
+        preferenceTime > currentTime
+          ? preference.lastUsedAt
+          : (current?.lastUsedAt ?? null),
+    })
+  }
+
+  const launcherWorlds = worlds.map((world) => {
+    const preference = worldPreferences.get(world.id)
+    return {
+      ...world,
+      pinned: preference?.pinned ?? false,
+      lastUsedAt: preference?.lastUsedAt ?? null,
+    }
+  })
+  const orderedLauncherWorlds = weaverMode
+    ? [...launcherWorlds].sort(compareMostRecent)
+    : launcherWorlds
+  const featuredWorlds = orderedLauncherWorlds.slice(0, 3)
 
   if (launcherMode) {
     const roleLabel = weaverMode ? 'Weaver' : 'Threadwatcher'
@@ -75,7 +120,9 @@ export default async function WorldSelectionPage({
                 kind="world"
                 roleLabel={roleLabel}
                 closeHref={`/world?mode=${mode}`}
-                entries={worlds.map((world) => ({
+                favoritesEnabled={weaverMode}
+                initialSort={weaverMode ? 'recent' : 'az'}
+                entries={orderedLauncherWorlds.map((world) => ({
                   id: world.id,
                   name: world.name,
                   kicker: world.orphaned ? 'Orphaned World' : 'World',
@@ -85,6 +132,10 @@ export default async function WorldSelectionPage({
                   href: `/world/${world.id}/campaign?mode=${mode}`,
                   backgroundImage: uiAssets.fallbacks.world,
                   filterValue: world.orphaned ? 'orphaned' : 'standard',
+                  lastUsedAt: weaverMode
+                    ? (world.lastUsedAt?.toISOString() ?? null)
+                    : null,
+                  favorite: weaverMode ? world.pinned : false,
                 }))}
               />
             ) : (
