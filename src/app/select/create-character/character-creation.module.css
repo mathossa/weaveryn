@@ -21,7 +21,7 @@
 .backgroundImage {
   object-fit: cover;
   object-position: center 58%;
-  filter: saturate(1.04) contrast(1.02) brightness(1.01);
+  filter: saturate(1.02) contrast(1.01) brightness(1.04);
   transform: scale(1.002);
 }
 
@@ -29,20 +29,38 @@
   position: absolute;
   inset: 0;
   z-index: -4;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(7, 8, 7, 0.01),
+      rgba(6, 7, 6, 0.08) 72%,
+      rgba(4, 5, 4, 0.28)
+    ),
+    radial-gradient(
+      circle at 23% 75%,
+      rgba(214, 171, 88, 0.08),
+      transparent 31%
+    );
   content: '';
   pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(4, 5, 4, 0.08), rgba(4, 5, 4, 0.02) 42%, rgba(4, 5, 4, 0.42) 72%, rgba(3, 4, 3, 0.68)),
-    linear-gradient(180deg, rgba(4, 5, 4, 0.02), rgba(4, 5, 4, 0.08) 70%, rgba(3, 4, 3, 0.42));
 }
 
 .stage::after {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
   z-index: -3;
+  width: 35.15625%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(7, 8, 7, 0.08) 18%,
+    rgba(5, 6, 5, 0.2) 58%,
+    rgba(4, 5, 4, 0.34)
+  );
   content: '';
   pointer-events: none;
-  background: radial-gradient(circle at 28% 72%, rgba(221, 171, 82, 0.1), transparent 30%);
 }
 
 .backLink {
@@ -73,78 +91,65 @@
   color: #ffe0a0;
 }
 
+.desktopComposition {
+  --launcher-scale: 1;
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  width: 2560px;
+  height: 1276px;
+  transform: translate(-50%, -50%) scale(var(--launcher-scale));
+  transform-origin: center center;
+}
+
 .heroArtwork {
   position: absolute;
-  bottom: -3.5%;
-  left: clamp(3rem, 7vw, 11rem);
+  bottom: calc(-2.5% + 28px);
+  left: 160px;
   z-index: 1;
-  width: clamp(360px, 40vw, 760px);
-  height: 88%;
+  width: 580px;
+  height: 82%;
   pointer-events: none;
+  transform: translateX(250px);
 }
 
 .heroImage {
   object-fit: contain;
   object-position: left bottom;
-  filter: drop-shadow(0 1.5rem 2rem rgba(0, 0, 0, 0.52));
-}
-
-.characterCaption {
-  position: absolute;
-  bottom: clamp(2.2rem, 5vh, 5rem);
-  left: clamp(2rem, 7vw, 8rem);
-  z-index: 3;
-  display: grid;
-  gap: 0.15rem;
-  max-width: 32vw;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
-}
-
-.characterCaption span {
-  color: rgba(226, 185, 102, 0.82);
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.characterCaption strong {
-  overflow-wrap: anywhere;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(1.55rem, 2.2vw, 2.5rem);
-  font-weight: 600;
+  filter: drop-shadow(0 1.1rem 1.5rem rgba(0, 0, 0, 0.42));
 }
 
 .panelShell {
   position: absolute;
   top: 50%;
-  right: clamp(4rem, 8vw, 11rem);
+  right: 104px;
   z-index: 5;
-  width: min(42vw, 690px);
+  width: 700px;
   transform: translateY(-50%);
 }
 
 .panel {
   position: relative;
-  min-height: 590px;
-  max-height: calc(100dvh - 100px);
+  box-sizing: border-box;
+  min-height: 700px;
+  max-height: 1120px;
   overflow: hidden;
-  border: 1px solid rgba(206, 157, 68, 0.35);
-  padding: clamp(1.5rem, 2.4vw, 2.5rem);
+  border: 42px solid transparent;
+  border-image-source: url('/images/ui/frames/gold-rect-frame.png');
+  border-image-slice: 180;
+  border-image-width: 42px;
+  border-image-repeat: stretch;
+  padding: 18px 26px 24px;
   background:
-    linear-gradient(rgba(8, 8, 7, 0.88), rgba(7, 7, 6, 0.93)),
-    url('/images/ui/textures/black-gold-veins.webp') center / cover;
+    linear-gradient(rgba(5, 6, 5, 0.9), rgba(4, 5, 4, 0.95)),
+    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
+  background-clip: padding-box;
   box-shadow:
     0 28px 70px rgba(0, 0, 0, 0.48),
     inset 0 0 35px rgba(212, 162, 69, 0.035);
   backdrop-filter: blur(8px);
-}
-
-.panelFrame {
-  z-index: 0;
-  object-fit: fill;
-  opacity: 0.78;
-  pointer-events: none;
 }
 
 .identityForm,
@@ -174,7 +179,7 @@
   margin: 0;
   color: #f6ead2;
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(1.85rem, 2.2vw, 2.7rem);
+  font-size: 2.55rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   line-height: 1.04;
@@ -216,7 +221,7 @@
   border-radius: 4px;
   outline: none;
   padding: 0.74rem 0.82rem;
-  background: rgba(4, 5, 5, 0.72);
+  background: rgba(4, 5, 5, 0.76);
   color: #f2eadc;
   font: inherit;
   box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.34);
@@ -282,46 +287,53 @@
 
 .imagePreviewFrame {
   z-index: 1;
-  object-fit: fill;
+  object-fit: contain;
   pointer-events: none;
 }
 
 .primaryAction {
-  position: relative;
-  display: flex;
-  min-height: 66px;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border: 0;
-  padding: 0 2rem;
+  min-height: 52px;
+  border: 1px solid rgba(223, 181, 95, 0.72);
+  border-radius: 4px;
+  padding: 0 1.25rem;
   background:
-    linear-gradient(rgba(5, 5, 4, 0.3), rgba(5, 5, 4, 0.3)),
-    url('/images/ui/textures/black-gold-veins.webp') center / cover;
+    linear-gradient(rgba(5, 5, 4, 0.68), rgba(5, 5, 4, 0.82)),
+    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
   color: #f6e5bd;
   font: inherit;
-  font-size: 0.92rem;
+  font-size: 0.84rem;
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+  box-shadow: inset 0 0 1rem rgba(0, 0, 0, 0.42);
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    color 140ms ease;
+}
+
+.primaryAction:hover:not(:disabled) {
+  border-color: rgba(244, 202, 114, 0.96);
+  background:
+    linear-gradient(rgba(12, 10, 6, 0.58), rgba(7, 7, 5, 0.76)),
+    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
+  color: #ffe0a0;
+}
+
+.primaryAction:focus-visible,
+.choiceCard:focus-visible,
+.browseButton:focus-visible,
+.secondaryAction:focus-visible,
+.backLink:focus-visible {
+  outline: 2px solid rgba(240, 201, 116, 0.9);
+  outline-offset: 3px;
 }
 
 .primaryAction:disabled {
   cursor: wait;
   opacity: 0.64;
-}
-
-.primaryAction span {
-  position: relative;
-  z-index: 2;
-}
-
-.primaryFrame {
-  z-index: 1;
-  object-fit: fill;
-  pointer-events: none;
 }
 
 .choicePhase {
@@ -349,7 +361,9 @@
   border: 1px solid rgba(215, 169, 81, 0.3);
   border-radius: 4px;
   padding: 0.85rem 0.95rem;
-  background: rgba(4, 5, 5, 0.58);
+  background:
+    linear-gradient(rgba(4, 5, 5, 0.7), rgba(4, 5, 5, 0.78)),
+    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
   color: inherit;
   font: inherit;
   text-align: left;
@@ -362,7 +376,9 @@
 
 .choiceCard:hover:not(:disabled) {
   border-color: rgba(235, 189, 99, 0.68);
-  background: rgba(14, 13, 9, 0.74);
+  background:
+    linear-gradient(rgba(14, 13, 9, 0.72), rgba(8, 8, 6, 0.8)),
+    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
   transform: translateY(-1px);
 }
 
@@ -444,18 +460,6 @@
   line-height: 1.45;
 }
 
-@media (max-width: 1040px) {
-  .heroArtwork {
-    left: 1rem;
-    width: 46vw;
-  }
-
-  .panelShell {
-    right: 3vw;
-    width: 50vw;
-  }
-}
-
 @media (max-width: 760px) {
   .stage {
     min-height: 100dvh;
@@ -474,7 +478,16 @@
 
   .stage::before {
     position: fixed;
-    background: linear-gradient(180deg, rgba(4, 5, 4, 0.16), rgba(3, 4, 3, 0.74) 42%, rgba(3, 4, 3, 0.93) 72%);
+    background: linear-gradient(
+      180deg,
+      rgba(4, 5, 4, 0.16),
+      rgba(3, 4, 3, 0.74) 42%,
+      rgba(3, 4, 3, 0.93) 72%
+    );
+  }
+
+  .stage::after {
+    display: none;
   }
 
   .backLink {
@@ -485,6 +498,10 @@
     font-size: 10px;
   }
 
+  .desktopComposition {
+    display: contents;
+  }
+
   .heroArtwork {
     position: relative;
     bottom: auto;
@@ -493,20 +510,11 @@
     height: 42vh;
     min-height: 310px;
     margin: 0 auto -1.5rem;
+    transform: none;
   }
 
   .heroImage {
     object-position: center bottom;
-  }
-
-  .characterCaption {
-    position: relative;
-    bottom: auto;
-    left: auto;
-    z-index: 4;
-    max-width: none;
-    margin: 0 auto 1rem;
-    text-align: center;
   }
 
   .panelShell {
@@ -522,7 +530,13 @@
     min-height: 0;
     max-height: none;
     overflow: visible;
-    padding: 1.35rem 1.1rem;
+    border-width: 24px;
+    border-image-width: 24px;
+    padding: 0.75rem 0.55rem 1rem;
+  }
+
+  .panelHeader h1 {
+    font-size: clamp(1.75rem, 8vw, 2.3rem);
   }
 
   .choicePhase {
@@ -536,10 +550,6 @@
 }
 
 @media (max-width: 430px) {
-  .panelHeader h1 {
-    font-size: 1.75rem;
-  }
-
   .choiceCard {
     grid-template-columns: 1fr;
     gap: 0.45rem;

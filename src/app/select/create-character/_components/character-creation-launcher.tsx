@@ -3,11 +3,20 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useMemo, useState, type FormEvent } from 'react'
+import {
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from 'react'
 import { uiAssets } from '@/lib/ui-assets'
 import { SelectBackgroundParticles } from '../../_components/select-background-particles'
 import { SelectLogoutButton } from '../../_components/select-logout-button'
 import styles from '../character-creation.module.css'
+
+const DESKTOP_COMPOSITION_WIDTH = 2560
+const DESKTOP_COMPOSITION_HEIGHT = 1276
 
 type Phase = 'identity' | 'world' | 'campaign'
 
@@ -56,6 +65,10 @@ function errorMessage(result: unknown, fallback: string) {
   return fallback
 }
 
+function canAttachCharacterToCampaign(campaign: CampaignChoice) {
+  return campaign.status === 'ACTIVE' && campaign.role !== 'SPECTATOR'
+}
+
 async function jsonResult(response: Response): Promise<unknown> {
   return response.json().catch(() => null)
 }
@@ -68,6 +81,8 @@ export function CharacterCreationLauncher({
   targetCampaignId?: string
 }) {
   const router = useRouter()
+  const stageRef = useRef<HTMLElement>(null)
+  const compositionRef = useRef<HTMLDivElement>(null)
   const [phase, setPhase] = useState<Phase>('identity')
   const [name, setName] = useState('')
   const [ancestry, setAncestry] = useState('')
@@ -87,9 +102,43 @@ export function CharacterCreationLauncher({
     [showAllWorlds, worlds],
   )
 
-  const displayName =
-    (createdCharacter?.name ?? name.trim()) || 'Your character'
   const heroSrc = createdCharacter?.image ?? '/images/select/hero/default.webp'
+
+  useLayoutEffect(() => {
+    const stage = stageRef.current
+    const composition = compositionRef.current
+    if (!stage || !composition) return
+
+    const updateCompositionScale = () => {
+      if (window.matchMedia('(max-width: 760px)').matches) {
+        composition.style.removeProperty('--launcher-scale')
+        return
+      }
+
+      const { width, height } = stage.getBoundingClientRect()
+      if (width <= 0 || height <= 0) return
+
+      const scale = Math.min(
+        width / DESKTOP_COMPOSITION_WIDTH,
+        height / DESKTOP_COMPOSITION_HEIGHT,
+      )
+      composition.style.setProperty('--launcher-scale', String(scale))
+    }
+
+    updateCompositionScale()
+    window.addEventListener('resize', updateCompositionScale)
+
+    const resizeObserver =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(updateCompositionScale)
+    resizeObserver?.observe(stage)
+
+    return () => {
+      window.removeEventListener('resize', updateCompositionScale)
+      resizeObserver?.disconnect()
+    }
+  }, [])
 
   async function attachCampaign(
     nextWorldCharacterId: string,
@@ -172,15 +221,17 @@ export function CharacterCreationLauncher({
       return
     }
 
-    const playerCampaigns = campaignResult.campaigns.filter(
-      (campaign) => campaign.role === 'PLAYER' && campaign.status === 'ACTIVE',
+    const eligibleCampaigns = campaignResult.campaigns.filter(
+      canAttachCharacterToCampaign,
     )
-    setCampaigns(playerCampaigns)
+    setCampaigns(eligibleCampaigns)
     setPhase('campaign')
     setPendingAction(null)
 
     const preferredCampaign = preferredCampaignId
-      ? playerCampaigns.find((campaign) => campaign.id === preferredCampaignId)
+      ? eligibleCampaigns.find(
+          (campaign) => campaign.id === preferredCampaignId,
+        )
       : undefined
     if (preferredCampaign) {
       await attachCampaign(nextWorldCharacterId, world.id, preferredCampaign)
@@ -244,7 +295,11 @@ export function CharacterCreationLauncher({
   }
 
   return (
-    <section className={styles.stage} aria-label="Create a Character">
+    <section
+      ref={stageRef}
+      className={styles.stage}
+      aria-label="Create a Character"
+    >
       <div className={styles.background} aria-hidden="true">
         <Image
           src={uiAssets.select.backgroundDesktop.src}
@@ -263,250 +318,247 @@ export function CharacterCreationLauncher({
         <span aria-hidden="true">←</span> Back
       </Link>
 
-      <div className={styles.heroArtwork} aria-hidden="true">
-        <Image
-          src={heroSrc}
-          alt=""
-          fill
-          priority
-          sizes="(max-width: 760px) 76vw, 43vw"
-          className={styles.heroImage}
-        />
-      </div>
-
-      <div className={styles.characterCaption} aria-hidden="true">
-        <span>{phase === 'identity' ? 'A new thread' : 'Character created'}</span>
-        <strong>{displayName}</strong>
-      </div>
-
-      <div className={styles.panelShell}>
-        <div className={styles.panel}>
+      <div ref={compositionRef} className={styles.desktopComposition}>
+        <div className={styles.heroArtwork} aria-hidden="true">
           <Image
-            src={uiAssets.ui.frames.goldRect}
+            src={heroSrc}
             alt=""
             fill
-            sizes="700px"
-            className={styles.panelFrame}
+            priority
+            sizes="(max-width: 760px) 76vw, 580px"
+            className={styles.heroImage}
           />
+        </div>
 
-          {phase === 'identity' ? (
-            <form className={styles.identityForm} onSubmit={submitIdentity}>
-              <div className={styles.panelHeader}>
-                <span className={styles.eyebrow}>A new thread</span>
-                <h1>Create Character</h1>
-                <p>Every story begins with someone.</p>
-              </div>
+        <div className={styles.panelShell}>
+          <div className={styles.panel}>
+            {phase === 'identity' ? (
+              <form className={styles.identityForm} onSubmit={submitIdentity}>
+                <div className={styles.panelHeader}>
+                  <span className={styles.eyebrow}>A new thread</span>
+                  <h1>Create Character</h1>
+                  <p>Every story begins with someone.</p>
+                </div>
 
-              <div className={styles.field}>
-                <label htmlFor="character-name">Name</label>
-                <input
-                  id="character-name"
-                  name="name"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  required
-                  maxLength={120}
-                  autoFocus
-                  placeholder="Who are they called?"
-                />
-              </div>
-
-              <div className={styles.field}>
-                <label htmlFor="character-ancestry">
-                  Ancestry / Species <span>Optional</span>
-                </label>
-                <input
-                  id="character-ancestry"
-                  name="ancestry"
-                  value={ancestry}
-                  onChange={(event) => setAncestry(event.target.value)}
-                  maxLength={120}
-                  placeholder="Human, Goblin, Elf, Android…"
-                />
-                <small>Use whatever term fits this character and their stories.</small>
-              </div>
-
-              <div className={styles.field}>
-                <label htmlFor="character-description">
-                  Description <span>Optional</span>
-                </label>
-                <textarea
-                  id="character-description"
-                  name="description"
-                  value={description}
-                  onChange={(event) => setDescription(event.target.value)}
-                  maxLength={1200}
-                  rows={4}
-                  placeholder="Who are they? A traveller, a scholar, a thief, a hero?"
-                />
-              </div>
-
-              <div className={styles.imageField}>
-                <div className={styles.imagePreview} aria-hidden="true">
-                  <Image
-                    src={uiAssets.fallbacks.character}
-                    alt=""
-                    fill
-                    sizes="88px"
-                    className={styles.imagePreviewImage}
-                  />
-                  <Image
-                    src={uiAssets.ui.frames.goldCircle}
-                    alt=""
-                    fill
-                    sizes="96px"
-                    className={styles.imagePreviewFrame}
+                <div className={styles.field}>
+                  <label htmlFor="character-name">Name</label>
+                  <input
+                    id="character-name"
+                    name="name"
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    required
+                    maxLength={120}
+                    autoFocus
+                    placeholder="Who are they called?"
                   />
                 </div>
-                <div>
-                  <span className={styles.imageLabel}>Character image</span>
-                  <strong>Use placeholder for now</strong>
+
+                <div className={styles.field}>
+                  <label htmlFor="character-ancestry">
+                    Ancestry / Species <span>Optional</span>
+                  </label>
+                  <input
+                    id="character-ancestry"
+                    name="ancestry"
+                    value={ancestry}
+                    onChange={(event) => setAncestry(event.target.value)}
+                    maxLength={120}
+                    placeholder="Human, Goblin, Elf, Android…"
+                  />
                   <small>
-                    Artwork can be replaced later; the character always has a visual identity.
+                    Use whatever term fits this character and their stories.
                   </small>
                 </div>
-              </div>
 
-              {error ? <p className={styles.error}>{error}</p> : null}
+                <div className={styles.field}>
+                  <label htmlFor="character-description">
+                    Description <span>Optional</span>
+                  </label>
+                  <textarea
+                    id="character-description"
+                    name="description"
+                    value={description}
+                    onChange={(event) => setDescription(event.target.value)}
+                    maxLength={1200}
+                    rows={4}
+                    placeholder="Who are they? A traveller, a scholar, a thief, a hero?"
+                  />
+                </div>
 
-              <button
-                className={styles.primaryAction}
-                disabled={Boolean(pendingAction)}
-                type="submit"
-              >
-                <Image
-                  src={uiAssets.ui.frames.goldPrimaryAction}
-                  alt=""
-                  fill
-                  sizes="620px"
-                  className={styles.primaryFrame}
-                />
-                <span>
-                  {pendingAction === 'create' ? 'Creating…' : 'Create Character'}
-                </span>
-              </button>
-            </form>
-          ) : phase === 'world' ? (
-            <div className={styles.choicePhase}>
-              <div className={styles.panelHeader}>
-                <span className={styles.eyebrow}>The first crossing</span>
-                <h1>Where will {createdCharacter?.name}&apos;s story begin?</h1>
-                <p>Bring this character into a World, or keep them for another day.</p>
-              </div>
-
-              <div
-                className={`${styles.choiceList} ${showAllWorlds ? styles.choiceListScrollable : ''}`}
-              >
-                {visibleWorlds.length > 0 ? (
-                  visibleWorlds.map((world) => (
-                    <button
-                      key={world.id}
-                      className={styles.choiceCard}
-                      type="button"
-                      disabled={Boolean(pendingAction)}
-                      onClick={() =>
-                        createdCharacter
-                          ? void attachWorld(createdCharacter.id, world)
-                          : undefined
-                      }
-                    >
-                      <span>
-                        <strong>{world.name}</strong>
-                        <small>A world this character can enter</small>
-                      </span>
-                      <span className={styles.choiceAction}>
-                        {pendingAction === `world:${world.id}`
-                          ? 'Entering…'
-                          : 'Enter World'}
-                      </span>
-                    </button>
-                  ))
-                ) : (
-                  <div className={styles.emptyState}>
-                    <strong>No Worlds are available yet.</strong>
-                    <p>Your Character is safe and can enter a World later.</p>
+                <div className={styles.imageField}>
+                  <div className={styles.imagePreview} aria-hidden="true">
+                    <Image
+                      src={uiAssets.fallbacks.character}
+                      alt=""
+                      fill
+                      sizes="88px"
+                      className={styles.imagePreviewImage}
+                    />
+                    <Image
+                      src={uiAssets.ui.frames.goldCircle}
+                      alt=""
+                      fill
+                      sizes="96px"
+                      className={styles.imagePreviewFrame}
+                    />
                   </div>
-                )}
-              </div>
+                  <div>
+                    <span className={styles.imageLabel}>Character image</span>
+                    <strong>Use placeholder for now</strong>
+                    <small>
+                      Artwork can be replaced later; the character always has a
+                      visual identity.
+                    </small>
+                  </div>
+                </div>
 
-              {worlds.length > 3 ? (
+                {error ? <p className={styles.error}>{error}</p> : null}
+
                 <button
-                  className={styles.browseButton}
-                  type="button"
-                  onClick={() => setShowAllWorlds((value) => !value)}
+                  className={styles.primaryAction}
+                  disabled={Boolean(pendingAction)}
+                  type="submit"
                 >
-                  {showAllWorlds ? 'Show featured Worlds' : 'Browse all Worlds'}
+                  {pendingAction === 'create'
+                    ? 'Creating…'
+                    : 'Create Character'}
                 </button>
-              ) : null}
+              </form>
+            ) : phase === 'world' ? (
+              <div className={styles.choicePhase}>
+                <div className={styles.panelHeader}>
+                  <span className={styles.eyebrow}>The first crossing</span>
+                  <h1>
+                    Where will {createdCharacter?.name}&apos;s story begin?
+                  </h1>
+                  <p>
+                    Bring this character into a World, or keep them for another
+                    day.
+                  </p>
+                </div>
 
-              {error ? <p className={styles.error}>{error}</p> : null}
+                <div
+                  className={`${styles.choiceList} ${showAllWorlds ? styles.choiceListScrollable : ''}`}
+                >
+                  {visibleWorlds.length > 0 ? (
+                    visibleWorlds.map((world) => (
+                      <button
+                        key={world.id}
+                        className={styles.choiceCard}
+                        type="button"
+                        disabled={Boolean(pendingAction)}
+                        onClick={() =>
+                          createdCharacter
+                            ? void attachWorld(createdCharacter.id, world)
+                            : undefined
+                        }
+                      >
+                        <span>
+                          <strong>{world.name}</strong>
+                          <small>A world this character can enter</small>
+                        </span>
+                        <span className={styles.choiceAction}>
+                          {pendingAction === `world:${world.id}`
+                            ? 'Entering…'
+                            : 'Enter World'}
+                        </span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className={styles.emptyState}>
+                      <strong>No Worlds are available yet.</strong>
+                      <p>Your Character is safe and can enter a World later.</p>
+                    </div>
+                  )}
+                </div>
 
-              <button
-                className={styles.secondaryAction}
-                type="button"
-                onClick={() => router.push('/select')}
-              >
-                Keep character for later
-              </button>
-            </div>
-          ) : (
-            <div className={styles.choicePhase}>
-              <div className={styles.panelHeader}>
-                <span className={styles.eyebrow}>{selectedWorld?.name}</span>
-                <h1>Which campaign calls to {createdCharacter?.name}?</h1>
-                <p>
-                  The character is now part of this World. Choose an active Campaign to enter.
-                </p>
+                {worlds.length > 3 ? (
+                  <button
+                    className={styles.browseButton}
+                    type="button"
+                    onClick={() => setShowAllWorlds((value) => !value)}
+                  >
+                    {showAllWorlds
+                      ? 'Show featured Worlds'
+                      : 'Browse all Worlds'}
+                  </button>
+                ) : null}
+
+                {error ? <p className={styles.error}>{error}</p> : null}
+
+                <button
+                  className={styles.secondaryAction}
+                  type="button"
+                  onClick={() => router.push('/select')}
+                >
+                  Keep character for later
+                </button>
               </div>
+            ) : (
+              <div className={styles.choicePhase}>
+                <div className={styles.panelHeader}>
+                  <span className={styles.eyebrow}>{selectedWorld?.name}</span>
+                  <h1>Which campaign calls to {createdCharacter?.name}?</h1>
+                  <p>
+                    The character is now part of this World. Choose an active
+                    Campaign to enter.
+                  </p>
+                </div>
 
-              <div className={styles.choiceList}>
-                {campaigns.length > 0 && worldCharacterId && selectedWorld ? (
-                  campaigns.map((campaign) => (
-                    <button
-                      key={campaign.id}
-                      className={styles.choiceCard}
-                      type="button"
-                      disabled={Boolean(pendingAction)}
-                      onClick={() =>
-                        void attachCampaign(
-                          worldCharacterId,
-                          selectedWorld.id,
-                          campaign,
-                        )
-                      }
-                    >
-                      <span>
-                        <strong>{campaign.name}</strong>
-                        <small>Active campaign</small>
-                      </span>
-                      <span className={styles.choiceAction}>
-                        {pendingAction === `campaign:${campaign.id}`
-                          ? 'Joining…'
-                          : 'Enter Campaign'}
-                      </span>
-                    </button>
-                  ))
-                ) : (
-                  <div className={styles.emptyState}>
-                    <strong>No player Campaign is waiting here yet.</strong>
-                    <p>
-                      {createdCharacter?.name} remains in {selectedWorld?.name ?? 'this World'} and can join a Campaign later.
-                    </p>
-                  </div>
-                )}
+                <div className={styles.choiceList}>
+                  {campaigns.length > 0 &&
+                  worldCharacterId &&
+                  selectedWorld ? (
+                    campaigns.map((campaign) => (
+                      <button
+                        key={campaign.id}
+                        className={styles.choiceCard}
+                        type="button"
+                        disabled={Boolean(pendingAction)}
+                        onClick={() =>
+                          void attachCampaign(
+                            worldCharacterId,
+                            selectedWorld.id,
+                            campaign,
+                          )
+                        }
+                      >
+                        <span>
+                          <strong>{campaign.name}</strong>
+                          <small>Active campaign</small>
+                        </span>
+                        <span className={styles.choiceAction}>
+                          {pendingAction === `campaign:${campaign.id}`
+                            ? 'Joining…'
+                            : 'Enter Campaign'}
+                        </span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className={styles.emptyState}>
+                      <strong>No Campaign is available to join here yet.</strong>
+                      <p>
+                        {createdCharacter?.name} remains in{' '}
+                        {selectedWorld?.name ?? 'this World'} and can join a
+                        Campaign later.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {error ? <p className={styles.error}>{error}</p> : null}
+
+                <button
+                  className={styles.secondaryAction}
+                  type="button"
+                  onClick={() => router.push('/select')}
+                >
+                  Finish for now
+                </button>
               </div>
-
-              {error ? <p className={styles.error}>{error}</p> : null}
-
-              <button
-                className={styles.secondaryAction}
-                type="button"
-                onClick={() => router.push('/select')}
-              >
-                Finish for now
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </section>
