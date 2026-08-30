@@ -198,7 +198,12 @@ export function JoinInviteForm({
 
   useEffect(() => {
     if (!initialToken) return
-    void reviewToken(initialToken)
+
+    const timeoutId = window.setTimeout(() => {
+      void reviewToken(initialToken)
+    }, 0)
+
+    return () => window.clearTimeout(timeoutId)
   }, [initialToken, reviewToken])
 
   useEffect(() => {
