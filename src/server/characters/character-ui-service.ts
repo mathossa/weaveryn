@@ -1,3 +1,4 @@
+import { portableCharacterIdentity } from '@/lib/portable-character-identity'
 import {
   normalizeWorldCharacterCustomFields,
   normalizeWorldCharacterProfile,
@@ -325,7 +326,9 @@ export async function getWorldCharacterOverview(
       worldData: true,
       status: true,
       worldEntity: { select: { id: true } },
-      character: { select: { id: true, name: true, image: true } },
+      character: {
+        select: { id: true, name: true, image: true, coreData: true },
+      },
       _count: { select: { campaignCharacters: true } },
       entryPreferences: {
         where: {
@@ -445,20 +448,32 @@ export async function getWorldCharacterOverview(
     orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
   })
 
+  const profile = normalizeWorldCharacterProfile(worldCharacter.worldData)
+  const portableIdentity = portableCharacterIdentity(
+    worldCharacter.character.coreData,
+  )
+  if (!profile.values.whoIs && portableIdentity.description) {
+    profile.values.whoIs = portableIdentity.description
+  }
+
   return {
     id: worldCharacter.id,
     nameOverride: worldCharacter.nameOverride,
     displayName: worldCharacter.nameOverride ?? worldCharacter.character.name,
     status: worldCharacter.status,
     worldEntityId: worldCharacter.worldEntity?.id ?? null,
-    character: worldCharacter.character,
+    character: {
+      id: worldCharacter.character.id,
+      name: worldCharacter.character.name,
+      image: worldCharacter.character.image,
+    },
     world: {
       id: worldCharacter.world.id,
       name: worldCharacter.world.name,
     },
     canEditWorldIdentity,
     hasCampaignParticipation: worldCharacter._count.campaignCharacters > 0,
-    profile: normalizeWorldCharacterProfile(worldCharacter.worldData),
+    profile,
     customFields: normalizeWorldCharacterCustomFields(worldCharacter.worldData),
     recentCampaignId: worldCharacter.entryPreferences[0]?.campaignId ?? null,
     participations: worldCharacter.campaignCharacters.map((participation) => ({

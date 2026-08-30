@@ -2,7 +2,11 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
-import { getPortableCharacterOverview } from '@/server/characters'
+import { portableCharacterIdentity } from '@/lib/portable-character-identity'
+import {
+  characterService,
+  getPortableCharacterOverview,
+} from '@/server/characters'
 import { AddToWorldButton } from '../../_components/add-to-world-button'
 import { CharacterForm } from '../../_components/character-form'
 import { CharacterPortrait } from '../../_components/character-portrait'
@@ -26,9 +30,13 @@ export default async function PortableCharacterPage({
     searchParams,
     loadCharacterPageUser(),
   ])
-  const character = await getPortableCharacterOverview(characterId, user.id)
-  if (!character) notFound()
+  const [character, characterRecord] = await Promise.all([
+    getPortableCharacterOverview(characterId, user.id),
+    characterService.loadCharacter(characterId, user.id),
+  ])
+  if (!character || !characterRecord) notFound()
 
+  const identity = portableCharacterIdentity(characterRecord.coreData)
   const targetWorldId =
     typeof query.world === 'string' ? query.world : undefined
   const targetCampaignId =
@@ -99,6 +107,18 @@ export default async function PortableCharacterPage({
                 image={character.image}
                 name={character.name}
               />
+              {identity.ancestry ? (
+                <p className={styles.meta}>
+                  <strong>Ancestry / Species:</strong> {identity.ancestry}
+                </p>
+              ) : null}
+              {identity.description ? (
+                <p>{identity.description}</p>
+              ) : (
+                <p className={styles.meta}>
+                  No description has been added yet.
+                </p>
+              )}
               <CharacterForm
                 mode="edit"
                 characterId={character.id}

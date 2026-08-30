@@ -1,4 +1,9 @@
 import { randomUUID } from 'node:crypto'
+import { portableCharacterIdentity } from '@/lib/portable-character-identity'
+import {
+  mergeWorldCharacterProfile,
+  normalizeWorldCharacterProfile,
+} from '@/lib/world-character-profile'
 import { prisma } from '@/lib/prisma'
 import { WorldDomainError } from '../worlds/world-errors'
 import {
@@ -148,13 +153,28 @@ export class CharacterService {
         input.worldId,
       )
 
+      let worldData = input.worldData
+      const portableIdentity = portableCharacterIdentity(character.coreData)
+      if (portableIdentity.description) {
+        const profile = normalizeWorldCharacterProfile(worldData)
+        if (!profile.values.whoIs) {
+          worldData = mergeWorldCharacterProfile(worldData, {
+            ...profile,
+            values: {
+              ...profile.values,
+              whoIs: portableIdentity.description,
+            },
+          })
+        }
+      }
+
       try {
         const worldCharacter = await repository.createWorldCharacter({
           id: this.createId(),
           characterId: input.characterId,
           worldId: input.worldId,
           nameOverride: input.nameOverride,
-          worldData: input.worldData,
+          worldData,
         })
         await repository.createWorldCharacterEntity(
           worldCharacter.id,

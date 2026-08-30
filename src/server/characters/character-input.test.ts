@@ -13,6 +13,20 @@ describe('character input', () => {
     })
   })
 
+  it('normalizes portable Character identity details', () => {
+    expect(
+      parseCreateCharacterInput({
+        name: '  Martyn  ',
+        ancestry: '  Human  ',
+        description: '  A wandering cartographer.  ',
+      }),
+    ).toEqual({
+      name: 'Martyn',
+      ancestry: 'Human',
+      description: 'A wandering cartographer.',
+    })
+  })
+
   it('rejects missing portable Character names', () => {
     expect(() => parseCreateCharacterInput({ name: '   ' })).toThrow(
       'Character name is required.',

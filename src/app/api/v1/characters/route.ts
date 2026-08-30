@@ -27,6 +27,10 @@ export async function POST(request: Request) {
     const character = await characterService.createCharacter({
       ownerUserId: user.id,
       name: input.name,
+      coreData: {
+        description: input.description ?? null,
+        ancestry: input.ancestry ?? null,
+      },
     })
     return NextResponse.json({ character }, { status: 201 })
   } catch (error) {
