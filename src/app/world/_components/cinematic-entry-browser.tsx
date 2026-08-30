@@ -6,6 +6,7 @@ import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import campaignStyles from '../[worldId]/campaign/weaver-campaign-selector.module.css'
 import worldStyles from '../weaver-world-selector.module.css'
 import styles from './cinematic-entry-browser.module.css'
+import { WeaverFavoriteButton } from './weaver-favorite-button'
 
 type WeaverTracking = {
   kind: 'WEAVER'
@@ -14,6 +15,11 @@ type WeaverTracking = {
 }
 
 type BrowserSortMode = 'recent' | 'az' | 'za'
+
+type FavoriteTarget = {
+  worldId: string
+  campaignId?: string | null
+}
 
 export interface CinematicBrowserEntry {
   id: string
@@ -25,6 +31,7 @@ export interface CinematicBrowserEntry {
   filterValue: string
   lastUsedAt?: string | null
   favorite?: boolean
+  favoriteTarget?: FavoriteTarget
   tracking?: WeaverTracking
 }
 
@@ -87,12 +94,8 @@ export function CinematicEntryBrowser({
       })
       .sort((left, right) => {
         if (sort === 'recent') {
-          const leftRecent = left.lastUsedAt
-            ? Date.parse(left.lastUsedAt)
-            : 0
-          const rightRecent = right.lastUsedAt
-            ? Date.parse(right.lastUsedAt)
-            : 0
+          const leftRecent = left.lastUsedAt ? Date.parse(left.lastUsedAt) : 0
+          const rightRecent = right.lastUsedAt ? Date.parse(right.lastUsedAt) : 0
           if (leftRecent !== rightRecent) return rightRecent - leftRecent
         }
 
@@ -211,28 +214,41 @@ export function CinematicEntryBrowser({
           ) : (
             <div className={`${gridClass} ${styles.browserGrid}`}>
               {visibleEntries.map((entry) => (
-                <TrackedEntryLink
+                <div
                   key={entry.id}
-                  className={cardClass}
-                  href={entry.href}
-                  tracking={entry.tracking}
-                  style={{
-                    backgroundImage: `url(${entry.backgroundImage})`,
-                    minHeight: kind === 'world' ? '18rem' : '17rem',
-                  }}
+                  style={{ position: 'relative', minWidth: 0 }}
                 >
-                  <span className={cardStyles.cardCopy}>
-                    <span className={cardStyles.cardKicker}>
-                      {entry.kicker}
+                  <TrackedEntryLink
+                    className={cardClass}
+                    href={entry.href}
+                    tracking={entry.tracking}
+                    style={{
+                      backgroundImage: `url(${entry.backgroundImage})`,
+                      minHeight: kind === 'world' ? '18rem' : '17rem',
+                    }}
+                  >
+                    <span className={cardStyles.cardCopy}>
+                      <span className={cardStyles.cardKicker}>
+                        {entry.kicker}
+                      </span>
+                      <strong>{entry.name}</strong>
+                      <span className={cardStyles.meta}>{entry.meta}</span>
+                      <span className={cardStyles.cardAction}>
+                        <span>{actionLabel}</span>
+                        <span aria-hidden="true">›</span>
+                      </span>
                     </span>
-                    <strong>{entry.name}</strong>
-                    <span className={cardStyles.meta}>{entry.meta}</span>
-                    <span className={cardStyles.cardAction}>
-                      <span>{actionLabel}</span>
-                      <span aria-hidden="true">›</span>
-                    </span>
-                  </span>
-                </TrackedEntryLink>
+                  </TrackedEntryLink>
+
+                  {entry.favoriteTarget ? (
+                    <WeaverFavoriteButton
+                      worldId={entry.favoriteTarget.worldId}
+                      campaignId={entry.favoriteTarget.campaignId}
+                      pinned={Boolean(entry.favorite)}
+                      label={kind === 'world' ? 'World' : 'Campaign'}
+                    />
+                  ) : null}
+                </div>
               ))}
             </div>
           )}
