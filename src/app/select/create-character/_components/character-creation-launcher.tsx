@@ -69,6 +69,15 @@ function canAttachCharacterToCampaign(campaign: CampaignChoice) {
   return campaign.status === 'ACTIVE' && campaign.role !== 'SPECTATOR'
 }
 
+function prioritizeById<T extends { id: string }>(items: T[], preferredId?: string) {
+  if (!preferredId) return items
+  return [...items].sort((left, right) => {
+    if (left.id === preferredId) return -1
+    if (right.id === preferredId) return 1
+    return 0
+  })
+}
+
 async function jsonResult(response: Response): Promise<unknown> {
   return response.json().catch(() => null)
 }
@@ -171,11 +180,7 @@ export function CharacterCreationLauncher({
     )
   }
 
-  async function attachWorld(
-    characterId: string,
-    world: WorldChoice,
-    preferredCampaignId?: string,
-  ) {
+  async function attachWorld(characterId: string, world: WorldChoice) {
     setPendingAction(`world:${world.id}`)
     setError(null)
 
@@ -221,21 +226,13 @@ export function CharacterCreationLauncher({
       return
     }
 
-    const eligibleCampaigns = campaignResult.campaigns.filter(
-      canAttachCharacterToCampaign,
+    const eligibleCampaigns = prioritizeById(
+      campaignResult.campaigns.filter(canAttachCharacterToCampaign),
+      targetCampaignId,
     )
     setCampaigns(eligibleCampaigns)
     setPhase('campaign')
     setPendingAction(null)
-
-    const preferredCampaign = preferredCampaignId
-      ? eligibleCampaigns.find(
-          (campaign) => campaign.id === preferredCampaignId,
-        )
-      : undefined
-    if (preferredCampaign) {
-      await attachCampaign(nextWorldCharacterId, world.id, preferredCampaign)
-    }
   }
 
   async function submitIdentity(event: FormEvent<HTMLFormElement>) {
@@ -281,17 +278,9 @@ export function CharacterCreationLauncher({
       return
     }
 
-    const nextWorlds = worldResult?.worlds ?? []
-    setWorlds(nextWorlds)
+    setWorlds(prioritizeById(worldResult?.worlds ?? [], targetWorldId))
     setPhase('world')
     setPendingAction(null)
-
-    if (targetWorldId) {
-      const targetWorld = nextWorlds.find((world) => world.id === targetWorldId)
-      if (targetWorld) {
-        await attachWorld(character.id, targetWorld, targetCampaignId)
-      }
-    }
   }
 
   return (
@@ -456,7 +445,11 @@ export function CharacterCreationLauncher({
                       >
                         <span>
                           <strong>{world.name}</strong>
-                          <small>A world this character can enter</small>
+                          <small>
+                            {world.id === targetWorldId
+                              ? 'Suggested destination'
+                              : 'A world this character can enter'}
+                          </small>
                         </span>
                         <span className={styles.choiceAction}>
                           {pendingAction === `world:${world.id}`
@@ -526,7 +519,11 @@ export function CharacterCreationLauncher({
                       >
                         <span>
                           <strong>{campaign.name}</strong>
-                          <small>Active campaign</small>
+                          <small>
+                            {campaign.id === targetCampaignId
+                              ? 'Suggested campaign'
+                              : 'Active campaign'}
+                          </small>
                         </span>
                         <span className={styles.choiceAction}>
                           {pendingAction === `campaign:${campaign.id}`

@@ -106,7 +106,7 @@
 
 .heroArtwork {
   position: absolute;
-  bottom: calc(-2.5% + 28px);
+  bottom: calc(-2.5% + 48px);
   left: 160px;
   z-index: 1;
   width: 580px;
@@ -136,20 +136,18 @@
   min-height: 700px;
   max-height: 1120px;
   overflow: hidden;
-  border: 42px solid transparent;
+  border: 32px solid transparent;
   border-image-source: url('/images/ui/frames/gold-rect-frame.png');
   border-image-slice: 180;
-  border-image-width: 42px;
+  border-image-width: 32px;
+  border-image-outset: 0;
   border-image-repeat: stretch;
-  padding: 18px 26px 24px;
+  padding: 24px 30px 30px;
   background:
-    linear-gradient(rgba(5, 6, 5, 0.9), rgba(4, 5, 4, 0.95)),
+    linear-gradient(rgba(4, 5, 4, 0.36), rgba(3, 4, 3, 0.5)),
     url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
-  background-clip: padding-box;
-  box-shadow:
-    0 28px 70px rgba(0, 0, 0, 0.48),
-    inset 0 0 35px rgba(212, 162, 69, 0.035);
-  backdrop-filter: blur(8px);
+  background-origin: border-box;
+  background-clip: border-box;
 }
 
 .identityForm,
@@ -221,7 +219,7 @@
   border-radius: 4px;
   outline: none;
   padding: 0.74rem 0.82rem;
-  background: rgba(4, 5, 5, 0.76);
+  background: rgba(4, 5, 5, 0.72);
   color: #f2eadc;
   font: inherit;
   box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.34);
@@ -297,7 +295,7 @@
   border-radius: 4px;
   padding: 0 1.25rem;
   background:
-    linear-gradient(rgba(5, 5, 4, 0.68), rgba(5, 5, 4, 0.82)),
+    linear-gradient(rgba(5, 5, 4, 0.28), rgba(5, 5, 4, 0.42)),
     url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
   color: #f6e5bd;
   font: inherit;
@@ -307,19 +305,17 @@
   text-transform: uppercase;
   cursor: pointer;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
-  box-shadow: inset 0 0 1rem rgba(0, 0, 0, 0.42);
+  box-shadow: inset 0 0 1rem rgba(0, 0, 0, 0.32);
   transition:
     border-color 140ms ease,
-    background 140ms ease,
+    filter 140ms ease,
     color 140ms ease;
 }
 
 .primaryAction:hover:not(:disabled) {
   border-color: rgba(244, 202, 114, 0.96);
-  background:
-    linear-gradient(rgba(12, 10, 6, 0.58), rgba(7, 7, 5, 0.76)),
-    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
   color: #ffe0a0;
+  filter: brightness(1.08);
 }
 
 .primaryAction:focus-visible,
@@ -362,7 +358,7 @@
   border-radius: 4px;
   padding: 0.85rem 0.95rem;
   background:
-    linear-gradient(rgba(4, 5, 5, 0.7), rgba(4, 5, 5, 0.78)),
+    linear-gradient(rgba(4, 5, 5, 0.46), rgba(4, 5, 5, 0.58)),
     url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
   color: inherit;
   font: inherit;
@@ -370,15 +366,13 @@
   cursor: pointer;
   transition:
     border-color 140ms ease,
-    background 140ms ease,
+    filter 140ms ease,
     transform 140ms ease;
 }
 
 .choiceCard:hover:not(:disabled) {
   border-color: rgba(235, 189, 99, 0.68);
-  background:
-    linear-gradient(rgba(14, 13, 9, 0.72), rgba(8, 8, 6, 0.8)),
-    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
+  filter: brightness(1.08);
   transform: translateY(-1px);
 }
 
@@ -414,7 +408,9 @@
   place-content: center;
   border: 1px solid rgba(215, 169, 81, 0.18);
   padding: 1.2rem;
-  background: rgba(4, 5, 5, 0.44);
+  background:
+    linear-gradient(rgba(4, 5, 5, 0.5), rgba(4, 5, 5, 0.62)),
+    url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
   text-align: center;
 }
 
@@ -509,7 +505,7 @@
     width: min(78vw, 390px);
     height: 42vh;
     min-height: 310px;
-    margin: 0 auto -1.5rem;
+    margin: -20px auto -1.5rem;
     transform: none;
   }
 
@@ -530,9 +526,9 @@
     min-height: 0;
     max-height: none;
     overflow: visible;
-    border-width: 24px;
-    border-image-width: 24px;
-    padding: 0.75rem 0.55rem 1rem;
+    border-width: 22px;
+    border-image-width: 22px;
+    padding: 1rem 0.8rem 1.15rem;
   }
 
   .panelHeader h1 {
