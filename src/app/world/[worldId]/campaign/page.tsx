@@ -46,25 +46,29 @@ export default async function CampaignSelectionPage({
   if (!selection) notFound()
   const weaverMode = query.mode === 'weaver'
   const threadwatcherMode = query.mode === 'threadwatcher'
+  const launcherMode = weaverMode || threadwatcherMode
   const campaigns = threadwatcherMode
     ? selection.campaigns.filter((campaign) => campaign.role === 'SPECTATOR')
     : weaverMode
       ? selection.campaigns.filter(canWeaveCampaign)
       : selection.campaigns
-  const showAllWeaverCampaigns = weaverMode && query.show === 'all'
-  const visibleWeaverCampaigns = showAllWeaverCampaigns
+  const showAllLauncherCampaigns = launcherMode && query.show === 'all'
+  const visibleLauncherCampaigns = showAllLauncherCampaigns
     ? campaigns
     : campaigns.slice(0, 3)
 
-  if (weaverMode) {
+  if (launcherMode) {
+    const roleLabel = weaverMode ? 'Weaver' : 'Threadwatcher'
+    const mode = weaverMode ? 'weaver' : 'threadwatcher'
+
     return (
       <AuthenticatedAppShell user={user} variant="launcher">
         <section
           className={weaverStyles.stage}
-          aria-label="Choose a Campaign as Weaver"
-          aria-labelledby="weaver-campaign-title"
+          aria-label={`Choose a Campaign as ${roleLabel}`}
+          aria-labelledby="entry-campaign-title"
           style={
-            showAllWeaverCampaigns
+            showAllLauncherCampaigns
               ? {
                   height: 'calc(100dvh - 2.35rem)',
                   overflowY: 'auto',
@@ -86,7 +90,10 @@ export default async function CampaignSelectionPage({
 
           <div className={weaverStyles.inner}>
             <div className={weaverStyles.topbar}>
-              <Link className={weaverStyles.backLink} href="/world?mode=weaver">
+              <Link
+                className={weaverStyles.backLink}
+                href={`/world?mode=${mode}`}
+              >
                 <span aria-hidden="true">←</span>
                 <span>Choose another World</span>
               </Link>
@@ -94,24 +101,33 @@ export default async function CampaignSelectionPage({
 
             <div className={weaverStyles.intro}>
               <span className={weaverStyles.eyebrow}>
-                Enter as Weaver · {selection.world.name}
+                Enter as {roleLabel} · {selection.world.name}
               </span>
-              <h1 id="weaver-campaign-title">Choose a Campaign</h1>
+              <h1 id="entry-campaign-title">Choose a Campaign</h1>
               <span className={weaverStyles.introRule} aria-hidden="true" />
               <p>
-                Choose the story you want to continue shaping in{' '}
-                {selection.world.name}.
+                {weaverMode
+                  ? `Choose the story you want to continue shaping in ${selection.world.name}.`
+                  : `Choose the story you want to observe in ${selection.world.name}.`}
               </p>
             </div>
 
             {campaigns.length === 0 ? (
               <div className={weaverStyles.emptyState}>
-                <span className={weaverStyles.emptyKicker}>No active weave</span>
-                <strong>No Weaver Campaigns in this World</strong>
+                <span className={weaverStyles.emptyKicker}>
+                  {weaverMode ? 'No active weave' : 'Nothing to observe yet'}
+                </span>
+                <strong>
+                  {weaverMode
+                    ? 'No Weaver Campaigns in this World'
+                    : 'No Threadwatcher Campaigns in this World'}
+                </strong>
                 <p>
-                  You do not currently own or manage a Campaign in this World.
+                  {weaverMode
+                    ? 'You do not currently own or manage a Campaign in this World.'
+                    : 'You do not currently have Threadwatcher access to a Campaign in this World.'}
                 </p>
-                {selection.canCreateCampaign ? (
+                {weaverMode && selection.canCreateCampaign ? (
                   <Link
                     className={weaverStyles.emptyAction}
                     href={`/world/${worldId}/campaign/create`}
@@ -121,7 +137,7 @@ export default async function CampaignSelectionPage({
                 ) : (
                   <Link
                     className={weaverStyles.emptyAction}
-                    href="/world?mode=weaver"
+                    href={`/world?mode=${mode}`}
                   >
                     Choose another World
                   </Link>
@@ -130,16 +146,20 @@ export default async function CampaignSelectionPage({
             ) : (
               <>
                 <div className={weaverStyles.campaignGrid}>
-                  {visibleWeaverCampaigns.map((campaign) => (
+                  {visibleLauncherCampaigns.map((campaign) => (
                     <TrackedEntryLink
                       key={campaign.id}
                       className={weaverStyles.campaignCard}
-                      href={`/world/${worldId}/campaign/${campaign.id}?mode=weaver`}
-                      tracking={{
-                        kind: 'WEAVER',
-                        worldId,
-                        campaignId: campaign.id,
-                      }}
+                      href={`/world/${worldId}/campaign/${campaign.id}?mode=${mode}`}
+                      tracking={
+                        weaverMode
+                          ? {
+                              kind: 'WEAVER',
+                              worldId,
+                              campaignId: campaign.id,
+                            }
+                          : undefined
+                      }
                       style={{
                         backgroundImage: `url(${uiAssets.fallbacks.campaign})`,
                       }}
@@ -157,7 +177,7 @@ export default async function CampaignSelectionPage({
                               : 'Archived Campaign'}
                         </span>
                         <span className={weaverStyles.cardAction}>
-                          <span>Enter as Weaver</span>
+                          <span>Enter as {roleLabel}</span>
                           <span aria-hidden="true">›</span>
                         </span>
                       </span>
@@ -170,13 +190,13 @@ export default async function CampaignSelectionPage({
                     <Link
                       className={actionStyles.browseLink}
                       href={
-                        showAllWeaverCampaigns
-                          ? `/world/${worldId}/campaign?mode=weaver`
-                          : `/world/${worldId}/campaign?mode=weaver&show=all`
+                        showAllLauncherCampaigns
+                          ? `/world/${worldId}/campaign?mode=${mode}`
+                          : `/world/${worldId}/campaign?mode=${mode}&show=all`
                       }
                     >
                       <span>
-                        {showAllWeaverCampaigns
+                        {showAllLauncherCampaigns
                           ? 'Show fewer Campaigns'
                           : `Browse all Campaigns (${campaigns.length})`}
                       </span>
@@ -184,7 +204,7 @@ export default async function CampaignSelectionPage({
                     </Link>
                   ) : null}
 
-                  {selection.canCreateCampaign ? (
+                  {weaverMode && selection.canCreateCampaign ? (
                     <>
                       <span className={actionStyles.alternativeLabel}>
                         Or begin a new story
@@ -219,23 +239,17 @@ export default async function CampaignSelectionPage({
       context={{
         world: {
           label: selection.world.name,
-          href: threadwatcherMode
-            ? '/world?mode=threadwatcher'
-            : `/world/${worldId}`,
+          href: `/world/${worldId}`,
         },
       }}
     >
       <AppPage
-        eyebrow={threadwatcherMode ? 'Threadwatcher' : 'Campaigns'}
+        eyebrow="Campaigns"
         title="Choose a Campaign"
-        description={
-          threadwatcherMode
-            ? `Choose a Campaign in ${selection.world.name} that you can observe as a Threadwatcher.`
-            : `Choose a Campaign you can access in ${selection.world.name}.`
-        }
+        description={`Choose a Campaign you can access in ${selection.world.name}.`}
         wide
         actions={
-          !threadwatcherMode && selection.canCreateCampaign ? (
+          selection.canCreateCampaign ? (
             <Link
               className={styles.secondary}
               href={`/world/${worldId}/campaign/create`}
@@ -248,20 +262,9 @@ export default async function CampaignSelectionPage({
         {campaigns.length === 0 ? (
           <StatusPanel
             tone="empty"
-            title={
-              threadwatcherMode
-                ? 'No Threadwatcher Campaigns in this World'
-                : 'No accessible Campaigns'
-            }
+            title="No accessible Campaigns"
             action={
-              threadwatcherMode ? (
-                <Link
-                  className={styles.secondary}
-                  href="/world?mode=threadwatcher"
-                >
-                  Change World
-                </Link>
-              ) : selection.canCreateCampaign ? (
+              selection.canCreateCampaign ? (
                 <Link
                   className={styles.secondary}
                   href={`/world/${worldId}/campaign/create`}
@@ -271,34 +274,26 @@ export default async function CampaignSelectionPage({
               ) : undefined
             }
           >
-            <p>
-              {threadwatcherMode
-                ? 'You do not currently have Threadwatcher membership in a Campaign hosted by this World.'
-                : 'You do not currently have access to a Campaign in this World.'}
-            </p>
+            <p>You do not currently have access to a Campaign in this World.</p>
           </StatusPanel>
         ) : (
           <div className={styles.grid}>
-            {campaigns.map((campaign) => {
-              const modeQuery = threadwatcherMode ? '?mode=threadwatcher' : ''
-
-              return (
-                <TrackedEntryLink
-                  key={campaign.id}
-                  className={styles.card}
-                  href={`/world/${worldId}/campaign/${campaign.id}${modeQuery}`}
-                >
-                  <span className={styles.badge}>
-                    {campaignRoleLabel(campaign.role)}
-                  </span>
-                  <strong>{campaign.name}</strong>
-                  <span className={styles.meta}>
-                    {campaign.isOwner ? 'Owner · ' : ''}
-                    {campaign.status}
-                  </span>
-                </TrackedEntryLink>
-              )
-            })}
+            {campaigns.map((campaign) => (
+              <TrackedEntryLink
+                key={campaign.id}
+                className={styles.card}
+                href={`/world/${worldId}/campaign/${campaign.id}`}
+              >
+                <span className={styles.badge}>
+                  {campaignRoleLabel(campaign.role)}
+                </span>
+                <strong>{campaign.name}</strong>
+                <span className={styles.meta}>
+                  {campaign.isOwner ? 'Owner · ' : ''}
+                  {campaign.status}
+                </span>
+              </TrackedEntryLink>
+            ))}
           </div>
         )}
       </AppPage>

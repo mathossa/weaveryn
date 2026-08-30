@@ -8,7 +8,8 @@
   color: #f5ead7;
 }
 
-:global(body:has(section[aria-label='Choose a Campaign as Weaver']) header) {
+:global(body:has(section[aria-label='Choose a Campaign as Weaver']) header),
+:global(body:has(section[aria-label='Choose a Campaign as Threadwatcher']) header) {
   display: none !important;
 }
 

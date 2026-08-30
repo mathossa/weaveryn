@@ -26,21 +26,29 @@ export default async function WorldSelectionPage({
   const allWorlds = await listWorldNavigationChoices(user.id)
   const weaverMode = query.mode === 'weaver'
   const threadwatcherMode = query.mode === 'threadwatcher'
+  const launcherMode = weaverMode || threadwatcherMode
   const worlds = weaverMode
     ? allWorlds.filter((world) => world.canWeave)
-    : allWorlds
-  const showAllWeaverWorlds = weaverMode && query.show === 'all'
-  const visibleWeaverWorlds = showAllWeaverWorlds ? worlds : worlds.slice(0, 3)
+    : threadwatcherMode
+      ? allWorlds.filter((world) => world.canThreadwatch)
+      : allWorlds
+  const showAllLauncherWorlds = launcherMode && query.show === 'all'
+  const visibleLauncherWorlds = showAllLauncherWorlds
+    ? worlds
+    : worlds.slice(0, 3)
 
-  if (weaverMode) {
+  if (launcherMode) {
+    const roleLabel = weaverMode ? 'Weaver' : 'Threadwatcher'
+    const mode = weaverMode ? 'weaver' : 'threadwatcher'
+
     return (
       <AuthenticatedAppShell user={user} variant="launcher">
         <section
           className={weaverStyles.stage}
-          aria-label="Choose a World as Weaver"
-          aria-labelledby="weaver-world-title"
+          aria-label={`Choose a World as ${roleLabel}`}
+          aria-labelledby="entry-world-title"
           style={
-            showAllWeaverWorlds
+            showAllLauncherWorlds
               ? {
                   height: 'calc(100dvh - 2.35rem)',
                   overflowY: 'auto',
@@ -69,38 +77,55 @@ export default async function WorldSelectionPage({
             </div>
 
             <div className={weaverStyles.intro}>
-              <span className={weaverStyles.eyebrow}>Enter as Weaver</span>
-              <h1 id="weaver-world-title">Choose a World</h1>
+              <span className={weaverStyles.eyebrow}>Enter as {roleLabel}</span>
+              <h1 id="entry-world-title">Choose a World</h1>
               <span className={weaverStyles.introRule} aria-hidden="true" />
               <p>
-                Choose the World whose threads you want to shape. You will pick
-                a Campaign before entering as Weaver.
+                {weaverMode
+                  ? 'Choose the World whose threads you want to shape. You will pick a Campaign before entering as Weaver.'
+                  : 'Choose the World whose story you want to observe. You will pick a Campaign before entering as Threadwatcher.'}
               </p>
             </div>
 
             {worlds.length === 0 ? (
               <div className={weaverStyles.emptyState}>
-                <span className={weaverStyles.emptyKicker}>No paths yet</span>
-                <strong>No Weaver Worlds available</strong>
+                <span className={weaverStyles.emptyKicker}>
+                  {weaverMode ? 'No paths yet' : 'No paths to observe'}
+                </span>
+                <strong>
+                  {weaverMode
+                    ? 'No Weaver Worlds available'
+                    : 'No Threadwatcher Worlds available'}
+                </strong>
                 <p>
-                  Create a World to begin weaving, or return to entry selection
-                  to join an invitation.
+                  {weaverMode
+                    ? 'Create a World to begin weaving, or return to entry selection to join an invitation.'
+                    : 'Join a Campaign as Threadwatcher to make its World available here.'}
                 </p>
-                <Link
-                  className={weaverStyles.emptyAction}
-                  href="/world/create"
-                >
-                  Create your first World
-                </Link>
+                {weaverMode ? (
+                  <Link
+                    className={weaverStyles.emptyAction}
+                    href="/world/create"
+                  >
+                    Create your first World
+                  </Link>
+                ) : (
+                  <Link
+                    className={weaverStyles.emptyAction}
+                    href="/select/join"
+                  >
+                    Join with invite
+                  </Link>
+                )}
               </div>
             ) : (
               <>
                 <div className={weaverStyles.worldGrid}>
-                  {visibleWeaverWorlds.map((world) => (
+                  {visibleLauncherWorlds.map((world) => (
                     <Link
                       key={world.id}
                       className={weaverStyles.worldCard}
-                      href={`/world/${world.id}/campaign?mode=weaver`}
+                      href={`/world/${world.id}/campaign?mode=${mode}`}
                       style={{
                         backgroundImage: `url(${uiAssets.fallbacks.world})`,
                       }}
@@ -111,7 +136,9 @@ export default async function WorldSelectionPage({
                         </span>
                         <strong>{world.name}</strong>
                         <span className={weaverStyles.meta}>
-                          Choose the Campaign you want to continue weaving.
+                          {weaverMode
+                            ? 'Choose the Campaign you want to continue weaving.'
+                            : 'Choose the Campaign you want to observe.'}
                         </span>
                         <span className={weaverStyles.cardAction}>
                           <span>Choose Campaign</span>
@@ -127,13 +154,13 @@ export default async function WorldSelectionPage({
                     <Link
                       className={actionStyles.browseLink}
                       href={
-                        showAllWeaverWorlds
-                          ? '/world?mode=weaver'
-                          : '/world?mode=weaver&show=all'
+                        showAllLauncherWorlds
+                          ? `/world?mode=${mode}`
+                          : `/world?mode=${mode}&show=all`
                       }
                     >
                       <span>
-                        {showAllWeaverWorlds
+                        {showAllLauncherWorlds
                           ? 'Show fewer Worlds'
                           : `Browse all Worlds (${worlds.length})`}
                       </span>
@@ -141,19 +168,26 @@ export default async function WorldSelectionPage({
                     </Link>
                   ) : null}
 
-                  <span className={actionStyles.alternativeLabel}>
-                    Or begin a new weave
-                  </span>
-                  <Link className={actionStyles.primaryCreate} href="/world/create">
-                    <Image
-                      src={uiAssets.ui.frames.goldPrimaryAction}
-                      alt=""
-                      fill
-                      sizes="340px"
-                      className={actionStyles.primaryFrame}
-                    />
-                    <span>Create World</span>
-                  </Link>
+                  {weaverMode ? (
+                    <>
+                      <span className={actionStyles.alternativeLabel}>
+                        Or begin a new weave
+                      </span>
+                      <Link
+                        className={actionStyles.primaryCreate}
+                        href="/world/create"
+                      >
+                        <Image
+                          src={uiAssets.ui.frames.goldPrimaryAction}
+                          alt=""
+                          fill
+                          sizes="340px"
+                          className={actionStyles.primaryFrame}
+                        />
+                        <span>Create World</span>
+                      </Link>
+                    </>
+                  ) : null}
                 </div>
               </>
             )}
@@ -166,83 +200,48 @@ export default async function WorldSelectionPage({
   return (
     <AuthenticatedAppShell user={user}>
       <AppPage
-        eyebrow={threadwatcherMode ? 'Threadwatcher' : 'Worlds'}
+        eyebrow="Worlds"
         title="Choose a World"
-        description={
-          threadwatcherMode
-            ? 'Choose a World you can access. Worlds with a Campaign you can observe continue in Threadwatcher mode.'
-            : 'Open a World you can access, or begin a new one.'
-        }
+        description="Open a World you can access, or begin a new one."
         wide
         actions={
-          threadwatcherMode ? undefined : (
-            <Link className={styles.secondary} href="/world/create">
-              Create World
-            </Link>
-          )
+          <Link className={styles.secondary} href="/world/create">
+            Create World
+          </Link>
         }
       >
         {worlds.length === 0 ? (
           <StatusPanel
             tone="empty"
-            title={
-              threadwatcherMode
-                ? 'No accessible Worlds available'
-                : 'No Worlds available'
-            }
+            title="No Worlds available"
             action={
-              threadwatcherMode ? (
-                <Link className={styles.secondary} href="/select/join">
-                  Join with invite
-                </Link>
-              ) : (
-                <Link className={styles.secondary} href="/world/create">
-                  Create your first World
-                </Link>
-              )
+              <Link className={styles.secondary} href="/world/create">
+                Create your first World
+              </Link>
             }
           >
-            <p>
-              {threadwatcherMode
-                ? 'Join a World or Campaign to make its World available here.'
-                : 'Create a World or join one through a Campaign or invitation.'}
-            </p>
+            <p>Create a World or join one through a Campaign or invitation.</p>
           </StatusPanel>
         ) : (
           <div className={styles.grid}>
-            {worlds.map((world) => {
-              const enterAsThreadwatcher =
-                threadwatcherMode && world.canThreadwatch
-
-              return (
-                <TrackedEntryLink
-                  key={world.id}
-                  className={styles.card}
-                  href={
-                    enterAsThreadwatcher
-                      ? `/world/${world.id}/campaign?mode=threadwatcher`
-                      : `/world/${world.id}`
-                  }
-                  style={{
-                    backgroundImage: `url(${uiAssets.fallbacks.world})`,
-                  }}
-                >
-                  <span className={styles.badge}>
-                    {enterAsThreadwatcher
-                      ? 'Threadwatcher'
-                      : worldAccessLabel(world.accessKind)}
-                  </span>
-                  <strong>{world.name}</strong>
-                  <span className={styles.meta}>
-                    {enterAsThreadwatcher
-                      ? 'Choose a Campaign'
-                      : world.orphaned
-                        ? 'Orphaned World'
-                        : 'Open World overview'}
-                  </span>
-                </TrackedEntryLink>
-              )
-            })}
+            {worlds.map((world) => (
+              <TrackedEntryLink
+                key={world.id}
+                className={styles.card}
+                href={`/world/${world.id}`}
+                style={{
+                  backgroundImage: `url(${uiAssets.fallbacks.world})`,
+                }}
+              >
+                <span className={styles.badge}>
+                  {worldAccessLabel(world.accessKind)}
+                </span>
+                <strong>{world.name}</strong>
+                <span className={styles.meta}>
+                  {world.orphaned ? 'Orphaned World' : 'Open World overview'}
+                </span>
+              </TrackedEntryLink>
+            ))}
           </div>
         )}
       </AppPage>
