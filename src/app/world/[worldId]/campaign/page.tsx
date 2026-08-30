@@ -11,6 +11,7 @@ import { uiAssets } from '@/lib/ui-assets'
 import { requireAuthenticatedUser } from '@/server/auth'
 import { getWorldCampaignSelection } from '@/server/campaigns'
 import { SelectLogoutButton } from '@/app/select/_components/select-logout-button'
+import { CinematicEntryBrowser } from '../../_components/cinematic-entry-browser'
 import styles from './campaign.module.css'
 import weaverStyles from './weaver-campaign-selector.module.css'
 import actionStyles from '../../weaver-selector-actions.module.css'
@@ -54,9 +55,7 @@ export default async function CampaignSelectionPage({
       ? selection.campaigns.filter(canWeaveCampaign)
       : selection.campaigns
   const showAllLauncherCampaigns = launcherMode && query.show === 'all'
-  const visibleLauncherCampaigns = showAllLauncherCampaigns
-    ? campaigns
-    : campaigns.slice(0, 3)
+  const featuredCampaigns = campaigns.slice(0, 3)
 
   if (launcherMode) {
     const roleLabel = weaverMode ? 'Weaver' : 'Threadwatcher'
@@ -67,15 +66,8 @@ export default async function CampaignSelectionPage({
         <section
           className={weaverStyles.stage}
           aria-label={`Choose a Campaign as ${roleLabel}`}
-          aria-labelledby="entry-campaign-title"
-          style={
-            showAllLauncherCampaigns
-              ? {
-                  height: 'calc(100dvh - 2.35rem)',
-                  overflowY: 'auto',
-                }
-              : undefined
-          }
+          data-cinematic-selector="true"
+          data-browse={showAllLauncherCampaigns ? 'true' : 'false'}
         >
           <div className={weaverStyles.background} aria-hidden="true">
             <Image
@@ -101,132 +93,155 @@ export default async function CampaignSelectionPage({
               </Link>
             </div>
 
-            <div className={weaverStyles.intro}>
-              <span className={weaverStyles.eyebrow}>
-                Enter as {roleLabel} · {selection.world.name}
-              </span>
-              <h1 id="entry-campaign-title">Choose a Campaign</h1>
-              <span className={weaverStyles.introRule} aria-hidden="true" />
-              <p>
-                {weaverMode
-                  ? `Choose the story you want to continue shaping in ${selection.world.name}.`
-                  : `Choose the story you want to observe in ${selection.world.name}.`}
-              </p>
-            </div>
-
-            {campaigns.length === 0 ? (
-              <div className={weaverStyles.emptyState}>
-                <span className={weaverStyles.emptyKicker}>
-                  {weaverMode ? 'No active weave' : 'Nothing to observe yet'}
-                </span>
-                <strong>
-                  {weaverMode
-                    ? 'No Weaver Campaigns in this World'
-                    : 'No Threadwatcher Campaigns in this World'}
-                </strong>
-                <p>
-                  {weaverMode
-                    ? 'You do not currently own or manage a Campaign in this World.'
-                    : 'You do not currently have Threadwatcher access to a Campaign in this World.'}
-                </p>
-                {weaverMode && selection.canCreateCampaign ? (
-                  <Link
-                    className={weaverStyles.emptyAction}
-                    href={`/world/${worldId}/campaign/create`}
-                  >
-                    Create Campaign
-                  </Link>
-                ) : (
-                  <Link
-                    className={weaverStyles.emptyAction}
-                    href={`/world?mode=${mode}`}
-                  >
-                    Choose another World
-                  </Link>
-                )}
-              </div>
+            {showAllLauncherCampaigns ? (
+              <CinematicEntryBrowser
+                kind="campaign"
+                roleLabel={roleLabel}
+                closeHref={`/world/${worldId}/campaign?mode=${mode}`}
+                entries={campaigns.map((campaign) => ({
+                  id: campaign.id,
+                  name: campaign.name,
+                  kicker: campaignRoleLabel(campaign.role),
+                  meta:
+                    campaign.status === 'ACTIVE'
+                      ? 'Active Campaign'
+                      : campaign.status === 'ENDED'
+                        ? 'Ended Campaign'
+                        : 'Archived Campaign',
+                  href: `/world/${worldId}/campaign/${campaign.id}?mode=${mode}`,
+                  backgroundImage: uiAssets.fallbacks.campaign,
+                  filterValue: campaign.status,
+                  tracking: weaverMode
+                    ? {
+                        kind: 'WEAVER' as const,
+                        worldId,
+                        campaignId: campaign.id,
+                      }
+                    : undefined,
+                }))}
+              />
             ) : (
               <>
-                <div className={weaverStyles.campaignGrid}>
-                  {visibleLauncherCampaigns.map((campaign) => (
-                    <TrackedEntryLink
-                      key={campaign.id}
-                      className={weaverStyles.campaignCard}
-                      href={`/world/${worldId}/campaign/${campaign.id}?mode=${mode}`}
-                      tracking={
-                        weaverMode
-                          ? {
-                              kind: 'WEAVER',
-                              worldId,
-                              campaignId: campaign.id,
-                            }
-                          : undefined
-                      }
-                      style={{
-                        backgroundImage: `url(${uiAssets.fallbacks.campaign})`,
-                      }}
-                    >
-                      <span className={weaverStyles.cardCopy}>
-                        <span className={weaverStyles.cardKicker}>
-                          {campaignRoleLabel(campaign.role)}
-                        </span>
-                        <strong>{campaign.name}</strong>
-                        <span className={weaverStyles.meta}>
-                          {campaign.status === 'ACTIVE'
-                            ? 'Active Campaign'
-                            : campaign.status === 'ENDED'
-                              ? 'Ended Campaign'
-                              : 'Archived Campaign'}
-                        </span>
-                        <span className={weaverStyles.cardAction}>
-                          <span>Enter as {roleLabel}</span>
-                          <span aria-hidden="true">›</span>
-                        </span>
-                      </span>
-                    </TrackedEntryLink>
-                  ))}
+                <div className={weaverStyles.intro}>
+                  <span className={weaverStyles.eyebrow}>
+                    Enter as {roleLabel} · {selection.world.name}
+                  </span>
+                  <h1>Choose a Campaign</h1>
+                  <span className={weaverStyles.introRule} aria-hidden="true" />
+                  <p>
+                    {weaverMode
+                      ? `Choose the story you want to continue shaping in ${selection.world.name}.`
+                      : `Choose the story you want to observe in ${selection.world.name}.`}
+                  </p>
                 </div>
 
-                <div className={actionStyles.selectorActions}>
-                  {campaigns.length > 3 ? (
-                    <Link
-                      className={actionStyles.browseLink}
-                      href={
-                        showAllLauncherCampaigns
-                          ? `/world/${worldId}/campaign?mode=${mode}`
-                          : `/world/${worldId}/campaign?mode=${mode}&show=all`
-                      }
-                    >
-                      <span>
-                        {showAllLauncherCampaigns
-                          ? 'Show fewer Campaigns'
-                          : `Browse all Campaigns (${campaigns.length})`}
-                      </span>
-                      <span aria-hidden="true">›</span>
-                    </Link>
-                  ) : null}
-
-                  {weaverMode && selection.canCreateCampaign ? (
-                    <>
-                      <span className={actionStyles.alternativeLabel}>
-                        Or begin a new story
-                      </span>
+                {campaigns.length === 0 ? (
+                  <div className={weaverStyles.emptyState}>
+                    <span className={weaverStyles.emptyKicker}>
+                      {weaverMode ? 'No active weave' : 'Nothing to observe yet'}
+                    </span>
+                    <strong>
+                      {weaverMode
+                        ? 'No Weaver Campaigns in this World'
+                        : 'No Threadwatcher Campaigns in this World'}
+                    </strong>
+                    <p>
+                      {weaverMode
+                        ? 'You do not currently own or manage a Campaign in this World.'
+                        : 'You do not currently have Threadwatcher access to a Campaign in this World.'}
+                    </p>
+                    {weaverMode && selection.canCreateCampaign ? (
                       <Link
-                        className={actionStyles.primaryCreate}
+                        className={weaverStyles.emptyAction}
                         href={`/world/${worldId}/campaign/create`}
                       >
-                        <Image
-                          src={uiAssets.ui.frames.goldPrimaryAction}
-                          alt=""
-                          fill
-                          sizes="340px"
-                          className={actionStyles.primaryFrame}
-                        />
-                        <span>Create Campaign</span>
+                        Create Campaign
                       </Link>
-                    </>
-                  ) : null}
-                </div>
+                    ) : (
+                      <Link
+                        className={weaverStyles.emptyAction}
+                        href={`/world?mode=${mode}`}
+                      >
+                        Choose another World
+                      </Link>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className={weaverStyles.campaignGrid}>
+                      {featuredCampaigns.map((campaign) => (
+                        <TrackedEntryLink
+                          key={campaign.id}
+                          className={weaverStyles.campaignCard}
+                          href={`/world/${worldId}/campaign/${campaign.id}?mode=${mode}`}
+                          tracking={
+                            weaverMode
+                              ? {
+                                  kind: 'WEAVER',
+                                  worldId,
+                                  campaignId: campaign.id,
+                                }
+                              : undefined
+                          }
+                          style={{
+                            backgroundImage: `url(${uiAssets.fallbacks.campaign})`,
+                          }}
+                        >
+                          <span className={weaverStyles.cardCopy}>
+                            <span className={weaverStyles.cardKicker}>
+                              {campaignRoleLabel(campaign.role)}
+                            </span>
+                            <strong>{campaign.name}</strong>
+                            <span className={weaverStyles.meta}>
+                              {campaign.status === 'ACTIVE'
+                                ? 'Active Campaign'
+                                : campaign.status === 'ENDED'
+                                  ? 'Ended Campaign'
+                                  : 'Archived Campaign'}
+                            </span>
+                            <span className={weaverStyles.cardAction}>
+                              <span>Enter as {roleLabel}</span>
+                              <span aria-hidden="true">›</span>
+                            </span>
+                          </span>
+                        </TrackedEntryLink>
+                      ))}
+                    </div>
+
+                    <div className={actionStyles.selectorActions}>
+                      {campaigns.length > 3 ? (
+                        <Link
+                          className={actionStyles.browseLink}
+                          href={`/world/${worldId}/campaign?mode=${mode}&show=all`}
+                        >
+                          <span>Browse all Campaigns ({campaigns.length})</span>
+                          <span aria-hidden="true">›</span>
+                        </Link>
+                      ) : null}
+
+                      {weaverMode && selection.canCreateCampaign ? (
+                        <>
+                          <span className={actionStyles.alternativeLabel}>
+                            Or begin a new story
+                          </span>
+                          <Link
+                            className={actionStyles.primaryCreate}
+                            href={`/world/${worldId}/campaign/create`}
+                          >
+                            <Image
+                              src={uiAssets.ui.frames.goldPrimaryAction}
+                              alt=""
+                              fill
+                              sizes="340px"
+                              className={actionStyles.primaryFrame}
+                            />
+                            <span>Create Campaign</span>
+                          </Link>
+                        </>
+                      ) : null}
+                    </div>
+                  </>
+                )}
               </>
             )}
           </div>
