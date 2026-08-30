@@ -14,6 +14,7 @@ import {
   ManageCharacterArchive,
   type ManageCharacterEntry,
 } from './manage-character-archive'
+import './manage-characters-mobile.css'
 
 export default async function ManageCharactersPage() {
   const user = await getAuthenticatedUser(new Headers(await headers()))
