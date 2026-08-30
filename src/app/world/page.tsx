@@ -7,6 +7,7 @@ import { StatusPanel } from '@/components/ui/status-panel'
 import { worldAccessLabel } from '@/lib/role-labels'
 import { uiAssets } from '@/lib/ui-assets'
 import { listWorldNavigationChoices } from '@/server/worlds'
+import { SelectLogoutButton } from '@/app/select/_components/select-logout-button'
 import { loadWorldPageUser } from './_lib/load-world-user'
 import styles from './world.module.css'
 import actionStyles from './weaver-selector-actions.module.css'
@@ -67,6 +68,7 @@ export default async function WorldSelectionPage({
             />
           </div>
           <div className={weaverStyles.backgroundVeil} aria-hidden="true" />
+          <SelectLogoutButton />
 
           <div className={weaverStyles.inner}>
             <div className={weaverStyles.topbar}>
