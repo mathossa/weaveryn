@@ -296,6 +296,15 @@ body:has(#now) #now {
   }
 }
 
+/* AppShell <main> is the scroll container, so Campaign companion navigation
+   sticks to the top of that container. Adding the header height here would
+   offset it twice and make it float over the Campaign hero. */
+@media (max-width: 760px) {
+  nav[aria-label='Campaign companion'] {
+    top: 0 !important;
+  }
+}
+
 @media (max-width: 640px) {
   :root {
     --ui-app-header-height: 46px;
