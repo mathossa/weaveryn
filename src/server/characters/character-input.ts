@@ -33,6 +33,24 @@ function requiredName(value: unknown) {
   return name
 }
 
+function optionalPortableText(
+  value: unknown,
+  label: string,
+  maxLength: number,
+) {
+  if (value === undefined || value === null) return null
+  if (typeof value !== 'string') {
+    throw new CharacterInputError(`${label} must be text.`)
+  }
+  const normalized = value.trim()
+  if (normalized.length > maxLength) {
+    throw new CharacterInputError(
+      `${label} must be ${maxLength} characters or fewer.`,
+    )
+  }
+  return normalized || null
+}
+
 function optionalNameOverride(value: unknown) {
   if (value === undefined || value === null) return null
   if (typeof value !== 'string') {
@@ -149,7 +167,27 @@ function customFieldsInput(value: unknown): WorldCharacterCustomFields {
 
 export function parseCreateCharacterInput(value: unknown) {
   const input = objectInput(value)
-  return { name: requiredName(input.name) }
+  return {
+    name: requiredName(input.name),
+    ...(Object.hasOwn(input, 'description')
+      ? {
+          description: optionalPortableText(
+            input.description,
+            'Character description',
+            1200,
+          ),
+        }
+      : {}),
+    ...(Object.hasOwn(input, 'ancestry')
+      ? {
+          ancestry: optionalPortableText(
+            input.ancestry,
+            'Character ancestry / species',
+            120,
+          ),
+        }
+      : {}),
+  }
 }
 
 export function parseUpdateCharacterInput(value: unknown) {

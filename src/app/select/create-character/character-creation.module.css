@@ -1,0 +1,551 @@
+.stage {
+  position: relative;
+  isolation: isolate;
+  min-height: 640px;
+  height: calc(100dvh - 2.35rem);
+  overflow: hidden;
+  background: #080908;
+  color: #f5ead6;
+}
+
+:global(body:has(section[aria-label='Create a Character']) header) {
+  display: none !important;
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  z-index: -5;
+}
+
+.backgroundImage {
+  object-fit: cover;
+  object-position: center 58%;
+  filter: saturate(1.04) contrast(1.02) brightness(1.01);
+  transform: scale(1.002);
+}
+
+.stage::before {
+  position: absolute;
+  inset: 0;
+  z-index: -4;
+  content: '';
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(4, 5, 4, 0.08), rgba(4, 5, 4, 0.02) 42%, rgba(4, 5, 4, 0.42) 72%, rgba(3, 4, 3, 0.68)),
+    linear-gradient(180deg, rgba(4, 5, 4, 0.02), rgba(4, 5, 4, 0.08) 70%, rgba(3, 4, 3, 0.42));
+}
+
+.stage::after {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  content: '';
+  pointer-events: none;
+  background: radial-gradient(circle at 28% 72%, rgba(221, 171, 82, 0.1), transparent 30%);
+}
+
+.backLink {
+  position: absolute;
+  top: 20px;
+  left: 28px;
+  z-index: 20;
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(221, 183, 104, 0.24);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(5, 6, 5, 0.42);
+  color: rgba(244, 224, 184, 0.84);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+  text-shadow: 0 1px 7px rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(4px);
+}
+
+.backLink:hover {
+  border-color: rgba(242, 203, 120, 0.5);
+  color: #ffe0a0;
+}
+
+.heroArtwork {
+  position: absolute;
+  bottom: -3.5%;
+  left: clamp(3rem, 7vw, 11rem);
+  z-index: 1;
+  width: clamp(360px, 40vw, 760px);
+  height: 88%;
+  pointer-events: none;
+}
+
+.heroImage {
+  object-fit: contain;
+  object-position: left bottom;
+  filter: drop-shadow(0 1.5rem 2rem rgba(0, 0, 0, 0.52));
+}
+
+.characterCaption {
+  position: absolute;
+  bottom: clamp(2.2rem, 5vh, 5rem);
+  left: clamp(2rem, 7vw, 8rem);
+  z-index: 3;
+  display: grid;
+  gap: 0.15rem;
+  max-width: 32vw;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
+}
+
+.characterCaption span {
+  color: rgba(226, 185, 102, 0.82);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.characterCaption strong {
+  overflow-wrap: anywhere;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.55rem, 2.2vw, 2.5rem);
+  font-weight: 600;
+}
+
+.panelShell {
+  position: absolute;
+  top: 50%;
+  right: clamp(4rem, 8vw, 11rem);
+  z-index: 5;
+  width: min(42vw, 690px);
+  transform: translateY(-50%);
+}
+
+.panel {
+  position: relative;
+  min-height: 590px;
+  max-height: calc(100dvh - 100px);
+  overflow: hidden;
+  border: 1px solid rgba(206, 157, 68, 0.35);
+  padding: clamp(1.5rem, 2.4vw, 2.5rem);
+  background:
+    linear-gradient(rgba(8, 8, 7, 0.88), rgba(7, 7, 6, 0.93)),
+    url('/images/ui/textures/black-gold-veins.webp') center / cover;
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.48),
+    inset 0 0 35px rgba(212, 162, 69, 0.035);
+  backdrop-filter: blur(8px);
+}
+
+.panelFrame {
+  z-index: 0;
+  object-fit: fill;
+  opacity: 0.78;
+  pointer-events: none;
+}
+
+.identityForm,
+.choicePhase {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 1rem;
+}
+
+.panelHeader {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
+  text-align: center;
+}
+
+.eyebrow {
+  color: #d8aa53;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.panelHeader h1 {
+  margin: 0;
+  color: #f6ead2;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.85rem, 2.2vw, 2.7rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.04;
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.78);
+}
+
+.panelHeader p {
+  margin: 0;
+  color: rgba(235, 221, 196, 0.7);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.field {
+  display: grid;
+  gap: 0.36rem;
+}
+
+.field label,
+.imageLabel {
+  color: #dfb566;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.field label span {
+  color: rgba(223, 181, 102, 0.58);
+  font-size: 0.61rem;
+  letter-spacing: 0.08em;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(208, 160, 69, 0.5);
+  border-radius: 4px;
+  outline: none;
+  padding: 0.74rem 0.82rem;
+  background: rgba(4, 5, 5, 0.72);
+  color: #f2eadc;
+  font: inherit;
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.34);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.field textarea {
+  min-height: 90px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: rgba(243, 199, 108, 0.88);
+  box-shadow:
+    0 0 0 2px rgba(222, 172, 78, 0.09),
+    inset 0 0 16px rgba(0, 0, 0, 0.34);
+}
+
+.field small,
+.imageField small,
+.choiceCard small {
+  color: rgba(235, 221, 196, 0.55);
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+.imageField {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.72rem 0;
+  border-top: 1px solid rgba(211, 165, 78, 0.16);
+  border-bottom: 1px solid rgba(211, 165, 78, 0.16);
+}
+
+.imageField > div:last-child {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.imageField strong {
+  color: #f0e3ca;
+  font-size: 0.86rem;
+}
+
+.imagePreview {
+  position: relative;
+  width: 64px;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 50%;
+  background: rgba(4, 5, 5, 0.78);
+}
+
+.imagePreviewImage {
+  object-fit: cover;
+}
+
+.imagePreviewFrame {
+  z-index: 1;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+.primaryAction {
+  position: relative;
+  display: flex;
+  min-height: 66px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 0;
+  padding: 0 2rem;
+  background:
+    linear-gradient(rgba(5, 5, 4, 0.3), rgba(5, 5, 4, 0.3)),
+    url('/images/ui/textures/black-gold-veins.webp') center / cover;
+  color: #f6e5bd;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+}
+
+.primaryAction:disabled {
+  cursor: wait;
+  opacity: 0.64;
+}
+
+.primaryAction span {
+  position: relative;
+  z-index: 2;
+}
+
+.primaryFrame {
+  z-index: 1;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+.choicePhase {
+  align-content: start;
+  min-height: 510px;
+}
+
+.choiceList {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.choiceListScrollable {
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 0.2rem;
+}
+
+.choiceCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  min-height: 76px;
+  border: 1px solid rgba(215, 169, 81, 0.3);
+  border-radius: 4px;
+  padding: 0.85rem 0.95rem;
+  background: rgba(4, 5, 5, 0.58);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    transform 140ms ease;
+}
+
+.choiceCard:hover:not(:disabled) {
+  border-color: rgba(235, 189, 99, 0.68);
+  background: rgba(14, 13, 9, 0.74);
+  transform: translateY(-1px);
+}
+
+.choiceCard:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.choiceCard > span:first-child {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.choiceCard strong {
+  color: #f2e4ca;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.12rem;
+  font-weight: 600;
+}
+
+.choiceAction {
+  color: #e2b55f;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.emptyState {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 145px;
+  place-content: center;
+  border: 1px solid rgba(215, 169, 81, 0.18);
+  padding: 1.2rem;
+  background: rgba(4, 5, 5, 0.44);
+  text-align: center;
+}
+
+.emptyState strong {
+  color: #eadabd;
+}
+
+.emptyState p {
+  margin: 0;
+  color: rgba(235, 221, 196, 0.62);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.browseButton,
+.secondaryAction {
+  justify-self: center;
+  border: 0;
+  padding: 0.45rem 0.7rem;
+  background: transparent;
+  color: rgba(230, 194, 121, 0.78);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: rgba(230, 194, 121, 0.24);
+  text-underline-offset: 4px;
+}
+
+.browseButton:hover,
+.secondaryAction:hover {
+  color: #f1c978;
+}
+
+.error {
+  margin: 0;
+  border-left: 2px solid rgba(220, 139, 91, 0.82);
+  padding: 0.55rem 0.7rem;
+  background: rgba(90, 31, 17, 0.18);
+  color: #f2bd99;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 1040px) {
+  .heroArtwork {
+    left: 1rem;
+    width: 46vw;
+  }
+
+  .panelShell {
+    right: 3vw;
+    width: 50vw;
+  }
+}
+
+@media (max-width: 760px) {
+  .stage {
+    min-height: 100dvh;
+    height: auto;
+    overflow-y: auto;
+    padding: 4.3rem 0.9rem 1.25rem;
+  }
+
+  .background {
+    position: fixed;
+  }
+
+  .backgroundImage {
+    object-position: 38% center;
+  }
+
+  .stage::before {
+    position: fixed;
+    background: linear-gradient(180deg, rgba(4, 5, 4, 0.16), rgba(3, 4, 3, 0.74) 42%, rgba(3, 4, 3, 0.93) 72%);
+  }
+
+  .backLink {
+    top: 10px;
+    left: 10px;
+    min-height: 32px;
+    padding: 6px 9px;
+    font-size: 10px;
+  }
+
+  .heroArtwork {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    width: min(78vw, 390px);
+    height: 42vh;
+    min-height: 310px;
+    margin: 0 auto -1.5rem;
+  }
+
+  .heroImage {
+    object-position: center bottom;
+  }
+
+  .characterCaption {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    z-index: 4;
+    max-width: none;
+    margin: 0 auto 1rem;
+    text-align: center;
+  }
+
+  .panelShell {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: min(100%, 620px);
+    margin: 0 auto;
+    transform: none;
+  }
+
+  .panel {
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+    padding: 1.35rem 1.1rem;
+  }
+
+  .choicePhase {
+    min-height: 0;
+  }
+
+  .choiceListScrollable {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 430px) {
+  .panelHeader h1 {
+    font-size: 1.75rem;
+  }
+
+  .choiceCard {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+
+  .choiceAction {
+    justify-self: start;
+  }
+}
