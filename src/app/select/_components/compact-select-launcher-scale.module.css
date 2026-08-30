@@ -37,4 +37,16 @@
   .desktopComposition {
     display: contents;
   }
+
+  .stage {
+    padding: 4.25rem 0.85rem 1.5rem;
+  }
+
+  .desktopComposition .heroArtwork {
+    display: none;
+  }
+
+  .primaryAction::before {
+    inset: 15px 28px 20px;
+  }
 }

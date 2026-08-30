@@ -6,17 +6,17 @@
 
   /* Shared production UI tokens. Change these deliberately in code to restyle
      reusable controls and surfaces without adding user-facing theme state. */
-  --ui-canvas: #070912;
-  --ui-panel: rgba(9, 13, 24, 0.84);
-  --ui-panel-strong: rgba(12, 17, 29, 0.94);
-  --ui-text: #f4efe6;
-  --ui-text-muted: #b9b1a3;
+  --ui-canvas: #070706;
+  --ui-panel: rgba(9, 9, 7, 0.86);
+  --ui-panel-strong: rgba(12, 11, 9, 0.94);
+  --ui-text: #f4ede2;
+  --ui-text-muted: #b9ae9d;
   --ui-accent: #c9a566;
-  --ui-accent-hover: #e0bf82;
+  --ui-accent-hover: #e3c27f;
   --ui-accent-ink: #1b1409;
-  --ui-border: rgba(226, 201, 151, 0.25);
-  --ui-control-surface: rgba(5, 9, 18, 0.76);
-  --ui-control-border: rgba(231, 220, 199, 0.23);
+  --ui-border: rgba(207, 169, 98, 0.28);
+  --ui-control-surface: rgba(5, 5, 4, 0.8);
+  --ui-control-border: rgba(210, 174, 103, 0.27);
   --ui-danger: #ee8d82;
   --ui-success: #8fd0aa;
   --ui-radius-control: 0.75rem;
@@ -24,6 +24,8 @@
   --ui-shadow-panel: 0 24px 80px rgba(0, 0, 0, 0.48);
   --ui-focus-ring: 0 0 0 3px rgba(216, 180, 112, 0.3);
   --ui-workspace-gutter: clamp(1.25rem, 3vw, 4rem);
+  --ui-app-header-height: 50px;
+  --ui-app-header-control-height: 34px;
 }
 
 @theme inline {
@@ -83,13 +85,28 @@ section[aria-label='Manage Characters']
   display: none !important;
 }
 
-/* The normal in-app header was visually too tall compared with the cinematic
-   launcher. These selectors deliberately target only the AppShell header by
-   its stable Weaveryn-home link, leaving page-local semantic headers alone. */
+/* AppShell header sizing has one final source of truth here. Page content,
+   active context length, and CSS-module defaults must never change the rendered
+   bar height. This targets only the shared Weaveryn AppShell header. */
 header:has(> a[aria-label='Weaveryn home']) {
-  min-height: 50px !important;
+  box-sizing: border-box !important;
+  height: var(--ui-app-header-height) !important;
+  min-height: var(--ui-app-header-height) !important;
+  max-height: var(--ui-app-header-height) !important;
   gap: 0.8rem !important;
-  padding: 0.25rem clamp(0.75rem, 2vw, 1.5rem) !important;
+  padding: 0 clamp(0.75rem, 2vw, 1.5rem) !important;
+}
+
+header:has(> a[aria-label='Weaveryn home']) > a[aria-label='Weaveryn home'],
+header:has(> a[aria-label='Weaveryn home'])
+  button[aria-controls='mobile-context-panel'],
+header:has(> a[aria-label='Weaveryn home'])
+  button[aria-controls='account-menu'] {
+  box-sizing: border-box !important;
+  height: var(--ui-app-header-control-height) !important;
+  min-height: var(--ui-app-header-control-height) !important;
+  max-height: var(--ui-app-header-control-height) !important;
+  align-self: center !important;
 }
 
 header:has(> a[aria-label='Weaveryn home'])
@@ -101,7 +118,10 @@ header:has(> a[aria-label='Weaveryn home'])
     a[aria-label^='Character:'],
     a[aria-label^='Choose ']
   ) {
-  min-height: 34px !important;
+  box-sizing: border-box !important;
+  height: var(--ui-app-header-control-height) !important;
+  min-height: var(--ui-app-header-control-height) !important;
+  max-height: var(--ui-app-header-control-height) !important;
   padding-top: 0.2rem !important;
   padding-bottom: 0.2rem !important;
 }
@@ -124,21 +144,191 @@ header:has(> a[aria-label='Weaveryn home'])
   height: 1.9rem !important;
 }
 
+/* Normal in-world AppShell pages own the viewport together with the global
+   footer. Prevent the body from becoming the scroll container; when a page is
+   genuinely taller than the available space, only AppShell <main> scrolls. */
+body:has(header > nav[aria-label='Current context']) {
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+body:has(header > nav[aria-label='Current context'])
+  > div:has(> header > nav[aria-label='Current context']) {
+  display: flex !important;
+  min-height: 0 !important;
+  flex: 1 1 auto !important;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+body:has(header > nav[aria-label='Current context'])
+  > div:has(> header > nav[aria-label='Current context'])
+  > main {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+body:has(header > nav[aria-label='Current context']) > footer {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
+/* In-world pages keep the functional AppShell, but use a calmer environment
+   than the cinematic launcher. The dedicated gold-empty background supplies
+   atmosphere while dark veils and the existing vein texture keep foreground
+   panels readable and visually connected to the launcher material family. */
+body:has(header > nav[aria-label='Current context'])
+  > div:has(> header > nav[aria-label='Current context'])
+  > main {
+  background-color: #060504;
+  background-image:
+    radial-gradient(
+      ellipse at 48% -8%,
+      rgba(213, 162, 78, 0.16),
+      transparent 38rem
+    ),
+    linear-gradient(
+      180deg,
+      rgba(8, 7, 5, 0.72),
+      rgba(6, 6, 5, 0.88) 62%,
+      rgba(5, 5, 4, 0.95)
+    ),
+    url('/images/backgrounds/gold-empty-bg.webp'),
+    url('/images/ui/textures/black-gold-veins.webp');
+  background-attachment: fixed, fixed, fixed, fixed;
+  background-position:
+    center top,
+    center,
+    center,
+    center;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+  background-size:
+    auto,
+    auto,
+    cover,
+    420px 420px;
+  background-blend-mode: screen, normal, normal, soft-light;
+}
+
+/* Campaign workspace: keep the existing information architecture, but reduce
+   the generic dashboard-card feel with flatter proportions, warmer boundaries
+   and a faint material texture. */
+body:has(#now) :is(#around, #next, #party, #character),
+body:has(#now) #around ~ section {
+  border-color: color-mix(
+    in srgb,
+    var(--ui-accent) 28%,
+    transparent
+  ) !important;
+  border-radius: 0.72rem !important;
+  background:
+    linear-gradient(rgba(10, 9, 7, 0.925), rgba(8, 8, 6, 0.95)),
+    url('/images/ui/textures/black-gold-veins.webp') !important;
+  background-position: center !important;
+  background-size:
+    auto,
+    300px 300px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(227, 194, 127, 0.045),
+    0 16px 34px rgba(0, 0, 0, 0.22) !important;
+}
+
+body:has(#now) #next {
+  border-color: color-mix(
+    in srgb,
+    var(--ui-accent) 44%,
+    transparent
+  ) !important;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(190, 132, 47, 0.13),
+      transparent 46%
+    ),
+    linear-gradient(rgba(12, 10, 7, 0.91), rgba(8, 8, 6, 0.95)),
+    url('/images/ui/textures/black-gold-veins.webp') !important;
+  background-size:
+    auto,
+    auto,
+    300px 300px !important;
+}
+
+body:has(#now) #character:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--ui-accent) 48%,
+    transparent
+  ) !important;
+  background:
+    linear-gradient(rgba(20, 16, 9, 0.91), rgba(10, 9, 6, 0.95)),
+    url('/images/ui/textures/black-gold-veins.webp') !important;
+}
+
+body:has(#now) #around ~ section {
+  border-top-color: color-mix(
+    in srgb,
+    var(--ui-accent) 38%,
+    transparent
+  ) !important;
+}
+
+body:has(#now) #now {
+  border-color: color-mix(
+    in srgb,
+    var(--ui-accent) 34%,
+    transparent
+  ) !important;
+  border-radius: 0.8rem !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(227, 194, 127, 0.025),
+    0 24px 62px rgba(0, 0, 0, 0.34) !important;
+}
+
 @media (max-width: 1024px) {
-  header:has(> a[aria-label='Weaveryn home']) {
-    min-height: 48px !important;
-    padding-block: 0.2rem !important;
+  :root {
+    --ui-app-header-height: 48px;
+    --ui-app-header-control-height: 34px;
+  }
+}
+
+/* AppShell <main> is the scroll container, so Campaign companion navigation
+   sticks to the top of that container. Adding the header height here would
+   offset it twice and make it float over the Campaign hero. */
+@media (max-width: 760px) {
+  nav[aria-label='Campaign companion'] {
+    top: 0 !important;
   }
 }
 
 @media (max-width: 640px) {
+  :root {
+    --ui-app-header-height: 46px;
+    --ui-app-header-control-height: 36px;
+  }
+
   header:has(> a[aria-label='Weaveryn home']) {
-    min-height: 46px !important;
-    padding: 0.2rem 0.6rem !important;
+    gap: 0.45rem !important;
+    padding-inline: 0.6rem !important;
+  }
+
+  header:has(> a[aria-label='Weaveryn home'])
+    button[aria-controls='mobile-context-panel'] {
+    overflow: hidden !important;
   }
 
   #account-menu,
   #mobile-context-panel {
-    top: 3.35rem !important;
+    top: calc(var(--ui-app-header-height) + 0.4rem) !important;
+  }
+
+  body:has(header > nav[aria-label='Current context'])
+    > div:has(> header > nav[aria-label='Current context'])
+    > main {
+    background-attachment: scroll, scroll, scroll, scroll;
   }
 }
