@@ -1,7 +1,19 @@
+:global(body:has(section[data-cinematic-selector='true'])) {
+  overflow: hidden;
+}
+
+:global(section[data-cinematic-selector='true']) {
+  box-sizing: border-box;
+  height: calc(100dvh - 2.35rem);
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
 .browserShell {
   display: flex;
-  min-height: 0;
-  flex: 1;
+  height: calc(100dvh - 11.5rem);
+  min-height: 20rem;
+  max-height: 100%;
 }
 
 .browserPanel {
@@ -175,6 +187,11 @@
 }
 
 @media (max-width: 760px) {
+  .browserShell {
+    height: calc(100dvh - 8rem);
+    min-height: 0;
+  }
+
   .browserHeader {
     padding: 1rem;
   }
