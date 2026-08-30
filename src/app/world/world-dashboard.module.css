@@ -1,15 +1,18 @@
 .worldHome {
   display: grid;
-  gap: 1.2rem;
+  gap: 1rem;
   width: min(160rem, 100%);
   margin: 0 auto;
-  padding: 1rem clamp(0.8rem, 2vw, 1.5rem) 1.5rem;
+  padding: 0.9rem clamp(0.8rem, 2vw, 1.5rem) 1.4rem;
 }
 
 .atlasHero {
-  min-height: clamp(24rem, 50vh, 38rem);
-  border-color: color-mix(in srgb, var(--ui-accent) 24%, var(--ui-border));
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
+  min-height: clamp(22rem, 46vh, 34rem);
+  border-color: color-mix(in srgb, var(--ui-accent) 36%, var(--ui-border));
+  border-radius: 0.9rem;
+  box-shadow:
+    inset 0 1px 0 rgba(227, 194, 127, 0.05),
+    0 26px 70px rgba(0, 0, 0, 0.38);
 }
 
 .heroCopy {
@@ -27,34 +30,51 @@
 .atlasAction,
 .quietAction {
   display: inline-flex;
-  min-height: 2.75rem;
+  min-height: 2.65rem;
   align-items: center;
   justify-content: center;
-  border-radius: var(--ui-radius-control);
-  padding: 0.65rem 0.95rem;
+  border-radius: 0.58rem;
+  padding: 0.62rem 0.95rem;
   font-weight: 750;
   text-decoration: none;
 }
 
 .atlasAction {
-  border: 1px solid var(--ui-accent);
-  background: color-mix(in srgb, var(--ui-accent) 17%, rgba(5, 10, 17, 0.78));
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 72%, white 5%);
+  background:
+    linear-gradient(rgba(24, 19, 11, 0.88), rgba(13, 11, 7, 0.94)),
+    url('/images/ui/textures/black-gold-veins.webp');
+  background-size: auto, 260px 260px;
   color: var(--ui-accent-hover);
+  box-shadow: inset 0 1px 0 rgba(241, 210, 146, 0.07);
 }
 
 .quietAction {
   border: 1px solid var(--ui-control-border);
-  background: rgba(5, 10, 17, 0.66);
+  background: rgba(7, 7, 5, 0.74);
   color: var(--ui-text);
+}
+
+.atlasAction:hover,
+.quietAction:hover {
+  border-color: color-mix(in srgb, var(--ui-accent) 58%, var(--ui-border));
+  background-color: color-mix(in srgb, var(--ui-accent) 8%, rgba(8, 8, 6, 0.82));
 }
 
 .campaignSection {
   display: grid;
   gap: 0.9rem;
-  border: 1px solid color-mix(in srgb, var(--ui-border) 82%, transparent);
-  border-radius: var(--ui-radius-panel);
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 28%, transparent);
+  border-radius: 0.78rem;
   padding: 1rem;
-  background: color-mix(in srgb, var(--ui-panel-strong) 88%, transparent);
+  background:
+    linear-gradient(rgba(10, 9, 7, 0.91), rgba(8, 8, 6, 0.95)),
+    url('/images/ui/textures/black-gold-veins.webp');
+  background-position: center;
+  background-size: auto, 320px 320px;
+  box-shadow:
+    inset 0 1px 0 rgba(227, 194, 127, 0.04),
+    0 18px 44px rgba(0, 0, 0, 0.2);
 }
 
 .worldPaths {
@@ -64,35 +84,60 @@
 }
 
 .worldPaths a {
+  position: relative;
   display: grid;
   min-width: 0;
-  gap: 0.2rem;
-  border-top: 1px solid
-    color-mix(in srgb, var(--ui-accent) 34%, var(--ui-border));
-  padding: 0.9rem 0.75rem;
+  gap: 0.22rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 24%, transparent);
+  border-radius: 0.68rem;
+  padding: 0.95rem 0.9rem;
+  background:
+    linear-gradient(145deg, rgba(15, 13, 9, 0.9), rgba(7, 7, 5, 0.94)),
+    url('/images/ui/textures/black-gold-veins.webp');
+  background-size: auto, 280px 280px;
   color: inherit;
   text-decoration: none;
+  box-shadow: inset 0 1px 0 rgba(227, 194, 127, 0.035);
+  transition:
+    border-color 150ms ease,
+    transform 150ms ease,
+    background-color 150ms ease;
+}
+
+.worldPaths a::after {
+  position: absolute;
+  right: 0.8rem;
+  bottom: 0.75rem;
+  color: color-mix(in srgb, var(--ui-accent) 62%, transparent);
+  content: '›';
+  font-size: 1.2rem;
 }
 
 .worldPaths a:hover {
-  background: color-mix(in srgb, var(--ui-accent) 7%, transparent);
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--ui-accent) 46%, transparent);
+  background-color: color-mix(in srgb, var(--ui-accent) 6%, transparent);
 }
 
 .worldPaths span {
   color: var(--ui-accent);
   font-size: 0.64rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 
 .worldPaths strong {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 1.15rem;
+  font-size: 1.18rem;
+  font-weight: 600;
 }
 
 .worldPaths small {
+  max-width: 90%;
   color: var(--ui-text-muted);
+  font-size: 0.78rem;
   line-height: 1.45;
 }
 
@@ -102,7 +147,8 @@
   }
 
   .atlasHero {
-    min-height: 30rem;
+    min-height: 28rem;
+    border-radius: 0.72rem;
   }
 
   .heroCopy {
@@ -117,5 +163,9 @@
 
   .atlasAction {
     grid-column: 1 / -1;
+  }
+
+  .worldPaths {
+    grid-template-columns: 1fr;
   }
 }
