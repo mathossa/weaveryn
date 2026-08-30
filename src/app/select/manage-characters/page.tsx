@@ -1,6 +1,5 @@
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { portableCharacterIdentity } from '@/lib/portable-character-identity'
 import { uiAssets } from '@/lib/ui-assets'
 import { getAuthenticatedUser } from '@/server/auth'
@@ -81,9 +80,5 @@ export default async function ManageCharactersPage() {
     }),
   )
 
-  return (
-    <AuthenticatedAppShell user={user} variant="launcher">
-      <ManageCharacterArchive characters={characters} />
-    </AuthenticatedAppShell>
-  )
+  return <ManageCharacterArchive characters={characters} />
 }
