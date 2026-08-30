@@ -115,7 +115,9 @@ export default async function PortableCharacterPage({
               {identity.description ? (
                 <p>{identity.description}</p>
               ) : (
-                <p className={styles.meta}>No description has been added yet.</p>
+                <p className={styles.meta}>
+                  No description has been added yet.
+                </p>
               )}
               <CharacterForm
                 mode="edit"

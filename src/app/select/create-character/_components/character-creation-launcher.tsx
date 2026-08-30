@@ -78,7 +78,10 @@ function canAttachCharacterToCampaign(campaign: CampaignChoice) {
   return campaign.status === 'ACTIVE' && campaign.role !== 'SPECTATOR'
 }
 
-function prioritizeById<T extends { id: string }>(items: T[], preferredId?: string) {
+function prioritizeById<T extends { id: string }>(
+  items: T[],
+  preferredId?: string,
+) {
   if (!preferredId) return items
   return [...items].sort((left, right) => {
     if (left.id === preferredId) return -1
@@ -240,9 +243,9 @@ export function CharacterCreationLauncher({
         body: JSON.stringify({ worldId: world.id, nameOverride: null }),
       },
     )
-    const result = (await jsonResult(response)) as
-      | { worldCharacter?: { id?: string } }
-      | null
+    const result = (await jsonResult(response)) as {
+      worldCharacter?: { id?: string }
+    } | null
 
     if (!response.ok || !result?.worldCharacter?.id) {
       setError(
@@ -266,19 +269,22 @@ export function CharacterCreationLauncher({
     setError(null)
 
     const portableDescription = description.trim()
-    const response = await fetch(`/api/v1/world-characters/${worldCharacterId}`, {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        profile: {
-          values: {
-            ...(portableDescription ? { whoIs: portableDescription } : {}),
-            ...profileValues,
+    const response = await fetch(
+      `/api/v1/world-characters/${worldCharacterId}`,
+      {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          profile: {
+            values: {
+              ...(portableDescription ? { whoIs: portableDescription } : {}),
+              ...profileValues,
+            },
+            hiddenFields: [],
           },
-          hiddenFields: [],
-        },
-      }),
-    })
+        }),
+      },
+    )
     const result = await jsonResult(response)
 
     if (!response.ok) {
@@ -302,9 +308,9 @@ export function CharacterCreationLauncher({
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ name, ancestry, description }),
     })
-    const result = (await jsonResult(response)) as
-      | { character?: CharacterSummary }
-      | null
+    const result = (await jsonResult(response)) as {
+      character?: CharacterSummary
+    } | null
 
     if (!response.ok || !result?.character) {
       setError(errorMessage(result, 'Character creation failed.'))
@@ -316,9 +322,9 @@ export function CharacterCreationLauncher({
     setCreatedCharacter(character)
 
     const worldResponse = await fetch('/api/v1/worlds')
-    const worldResult = (await jsonResult(worldResponse)) as
-      | { worlds?: WorldChoice[] }
-      | null
+    const worldResult = (await jsonResult(worldResponse)) as {
+      worlds?: WorldChoice[]
+    } | null
 
     if (!worldResponse.ok) {
       setError(
@@ -592,7 +598,8 @@ export function CharacterCreationLauncher({
                     disabled={Boolean(pendingAction)}
                     type="submit"
                   >
-                    {pendingAction === 'profile' || pendingAction === 'campaigns'
+                    {pendingAction === 'profile' ||
+                    pendingAction === 'campaigns'
                       ? 'Continuing…'
                       : 'Save profile & continue'}
                   </button>
@@ -618,9 +625,7 @@ export function CharacterCreationLauncher({
                 </div>
 
                 <div className={styles.choiceList}>
-                  {campaigns.length > 0 &&
-                  worldCharacterId &&
-                  selectedWorld ? (
+                  {campaigns.length > 0 && worldCharacterId && selectedWorld ? (
                     campaigns.map((campaign) => (
                       <button
                         key={campaign.id}
@@ -652,7 +657,9 @@ export function CharacterCreationLauncher({
                     ))
                   ) : (
                     <div className={styles.emptyState}>
-                      <strong>No Campaign is available to join here yet.</strong>
+                      <strong>
+                        No Campaign is available to join here yet.
+                      </strong>
                       <p>
                         {createdCharacter?.name} remains in{' '}
                         {selectedWorld?.name ?? 'this World'} and can join a
