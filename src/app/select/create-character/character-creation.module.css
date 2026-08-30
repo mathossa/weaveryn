@@ -133,8 +133,9 @@
 
 .panelShell::before {
   position: absolute;
-  inset: 10px 10px 15px;
+  inset: 12px 12px 17px;
   z-index: 0;
+  border-radius: 8px;
   background:
     linear-gradient(rgba(4, 5, 4, 0.36), rgba(3, 4, 3, 0.5)),
     url('/images/ui/textures/black-gold-veins.webp') center / 128px 128px repeat;
@@ -579,7 +580,8 @@
   }
 
   .panelShell::before {
-    inset: 7px 7px 10px;
+    inset: 9px 9px 12px;
+    border-radius: 7px;
   }
 
   .panel {
