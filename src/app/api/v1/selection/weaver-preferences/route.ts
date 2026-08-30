@@ -3,6 +3,7 @@ import { AuthDomainError, requireAuthenticatedUser } from '@/server/auth'
 import {
   EntryPreferenceDomainError,
   setWeaverCampaignEntryPinned,
+  setWeaverWorldEntryPinned,
 } from '@/server/selection'
 
 export const runtime = 'nodejs'
@@ -26,7 +27,7 @@ function errorResponse(error: unknown) {
     {
       error: {
         code: 'ENTRY_PREFERENCE_FAILED',
-        message: 'Weaver campaign preference update failed.',
+        message: 'Weaver preference update failed.',
       },
     },
     { status: 500 },
@@ -41,22 +42,38 @@ export async function PATCH(request: Request) {
     if (
       typeof input.worldId !== 'string' ||
       input.worldId.length === 0 ||
-      typeof input.campaignId !== 'string' ||
-      input.campaignId.length === 0 ||
       typeof input.pinned !== 'boolean'
     ) {
       throw new EntryPreferenceDomainError(
         'ENTRY_PREFERENCE_INVALID',
-        'World, Campaign, and pinned state are required.',
+        'World and pinned state are required.',
       )
     }
 
-    const preference = await setWeaverCampaignEntryPinned({
-      userId: user.id,
-      worldId: input.worldId,
-      campaignId: input.campaignId,
-      pinned: input.pinned,
-    })
+    if (
+      input.campaignId !== undefined &&
+      input.campaignId !== null &&
+      (typeof input.campaignId !== 'string' || input.campaignId.length === 0)
+    ) {
+      throw new EntryPreferenceDomainError(
+        'ENTRY_PREFERENCE_INVALID',
+        'Campaign ID must be a non-empty string when provided.',
+      )
+    }
+
+    const preference =
+      typeof input.campaignId === 'string'
+        ? await setWeaverCampaignEntryPinned({
+            userId: user.id,
+            worldId: input.worldId,
+            campaignId: input.campaignId,
+            pinned: input.pinned,
+          })
+        : await setWeaverWorldEntryPinned({
+            userId: user.id,
+            worldId: input.worldId,
+            pinned: input.pinned,
+          })
 
     return NextResponse.json({
       preference: {

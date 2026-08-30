@@ -1,0 +1,226 @@
+:global(body:has(section[data-cinematic-selector='true'])) {
+  overflow: hidden;
+}
+
+:global(section[data-cinematic-selector='true']) {
+  box-sizing: border-box;
+  height: calc(100dvh - 2.35rem);
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.browserShell {
+  display: flex;
+  height: calc(100dvh - 16rem);
+  min-height: 20rem;
+  max-height: 100%;
+}
+
+.browserPanel {
+  display: flex;
+  width: min(100%, 92rem);
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid rgba(214, 175, 97, 0.5);
+  border-radius: 0.85rem;
+  background: rgba(15, 14, 11, 0.7);
+  box-shadow:
+    0 1.8rem 5rem rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(255, 239, 205, 0.035);
+  backdrop-filter: blur(12px);
+}
+
+.browserHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.15rem 1.3rem 0.95rem;
+  border-bottom: 1px solid rgba(214, 175, 97, 0.2);
+}
+
+.browserHeader > div:first-child {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.eyebrow {
+  color: #d8b56f;
+  font-size: 0.66rem;
+  font-weight: 820;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+.browserHeader h1 {
+  margin: 0;
+  color: #f8eddb;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+
+.browserHeader p {
+  margin: 0.15rem 0 0;
+  color: rgba(241, 228, 207, 0.7);
+  font-size: 0.78rem;
+}
+
+.closeButton {
+  display: grid;
+  width: 2.45rem;
+  height: 2.45rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(220, 181, 100, 0.32);
+  border-radius: 999px;
+  background: rgba(8, 8, 7, 0.44);
+  color: rgba(245, 222, 174, 0.9);
+  font-size: 1.65rem;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease,
+    transform 150ms ease;
+}
+
+.closeButton:hover,
+.closeButton:focus-visible {
+  border-color: rgba(240, 202, 123, 0.72);
+  background: rgba(20, 17, 11, 0.7);
+  color: #ffe0a0;
+  outline: none;
+  transform: scale(1.03);
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(10rem, 0.75fr) minmax(
+      10rem,
+      0.75fr
+    );
+  gap: 0.7rem;
+  padding: 0.9rem 1.3rem 0.8rem;
+}
+
+.controls[data-favorites='true'] {
+  grid-template-columns:
+    minmax(0, 1.55fr) minmax(9.5rem, 0.72fr) minmax(9.5rem, 0.72fr)
+    minmax(9.5rem, 0.72fr);
+}
+
+.control {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.control > span {
+  color: rgba(230, 198, 132, 0.86);
+  font-size: 0.63rem;
+  font-weight: 780;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.control input,
+.control select {
+  width: 100%;
+  min-height: 2.65rem;
+  border: 1px solid rgba(210, 173, 96, 0.38);
+  border-radius: 0.4rem;
+  padding: 0.56rem 0.72rem;
+  background: rgba(7, 7, 6, 0.72);
+  color: #f5e8d2;
+  font: inherit;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.control input::placeholder {
+  color: rgba(231, 215, 190, 0.42);
+}
+
+.control input:focus,
+.control select:focus {
+  border-color: rgba(233, 195, 116, 0.82);
+  box-shadow: 0 0 0 2px rgba(216, 181, 111, 0.08);
+}
+
+.resultsMeta {
+  padding: 0 1.3rem 0.72rem;
+  color: rgba(238, 222, 196, 0.62);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.scrollRegion {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 0.25rem 1.3rem 1.35rem;
+}
+
+.browserGrid {
+  align-content: start;
+}
+
+.noResults {
+  display: grid;
+  min-height: 14rem;
+  place-content: center;
+  gap: 0.35rem;
+  color: rgba(239, 226, 204, 0.72);
+  text-align: center;
+}
+
+.noResults strong {
+  color: #f6ead7;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.4rem;
+  font-weight: 500;
+}
+
+.noResults span {
+  font-size: 0.8rem;
+}
+
+@media (max-width: 760px) {
+  .browserShell {
+    height: calc(100dvh - 10rem);
+    min-height: 0;
+  }
+
+  .browserHeader {
+    padding: 1rem;
+  }
+
+  .browserHeader p {
+    display: none;
+  }
+
+  .controls,
+  .controls[data-favorites='true'] {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+    padding: 0.8rem 1rem 0.7rem;
+  }
+
+  .resultsMeta {
+    padding-inline: 1rem;
+  }
+
+  .scrollRegion {
+    padding: 0.2rem 1rem 1rem;
+  }
+}

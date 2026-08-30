@@ -1,0 +1,432 @@
+.stage {
+  position: relative;
+  isolation: isolate;
+  min-height: calc(100dvh - 2.35rem);
+  overflow: hidden;
+  padding: clamp(1.25rem, 3vw, 3.4rem);
+  background: #15140f;
+  color: #f5ead7;
+}
+
+:global(body:has(section[aria-label='Choose a Campaign as Weaver']) header),
+:global(
+  body:has(section[aria-label='Choose a Campaign as Threadwatcher']) header
+) {
+  display: none !important;
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  z-index: -4;
+}
+
+.backgroundImage {
+  object-fit: cover;
+  object-position: center 58%;
+  filter: saturate(0.9) contrast(1.03) brightness(0.8);
+  transform: scale(1.002);
+}
+
+.backgroundVeil {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(13, 13, 10, 0.15) 0%,
+      rgba(10, 10, 8, 0.22) 62%,
+      rgba(6, 6, 5, 0.34) 100%
+    ),
+    radial-gradient(
+      ellipse at 50% 43%,
+      rgba(247, 215, 155, 0.015) 0 28%,
+      rgba(13, 12, 9, 0.12) 68%,
+      rgba(5, 5, 4, 0.36) 100%
+    );
+  box-shadow: inset 0 0 10rem rgba(20, 16, 9, 0.32);
+}
+
+.stage::after {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(4, 4, 3, 0.22),
+      transparent 18%,
+      transparent 82%,
+      rgba(4, 4, 3, 0.22)
+    ),
+    linear-gradient(0deg, rgba(5, 5, 4, 0.22), transparent 30%);
+  content: '';
+  pointer-events: none;
+}
+
+.inner {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 92rem);
+  margin: 0 auto;
+}
+
+.topbar {
+  display: flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: clamp(1.6rem, 4vh, 3.3rem);
+}
+
+.backLink,
+.createLink,
+.emptyAction {
+  display: inline-flex;
+  min-height: 2.8rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #f2e6d3;
+  font-size: 0.78rem;
+  font-weight: 760;
+  letter-spacing: 0.035em;
+  text-decoration: none;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.backLink {
+  padding: 0.5rem 0.35rem;
+}
+
+.backLink span:first-child {
+  color: #d8b56f;
+  font-size: 1.1rem;
+}
+
+.backLink:hover,
+.backLink:focus-visible {
+  color: #fff7e8;
+  transform: translateX(-2px);
+}
+
+.createLink,
+.emptyAction {
+  border: 1px solid rgba(207, 166, 87, 0.62);
+  border-radius: 0.45rem;
+  padding: 0.55rem 1rem;
+  background: linear-gradient(
+    180deg,
+    rgba(31, 27, 20, 0.68),
+    rgba(13, 13, 11, 0.78)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(244, 217, 163, 0.05),
+    0 8px 24px rgba(0, 0, 0, 0.18);
+  color: #e8c477;
+  text-transform: uppercase;
+}
+
+.createLink span:first-child {
+  font-size: 1rem;
+}
+
+.createLink:hover,
+.createLink:focus-visible,
+.emptyAction:hover,
+.emptyAction:focus-visible {
+  border-color: rgba(233, 196, 119, 0.9);
+  background: linear-gradient(
+    180deg,
+    rgba(48, 39, 25, 0.76),
+    rgba(17, 15, 12, 0.82)
+  );
+  color: #f6d994;
+  transform: translateY(-1px);
+}
+
+.intro {
+  display: grid;
+  justify-items: center;
+  gap: 0.7rem;
+  width: min(100%, 56rem);
+  margin: 0 auto clamp(1.8rem, 4vh, 3.4rem);
+  text-align: center;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.44);
+}
+
+.eyebrow,
+.cardKicker,
+.emptyKicker {
+  color: #d8b56f;
+  font-size: 0.71rem;
+  font-weight: 820;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.intro h1 {
+  margin: 0;
+  color: #f8eddb;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(3rem, 5.2vw, 5.2rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.introRule {
+  position: relative;
+  display: block;
+  width: min(22rem, 62vw);
+  height: 1px;
+  margin: 0.25rem 0 0.05rem;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(211, 174, 102, 0.62) 28%,
+    rgba(211, 174, 102, 0.62) 72%,
+    transparent
+  );
+}
+
+.introRule::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.38rem;
+  height: 0.38rem;
+  border: 1px solid rgba(222, 186, 116, 0.72);
+  background: rgba(30, 25, 17, 0.92);
+  content: '';
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.intro p {
+  max-width: 40rem;
+  margin: 0;
+  color: rgba(248, 236, 216, 0.8);
+  font-size: clamp(0.92rem, 1.2vw, 1.03rem);
+  line-height: 1.6;
+  text-wrap: balance;
+}
+
+.campaignGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 28rem));
+  justify-content: center;
+  gap: clamp(1.1rem, 2vw, 1.6rem);
+  width: 100%;
+  margin: 0 auto;
+}
+
+.campaignCard {
+  position: relative;
+  min-height: clamp(19rem, 36vh, 23rem);
+  display: flex;
+  overflow: hidden;
+  align-items: flex-end;
+  border: 1px solid rgba(214, 175, 97, 0.62);
+  border-radius: 0.75rem;
+  background-color: rgba(24, 22, 17, 0.92);
+  background-position: center;
+  background-size: cover;
+  box-shadow:
+    0 1.4rem 3.6rem rgba(0, 0, 0, 0.3),
+    inset 0 0 0 1px rgba(255, 239, 205, 0.04);
+  color: #f6ebd8;
+  text-decoration: none;
+  isolation: isolate;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.campaignCard::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      0deg,
+      rgba(11, 10, 8, 0.99) 0%,
+      rgba(12, 11, 9, 0.88) 31%,
+      rgba(12, 11, 9, 0.4) 59%,
+      rgba(9, 9, 7, 0.05) 84%
+    ),
+    linear-gradient(105deg, rgba(218, 176, 94, 0.07), transparent 46%);
+  content: '';
+}
+
+.campaignCard::after {
+  position: absolute;
+  inset: 0.55rem;
+  border: 1px solid rgba(225, 185, 105, 0.18);
+  border-radius: 0.45rem;
+  content: '';
+  pointer-events: none;
+}
+
+.campaignCard:hover,
+.campaignCard:focus-visible {
+  transform: translateY(-5px);
+  border-color: rgba(236, 199, 124, 0.94);
+  box-shadow:
+    0 2rem 4.8rem rgba(0, 0, 0, 0.4),
+    0 0 2rem rgba(205, 159, 73, 0.1);
+  outline: none;
+}
+
+.cardCopy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 100%;
+  gap: 0.46rem;
+  padding: 1.3rem 1.35rem 1.2rem;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.72);
+}
+
+.cardKicker {
+  font-size: 0.64rem;
+  letter-spacing: 0.13em;
+}
+
+.cardCopy strong {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.65rem, 2.2vw, 2.2rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.06;
+}
+
+.meta {
+  color: rgba(239, 226, 204, 0.7);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.cardAction {
+  display: flex;
+  min-height: 3.05rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.55rem;
+  border: 1px solid rgba(214, 173, 91, 0.58);
+  border-radius: 0.35rem;
+  padding: 0.68rem 0.92rem;
+  background: linear-gradient(
+    180deg,
+    rgba(23, 20, 15, 0.84),
+    rgba(8, 8, 7, 0.92)
+  );
+  color: #e9c574;
+  font-size: 0.75rem;
+  font-weight: 820;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cardAction span:last-child {
+  font-size: 1.25rem;
+  transition: transform 160ms ease;
+}
+
+.campaignCard:hover .cardAction span:last-child,
+.campaignCard:focus-visible .cardAction span:last-child {
+  transform: translateX(0.25rem);
+}
+
+.emptyState {
+  display: grid;
+  justify-items: center;
+  gap: 0.72rem;
+  width: min(100%, 46rem);
+  min-height: 20rem;
+  align-content: center;
+  margin: 0 auto;
+  border: 1px solid rgba(214, 175, 97, 0.42);
+  border-radius: 0.8rem;
+  padding: 2rem;
+  background: rgba(20, 18, 14, 0.68);
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.26);
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+
+.emptyState strong {
+  color: #f6ead7;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 500;
+}
+
+.emptyState p {
+  max-width: 32rem;
+  margin: 0;
+  color: rgba(239, 226, 204, 0.74);
+  line-height: 1.55;
+}
+
+.emptyAction {
+  margin-top: 0.45rem;
+}
+
+@media (max-width: 760px) {
+  .stage {
+    padding: 1rem;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    margin-bottom: 1.8rem;
+  }
+
+  .backLink,
+  .createLink {
+    font-size: 0.69rem;
+  }
+
+  .intro {
+    margin-bottom: 1.8rem;
+  }
+
+  .campaignGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .campaignCard {
+    min-height: 18rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .createLink span:last-child {
+    display: none;
+  }
+
+  .createLink {
+    width: 2.8rem;
+    padding-inline: 0;
+  }
+
+  .backLink span:last-child {
+    max-width: 10rem;
+  }
+
+  .cardCopy {
+    padding: 1.05rem;
+  }
+}
