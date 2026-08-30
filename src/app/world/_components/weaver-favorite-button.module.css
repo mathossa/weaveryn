@@ -7,29 +7,20 @@
   width: 2.75rem;
   height: 2.75rem;
   place-items: center;
-  border: 1px solid rgba(220, 181, 100, 0.34);
-  border-radius: 999px;
+  border: 0;
   padding: 0;
-  background: rgba(8, 8, 7, 0.72);
-  box-shadow:
-    0 0.55rem 1.4rem rgba(0, 0, 0, 0.34),
-    inset 0 0 0 1px rgba(255, 238, 200, 0.035);
+  background: transparent;
   cursor: pointer;
   transition:
-    border-color 150ms ease,
-    background 150ms ease,
     transform 150ms ease,
     filter 150ms ease;
-  backdrop-filter: blur(5px);
 }
 
 .favoriteButton:hover,
 .favoriteButton:focus-visible {
-  border-color: rgba(239, 200, 120, 0.82);
-  background: rgba(20, 17, 11, 0.88);
   outline: none;
-  filter: brightness(1.08);
-  transform: scale(1.04);
+  filter: brightness(1.12);
+  transform: scale(1.08);
 }
 
 .favoriteButton:disabled {
@@ -38,8 +29,8 @@
 }
 
 .favoriteButton img {
-  width: 1.55rem;
-  height: 1.55rem;
+  width: 1.7rem;
+  height: 1.7rem;
   object-fit: contain;
   filter: drop-shadow(0 0.15rem 0.35rem rgba(0, 0, 0, 0.42));
 }
