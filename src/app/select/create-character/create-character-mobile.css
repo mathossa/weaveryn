@@ -1,0 +1,9 @@
+@media (max-width: 760px) {
+  section[aria-label='Create a Character'] > div:last-of-type > div:first-child {
+    display: none !important;
+  }
+
+  section[aria-label='Create a Character'] > div:last-of-type > div:nth-child(2) {
+    margin-top: 0 !important;
+  }
+}
