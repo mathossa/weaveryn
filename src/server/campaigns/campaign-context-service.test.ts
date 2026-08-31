@@ -9,6 +9,7 @@ import {
 } from './campaign-context-service'
 
 const CAMPAIGN_ID = 'campaign-1'
+const OTHER_CAMPAIGN_ID = 'campaign-2'
 const WORLD_ID = 'world-1'
 const LOCATION_ID = 'location-1'
 
@@ -115,12 +116,21 @@ describe('CampaignContextService', () => {
     expect(repository.lastRequiresManager).toBe(true)
   })
 
-  it('rejects inaccessible, cross-world, and non-location entities uniformly', async () => {
+  it('rejects inaccessible, cross-world, cross-Campaign, and non-location entities uniformly', async () => {
     repository.access = { ...repository.access!, ownerId: 'owner' }
     entities.visibleEntity = null
     await expect(
       service.update(CAMPAIGN_ID, 'owner', {
         currentLocationId: 'hidden-or-cross-world',
+      }),
+    ).rejects.toMatchObject({ code: 'CAMPAIGN_LOCATION_INVALID' })
+
+    entities.visibleEntity = entity({
+      visibilityCampaignId: OTHER_CAMPAIGN_ID,
+    })
+    await expect(
+      service.update(CAMPAIGN_ID, 'owner', {
+        currentLocationId: LOCATION_ID,
       }),
     ).rejects.toMatchObject({ code: 'CAMPAIGN_LOCATION_INVALID' })
 

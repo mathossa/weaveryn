@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireAuthenticatedUser } from '@/server/auth'
-import { worldEntityService } from '@/server/world-entities'
+import { getWorldEntityTypeChoices } from '@/server/world-entities'
 import { worldEntityApiErrorResponse } from '../_lib/world-entity-error-response'
 
 export const runtime = 'nodejs'
@@ -15,7 +15,7 @@ export async function GET(request: Request, context: RouteContext) {
     const { worldId } = await context.params
     const campaignId =
       new URL(request.url).searchParams.get('campaign') ?? undefined
-    const entityTypes = await worldEntityService.listEntityTypes(
+    const entityTypes = await getWorldEntityTypeChoices(
       worldId,
       user.id,
       campaignId,

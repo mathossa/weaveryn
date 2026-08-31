@@ -55,10 +55,10 @@ export function worldEntityTypeNotFound(typeId: string) {
   )
 }
 
-export function worldEntityTypeInUse(name: string, count: number) {
+export function worldEntityTypeInUse(name: string) {
   return new WorldEntityDomainError(
     'WORLD_ENTITY_TYPE_IN_USE',
-    `${name} cannot be deleted while ${count} ${count === 1 ? 'entity uses' : 'entities use'} this type.`,
+    `${name} cannot be deleted while it is in use.`,
   )
 }
 
