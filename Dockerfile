@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim AS dependencies
+FROM node:22-trixie-slim AS dependencies
 
 WORKDIR /app
 
@@ -6,7 +6,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 
-FROM node:22-bookworm-slim AS builder
+FROM node:22-trixie-slim AS builder
 
 WORKDIR /app
 
@@ -24,7 +24,7 @@ RUN npx prisma generate
 RUN npm run build
 
 
-FROM node:22-bookworm-slim AS runner
+FROM node:22-trixie-slim AS runner
 
 WORKDIR /app
 
