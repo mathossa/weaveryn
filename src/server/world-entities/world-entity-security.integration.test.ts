@@ -3,6 +3,7 @@ import 'dotenv/config'
 import { randomUUID } from 'node:crypto'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { prisma } from '@/lib/prisma'
+import { campaignService } from '@/server/campaigns'
 import { assertSafeDevEnvironment } from '@/server/dev-scenarios/environment'
 import {
   deleteWorldEntityType,
@@ -31,6 +32,30 @@ async function createUser(label: string) {
   })
 }
 
+async function createWorld(ownerId: string) {
+  const worldId = id()
+  const timelineId = id()
+  await prisma.world.create({
+    data: { id: worldId, name: 'Aldorath', ownerId },
+  })
+  await prisma.worldTimeline.create({
+    data: { id: timelineId, worldId, name: 'Main' },
+  })
+  return worldId
+}
+
+async function createCampaign(ownerId: string, worldId: string) {
+  const campaign = await campaignService.createCampaign({
+    creatorId: ownerId,
+    worldId,
+    name: 'Hidden Ashes',
+    currentWorldPosition: '142.5',
+    currentWorldDateLabel: '14 Emberwane, 812',
+  })
+  ids.push(campaign.id)
+  return campaign.id
+}
+
 describe('World entity authorization hardening', () => {
   beforeAll(() => {
     assertSafeDevEnvironment()
@@ -39,9 +64,14 @@ describe('World entity authorization hardening', () => {
   afterEach(async () => {
     await prisma.worldEntity.deleteMany({ where: { id: { in: ids } } })
     await prisma.worldEntityType.deleteMany({ where: { id: { in: ids } } })
-    await prisma.campaignMembership.deleteMany({ where: { id: { in: ids } } })
+    await prisma.campaignMembership.deleteMany({
+      where: {
+        OR: [{ id: { in: ids } }, { campaignId: { in: ids } }],
+      },
+    })
     await prisma.campaign.deleteMany({ where: { id: { in: ids } } })
     await prisma.worldMembership.deleteMany({ where: { id: { in: ids } } })
+    await prisma.worldTimeline.deleteMany({ where: { id: { in: ids } } })
     await prisma.world.deleteMany({ where: { id: { in: ids } } })
     await prisma.user.deleteMany({ where: { email: { in: emails } } })
     ids.length = 0
@@ -51,21 +81,19 @@ describe('World entity authorization hardening', () => {
   it('requires access to the Campaign before deleting its scoped custom type', async () => {
     const worldOwner = await createUser('world-owner')
     const campaignOwner = await createUser('campaign-owner')
-    const worldId = id()
-    const campaignId = id()
+    const worldId = await createWorld(worldOwner.id)
     const typeId = id()
 
-    await prisma.world.create({
-      data: { id: worldId, name: 'Aldorath', ownerId: worldOwner.id },
-    })
-    await prisma.campaign.create({
+    await prisma.worldMembership.create({
       data: {
-        id: campaignId,
-        name: 'Hidden Ashes',
+        id: id(),
         worldId,
-        ownerId: campaignOwner.id,
+        userId: campaignOwner.id,
+        role: 'MEMBER',
       },
     })
+    const campaignId = await createCampaign(campaignOwner.id, worldId)
+
     await prisma.worldEntityType.create({
       data: {
         id: typeId,
@@ -105,13 +133,9 @@ describe('World entity authorization hardening', () => {
   it('reports custom type usage from visible entities only and does not disclose hidden counts on delete', async () => {
     const worldOwner = await createUser('owner')
     const member = await createUser('member')
-    const worldId = id()
-    const campaignId = id()
+    const worldId = await createWorld(worldOwner.id)
     const typeId = id()
 
-    await prisma.world.create({
-      data: { id: worldId, name: 'Aldorath', ownerId: worldOwner.id },
-    })
     await prisma.worldMembership.create({
       data: {
         id: id(),
@@ -120,14 +144,8 @@ describe('World entity authorization hardening', () => {
         role: 'MEMBER',
       },
     })
-    await prisma.campaign.create({
-      data: {
-        id: campaignId,
-        name: 'Hidden Ashes',
-        worldId,
-        ownerId: worldOwner.id,
-      },
-    })
+    const campaignId = await createCampaign(worldOwner.id, worldId)
+
     await prisma.worldEntityType.create({
       data: {
         id: typeId,
