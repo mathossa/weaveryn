@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { getAuthenticatedUser, type AuthenticatedUser } from '@/server/auth'
 import { AppShell } from './app-shell'
 import type { AppShellContext, AppShellVariant } from './app-shell'
+import { InAppNavigation } from './in-app-navigation'
 
 export interface AuthenticatedAppShellProps {
   children: ReactNode
@@ -32,6 +33,7 @@ export async function AuthenticatedAppShell({
       context={context}
       variant={variant}
     >
+      {variant !== 'launcher' ? <InAppNavigation context={context} /> : null}
       {children}
     </AppShell>
   )
