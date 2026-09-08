@@ -207,6 +207,20 @@ user and Campaign context. The raw relation never authorizes hidden entity detai
 Around You is derived only from real visible relationships connected to the
 visible Current Location.
 
+### Active Campaign Entry Identity
+
+The active entry identity is separate from User ownership, membership and
+capabilities. A validated, explicitly selected owned Campaign Character selects
+the Threadwalker workspace, including for a User who also owns the Campaign.
+Explicit Weaver entry selects the Weaver workspace only for an authorized
+Campaign manager; explicit Threadwatcher entry selects a read-only workspace.
+A foreign or invalid explicitly requested Character fails closed rather than
+silently falling back to Weaver. Character context travels in the existing
+`character` query parameter through compatible navigation. Workspace selection
+never grants or removes server-side authorization; normal service checks still
+protect every operation. Player location capabilities remain available in the
+Threadwalker workspace, while manager-only controls belong to Weaver entry.
+
 ### Campaign Membership
 
 Campaign roles describe participation rather than ownership:

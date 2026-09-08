@@ -564,6 +564,64 @@ test('persists and protects the complete MVP backbone', async ({
     )
     await expectNoHorizontalOverflow(ownerPage)
     await capture(ownerPage, testInfo, 'selection-screen')
+    await ownerPage
+      .getByRole('link', {
+        name: `Enter Campaign as ${fixture.character.name}`,
+      })
+      .click()
+    await expect(ownerPage).toHaveURL(
+      new RegExp(`character=${ids.primaryWorldCharacterId}`),
+    )
+    await expect(
+      ownerPage.getByText('Weaver workspace', { exact: true }),
+    ).toHaveCount(0)
+    await expect(
+      ownerPage.getByRole('heading', { name: 'Campaign controls' }),
+    ).toHaveCount(0)
+    await expect(
+      ownerPage.getByText(`You entered as ${fixture.character.name}.`, {
+        exact: false,
+      }),
+    ).toBeVisible()
+    await ownerPage
+      .getByRole('button', { name: 'Open navigation', exact: true })
+      .click()
+    const navigation = ownerPage.getByRole('navigation', {
+      name: 'Navigation',
+      exact: true,
+    })
+    await navigation
+      .getByRole('link', { name: 'Entities', exact: true })
+      .click()
+    await expect(ownerPage).toHaveURL(
+      new RegExp(`character=${ids.primaryWorldCharacterId}`),
+    )
+    await navigation
+      .locator('section')
+      .filter({
+        has: ownerPage.getByRole('heading', { name: 'Campaign', exact: true }),
+      })
+      .getByRole('link', { name: 'Overview', exact: true })
+      .click()
+    await expect(
+      ownerPage.getByText('Weaver workspace', { exact: true }),
+    ).toHaveCount(0)
+    await expect(ownerPage).toHaveURL(
+      new RegExp(`character=${ids.primaryWorldCharacterId}`),
+    )
+    await ownerPage.keyboard.press('Escape')
+    await ownerPage.goto(
+      `/world/${ids.primaryWorldId}/campaign/${ids.primaryCampaignId}?mode=threadwatcher`,
+    )
+    await expect(
+      ownerPage.getByRole('heading', { name: 'Campaign controls' }),
+    ).toHaveCount(0)
+    await ownerPage.goto(
+      `/world/${ids.primaryWorldId}/campaign/${ids.primaryCampaignId}?mode=weaver`,
+    )
+    await expect(
+      ownerPage.getByText('Weaver workspace', { exact: true }),
+    ).toBeVisible()
     await ownerPage.goto(`/world/${ids.primaryWorldId}`)
     await expect(
       ownerPage.getByRole('heading', { name: fixture.primaryWorld.name }),

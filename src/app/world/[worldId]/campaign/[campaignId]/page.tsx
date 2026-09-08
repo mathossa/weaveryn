@@ -8,7 +8,7 @@ import {
   requestedCharacterContext,
   withCharacterContext,
 } from '@/lib/campaign-context'
-import { campaignRoleLabel } from '@/lib/role-labels'
+import { resolveCampaignEntryContext } from '@/server/campaigns/campaign-entry-context'
 import { uiAssets } from '@/lib/ui-assets'
 import { requireAuthenticatedUser } from '@/server/auth'
 import { getCampaignNowContext } from '@/server/campaigns'
@@ -57,20 +57,16 @@ export default async function CampaignOverviewPage({
   if (!now) notFound()
   const { campaign } = now
 
-  const preferredWorldCharacterId =
-    explicitWeaverMode || explicitThreadwatcherMode
-      ? undefined
-      : (requestedWorldCharacterId ??
-        (latestCampaignPreference?.kind === 'CHARACTER'
-          ? (latestCampaignPreference.worldCharacterId ?? undefined)
-          : undefined))
-  const selectedCharacter = preferredWorldCharacterId
-    ? campaign.characters.find(
-        (character) =>
-          character.worldCharacterId === preferredWorldCharacterId &&
-          character.ownedByCurrentUser,
-      )
-    : undefined
+  const entryContext = resolveCampaignEntryContext(campaign, {
+    mode: query.mode,
+    requestedWorldCharacterId,
+    preferredWorldCharacterId:
+      latestCampaignPreference?.kind === 'CHARACTER'
+        ? (latestCampaignPreference.worldCharacterId ?? undefined)
+        : undefined,
+  })
+  if (!entryContext) notFound()
+  const selectedCharacter = entryContext.character
   const characterContextId = selectedCharacter?.worldCharacterId
   const campaignHref = explicitWeaverMode
     ? `/world/${worldId}/campaign/${campaign.id}?mode=weaver`
@@ -86,23 +82,22 @@ export default async function CampaignOverviewPage({
         `/world/${worldId}/campaign/${campaign.id}/manage`,
         characterContextId,
       )
-  const canManageCampaign =
-    campaign.canEditSharedInfo ||
-    campaign.canEditName ||
-    campaign.canManageMembers ||
-    campaign.canDelete
-  const isWeaverContext =
-    !selectedCharacter &&
-    (campaign.isOwner ||
-      campaign.role === 'GM' ||
-      campaign.role === 'ASSISTANT_GM')
+  const canManageCampaign = entryContext.canManageCampaign
+  const isWeaverContext = entryContext.isWeaver
   const canCaptureWorldContent =
     isWeaverContext &&
     Boolean(
       worldOverview &&
       ['OWNER', 'ADMIN', 'MEMBER'].includes(worldOverview.accessKind),
     )
-  const roleLabel = campaignRoleLabel(campaign.role)
+  const roleLabel =
+    entryContext.mode === 'threadwalker'
+      ? 'Threadwalker'
+      : entryContext.mode === 'threadwatcher'
+        ? 'Threadwatcher'
+        : campaign.isOwner
+          ? 'Weaver (Owner)'
+          : 'Weaver'
   const entityContextQuery = `?campaign=${campaign.id}${characterContextId ? `&character=${characterContextId}` : ''}`
   const contextEndpoint = `/api/v1/worlds/${worldId}/campaigns/${campaign.id}/context`
   const campaignApiEndpoint = `/api/v1/worlds/${worldId}/campaigns/${campaign.id}`
@@ -111,6 +106,9 @@ export default async function CampaignOverviewPage({
     <AuthenticatedAppShell
       user={user}
       context={{
+        ...(entryContext.mode !== 'threadwalker'
+          ? { mode: entryContext.mode }
+          : {}),
         world: {
           label: campaign.world.name,
           href: explicitThreadwatcherMode
@@ -129,7 +127,7 @@ export default async function CampaignOverviewPage({
       }}
     >
       <AppPage
-        eyebrow={`${campaign.world.name} · ${campaign.isOwner ? 'Weaver (Owner)' : roleLabel}`}
+        eyebrow={`${campaign.world.name} · ${roleLabel}`}
         title={campaign.name}
         description={
           selectedCharacter
@@ -348,7 +346,7 @@ export default async function CampaignOverviewPage({
             </section>
           </aside>
 
-          {campaign.canUpdateCurrentLocation ? (
+          {entryContext.canUpdateCurrentLocation ? (
             <section className={styles.weaverWorkspace}>
               <div className={styles.sectionHeading}>
                 <div>
@@ -356,7 +354,7 @@ export default async function CampaignOverviewPage({
                   <h2>Campaign controls</h2>
                 </div>
                 <small>
-                  {campaign.canEditSharedInfo
+                  {entryContext.isWeaver
                     ? 'Weaver workspace'
                     : 'Granted Chronicler capability'}
                 </small>
@@ -366,7 +364,7 @@ export default async function CampaignOverviewPage({
                 locations={now.locationChoices}
                 currentLocationId={now.currentLocation?.id ?? null}
                 currentFocus={campaign.currentFocus}
-                canUpdateFocus={campaign.canEditSharedInfo}
+                canUpdateFocus={entryContext.canUpdateFocus}
               />
               {canCaptureWorldContent ? (
                 <div className={styles.captureRegion}>
