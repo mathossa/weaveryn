@@ -1,4 +1,4 @@
-export const AUTH_PASSWORD_MIN_LENGTH = 8
+export const AUTH_PASSWORD_MIN_LENGTH = 15
 
 export const AUTH_USERNAME_MIN_LENGTH = 3
 export const AUTH_USERNAME_MAX_LENGTH = 30
@@ -16,6 +16,36 @@ const reservedUsernames = new Set([
   'official',
   'weaveryn',
 ])
+
+const loopbackHosts = new Set(['localhost', '127.0.0.1', '[::1]'])
+
+export function shouldUseSecureAuthCookies({
+  nodeEnv,
+  baseURL,
+  e2eRunId,
+}: {
+  nodeEnv?: string
+  baseURL?: string
+  e2eRunId?: string
+}) {
+  if (nodeEnv !== 'production') return false
+
+  // The production E2E server intentionally runs Next.js in production mode
+  // over disposable loopback HTTP. Allow that harness to exercise authenticated
+  // requests without weakening cookies for any deployable production URL.
+  if (e2eRunId && baseURL) {
+    try {
+      const url = new URL(baseURL)
+      if (url.protocol === 'http:' && loopbackHosts.has(url.hostname)) {
+        return false
+      }
+    } catch {
+      // Invalid/missing production URLs fail closed to Secure cookies.
+    }
+  }
+
+  return true
+}
 
 export function normalizeUsername(value: string) {
   return value.trim().toLowerCase()

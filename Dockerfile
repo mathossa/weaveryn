@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim AS dependencies
+FROM node:22-trixie-slim AS dependencies
 
 WORKDIR /app
 
@@ -6,7 +6,16 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 
-FROM node:22-bookworm-slim AS builder
+FROM node:22-trixie-slim AS production-dependencies
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN node -e "const fs=require('fs'); const p=JSON.parse(fs.readFileSync('package.json','utf8')); delete p.devDependencies; fs.writeFileSync('package.json', JSON.stringify(p,null,2)+'\n')"
+RUN npm ci --omit=peer
+
+
+FROM node:22-trixie-slim AS builder
 
 WORKDIR /app
 
@@ -22,9 +31,11 @@ ENV BETTER_AUTH_URL=http://localhost:3000
 
 RUN npx prisma generate
 RUN npm run build
+RUN rm -rf node_modules
+COPY --from=production-dependencies /app/node_modules ./node_modules
 
 
-FROM node:22-bookworm-slim AS runner
+FROM node:22-trixie-slim AS runner
 
 WORKDIR /app
 
@@ -35,8 +46,16 @@ ENV HOSTNAME=0.0.0.0
 
 COPY --from=builder --chown=node:node /app ./
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends --only-upgrade \
+       libssl3t64 \
+       openssl-provider-legacy \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /usr/local/lib/node_modules/npm \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx
+
 USER node
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && exec ./node_modules/.bin/next start"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && exec ./node_modules/.bin/next start"]

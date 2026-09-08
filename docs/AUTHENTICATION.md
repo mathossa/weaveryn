@@ -55,6 +55,29 @@ Weaveryn owns domain behavior:
 - account-deletion preflight and lifecycle rules
 - World orphaning and protection of independently owned Campaigns and Characters
 
+## MVP password policy
+
+The MVP minimum password length is **15 characters**. The value is defined centrally by `AUTH_PASSWORD_MIN_LENGTH` and supplied directly to Better Auth's email/password configuration.
+
+Better Auth performs password hashing and verification. Application code must never persist or log plaintext passwords or `BETTER_AUTH_SECRET`. Authentication integration coverage verifies that the credential value persisted in `AuthAccount.password` exists and is not equal to the submitted plaintext password.
+
+Password recovery email is intentionally deferred for the MVP. There is therefore no supported user-facing forgot-password/recovery-email flow yet. Better Auth is configured to revoke sessions when a future password-reset flow succeeds so adding recovery later does not require changing that security expectation.
+
+## Session and cookie policy
+
+The MVP uses persisted database sessions with an explicit policy rather than relying on Better Auth defaults:
+
+- session lifetime: **7 days** (`expiresIn`)
+- rolling refresh threshold: **1 day** (`updateAge`)
+- session cookie: `HttpOnly`
+- `SameSite=Lax`
+- `Secure` in production
+- production secure-cookie mode is explicitly enabled
+
+A used session whose refresh threshold has been reached is extended to the current time plus the seven-day lifetime. Logout invalidates the persisted session. Password reset is configured to revoke sessions.
+
+Local development may use HTTP and therefore does not mark cookies `Secure`; production is required to be browser-facing HTTPS and does mark them `Secure`.
+
 ## MVP scope
 
 Enabled: local email/password registration with required public username, login, logout, persisted database sessions, and server-side authenticated User resolution.

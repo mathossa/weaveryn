@@ -4,6 +4,7 @@ import {
   worldEntityService,
   type WorldEntityRecord,
 } from '@/server/world-entities'
+import { filterWorldEntitiesForCampaignContext } from '@/server/world-entities/world-entity-campaign-context'
 import {
   campaignLocationInvalid,
   campaignUpdateForbidden,
@@ -98,7 +99,12 @@ export class CampaignContextService {
         userId,
         input.currentLocationId,
       )
-      if (!location || !isLocationType(location.type)) {
+      if (
+        !location ||
+        !isLocationType(location.type) ||
+        filterWorldEntitiesForCampaignContext([location], campaignId).length ===
+          0
+      ) {
         throw campaignLocationInvalid()
       }
     }

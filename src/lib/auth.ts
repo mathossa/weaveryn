@@ -4,6 +4,7 @@ import { prismaAdapter } from 'better-auth/adapters/prisma'
 import {
   AUTH_PASSWORD_MIN_LENGTH,
   normalizeUsername,
+  shouldUseSecureAuthCookies,
   usernameValidationMessage,
 } from './auth-policy'
 import { prisma } from './prisma'
@@ -11,6 +12,12 @@ import { prisma } from './prisma'
 const baseURL =
   process.env.BETTER_AUTH_URL ??
   (process.env.NODE_ENV === 'test' ? 'http://localhost:3000' : undefined)
+
+const useSecureCookies = shouldUseSecureAuthCookies({
+  nodeEnv: process.env.NODE_ENV,
+  baseURL,
+  e2eRunId: process.env.E2E_RUN_ID,
+})
 
 const trustedOrigins = (process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? '')
   .split(',')
@@ -92,6 +99,8 @@ export const auth = betterAuth({
   },
   session: {
     modelName: 'AuthSession',
+    expiresIn: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
   },
   account: {
     modelName: 'AuthAccount',
@@ -100,6 +109,12 @@ export const auth = betterAuth({
     modelName: 'AuthVerification',
   },
   advanced: {
+    useSecureCookies,
+    defaultCookieAttributes: {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: useSecureCookies,
+    },
     database: {
       generateId: 'uuid',
     },

@@ -1,7 +1,45 @@
 import { describe, expect, it } from 'vitest'
-import { normalizeUsername, usernameValidationMessage } from './auth-policy'
+import {
+  AUTH_PASSWORD_MIN_LENGTH,
+  normalizeUsername,
+  shouldUseSecureAuthCookies,
+  usernameValidationMessage,
+} from './auth-policy'
 
-describe('username policy', () => {
+describe('authentication policy', () => {
+  it('keeps the MVP password minimum at or above 15 characters', () => {
+    expect(AUTH_PASSWORD_MIN_LENGTH).toBeGreaterThanOrEqual(15)
+  })
+
+  it('keeps production auth cookies secure outside the loopback E2E harness', () => {
+    expect(
+      shouldUseSecureAuthCookies({
+        nodeEnv: 'production',
+        baseURL: 'https://weaveryn.example.com',
+      }),
+    ).toBe(true)
+    expect(
+      shouldUseSecureAuthCookies({
+        nodeEnv: 'production',
+        baseURL: 'http://weaveryn.example.com',
+        e2eRunId: 'test-run',
+      }),
+    ).toBe(true)
+    expect(
+      shouldUseSecureAuthCookies({
+        nodeEnv: 'production',
+        baseURL: 'http://127.0.0.1:3000',
+        e2eRunId: 'test-run',
+      }),
+    ).toBe(false)
+    expect(
+      shouldUseSecureAuthCookies({
+        nodeEnv: 'development',
+        baseURL: 'http://localhost:3000',
+      }),
+    ).toBe(false)
+  })
+
   it('normalizes usernames to trimmed lowercase', () => {
     expect(normalizeUsername('  Mathossa.Player  ')).toBe('mathossa.player')
   })
