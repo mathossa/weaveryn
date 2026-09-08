@@ -153,10 +153,10 @@ describe('World entity MVP visibility', () => {
     ).toBeNull()
     expect(
       await worldEntityService.loadEntity(worldId, owner.id, playerEntity.id),
-    ).toBeNull()
+    ).toMatchObject({ id: playerEntity.id })
     expect(
       await worldEntityService.loadEntity(worldId, owner.id, privateEntity.id),
-    ).toBeNull()
+    ).toMatchObject({ id: privateEntity.id })
     expect(
       await worldEntityService.loadEntity(worldId, member.id, privateEntity.id),
     ).toMatchObject({ id: privateEntity.id })
@@ -179,6 +179,54 @@ describe('World entity MVP visibility', () => {
         (relationship) => relationship.id,
       ),
     ).not.toContain(campaignRelationship.id)
+  })
+
+  it('recovers viewer-targeted content through persisted list, read, edit and delete paths', async () => {
+    const { owner, member, viewer, player, worldId } =
+      await createWorldFixture()
+    const entity = await worldEntityService.createEntity({
+      actorUserId: owner.id,
+      worldId,
+      type: 'item',
+      name: 'Recovery regression',
+      visibility: { scope: 'PLAYER', userId: viewer.id },
+    })
+    expect(
+      (await worldEntityService.listEntities(worldId, owner.id)).map(
+        (value) => value.id,
+      ),
+    ).toContain(entity.id)
+    expect(
+      await worldEntityService.loadEntity(worldId, viewer.id, entity.id),
+    ).toMatchObject({ id: entity.id })
+    expect(
+      await worldEntityService.loadEntity(worldId, member.id, entity.id),
+    ).toBeNull()
+    expect(
+      await worldEntityService.loadEntity(worldId, player.id, entity.id),
+    ).toBeNull()
+    await expect(
+      worldEntityService.deleteEntity(worldId, viewer.id, entity.id),
+    ).rejects.toMatchObject({ code: 'WORLD_PERMISSION_DENIED' })
+    await worldEntityService.updateEntity(worldId, owner.id, entity.id, {
+      visibility: { scope: 'PRIVATE' },
+    })
+    await prisma.worldMembership.updateMany({
+      where: { worldId, userId: member.id },
+      data: { role: 'ADMIN' },
+    })
+    expect(
+      (await worldEntityService.listEntities(worldId, member.id)).map(
+        (value) => value.id,
+      ),
+    ).toContain(entity.id)
+    await worldEntityService.updateEntity(worldId, member.id, entity.id, {
+      name: 'Recovered by administrator',
+    })
+    await worldEntityService.deleteEntity(worldId, member.id, entity.id)
+    expect(
+      await prisma.worldEntity.findUnique({ where: { id: entity.id } }),
+    ).toBeNull()
   })
 
   it('creates initial relationships atomically, persists focus, and guards custom type deletion', async () => {

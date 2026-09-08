@@ -491,6 +491,22 @@ async function runAll() {
     detail:
       'Campaign membership grants only visibility-scoped World content and does not create WorldMembership or general edit permission.',
   })
+  const recoverable = await worldEntityServiceForScenario().loadEntity(
+    PRIMARY_WORLD_ID,
+    OWNER_ID,
+    PRIVATE_ENTITY_ID,
+  )
+  checks.push({
+    id: 'administrative-recovery',
+    title: 'World owner can recover private content',
+    status: recoverable?.id === PRIVATE_ENTITY_ID ? 'passed' : 'failed',
+    actor: 'Elara (World owner)',
+    target: 'Private entity created by another member',
+    expected: 'Entity remains accessible for administrative management',
+    actual: recoverable?.name ?? 'inaccessible',
+    detail:
+      'Audience restrictions do not revoke World owner or ADMIN recovery access. Ordinary viewers and Campaign-only actors retain their visibility boundaries.',
+  })
   checks.push({
     id: 'custom-type',
     title: 'Free-text entity types become reusable',

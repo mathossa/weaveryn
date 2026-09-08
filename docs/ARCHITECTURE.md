@@ -367,7 +367,7 @@ PLAYER
 PRIVATE
 ```
 
-Campaign- and player-scoped visibility must identify its target Campaign or user. `GM` includes the Campaign owner, `GM`, and `ASSISTANT_GM` for the targeted Campaign. `PRIVATE` content is visible only to its owning/creating user unless an explicit future sharing workflow grants access. `PUBLIC` and arbitrary visibility grants are post-MVP capabilities.
+Campaign- and player-scoped visibility must identify its target Campaign or user. `GM` includes the Campaign owner, `GM`, and `ASSISTANT_GM` for the targeted Campaign. `PRIVATE` content is ordinarily visible only to its owning/creating user. World owners and World `ADMIN`s retain administrative read, edit, and delete access to WorldEntities and EntityRelationships across every visibility scope, including `PRIVATE`, so audience restrictions cannot orphan administrative control. Character-backed identity restrictions still apply. This exception does not grant Campaign-only users World editing rights or grant ordinary members/viewers access to restricted content. `PUBLIC` and arbitrary visibility grants are post-MVP capabilities.
 
 ### Authentication
 

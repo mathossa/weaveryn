@@ -62,6 +62,7 @@ export interface CampaignVisibilityAccessRecord {
 export interface WorldEntityVisibilityQuery {
   userId: string
   hasWorldAccess: boolean
+  hasAdministrativeAccess?: boolean
   campaignIds: string[]
   gmCampaignIds: string[]
 }

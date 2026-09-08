@@ -388,8 +388,54 @@ describe('WorldEntityService', () => {
     ).resolves.toBe(privateEntity)
     await expect(
       service.loadEntity(worldOneId, ownerId, privateEntity.id),
-    ).resolves.toBeNull()
+    ).resolves.toBe(privateEntity)
   })
+
+  it.each(['owner', 'admin'] as const)(
+    'keeps %s recovery access across every audience and denies viewers writes',
+    async (actor) => {
+      const { repository, service } = harness([entityOneId])
+      if (actor === 'admin')
+        repository.memberships.set(`${worldOneId}:${memberId}`, 'ADMIN')
+      const managerId = actor === 'owner' ? ownerId : memberId
+      const entity = await service.createEntity({
+        actorUserId: ownerId,
+        worldId: worldOneId,
+        type: 'item',
+        name: 'Recoverable',
+      })
+      const audiences = [
+        { scope: 'WORLD' as const },
+        { scope: 'CAMPAIGN' as const, campaignId },
+        { scope: 'GM' as const, campaignId },
+        { scope: 'PLAYER' as const, userId: viewerId },
+        { scope: 'PRIVATE' as const },
+      ]
+      for (const visibility of audiences) {
+        await service.updateEntity(worldOneId, ownerId, entity.id, {
+          visibility,
+        })
+        await expect(
+          service.loadEntity(worldOneId, managerId, entity.id),
+        ).resolves.toMatchObject({ id: entity.id })
+        expect(
+          (await service.listEntities(worldOneId, managerId)).map(
+            (value) => value.id,
+          ),
+        ).toContain(entity.id)
+        await expect(
+          service.updateEntity(worldOneId, managerId, entity.id, {
+            name: 'Recovered',
+          }),
+        ).resolves.toMatchObject({ name: 'Recovered' })
+        await expect(
+          service.deleteEntity(worldOneId, viewerId, entity.id),
+        ).rejects.toMatchObject({ code: 'WORLD_PERMISSION_DENIED' })
+      }
+      await service.deleteEntity(worldOneId, managerId, entity.id)
+      expect(repository.entities.has(entity.id)).toBe(false)
+    },
+  )
 
   it('registers free-text custom entity types in World or Campaign scope', async () => {
     const { repository, service } = harness([
