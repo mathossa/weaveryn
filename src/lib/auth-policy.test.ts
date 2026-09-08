@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { normalizeUsername, usernameValidationMessage } from './auth-policy'
+import {
+  AUTH_PASSWORD_MIN_LENGTH,
+  normalizeUsername,
+  usernameValidationMessage,
+} from './auth-policy'
 
-describe('username policy', () => {
+describe('authentication policy', () => {
+  it('keeps the MVP password minimum at or above 15 characters', () => {
+    expect(AUTH_PASSWORD_MIN_LENGTH).toBeGreaterThanOrEqual(15)
+  })
+
   it('normalizes usernames to trimmed lowercase', () => {
     expect(normalizeUsername('  Mathossa.Player  ')).toBe('mathossa.player')
   })
