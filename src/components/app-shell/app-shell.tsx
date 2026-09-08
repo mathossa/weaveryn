@@ -10,6 +10,10 @@ import { BrandWordmark } from '@/components/ui/brand-wordmark'
 import { uiAssets } from '@/lib/ui-assets'
 import styles from './app-shell.module.css'
 import switcherStyles from './context-switcher.module.css'
+import {
+  InAppNavigationToggle,
+  InAppNavigationWorkspace,
+} from './in-app-navigation'
 
 export type AppShellContextKind = 'world' | 'campaign' | 'character'
 export type AppShellContextMode = 'weaver' | 'threadwatcher'
@@ -396,6 +400,7 @@ export function AppShell({
   const pathname = usePathname()
   const [accountOpen, setAccountOpen] = useState(false)
   const [contextOpen, setContextOpen] = useState(false)
+  const [navigationOpen, setNavigationOpen] = useState(false)
   const [switcherKind, setSwitcherKind] = useState<AppShellContextKind | null>(
     null,
   )
@@ -413,22 +418,24 @@ export function AppShell({
   const identifiers = getContextIdentifiers(context, pathname)
 
   useEffect(() => {
-    if (!accountOpen && !contextOpen && !switcherKind) return
+    if (!accountOpen && !contextOpen && !navigationOpen && !switcherKind) return
 
     function closeOnEscape(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setAccountOpen(false)
         setContextOpen(false)
+        setNavigationOpen(false)
         setSwitcherKind(null)
       }
     }
 
     document.addEventListener('keydown', closeOnEscape)
     return () => document.removeEventListener('keydown', closeOnEscape)
-  }, [accountOpen, contextOpen, switcherKind])
+  }, [accountOpen, contextOpen, navigationOpen, switcherKind])
 
   function toggleAccount() {
     setContextOpen(false)
+    setNavigationOpen(false)
     setSwitcherKind(null)
     setAccountOpen((open) => !open)
     setSignOutError(null)
@@ -436,8 +443,16 @@ export function AppShell({
 
   function toggleContext() {
     setAccountOpen(false)
+    setNavigationOpen(false)
     setSwitcherKind(null)
     setContextOpen((open) => !open)
+  }
+
+  function toggleNavigation() {
+    setAccountOpen(false)
+    setContextOpen(false)
+    setSwitcherKind(null)
+    setNavigationOpen((open) => !open)
   }
 
   async function loadContextOptions(kind: AppShellContextKind, force = false) {
@@ -510,6 +525,7 @@ export function AppShell({
 
   function toggleSwitcher(kind: AppShellContextKind) {
     setAccountOpen(false)
+    setNavigationOpen(false)
     const nextKind = switcherKind === kind ? null : kind
     setSwitcherKind(nextKind)
     if (nextKind) void loadContextOptions(nextKind, true)
@@ -590,14 +606,29 @@ export function AppShell({
       <header
         className={`${styles.header} ${variant === 'launcher' ? styles.launcherHeader : ''}`}
       >
-        <Link
-          className={styles.brand}
-          href="/select"
-          aria-label="Weaveryn home"
+        <div
+          style={{
+            display: 'flex',
+            minWidth: 0,
+            alignItems: 'center',
+            gap: variant === 'launcher' ? 0 : '0.5rem',
+          }}
         >
-          <BrandLogo className={styles.brandLogo} />
-          <BrandWordmark className={styles.brandWordmark} />
-        </Link>
+          <Link
+            className={styles.brand}
+            href="/select"
+            aria-label="Open Weaveryn entry selection"
+          >
+            <BrandLogo className={styles.brandLogo} />
+            <BrandWordmark className={styles.brandWordmark} />
+          </Link>
+          {variant !== 'launcher' ? (
+            <InAppNavigationToggle
+              open={navigationOpen}
+              onToggle={toggleNavigation}
+            />
+          ) : null}
+        </div>
 
         {variant === 'launcher' ? (
           <span className={styles.launcherThread} aria-hidden="true" />
@@ -734,7 +765,17 @@ export function AppShell({
         </div>
       </header>
 
-      <main className={styles.content}>{children}</main>
+      {variant === 'launcher' ? (
+        <main className={styles.content}>{children}</main>
+      ) : (
+        <InAppNavigationWorkspace
+          context={context}
+          open={navigationOpen}
+          onClose={() => setNavigationOpen(false)}
+        >
+          <main className={styles.content}>{children}</main>
+        </InAppNavigationWorkspace>
+      )}
 
       {contextOpen ? (
         <>
