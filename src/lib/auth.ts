@@ -4,14 +4,20 @@ import { prismaAdapter } from 'better-auth/adapters/prisma'
 import {
   AUTH_PASSWORD_MIN_LENGTH,
   normalizeUsername,
+  shouldUseSecureAuthCookies,
   usernameValidationMessage,
 } from './auth-policy'
 import { prisma } from './prisma'
 
-const isProduction = process.env.NODE_ENV === 'production'
 const baseURL =
   process.env.BETTER_AUTH_URL ??
   (process.env.NODE_ENV === 'test' ? 'http://localhost:3000' : undefined)
+
+const useSecureCookies = shouldUseSecureAuthCookies({
+  nodeEnv: process.env.NODE_ENV,
+  baseURL,
+  e2eRunId: process.env.E2E_RUN_ID,
+})
 
 const trustedOrigins = (process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? '')
   .split(',')
@@ -103,11 +109,11 @@ export const auth = betterAuth({
     modelName: 'AuthVerification',
   },
   advanced: {
-    useSecureCookies: isProduction,
+    useSecureCookies,
     defaultCookieAttributes: {
       httpOnly: true,
       sameSite: 'lax',
-      secure: isProduction,
+      secure: useSecureCookies,
     },
     database: {
       generateId: 'uuid',
