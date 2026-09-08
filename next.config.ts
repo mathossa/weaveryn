@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next'
 
 const isDevelopment = process.env.NODE_ENV === 'development'
+const isProduction = process.env.NODE_ENV === 'production'
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -37,6 +38,14 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: contentSecurityPolicy,
   },
+  ...(isProduction
+    ? [
+        {
+          key: 'Strict-Transport-Security',
+          value: 'max-age=31536000; includeSubDomains',
+        },
+      ]
+    : []),
 ]
 
 const nextConfig: NextConfig = {
