@@ -4,8 +4,14 @@ import { notFound } from 'next/navigation'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { StatusPanel } from '@/components/ui/status-panel'
+import {
+  requestedCharacterContext,
+  withCampaignContext,
+  withCharacterContext,
+} from '@/lib/campaign-context'
 import { uiAssets } from '@/lib/ui-assets'
 import { campaignRoleLabel, worldAccessLabel } from '@/lib/role-labels'
+import { getWorldCharacterOverview } from '@/server/characters'
 import { getWorldOverview } from '@/server/worlds'
 import { ClaimWorldButton } from '../_components/claim-world-button'
 import { WorldCampaignPinButton } from '../_components/world-campaign-pin-button'
@@ -15,7 +21,11 @@ import styles from '../world.module.css'
 
 interface WorldOverviewPageProps {
   params: Promise<{ worldId: string }>
-  searchParams: Promise<{ mode?: string | string[] }>
+  searchParams: Promise<{
+    campaign?: string | string[]
+    character?: string | string[]
+    mode?: string | string[]
+  }>
 }
 
 function lastOpenedLabel(value: Date | null) {
@@ -48,18 +58,84 @@ export default async function WorldOverviewPage({
   if (!world) notFound()
 
   const weaverMode = query.mode === 'weaver'
+  const requestedCampaignId =
+    !weaverMode && typeof query.campaign === 'string'
+      ? query.campaign
+      : undefined
+  const requestedWorldCharacterId = !weaverMode
+    ? requestedCharacterContext(query.character)
+    : undefined
+  const contextCampaign = requestedCampaignId
+    ? world.campaigns.find((campaign) => campaign.id === requestedCampaignId)
+    : undefined
+  const requestedWorldCharacter =
+    requestedWorldCharacterId && contextCampaign
+      ? await getWorldCharacterOverview(requestedWorldCharacterId, user.id)
+      : null
+  const contextCharacter =
+    requestedWorldCharacter?.world.id === world.id &&
+    requestedWorldCharacter.participations.some(
+      (participation) =>
+        participation.status === 'ACTIVE' &&
+        participation.campaign.id === contextCampaign?.id,
+    )
+      ? requestedWorldCharacter
+      : undefined
+
   const recentCampaigns = world.campaigns.slice(0, 3)
+  const worldHref = weaverMode
+    ? `/world/${world.id}?mode=weaver`
+    : withCampaignContext(
+        `/world/${world.id}`,
+        contextCampaign?.id,
+        contextCharacter?.id,
+      )
+  const entitiesHref = weaverMode
+    ? `/world/${world.id}/entities?mode=weaver`
+    : withCampaignContext(
+        `/world/${world.id}/entities`,
+        contextCampaign?.id,
+        contextCharacter?.id,
+      )
+  const timelineHref = weaverMode
+    ? `/world/${world.id}/timeline?mode=weaver`
+    : withCampaignContext(
+        `/world/${world.id}/timeline`,
+        contextCampaign?.id,
+        contextCharacter?.id,
+      )
 
   return (
     <AuthenticatedAppShell
       user={user}
       context={{
         world: {
+          id: world.id,
           label: world.name,
-          href: weaverMode
-            ? `/world/${world.id}?mode=weaver`
-            : `/world/${world.id}`,
+          href: worldHref,
         },
+        ...(contextCampaign
+          ? {
+              campaign: {
+                id: contextCampaign.id,
+                label: contextCampaign.name,
+                href: withCharacterContext(
+                  `/world/${world.id}/campaign/${contextCampaign.id}`,
+                  contextCharacter?.id,
+                ),
+              },
+            }
+          : {}),
+        ...(contextCharacter && contextCampaign
+          ? {
+              character: {
+                id: contextCharacter.id,
+                label: contextCharacter.displayName,
+                href: `/character/${contextCharacter.id}?campaign=${contextCampaign.id}`,
+              },
+            }
+          : {}),
+        ...(weaverMode ? { mode: 'weaver' as const } : {}),
       }}
     >
       <main className={dashboardStyles.worldHome}>
@@ -107,16 +183,13 @@ export default async function WorldOverviewPage({
                 'A living World waiting to be explored through its places, people, histories, and Campaigns.'}
             </p>
             <div className={dashboardStyles.heroActions}>
-              <Link
-                className={dashboardStyles.atlasAction}
-                href={`/world/${world.id}/entities`}
-              >
+              <Link className={dashboardStyles.atlasAction} href={entitiesHref}>
                 Explore the World
               </Link>
               {world.hasFullWorldAccess ? (
                 <Link
                   className={dashboardStyles.quietAction}
-                  href={`/world/${world.id}/timeline${weaverMode ? '?mode=weaver' : ''}`}
+                  href={timelineHref}
                 >
                   {weaverMode ? 'Edit timeline' : 'Open timeline'}
                 </Link>
@@ -175,11 +248,24 @@ export default async function WorldOverviewPage({
                   campaign.role === 'GM' ||
                   campaign.role === 'ASSISTANT_GM'
                 const trackAsWeaver = weaverMode && manageableCampaign
+                const characterParticipates =
+                  contextCharacter?.participations.some(
+                    (participation) =>
+                      participation.status === 'ACTIVE' &&
+                      participation.campaign.id === campaign.id,
+                  )
+                const campaignHref = trackAsWeaver
+                  ? `/world/${world.id}/campaign/${campaign.id}?mode=weaver`
+                  : withCharacterContext(
+                      `/world/${world.id}/campaign/${campaign.id}`,
+                      characterParticipates ? contextCharacter?.id : undefined,
+                    )
+
                 return (
                   <div className={styles.campaignFrame} key={campaign.id}>
                     <TrackedEntryLink
                       className={styles.campaignCard}
-                      href={`/world/${world.id}/campaign/${campaign.id}${trackAsWeaver ? '?mode=weaver' : ''}`}
+                      href={campaignHref}
                       tracking={
                         trackAsWeaver
                           ? {
@@ -227,7 +313,7 @@ export default async function WorldOverviewPage({
         </section>
 
         <nav className={dashboardStyles.worldPaths} aria-label="World paths">
-          <Link href={`/world/${world.id}/entities`}>
+          <Link href={entitiesHref}>
             <span>World content</span>
             <strong>Entities</strong>
             <small>
@@ -235,9 +321,7 @@ export default async function WorldOverviewPage({
             </small>
           </Link>
           {world.hasFullWorldAccess ? (
-            <Link
-              href={`/world/${world.id}/timeline${weaverMode ? '?mode=weaver' : ''}`}
-            >
+            <Link href={timelineHref}>
               <span>What happened?</span>
               <strong>{weaverMode ? 'Edit timeline' : 'Timeline'}</strong>
               <small>

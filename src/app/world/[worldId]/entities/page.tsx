@@ -4,9 +4,11 @@ import { AppPage } from '@/components/app-shell/app-page'
 import { AuthenticatedAppShell } from '@/components/app-shell/authenticated-app-shell'
 import {
   requestedCharacterContext,
+  withCampaignContext,
   withCharacterContext,
 } from '@/lib/campaign-context'
 import { uiAssets } from '@/lib/ui-assets'
+import { getWorldCharacterOverview } from '@/server/characters'
 import { getWorldEntityBrowseWorkspace } from '@/server/world-entities'
 import { loadWorldPageUser } from '../../_lib/load-world-user'
 import { EntityBrowser } from './_components/entity-browser'
@@ -17,15 +19,8 @@ interface WorldEntitiesPageProps {
   searchParams: Promise<{
     campaign?: string | string[]
     character?: string | string[]
+    mode?: string | string[]
   }>
-}
-
-function campaignQuery(campaignId?: string, worldCharacterId?: string) {
-  const params = new URLSearchParams()
-  if (campaignId) params.set('campaign', campaignId)
-  if (worldCharacterId) params.set('character', worldCharacterId)
-  const value = params.toString()
-  return value ? `?${value}` : ''
 }
 
 export default async function WorldEntitiesPage({
@@ -37,9 +32,14 @@ export default async function WorldEntitiesPage({
     searchParams,
     loadWorldPageUser(),
   ])
+  const weaverMode = requested.mode === 'weaver'
   const campaignId =
-    typeof requested.campaign === 'string' ? requested.campaign : undefined
-  const worldCharacterId = requestedCharacterContext(requested.character)
+    !weaverMode && typeof requested.campaign === 'string'
+      ? requested.campaign
+      : undefined
+  const worldCharacterId = !weaverMode
+    ? requestedCharacterContext(requested.character)
+    : undefined
   const workspace = await getWorldEntityBrowseWorkspace(
     worldId,
     user.id,
@@ -47,26 +47,65 @@ export default async function WorldEntitiesPage({
   )
   if (!workspace) notFound()
 
+  const requestedWorldCharacter =
+    worldCharacterId && workspace.contextCampaign
+      ? await getWorldCharacterOverview(worldCharacterId, user.id)
+      : null
+  const contextCharacter =
+    requestedWorldCharacter?.world.id === worldId &&
+    requestedWorldCharacter.participations.some(
+      (participation) =>
+        participation.status === 'ACTIVE' &&
+        participation.campaign.id === workspace.contextCampaign?.id,
+    )
+      ? requestedWorldCharacter
+      : undefined
+
+  const worldHref = weaverMode
+    ? `/world/${worldId}?mode=weaver`
+    : withCampaignContext(
+        `/world/${worldId}`,
+        workspace.contextCampaign?.id,
+        contextCharacter?.id,
+      )
   const backHref = workspace.contextCampaign
     ? withCharacterContext(
         `/world/${worldId}/campaign/${workspace.contextCampaign.id}`,
-        worldCharacterId,
+        contextCharacter?.id,
       )
-    : `/world/${worldId}`
+    : worldHref
+  const entityCreateHref = weaverMode
+    ? `/world/${worldId}/entities/create?mode=weaver`
+    : withCampaignContext(
+        `/world/${worldId}/entities/create`,
+        workspace.contextCampaign?.id,
+        contextCharacter?.id,
+      )
 
   return (
     <AuthenticatedAppShell
       user={user}
       context={{
-        world: { label: workspace.world.name, href: `/world/${worldId}` },
+        world: { id: worldId, label: workspace.world.name, href: worldHref },
         ...(workspace.contextCampaign
           ? {
               campaign: {
+                id: workspace.contextCampaign.id,
                 label: workspace.contextCampaign.name,
                 href: backHref,
               },
             }
           : {}),
+        ...(contextCharacter && workspace.contextCampaign
+          ? {
+              character: {
+                id: contextCharacter.id,
+                label: contextCharacter.displayName,
+                href: `/character/${contextCharacter.id}?campaign=${workspace.contextCampaign.id}`,
+              },
+            }
+          : {}),
+        ...(weaverMode ? { mode: 'weaver' as const } : {}),
       }}
     >
       <AppPage
@@ -88,10 +127,7 @@ export default async function WorldEntitiesPage({
                 : 'World overview'}
             </Link>
             {workspace.canEditContent ? (
-              <Link
-                className={styles.primaryButton}
-                href={`/world/${worldId}/entities/create${campaignQuery(campaignId, worldCharacterId)}`}
-              >
+              <Link className={styles.primaryButton} href={entityCreateHref}>
                 Create entity
               </Link>
             ) : null}
@@ -121,7 +157,7 @@ export default async function WorldEntitiesPage({
         <EntityBrowser
           worldId={worldId}
           campaignId={campaignId}
-          worldCharacterId={worldCharacterId}
+          worldCharacterId={contextCharacter?.id}
           entities={workspace.entities}
         />
       </AppPage>
