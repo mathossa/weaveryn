@@ -23,11 +23,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: 22.12.0
+          node-version: 24.19.0
           cache: npm
 
       - name: Refresh package lock only
-        run: npm install --package-lock-only --ignore-scripts
+        run: |
+          node --version
+          npm --version
+          npm install --package-lock-only --ignore-scripts
 
       - name: Commit refreshed lockfile
         shell: bash
