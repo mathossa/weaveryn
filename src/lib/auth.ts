@@ -8,6 +8,7 @@ import {
 } from './auth-policy'
 import { prisma } from './prisma'
 
+const isProduction = process.env.NODE_ENV === 'production'
 const baseURL =
   process.env.BETTER_AUTH_URL ??
   (process.env.NODE_ENV === 'test' ? 'http://localhost:3000' : undefined)
@@ -92,6 +93,8 @@ export const auth = betterAuth({
   },
   session: {
     modelName: 'AuthSession',
+    expiresIn: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
   },
   account: {
     modelName: 'AuthAccount',
@@ -100,6 +103,12 @@ export const auth = betterAuth({
     modelName: 'AuthVerification',
   },
   advanced: {
+    useSecureCookies: isProduction,
+    defaultCookieAttributes: {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: isProduction,
+    },
     database: {
       generateId: 'uuid',
     },
