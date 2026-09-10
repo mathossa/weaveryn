@@ -32,9 +32,7 @@ export function calculateSelectSceneTransform(
 
   return {
     scale,
-    offsetX:
-      (viewportWidth - renderedWidth) * SELECT_SCENE_POSITION_X,
-    offsetY:
-      (viewportHeight - renderedHeight) * SELECT_SCENE_POSITION_Y,
+    offsetX: (viewportWidth - renderedWidth) * SELECT_SCENE_POSITION_X,
+    offsetY: (viewportHeight - renderedHeight) * SELECT_SCENE_POSITION_Y,
   }
 }
