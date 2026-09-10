@@ -17,6 +17,18 @@ interface NavigationSection {
   links: NavigationLink[]
 }
 
+const overlayQuery = '(max-width: 1024px)'
+
+function subscribeOverlay(listener: () => void) {
+  const media = window.matchMedia(overlayQuery)
+  media.addEventListener('change', listener)
+  return () => media.removeEventListener('change', listener)
+}
+
+function overlaySnapshot() {
+  return window.matchMedia(overlayQuery).matches
+}
+
 let carryNavigationOpen = false
 const navigationStateListeners = new Set<() => void>()
 
@@ -252,6 +264,11 @@ export function InAppNavigationWorkspace({
 }) {
   const pathname = usePathname()
   const navigation = useMemo(() => buildInAppNavigation(context), [context])
+  const overlay = useSyncExternalStore(
+    subscribeOverlay,
+    overlaySnapshot,
+    () => false,
+  )
   const carriedOpen = useCarryNavigationOpen()
   const effectiveOpen = open || carriedOpen
 
@@ -272,11 +289,34 @@ export function InAppNavigationWorkspace({
       document.removeEventListener('keydown', closeCarriedNavigationOnEscape)
   })
 
+  useEffect(() => {
+    if (!effectiveOpen || !overlay) return
+    const drawer = document.getElementById('in-app-navigation-drawer')
+    drawer?.querySelector<HTMLAnchorElement>('a[href]')?.focus()
+    return () => {
+      if (drawer?.contains(document.activeElement)) {
+        document
+          .querySelector<HTMLButtonElement>(
+            'button[aria-controls="in-app-navigation-drawer"]',
+          )
+          ?.focus()
+      }
+    }
+  }, [effectiveOpen, overlay])
+
   return (
     <div
+      data-app-workspace
       className={styles.workspace}
       data-open={effectiveOpen ? 'true' : 'false'}
     >
+      <button
+        type="button"
+        className={styles.backdrop}
+        aria-label="Dismiss navigation"
+        tabIndex={-1}
+        onClick={closeNavigation}
+      />
       <aside
         id="in-app-navigation-drawer"
         className={styles.drawer}
@@ -339,7 +379,13 @@ export function InAppNavigationWorkspace({
         </div>
       </aside>
 
-      <div className={styles.viewport}>{children}</div>
+      <div
+        data-app-viewport
+        className={styles.viewport}
+        inert={overlay && effectiveOpen}
+      >
+        {children}
+      </div>
     </div>
   )
 }

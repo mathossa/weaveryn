@@ -165,9 +165,11 @@ body:has(header > nav[aria-label='Current context'])
 
 body:has(header > nav[aria-label='Current context'])
   > div:has(> header > nav[aria-label='Current context'])
+  > [data-app-workspace]
+  > [data-app-viewport]
   > main {
   min-height: 0;
-  flex: 1 1 auto;
+  height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
@@ -184,6 +186,8 @@ body:has(header > nav[aria-label='Current context']) > footer {
    panels readable and visually connected to the launcher material family. */
 body:has(header > nav[aria-label='Current context'])
   > div:has(> header > nav[aria-label='Current context'])
+  > [data-app-workspace]
+  > [data-app-viewport]
   > main {
   background-color: #060504;
   background-image:
@@ -328,6 +332,8 @@ body:has(#now) #now {
 
   body:has(header > nav[aria-label='Current context'])
     > div:has(> header > nav[aria-label='Current context'])
+    > [data-app-workspace]
+    > [data-app-viewport]
     > main {
     background-attachment: scroll, scroll, scroll, scroll;
   }

@@ -21,16 +21,13 @@
 }
 
 .bounded {
-  position: fixed;
-  top: 74px;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  position: relative;
+  height: 100%;
   display: grid;
   min-height: 0;
   grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
-  padding-bottom: 3rem;
+  padding-bottom: 1.5rem;
 }
 
 .header {
@@ -118,12 +115,6 @@
   overflow: hidden;
 }
 
-@media (min-width: 641px) and (max-width: 1024px) {
-  .bounded {
-    top: 68px;
-  }
-}
-
 @media (max-width: 760px) {
   .bounded {
     position: static;
@@ -152,5 +143,17 @@
 
   .actions {
     width: 100%;
+  }
+}
+
+@container (max-width: 900px) {
+  .bounded {
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+
+  .bounded .body {
+    overflow: visible;
   }
 }
