@@ -94,9 +94,7 @@ test.afterAll(async () => {
   }
 })
 
-test('anchors /select Character feet to the background scene', async ({
-  browser,
-}) => {
+test('keeps /select Character feet anchored', async ({ browser }) => {
   const { context, page } = await registerAndSignIn(
     browser,
     server.baseURL,
@@ -105,13 +103,9 @@ test('anchors /select Character feet to the background scene', async ({
 
   try {
     await page.goto('/select/create-character')
-    await page
-      .getByLabel('Name', { exact: true })
-      .fill(fixture.character.name)
+    await page.getByLabel('Name', { exact: true }).fill(fixture.character.name)
     await page.getByRole('button', { name: 'Create Character' }).click()
-    await page
-      .getByRole('button', { name: 'Keep character for later' })
-      .click()
+    await page.getByRole('button', { name: 'Keep character for later' }).click()
     await page.waitForURL('**/select')
 
     const viewports = [
