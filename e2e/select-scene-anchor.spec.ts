@@ -5,14 +5,8 @@ import {
   calculateSelectSceneTransform,
 } from '../src/app/select/_lib/select-scene-transform'
 import { registerAndSignIn } from './support/browser'
-import {
-  cleanupE2EFixture,
-  createE2EPrismaClient,
-} from './support/database'
-import {
-  assertE2EEnvironment,
-  createE2EFixture,
-} from './support/environment'
+import { cleanupE2EFixture, createE2EPrismaClient } from './support/database'
+import { assertE2EEnvironment, createE2EFixture } from './support/environment'
 import { E2EProductionServer } from './support/server'
 
 const baseEnvironment = assertE2EEnvironment()
