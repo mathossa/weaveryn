@@ -86,7 +86,12 @@ function withWorkspaceContext(
 
   if (input.mode) {
     params.set('mode', input.mode)
-    params.delete('campaign')
+    // Campaign navigation context is independent of the active entry mode.
+    if (input.mode === 'weaver' && input.campaignId) {
+      params.set('campaign', input.campaignId)
+    } else {
+      params.delete('campaign')
+    }
     params.delete('character')
   } else {
     if (input.campaignId) params.set('campaign', input.campaignId)
