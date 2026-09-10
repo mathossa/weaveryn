@@ -51,7 +51,7 @@ export function VisibilityFields({
           <option value="CAMPAIGN">Campaign members</option>
           <option value="GM">Campaign GM / Assistant GM</option>
           <option value="PLAYER">Specific player</option>
-          <option value="PRIVATE">Only me</option>
+          <option value="PRIVATE">Private</option>
         </select>
       </label>
 
@@ -108,8 +108,8 @@ export function VisibilityFields({
       ) : null}
 
       <p className={styles.helpText}>
-        Visibility is enforced by the server. Advanced selected-recipient and
-        hide-from-GM audiences are intentionally deferred beyond the MVP.
+        Visibility controls the audience. World owners and administrators can
+        always access and manage this content, including private content.
       </p>
     </div>
   )

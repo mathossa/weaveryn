@@ -706,7 +706,7 @@ PRIVATE
 - `CAMPAIGN` content requires `visibilityCampaignId` and is visible to authorized members of that Campaign.
 - `GM` content requires `visibilityCampaignId` and is visible to the Campaign owner, `GM`, and `ASSISTANT_GM`.
 - `PLAYER` content requires `visibilityUserId` and may optionally be limited to a Campaign.
-- `PRIVATE` content is visible only to its owning/creating User.
+- `PRIVATE` content is ordinarily visible only to its owning/creating User. World owners and World `ADMIN`s retain administrative recovery access to WorldEntities and EntityRelationships regardless of visibility; ordinary members/viewers and Campaign-only users retain their existing boundaries.
 
 `PUBLIC`, arbitrary visibility grants, and block/field-level visibility are post-MVP capabilities. The model should not prevent their later introduction.
 

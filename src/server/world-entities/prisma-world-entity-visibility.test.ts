@@ -55,6 +55,36 @@ function campaignOnlyEntityWhere() {
 }
 
 describe('PrismaWorldEntityRepository visibility queries', () => {
+  it('keeps administrative entity and relationship queries scoped to the requested World', async () => {
+    const queries: Record<string, unknown>[] = []
+    const findMany = async (query: Record<string, unknown>) => {
+      queries.push(query)
+      return []
+    }
+    const client = {
+      worldEntity: { findMany },
+      entityRelationship: { findMany },
+    } as unknown as PrismaClient
+    const repository = new PrismaWorldEntityRepository(client)
+    const visibility = {
+      userId,
+      hasWorldAccess: true,
+      hasAdministrativeAccess: true,
+      campaignIds: [],
+      gmCampaignIds: [],
+    }
+    await repository.listVisibleEntities(worldId, visibility)
+    await repository.listVisibleRelationships(worldId, visibility)
+    expect(queries.map((query) => query.where)).toEqual([
+      { worldId },
+      {
+        worldId,
+        sourceEntity: { is: { worldId } },
+        targetEntity: { is: { worldId } },
+      },
+    ])
+  })
+
   it('pushes campaign-only visibility and Character participation into Prisma', async () => {
     let query: Record<string, unknown> | undefined
     const client = {

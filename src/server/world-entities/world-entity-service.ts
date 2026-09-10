@@ -106,6 +106,7 @@ interface VisibilityContext {
   userId: string
   isWorldOwner: boolean
   hasWorldMembership: boolean
+  hasAdministrativeAccess: boolean
   campaigns: Map<string, CampaignVisibilityAccessRecord>
 }
 
@@ -141,6 +142,9 @@ function isBuiltInType(value: string) {
 }
 
 function canViewRecord(record: VisibilityRecord, context: VisibilityContext) {
+  // Audience restrictions cannot remove World administrative recovery access.
+  if (context.hasAdministrativeAccess) return true
+
   if ('worldCharacterId' in record && record.worldCharacterId) {
     const entity = record as WorldEntityRecord
     return (
@@ -188,6 +192,7 @@ function entityVisibilityQuery(
   return {
     userId: context.userId,
     hasWorldAccess: context.isWorldOwner || context.hasWorldMembership,
+    hasAdministrativeAccess: context.hasAdministrativeAccess,
     campaignIds: campaigns.map((access) => access.id),
     gmCampaignIds: campaigns
       .filter(
@@ -252,6 +257,7 @@ export class WorldEntityService {
       userId,
       isWorldOwner,
       hasWorldMembership: Boolean(membership),
+      hasAdministrativeAccess: isWorldOwner || membership?.role === 'ADMIN',
       campaigns: new Map(campaignAccesses.map((access) => [access.id, access])),
     }
   }

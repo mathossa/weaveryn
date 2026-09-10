@@ -81,6 +81,8 @@ function visibleEntityWhere(
   worldId: string,
   visibility: WorldEntityVisibilityQuery,
 ): Prisma.WorldEntityWhereInput {
+  if (visibility.hasAdministrativeAccess) return { worldId }
+
   const nonCharacterVisibility: Prisma.WorldEntityWhereInput[] = [
     {
       visibilityScope: 'PRIVATE',
@@ -149,6 +151,14 @@ function visibleRelationshipWhere(
   worldId: string,
   visibility: WorldEntityVisibilityQuery,
 ): Prisma.EntityRelationshipWhereInput {
+  if (visibility.hasAdministrativeAccess) {
+    return {
+      worldId,
+      sourceEntity: { is: { worldId } },
+      targetEntity: { is: { worldId } },
+    }
+  }
+
   const relationshipVisibility: Prisma.EntityRelationshipWhereInput[] = [
     {
       visibilityScope: 'PRIVATE',

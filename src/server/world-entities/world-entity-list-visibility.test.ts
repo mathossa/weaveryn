@@ -113,6 +113,7 @@ describe('WorldEntityService visible list optimization', () => {
     expect(visibilityQuery).toEqual({
       userId: memberId,
       hasWorldAccess: true,
+      hasAdministrativeAccess: false,
       campaignIds: [],
       gmCampaignIds: [],
     })
@@ -185,6 +186,7 @@ describe('WorldEntityService visible list optimization', () => {
     expect(entityVisibilityQuery).toEqual({
       userId: memberId,
       hasWorldAccess: true,
+      hasAdministrativeAccess: false,
       campaignIds: [],
       gmCampaignIds: [],
     })
