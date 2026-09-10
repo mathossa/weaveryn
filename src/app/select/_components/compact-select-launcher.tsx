@@ -125,18 +125,15 @@ export function CompactSelectLauncher({
     const composition = compositionRef.current
     if (!stage || !composition) return
 
-    const updateLayoutTransforms = () => {
+    const updateCompositionScale = () => {
       const { width, height } = stage.getBoundingClientRect()
       if (width <= 0 || height <= 0) return
 
-      const compositionScale = Math.min(
+      const scale = Math.min(
         width / DESKTOP_COMPOSITION_WIDTH,
         height / DESKTOP_COMPOSITION_HEIGHT,
       )
-      composition.style.setProperty(
-        '--launcher-scale',
-        String(compositionScale),
-      )
+      composition.style.setProperty('--launcher-scale', String(scale))
 
       const sceneTransform = calculateSelectSceneTransform(width, height)
       stage.style.setProperty(
@@ -153,17 +150,17 @@ export function CompactSelectLauncher({
       )
     }
 
-    updateLayoutTransforms()
-    window.addEventListener('resize', updateLayoutTransforms)
+    updateCompositionScale()
+    window.addEventListener('resize', updateCompositionScale)
 
     const resizeObserver =
       typeof ResizeObserver === 'undefined'
         ? null
-        : new ResizeObserver(updateLayoutTransforms)
+        : new ResizeObserver(updateCompositionScale)
     resizeObserver?.observe(stage)
 
     return () => {
-      window.removeEventListener('resize', updateLayoutTransforms)
+      window.removeEventListener('resize', updateCompositionScale)
       resizeObserver?.disconnect()
     }
   }, [])
@@ -241,192 +238,198 @@ export function CompactSelectLauncher({
             }}
           />
         ) : (
-          <div
-            className={`${styles.selectorPanel} ${scaleStyles.selectorPanel}`}
-          >
-            <div className={styles.crest} aria-hidden="true">
-              <Image
-                src={uiAssets.brand.logo.src}
-                alt=""
-                fill
-                sizes="120px"
-                className={styles.crestImage}
-              />
-            </div>
-
-            {launcherEntries.length > 0 ? (
-              <div className={styles.characterRows}>
-                {launcherEntries.map((entry) => {
-                  const selected = entry.key === selectedEntry?.key
-                  return (
-                    <div
-                      className={styles.rowShell}
-                      data-selected={selected ? 'true' : 'false'}
-                      key={entry.key}
-                    >
-                      <button
-                        type="button"
-                        className={`${styles.rowSelect} ${polishStyles.rowSelect}`}
-                        aria-pressed={selected}
-                        aria-label={`Select ${entry.name}`}
-                        onClick={() => setSelectedKey(entry.key)}
-                      >
-                        <span className={styles.portrait} aria-hidden="true">
-                          <Image
-                            src={entry.image}
-                            alt=""
-                            fill
-                            sizes="96px"
-                            className={styles.portraitImage}
-                          />
-                          <Image
-                            src={uiAssets.ui.frames.goldCircle}
-                            alt=""
-                            fill
-                            sizes="100px"
-                            className={styles.portraitFrame}
-                          />
-                        </span>
-
-                        <span className={styles.rowCopy}>
-                          <strong className={styles.rowName}>{entry.name}</strong>
-                          <span className={styles.rowMeta}>{entry.worldName}</span>
-                          <span className={styles.rowCampaign}>
-                            {entry.campaignName
-                              ? `Campaign: ${entry.campaignName}`
-                              : entry.kind === 'portable'
-                                ? 'Ready to join a World'
-                                : 'No active Campaign'}
-                          </span>
-                        </span>
-
-                        <Image
-                          src={uiAssets.ui.frames.goldRect}
-                          alt=""
-                          fill
-                          sizes="590px"
-                          className={styles.rowFrame}
-                        />
-                      </button>
-
-                      <PinEntryButton
-                        pinned={entry.pinned}
-                        className={`${styles.favoriteButton} ${polishStyles.favoriteButton}`}
-                        {...entry.pinTarget}
-                      />
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div className={styles.emptyRows}>
-                <strong>No Character entries yet</strong>
-                <span>Create a Character or join a Campaign to begin.</span>
-              </div>
-            )}
-
-            {hasMoreCharacters ? (
-              <button
-                type="button"
-                className={`${styles.browseLink} ${browserStyles.browseTrigger}`}
-                onClick={() => setBrowserOpen(true)}
-              >
-                Browse all characters <span aria-hidden="true">›</span>
-              </button>
-            ) : null}
-
-            {selectedEntry ? (
-              <TrackedEntryLink
-                href={selectedEntry.href}
-                className={`${styles.primaryAction} ${polishStyles.primaryAction} ${scaleStyles.primaryAction}`}
-                tracking={selectedEntry.tracking}
-                ariaLabel={`${selectedEntry.actionLabel} as ${selectedEntry.name}`}
-              >
-                <Image
-                  src={uiAssets.ui.frames.goldPrimaryAction}
-                  alt=""
-                  fill
-                  sizes="590px"
-                  className={styles.primaryFrame}
-                />
-                <span>{selectedEntry.actionLabel}</span>
-              </TrackedEntryLink>
-            ) : (
-              <Link
-                className={`${styles.primaryAction} ${polishStyles.primaryAction} ${scaleStyles.primaryAction}`}
-                href="/select/create-character"
-              >
-                <Image
-                  src={uiAssets.ui.frames.goldPrimaryAction}
-                  alt=""
-                  fill
-                  sizes="590px"
-                  className={styles.primaryFrame}
-                />
-                <span>Create Character</span>
-              </Link>
-            )}
-
-            <div className={styles.roleHeading}>
-              <span>Other ways to enter</span>
-            </div>
-
-            <div className={styles.roleActions}>
-              <TrackedEntryLink
-                href={weaverHref}
-                className={`${styles.roleButton} ${polishStyles.roleButton}`}
-                tracking={weaverTracking}
-                ariaLabel={
-                  weaverContext
-                    ? `Enter as Weaver and resume ${weaverContext}`
-                    : 'Enter as Weaver'
-                }
-              >
-                <Image
-                  src={uiAssets.ui.frames.goldRect}
-                  alt=""
-                  fill
-                  sizes="290px"
-                  className={styles.roleFrame}
-                />
-                <span>Enter as Weaver</span>
-              </TrackedEntryLink>
-
-              <Link
-                className={`${styles.roleButton} ${polishStyles.roleButton}`}
-                href="/world?mode=threadwatcher"
-              >
-                <Image
-                  src={uiAssets.ui.frames.goldRect}
-                  alt=""
-                  fill
-                  sizes="290px"
-                  className={styles.roleFrame}
-                />
-                <span>Enter as Threadwatcher</span>
-              </Link>
-            </div>
-
-            {pendingCampaigns.length > 0 ? (
-              <div className={styles.pendingCampaigns}>
-                <span>Waiting for a Character</span>
-                {pendingCampaigns.map((campaign) => (
-                  <Link href={campaign.href} key={campaign.id}>
-                    {campaign.name} ›
-                  </Link>
-                ))}
-              </div>
-            ) : null}
-
-            <nav
-              className={styles.utilityLinks}
-              aria-label="Character utilities"
+          <>
+            <div
+              className={`${styles.selectorPanel} ${scaleStyles.selectorPanel}`}
             >
-              <Link href="/select/create-character">Create character</Link>
-              <Link href="/select/join">Join with invite</Link>
-              <Link href="/character">Manage characters</Link>
-            </nav>
-          </div>
+              <div className={styles.crest} aria-hidden="true">
+                <Image
+                  src={uiAssets.brand.logo.src}
+                  alt=""
+                  fill
+                  sizes="120px"
+                  className={styles.crestImage}
+                />
+              </div>
+
+              {launcherEntries.length > 0 ? (
+                <div className={styles.characterRows}>
+                  {launcherEntries.map((entry) => {
+                    const selected = entry.key === selectedEntry?.key
+                    return (
+                      <div
+                        className={styles.rowShell}
+                        data-selected={selected ? 'true' : 'false'}
+                        key={entry.key}
+                      >
+                        <button
+                          type="button"
+                          className={`${styles.rowSelect} ${polishStyles.rowSelect}`}
+                          aria-pressed={selected}
+                          aria-label={`Select ${entry.name}`}
+                          onClick={() => setSelectedKey(entry.key)}
+                        >
+                          <span className={styles.portrait} aria-hidden="true">
+                            <Image
+                              src={entry.image}
+                              alt=""
+                              fill
+                              sizes="96px"
+                              className={styles.portraitImage}
+                            />
+                            <Image
+                              src={uiAssets.ui.frames.goldCircle}
+                              alt=""
+                              fill
+                              sizes="100px"
+                              className={styles.portraitFrame}
+                            />
+                          </span>
+
+                          <span className={styles.rowCopy}>
+                            <strong className={styles.rowName}>
+                              {entry.name}
+                            </strong>
+                            <span className={styles.rowMeta}>
+                              {entry.worldName}
+                            </span>
+                            <span className={styles.rowCampaign}>
+                              {entry.campaignName
+                                ? `Campaign: ${entry.campaignName}`
+                                : entry.kind === 'portable'
+                                  ? 'Ready to join a World'
+                                  : 'No active Campaign'}
+                            </span>
+                          </span>
+
+                          <Image
+                            src={uiAssets.ui.frames.goldRect}
+                            alt=""
+                            fill
+                            sizes="590px"
+                            className={styles.rowFrame}
+                          />
+                        </button>
+
+                        <PinEntryButton
+                          pinned={entry.pinned}
+                          className={`${styles.favoriteButton} ${polishStyles.favoriteButton}`}
+                          {...entry.pinTarget}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className={styles.emptyRows}>
+                  <strong>No Character entries yet</strong>
+                  <span>Create a Character or join a Campaign to begin.</span>
+                </div>
+              )}
+
+              {hasMoreCharacters ? (
+                <button
+                  type="button"
+                  className={`${styles.browseLink} ${browserStyles.browseTrigger}`}
+                  onClick={() => setBrowserOpen(true)}
+                >
+                  Browse all characters <span aria-hidden="true">›</span>
+                </button>
+              ) : null}
+
+              {selectedEntry ? (
+                <TrackedEntryLink
+                  href={selectedEntry.href}
+                  className={`${styles.primaryAction} ${polishStyles.primaryAction} ${scaleStyles.primaryAction}`}
+                  tracking={selectedEntry.tracking}
+                  ariaLabel={`${selectedEntry.actionLabel} as ${selectedEntry.name}`}
+                >
+                  <Image
+                    src={uiAssets.ui.frames.goldPrimaryAction}
+                    alt=""
+                    fill
+                    sizes="590px"
+                    className={styles.primaryFrame}
+                  />
+                  <span>{selectedEntry.actionLabel}</span>
+                </TrackedEntryLink>
+              ) : (
+                <Link
+                  className={`${styles.primaryAction} ${polishStyles.primaryAction} ${scaleStyles.primaryAction}`}
+                  href="/select/create-character"
+                >
+                  <Image
+                    src={uiAssets.ui.frames.goldPrimaryAction}
+                    alt=""
+                    fill
+                    sizes="590px"
+                    className={styles.primaryFrame}
+                  />
+                  <span>Create Character</span>
+                </Link>
+              )}
+
+              <div className={styles.roleHeading}>
+                <span>Other ways to enter</span>
+              </div>
+
+              <div className={styles.roleActions}>
+                <TrackedEntryLink
+                  href={weaverHref}
+                  className={`${styles.roleButton} ${polishStyles.roleButton}`}
+                  tracking={weaverTracking}
+                  ariaLabel={
+                    weaverContext
+                      ? `Enter as Weaver and resume ${weaverContext}`
+                      : 'Enter as Weaver'
+                  }
+                >
+                  <Image
+                    src={uiAssets.ui.frames.goldRect}
+                    alt=""
+                    fill
+                    sizes="290px"
+                    className={styles.roleFrame}
+                  />
+                  <span>Enter as Weaver</span>
+                </TrackedEntryLink>
+
+                <Link
+                  className={`${styles.roleButton} ${polishStyles.roleButton}`}
+                  href="/world?mode=threadwatcher"
+                >
+                  <Image
+                    src={uiAssets.ui.frames.goldRect}
+                    alt=""
+                    fill
+                    sizes="290px"
+                    className={styles.roleFrame}
+                  />
+                  <span>Enter as Threadwatcher</span>
+                </Link>
+              </div>
+
+              {pendingCampaigns.length > 0 ? (
+                <div className={styles.pendingCampaigns}>
+                  <span>Waiting for a Character</span>
+                  {pendingCampaigns.map((campaign) => (
+                    <Link href={campaign.href} key={campaign.id}>
+                      {campaign.name} ›
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+
+              <nav
+                className={styles.utilityLinks}
+                aria-label="Character utilities"
+              >
+                <Link href="/select/create-character">Create character</Link>
+                <Link href="/select/join">Join with invite</Link>
+                <Link href="/character">Manage characters</Link>
+              </nav>
+            </div>
+          </>
         )}
       </div>
     </section>
