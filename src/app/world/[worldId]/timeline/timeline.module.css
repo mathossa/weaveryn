@@ -721,3 +721,31 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Respond to the available workspace width, including a desktop push rail. */
+@container (max-width: 900px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    overflow: visible;
+  }
+
+  .timelinePanel {
+    min-height: 35rem;
+    max-height: 68dvh;
+  }
+
+  .datePanel {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .toolbar > .primaryButton {
+    grid-column: auto;
+    width: 100%;
+  }
+}

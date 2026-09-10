@@ -86,8 +86,8 @@ Perform the final acceptance pass using normal production routes and persisted t
 Issue #165 / PR #166 is complete and merged. Validate the resulting in-app navigation rather than the superseded breadcrumb prototype:
 
 - the Navigate hamburger is integrated into the existing authenticated header;
-- opening the navigation rail pushes the current workspace inward rather than covering or blurring it;
-- no backdrop is introduced behind the navigation rail;
+- opening navigation above 1024px pushes the workspace inward; at 1024px and below it overlays the workspace without compressing content;
+- desktop push navigation has no backdrop; narrow overlay navigation has a dismissible backdrop;
 - World, Campaign, and Character destination groups remain in a stable order as context changes;
 - destinations that are unavailable in the current context remain in place as disabled entries rather than reshuffling the menu;
 - the same hamburger and Escape close the rail;
@@ -110,7 +110,8 @@ For each size verify:
 
 - no unexpected horizontal overflow;
 - no main-document scroll where a viewport-bound workspace is intended;
-- internal scroll regions remain reachable;
+- AppShell content and internal scroll regions remain reachable;
+- Campaign Advanced End and Delete confirmations remain fully reachable both separately and together;
 - menus/drawers do not render outside the viewport;
 - primary actions remain visible and usable;
 - text does not clip through ornamental frames or controls.
