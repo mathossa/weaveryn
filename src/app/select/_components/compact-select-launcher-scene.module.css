@@ -33,7 +33,7 @@
   filter: saturate(1.02) contrast(1.01) brightness(1.04);
 }
 
-.heroArtwork {
+.referenceScene .heroArtwork {
   position: absolute;
   top: 1334px;
   bottom: auto;
@@ -45,7 +45,7 @@
   transform: translate(-50%, -100%);
 }
 
-.heroPortraitFallback {
+.referenceScene .heroArtwork.heroPortraitFallback {
   top: 1334px;
   bottom: auto;
   left: 700px;
@@ -56,8 +56,7 @@
 }
 
 @media (max-width: 760px) {
-  .heroViewport,
-  .heroArtwork {
+  .heroViewport {
     display: none;
   }
 }
