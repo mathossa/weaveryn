@@ -59,9 +59,7 @@ export default async function WorldOverviewPage({
 
   const weaverMode = query.mode === 'weaver'
   const requestedCampaignId =
-    !weaverMode && typeof query.campaign === 'string'
-      ? query.campaign
-      : undefined
+    typeof query.campaign === 'string' ? query.campaign : undefined
   const requestedWorldCharacterId = !weaverMode
     ? requestedCharacterContext(query.character)
     : undefined
@@ -84,21 +82,27 @@ export default async function WorldOverviewPage({
 
   const recentCampaigns = world.campaigns.slice(0, 3)
   const worldHref = weaverMode
-    ? `/world/${world.id}?mode=weaver`
+    ? withCampaignContext(`/world/${world.id}?mode=weaver`, contextCampaign?.id)
     : withCampaignContext(
         `/world/${world.id}`,
         contextCampaign?.id,
         contextCharacter?.id,
       )
   const entitiesHref = weaverMode
-    ? `/world/${world.id}/entities?mode=weaver`
+    ? withCampaignContext(
+        `/world/${world.id}/entities?mode=weaver`,
+        contextCampaign?.id,
+      )
     : withCampaignContext(
         `/world/${world.id}/entities`,
         contextCampaign?.id,
         contextCharacter?.id,
       )
   const timelineHref = weaverMode
-    ? `/world/${world.id}/timeline?mode=weaver`
+    ? withCampaignContext(
+        `/world/${world.id}/timeline?mode=weaver`,
+        contextCampaign?.id,
+      )
     : withCampaignContext(
         `/world/${world.id}/timeline`,
         contextCampaign?.id,
@@ -119,10 +123,12 @@ export default async function WorldOverviewPage({
               campaign: {
                 id: contextCampaign.id,
                 label: contextCampaign.name,
-                href: withCharacterContext(
-                  `/world/${world.id}/campaign/${contextCampaign.id}`,
-                  contextCharacter?.id,
-                ),
+                href: weaverMode
+                  ? `/world/${world.id}/campaign/${contextCampaign.id}?mode=weaver`
+                  : withCharacterContext(
+                      `/world/${world.id}/campaign/${contextCampaign.id}`,
+                      contextCharacter?.id,
+                    ),
               },
             }
           : {}),

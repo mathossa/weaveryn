@@ -216,7 +216,11 @@ Explicit Weaver entry selects the Weaver workspace only for an authorized
 Campaign manager; explicit Threadwatcher entry selects a read-only workspace.
 A foreign or invalid explicitly requested Character fails closed rather than
 silently falling back to Weaver. Character context travels in the existing
-`character` query parameter through compatible navigation. Workspace selection
+`character` query parameter through compatible navigation. Explicit Weaver entry
+also preserves the active `campaign` when visiting World Overview; the World
+resolves that navigation context only from Campaigns accessible to the User.
+Returning to the Campaign preserves `mode=weaver` without selecting a Character.
+Workspace selection
 never grants or removes server-side authorization; normal service checks still
 protect every operation. Player location capabilities remain available in the
 Threadwalker workspace, while manager-only controls belong to Weaver entry.

@@ -622,6 +622,52 @@ test('persists and protects the complete MVP backbone', async ({
     await expect(
       ownerPage.getByText('Weaver workspace', { exact: true }),
     ).toBeVisible()
+    await ownerPage
+      .getByRole('button', { name: 'Open navigation', exact: true })
+      .click()
+    await navigation
+      .locator('section')
+      .filter({
+        has: ownerPage.getByRole('heading', { name: 'World', exact: true }),
+      })
+      .getByRole('link', { name: 'Overview', exact: true })
+      .click()
+    await expect(ownerPage).toHaveURL(
+      (url) =>
+        url.pathname === `/world/${ids.primaryWorldId}` &&
+        url.searchParams.get('campaign') === ids.primaryCampaignId &&
+        url.searchParams.get('mode') === 'weaver' &&
+        !url.searchParams.has('character'),
+    )
+    await expect(
+      ownerPage.getByRole('heading', { name: fixture.primaryWorld.name }),
+    ).toBeVisible()
+    // Rebuild the context server-side too; it must not depend on client memory.
+    await ownerPage.reload()
+    await ownerPage
+      .getByRole('button', { name: 'Open navigation', exact: true })
+      .click()
+    await navigation
+      .locator('section')
+      .filter({
+        has: ownerPage.getByRole('heading', { name: 'Campaign', exact: true }),
+      })
+      .getByRole('link', { name: 'Overview', exact: true })
+      .click()
+    await expect(ownerPage).toHaveURL(
+      (url) =>
+        url.pathname ===
+          `/world/${ids.primaryWorldId}/campaign/${ids.primaryCampaignId}` &&
+        url.searchParams.get('mode') === 'weaver' &&
+        !url.searchParams.has('character'),
+    )
+    await expect(
+      ownerPage.getByText('Weaver workspace', { exact: true }),
+    ).toBeVisible()
+    await expect(
+      ownerPage.getByRole('heading', { name: 'Campaign controls' }),
+    ).toBeVisible()
+    await ownerPage.keyboard.press('Escape')
     await ownerPage.goto(`/world/${ids.primaryWorldId}`)
     await expect(
       ownerPage.getByRole('heading', { name: fixture.primaryWorld.name }),
