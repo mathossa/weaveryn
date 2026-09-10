@@ -215,16 +215,27 @@ export default async function CampaignSelectionPage({
                     </strong>
                     <p>
                       {weaverMode
-                        ? 'You do not currently own or manage a Campaign in this World.'
+                        ? 'Open this World to explore its overview, entities, and timeline. You can create a Campaign whenever you are ready.'
                         : 'You do not currently have Threadwatcher access to a Campaign in this World.'}
                     </p>
-                    {weaverMode && selection.canCreateCampaign ? (
-                      <Link
-                        className={weaverStyles.emptyAction}
-                        href={`/world/${worldId}/campaign/create`}
-                      >
-                        Create Campaign
-                      </Link>
+                    {weaverMode ? (
+                      <div className={weaverStyles.emptyActions}>
+                        <TrackedEntryLink
+                          className={weaverStyles.emptyAction}
+                          href={`/world/${worldId}?mode=weaver`}
+                          tracking={{ kind: 'WEAVER', worldId }}
+                        >
+                          Open World
+                        </TrackedEntryLink>
+                        {selection.canCreateCampaign ? (
+                          <Link
+                            className={`${weaverStyles.emptyAction} ${weaverStyles.emptySecondaryAction}`}
+                            href={`/world/${worldId}/campaign/create`}
+                          >
+                            Create Campaign
+                          </Link>
+                        ) : null}
+                      </div>
                     ) : (
                       <Link
                         className={weaverStyles.emptyAction}

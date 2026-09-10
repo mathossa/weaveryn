@@ -380,8 +380,26 @@
   line-height: 1.55;
 }
 
-.emptyAction {
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
   margin-top: 0.45rem;
+}
+
+.emptyAction {
+  min-width: 10rem;
+}
+
+.emptySecondaryAction {
+  border-color: rgba(207, 166, 87, 0.38);
+  background: linear-gradient(
+    180deg,
+    rgba(31, 27, 20, 0.42),
+    rgba(13, 13, 11, 0.58)
+  );
+  color: rgba(232, 196, 119, 0.82);
 }
 
 @media (max-width: 760px) {
