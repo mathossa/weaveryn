@@ -1,0 +1,62 @@
+.sceneViewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.backgroundViewport {
+  z-index: -4;
+}
+
+.heroViewport {
+  z-index: 1;
+}
+
+.referenceScene {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2560px;
+  height: 1440px;
+  transform: translate(
+      var(--select-scene-offset-x, 0px),
+      var(--select-scene-offset-y, 0px)
+    )
+    scale(var(--select-scene-scale, 1));
+  transform-origin: top left;
+}
+
+.backgroundImage {
+  object-fit: cover;
+  object-position: center;
+  filter: saturate(1.02) contrast(1.01) brightness(1.04);
+}
+
+.referenceScene .heroArtwork {
+  position: absolute;
+  top: 1334px;
+  bottom: auto;
+  left: 700px;
+  z-index: 1;
+  width: 580px;
+  height: 1046px;
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+}
+
+.referenceScene .heroArtwork.heroPortraitFallback {
+  top: 1334px;
+  bottom: auto;
+  left: 700px;
+  width: 580px;
+  height: 868px;
+  transform: translate(-50%, -100%);
+  opacity: 0.9;
+}
+
+@media (max-width: 760px) {
+  .heroViewport {
+    display: none;
+  }
+}

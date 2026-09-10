@@ -6,6 +6,11 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { TrackedEntryLink } from '@/components/entry/tracked-entry-link'
 import { uiAssets } from '@/lib/ui-assets'
 import {
+  SELECT_HERO_FOOT_X,
+  SELECT_HERO_FOOT_Y,
+  calculateSelectSceneTransform,
+} from '../_lib/select-scene-transform'
+import {
   LauncherCharacterBrowser,
   type LauncherCharacterSortMode,
 } from './launcher-character-browser'
@@ -15,6 +20,7 @@ import { SelectLogoutButton } from './select-logout-button'
 import styles from './compact-select-launcher.module.css'
 import polishStyles from './compact-select-launcher-polish.module.css'
 import scaleStyles from './compact-select-launcher-scale.module.css'
+import sceneStyles from './compact-select-launcher-scene.module.css'
 import browserStyles from './launcher-character-browser.module.css'
 
 const DESKTOP_COMPOSITION_WIDTH = 2560
@@ -128,6 +134,20 @@ export function CompactSelectLauncher({
         height / DESKTOP_COMPOSITION_HEIGHT,
       )
       composition.style.setProperty('--launcher-scale', String(scale))
+
+      const sceneTransform = calculateSelectSceneTransform(width, height)
+      stage.style.setProperty(
+        '--select-scene-scale',
+        String(sceneTransform.scale),
+      )
+      stage.style.setProperty(
+        '--select-scene-offset-x',
+        `${sceneTransform.offsetX}px`,
+      )
+      stage.style.setProperty(
+        '--select-scene-offset-y',
+        `${sceneTransform.offsetY}px`,
+      )
     }
 
     updateCompositionScale()
@@ -152,19 +172,56 @@ export function CompactSelectLauncher({
       data-screen={browserOpen ? 'browser' : 'launcher'}
       aria-label="Choose how to enter Weaveryn"
     >
-      <div className={styles.background} aria-hidden="true">
-        <Image
-          src={uiAssets.select.backgroundDesktop.src}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className={styles.backgroundImage}
-        />
+      <div
+        className={`${sceneStyles.sceneViewport} ${sceneStyles.backgroundViewport}`}
+        aria-hidden="true"
+      >
+        <div
+          className={sceneStyles.referenceScene}
+          data-select-background-scene
+        >
+          <Image
+            src={uiAssets.select.backgroundDesktop.src}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className={sceneStyles.backgroundImage}
+          />
+        </div>
       </div>
 
       <SelectBackgroundParticles />
       <SelectLogoutButton />
+
+      {!browserOpen && selectedEntry ? (
+        <div
+          className={`${sceneStyles.sceneViewport} ${sceneStyles.heroViewport}`}
+          aria-hidden="true"
+        >
+          <div className={sceneStyles.referenceScene} data-select-hero-scene>
+            <div
+              className={`${styles.heroArtwork} ${polishStyles.heroArtwork} ${sceneStyles.heroArtwork} ${
+                selectedEntry.heroIsPortraitFallback
+                  ? `${styles.heroPortraitFallback} ${polishStyles.heroPortraitFallback} ${sceneStyles.heroPortraitFallback}`
+                  : ''
+              }`}
+              data-select-hero-artwork
+              data-foot-x={SELECT_HERO_FOOT_X}
+              data-foot-y={SELECT_HERO_FOOT_Y}
+            >
+              <Image
+                src={selectedEntry.heroSrc}
+                alt=""
+                fill
+                priority
+                sizes="(max-width: 760px) 80vw, 38vw"
+                className={`${styles.heroImage} ${polishStyles.heroImage}`}
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div ref={compositionRef} className={scaleStyles.desktopComposition}>
         {browserOpen ? (
@@ -182,26 +239,6 @@ export function CompactSelectLauncher({
           />
         ) : (
           <>
-            {selectedEntry ? (
-              <div
-                className={`${styles.heroArtwork} ${polishStyles.heroArtwork} ${scaleStyles.heroArtwork} ${
-                  selectedEntry.heroIsPortraitFallback
-                    ? `${styles.heroPortraitFallback} ${polishStyles.heroPortraitFallback}`
-                    : ''
-                }`}
-                aria-hidden="true"
-              >
-                <Image
-                  src={selectedEntry.heroSrc}
-                  alt=""
-                  fill
-                  priority
-                  sizes="(max-width: 760px) 80vw, 38vw"
-                  className={`${styles.heroImage} ${polishStyles.heroImage}`}
-                />
-              </div>
-            ) : null}
-
             <div
               className={`${styles.selectorPanel} ${scaleStyles.selectorPanel}`}
             >
