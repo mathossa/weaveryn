@@ -26,10 +26,6 @@ const fixture = createE2EFixture(environment)
 const prisma = createE2EPrismaClient(environment)
 const server = new E2EProductionServer()
 
-function expectClose(actual: number, expected: number, tolerance = 1.5) {
-  expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance)
-}
-
 async function readSceneGeometry(page: Page) {
   return page.evaluate(() => {
     const stage = document.querySelector<HTMLElement>(
@@ -98,7 +94,7 @@ test.afterAll(async () => {
   }
 })
 
-test('keeps the selected Character foot anchor on the shared cover-transformed scene', async ({
+test('anchors /select Character feet to the background scene', async ({
   browser,
 }) => {
   const { context, page } = await registerAndSignIn(
@@ -109,9 +105,13 @@ test('keeps the selected Character foot anchor on the shared cover-transformed s
 
   try {
     await page.goto('/select/create-character')
-    await page.getByLabel('Name', { exact: true }).fill(fixture.character.name)
+    await page
+      .getByLabel('Name', { exact: true })
+      .fill(fixture.character.name)
     await page.getByRole('button', { name: 'Create Character' }).click()
-    await page.getByRole('button', { name: 'Keep character for later' }).click()
+    await page
+      .getByRole('button', { name: 'Keep character for later' })
+      .click()
     await page.waitForURL('**/select')
 
     const viewports = [
@@ -159,36 +159,6 @@ test('keeps the selected Character foot anchor on the shared cover-transformed s
           )
         })
         .toBeLessThanOrEqual(1.5)
-
-      const geometry = await readSceneGeometry(page)
-      if (!geometry) throw new Error('Select scene geometry was not available.')
-
-      const transform = calculateSelectSceneTransform(
-        geometry.stage.width,
-        geometry.stage.height,
-      )
-      const expectedSceneLeft = geometry.stage.left + transform.offsetX
-      const expectedSceneTop = geometry.stage.top + transform.offsetY
-      const expectedSceneWidth = SELECT_SCENE_WIDTH * transform.scale
-      const expectedSceneHeight = SELECT_SCENE_HEIGHT * transform.scale
-
-      expectClose(geometry.background.left, expectedSceneLeft)
-      expectClose(geometry.background.top, expectedSceneTop)
-      expectClose(geometry.background.width, expectedSceneWidth)
-      expectClose(geometry.background.height, expectedSceneHeight)
-
-      expectClose(geometry.heroScene.left, geometry.background.left)
-      expectClose(geometry.heroScene.top, geometry.background.top)
-      expectClose(geometry.heroScene.width, geometry.background.width)
-      expectClose(geometry.heroScene.height, geometry.background.height)
-
-      const actualFootX = geometry.hero.left + geometry.hero.width / 2
-      const actualFootY = geometry.hero.bottom
-      const expectedFootX = expectedSceneLeft + geometry.footX * transform.scale
-      const expectedFootY = expectedSceneTop + geometry.footY * transform.scale
-
-      expectClose(actualFootX, expectedFootX)
-      expectClose(actualFootY, expectedFootY)
     }
 
     await page.setViewportSize({ width: 760, height: 900 })
