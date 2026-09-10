@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import {
   SELECT_SCENE_HEIGHT,
   SELECT_SCENE_WIDTH,
@@ -28,6 +28,57 @@ const server = new E2EProductionServer()
 
 function expectClose(actual: number, expected: number, tolerance = 1.5) {
   expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance)
+}
+
+async function readSceneGeometry(page: Page) {
+  return page.evaluate(() => {
+    const stage = document.querySelector<HTMLElement>(
+      "section[aria-label='Choose how to enter Weaveryn']",
+    )
+    const backgroundScene = document.querySelector<HTMLElement>(
+      '[data-select-background-scene]',
+    )
+    const heroScene = document.querySelector<HTMLElement>(
+      '[data-select-hero-scene]',
+    )
+    const hero = document.querySelector<HTMLElement>(
+      '[data-select-hero-artwork]',
+    )
+    if (!stage || !backgroundScene || !heroScene || !hero) return null
+
+    const stageRect = stage.getBoundingClientRect()
+    const backgroundRect = backgroundScene.getBoundingClientRect()
+    const heroSceneRect = heroScene.getBoundingClientRect()
+    const heroRect = hero.getBoundingClientRect()
+
+    return {
+      stage: {
+        left: stageRect.left,
+        top: stageRect.top,
+        width: stageRect.width,
+        height: stageRect.height,
+      },
+      background: {
+        left: backgroundRect.left,
+        top: backgroundRect.top,
+        width: backgroundRect.width,
+        height: backgroundRect.height,
+      },
+      heroScene: {
+        left: heroSceneRect.left,
+        top: heroSceneRect.top,
+        width: heroSceneRect.width,
+        height: heroSceneRect.height,
+      },
+      hero: {
+        left: heroRect.left,
+        bottom: heroRect.bottom,
+        width: heroRect.width,
+      },
+      footX: Number(hero.dataset.footX),
+      footY: Number(hero.dataset.footY),
+    }
+  })
 }
 
 test.describe.configure({ mode: 'serial' })
@@ -72,61 +123,44 @@ test('keeps the selected Character foot anchor on the shared cover-transformed s
 
     for (const viewport of viewports) {
       await page.setViewportSize(viewport)
+      await expect(page.locator('[data-select-hero-artwork]')).toBeVisible()
 
-      const geometry = await expect
-        .poll(async () =>
-          page.evaluate(() => {
-            const stage = document.querySelector<HTMLElement>(
-              "section[aria-label='Choose how to enter Weaveryn']",
-            )
-            const backgroundScene = document.querySelector<HTMLElement>(
-              '[data-select-background-scene]',
-            )
-            const heroScene = document.querySelector<HTMLElement>(
-              '[data-select-hero-scene]',
-            )
-            const hero = document.querySelector<HTMLElement>(
-              '[data-select-hero-artwork]',
-            )
-            if (!stage || !backgroundScene || !heroScene || !hero) return null
+      await expect
+        .poll(async () => {
+          const geometry = await readSceneGeometry(page)
+          if (!geometry) return Number.POSITIVE_INFINITY
 
-            const stageRect = stage.getBoundingClientRect()
-            const backgroundRect = backgroundScene.getBoundingClientRect()
-            const heroSceneRect = heroScene.getBoundingClientRect()
-            const heroRect = hero.getBoundingClientRect()
+          const transform = calculateSelectSceneTransform(
+            geometry.stage.width,
+            geometry.stage.height,
+          )
+          const expectedSceneLeft = geometry.stage.left + transform.offsetX
+          const expectedSceneTop = geometry.stage.top + transform.offsetY
+          const expectedSceneWidth = SELECT_SCENE_WIDTH * transform.scale
+          const expectedSceneHeight = SELECT_SCENE_HEIGHT * transform.scale
+          const actualFootX = geometry.hero.left + geometry.hero.width / 2
+          const actualFootY = geometry.hero.bottom
+          const expectedFootX =
+            expectedSceneLeft + geometry.footX * transform.scale
+          const expectedFootY =
+            expectedSceneTop + geometry.footY * transform.scale
 
-            return {
-              stage: {
-                left: stageRect.left,
-                top: stageRect.top,
-                width: stageRect.width,
-                height: stageRect.height,
-              },
-              background: {
-                left: backgroundRect.left,
-                top: backgroundRect.top,
-                width: backgroundRect.width,
-                height: backgroundRect.height,
-              },
-              heroScene: {
-                left: heroSceneRect.left,
-                top: heroSceneRect.top,
-                width: heroSceneRect.width,
-                height: heroSceneRect.height,
-              },
-              hero: {
-                left: heroRect.left,
-                right: heroRect.right,
-                bottom: heroRect.bottom,
-                width: heroRect.width,
-              },
-              footX: Number(hero.dataset.footX),
-              footY: Number(hero.dataset.footY),
-            }
-          }),
-        )
-        .not.toBeNull()
+          return Math.max(
+            Math.abs(geometry.background.left - expectedSceneLeft),
+            Math.abs(geometry.background.top - expectedSceneTop),
+            Math.abs(geometry.background.width - expectedSceneWidth),
+            Math.abs(geometry.background.height - expectedSceneHeight),
+            Math.abs(geometry.heroScene.left - geometry.background.left),
+            Math.abs(geometry.heroScene.top - geometry.background.top),
+            Math.abs(geometry.heroScene.width - geometry.background.width),
+            Math.abs(geometry.heroScene.height - geometry.background.height),
+            Math.abs(actualFootX - expectedFootX),
+            Math.abs(actualFootY - expectedFootY),
+          )
+        })
+        .toBeLessThanOrEqual(1.5)
 
+      const geometry = await readSceneGeometry(page)
       if (!geometry) throw new Error('Select scene geometry was not available.')
 
       const transform = calculateSelectSceneTransform(
